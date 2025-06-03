@@ -60,4 +60,4 @@ This project can be deployed to any platform that supports Next.js:
 
 ## License
 
-This project is subject to copyright.
+This project is subject to copyright. All rights reserved.
