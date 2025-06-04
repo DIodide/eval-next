@@ -1,22 +1,58 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu"
 
 export default function Navbar() {
   return (
     <nav className="bg-black text-white px-6 py-4">
       <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold tracking-wider">
-          EVAL
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/eval/logos/eLOGO_white.png"
+            alt="EVAL Logo"
+            width={80}
+            height={40}
+            className="object-contain"
+          />
         </Link>
 
         <div className="hidden md:flex items-center space-x-8">
           <Link href="/rankings" className="hover:text-cyan-400 transition-colors">
             RANKINGS
           </Link>
-          <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
-            RECRUITING
-          </Link>
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="bg-transparent text-white hover:text-cyan-400 hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-cyan-400">
+                  RECRUITING
+                </NavigationMenuTrigger>
+                <NavigationMenuContent className="min-w-[160px]">
+                  <div className="bg-white/95 backdrop-blur-sm p-2 rounded-md shadow-lg">
+                    <Link 
+                      href="/recruiting/players" 
+                      className="block text-black hover:text-cyan-600 transition-colors p-2 text-sm"
+                    >
+                      FOR PLAYERS
+                    </Link>
+                    <Link 
+                      href="/recruiting/coaches" 
+                      className="block text-black hover:text-cyan-600 transition-colors p-2 text-sm"
+                    >
+                      FOR COACHES
+                    </Link>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
           <Link href="/leagues" className="hover:text-cyan-400 transition-colors">
             LEAGUES
           </Link>

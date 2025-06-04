@@ -92,41 +92,60 @@ export default function HomePage() {
         />
         <div className="relative z-10 container mx-auto px-6">
           <p className="text-xl mb-4 font-medium">ENTER THE FRAY WITH</p>
-          <h2 className="text-6xl md:text-8xl font-bold mb-8">
-            <span className="italic">EVAL</span> COMBINES
+          <h2 className="text-6xl md:text-8xl font-bold mb-8 flex items-center justify-center gap-4">
+            <Image
+              src="/eval/logos/eLOGO_black.png"
+              alt="EVAL Logo"
+              width={272}
+              height={136}
+              className="object-contain"
+            />
+            <span>COMBINES</span>
           </h2>
           <p className="text-xl md:text-2xl mb-16 font-medium max-w-4xl mx-auto">
             COMPETE FOR CASH, SCHOLARSHIPS, AND RANKINGS WITH OTHER HIGH SCHOOL PLAYERS
           </p>
 
           {/* Game Logos */}
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 mb-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xs">RL</span>
-              </div>
-              <span className="font-bold text-lg">ROCKET LEAGUE</span>
+          <div className="flex flex-wrap justify-center items-center gap-14 md:gap-20 mb-16">
+            <div className="flex items-center">
+              <Image
+                src="/rocket-league/logos/bwt_rocket_league.png"
+                alt="Rocket League Logo"
+                width={220}
+                height={220}
+                className="object-contain"
+              />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <div className="w-16 h-16 bg-red-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-xs">VAL</span>
-              </div>
-              <span className="font-bold text-lg">VALORANT</span>
+            <div className="flex items-center">
+              <Image
+                src="/valorant/logos/V_Lockup_Vertical Black.png"
+                alt="Valorant Logo"
+                width={220}
+                height={220}
+                className="object-contain"
+              />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xs">SSB</span>
-              </div>
-              <span className="font-bold text-lg">SUPER SMASH BROS ULTIMATE</span>
+            <div className="flex items-center">
+              <Image
+                src="/smash/logos/Super Smash Bros Ultimate Black Logo.png"
+                alt="Super Smash Bros Ultimate Logo"
+                width={220}
+                height={220}
+                className="object-contain"
+              />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xs">OW</span>
-              </div>
-              <span className="font-bold text-lg">OVERWATCH</span>
+            <div className="flex items-center">
+              <Image
+                src="/overwatch/logos/Overwatch 2 Secondary Black.png"
+                alt="Overwatch Logo"
+                width={220}
+                height={220}
+                className="object-contain"
+              />
             </div>
           </div>
 
