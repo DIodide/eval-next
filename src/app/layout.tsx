@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Inter } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
+import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/app/_components/Navbar";
 import Footer from "@/app/_components/Footer";
 
@@ -23,13 +24,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} bg-[#0f0f1a] text-white`}>
       <body className="min-h-screen flex flex-col">
-        <TRPCReactProvider>
-          <Navbar />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
-        </TRPCReactProvider>
+        <ClerkProvider>
+          <TRPCReactProvider>
+            <Navbar />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </TRPCReactProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.20.2",
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.9.0",
     "@radix-ui/react-accordion": "^1.2.11",

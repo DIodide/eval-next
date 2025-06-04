@@ -9,6 +9,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
 export default function Navbar() {
   return (
@@ -76,9 +77,23 @@ export default function Navbar() {
             </button>
           </div>
 
-          <Button variant="outline" className="bg-red-500 hover:bg-red-600 text-white border-none rounded-full px-6">
-            SIGN IN
-          </Button>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button variant="outline" className="bg-red-500 hover:bg-red-600 text-white border-none rounded-full px-6">
+                SIGN IN
+              </Button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton 
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "w-10 h-10"
+                }
+              }}
+            />
+          </SignedIn>
         </div>
       </div>
     </nav>
