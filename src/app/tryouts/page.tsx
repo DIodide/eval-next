@@ -169,7 +169,7 @@ function TryoutCard({ tryout }: { tryout: Tryout }) {
           <div className="flex items-center space-x-3 flex-1 mr-4">
             <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
               <Image 
-                src={gameIcons[tryout.game]} 
+                src={"/eval/logos/eLOGO_white.png"} 
                 alt={tryout.title} 
                 width={32} 
                 height={32} 
