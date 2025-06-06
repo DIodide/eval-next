@@ -19,8 +19,8 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center space-x-8">
-          <Link href="/rankings" className="hover:text-cyan-400 transition-colors">
-            RANKINGS
+          <Link href="/tryouts" className="hover:text-cyan-400 transition-colors">
+            TRYOUTS
           </Link>
           <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
             RECRUITING
