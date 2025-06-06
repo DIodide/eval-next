@@ -2,13 +2,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
 export default function Navbar() {
@@ -29,31 +22,9 @@ export default function Navbar() {
           <Link href="/rankings" className="hover:text-cyan-400 transition-colors">
             RANKINGS
           </Link>
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent text-white hover:text-cyan-400 hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-cyan-400">
-                  RECRUITING
-                </NavigationMenuTrigger>
-                <NavigationMenuContent className="min-w-[160px]">
-                  <div className="bg-white/95 backdrop-blur-sm p-2 rounded-md shadow-lg">
-                    <Link 
-                      href="/recruiting/players" 
-                      className="block text-black hover:text-cyan-600 transition-colors p-2 text-sm"
-                    >
-                      FOR PLAYERS
-                    </Link>
-                    <Link 
-                      href="/recruiting/coaches" 
-                      className="block text-black hover:text-cyan-600 transition-colors p-2 text-sm"
-                    >
-                      FOR COACHES
-                    </Link>
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+          <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
+            RECRUITING
+          </Link>
           <Link href="/leagues" className="hover:text-cyan-400 transition-colors">
             LEAGUES
           </Link>
@@ -69,7 +40,7 @@ export default function Navbar() {
           <div className="relative">
             <input
               type="text"
-              placeholder="SEARCH"
+              placeholder="PLAYER SEARCH"
               className="bg-gray-800 text-gray-300 rounded-full pl-4 pr-10 py-2 w-48 focus:outline-none focus:ring-1 focus:ring-gray-600"
             />
             <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
