@@ -1,9 +1,6 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import Navbar from "../_components/Navbar"
-import Footer from "../_components/Footer"
 import { TrendingUp, BarChart3, MessageSquare, Users, Trophy, GraduationCap, Eye, Award, UserCheck } from "lucide-react"
 
 export default function HomePage() {
