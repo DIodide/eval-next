@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
@@ -15,7 +15,7 @@ const gameColors = {
 }
 
 export const gameIcons = {
-  VALORANT: "/valorant/logos/V_Lockup_Vertical Black.png",
+  "VALORANT": "/valorant/logos/V_Lockup_Vertical Black.png",
   "Overwatch 2": "/overwatch/logos/Overwatch 2 Secondary Black.png",
   "Smash Ultimate": "/smash/logos/smash-logo.png",
   "Rocket League": "/rocket-league/logos/rl-logo.png",
@@ -25,8 +25,24 @@ export type GameType = keyof typeof gameIcons;
 
 export default function GameCarousel({ game, tryouts }: { game: GameType; tryouts: Tryout[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const itemsPerView = 3
+  const [cardWidth, setCardWidth] = useState(320)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const itemsPerView = 3 // experiment with this, consider mobile view
   const maxIndex = Math.max(0, tryouts.length - itemsPerView)
+
+  useEffect(() => {
+    const updateCardWidth = () => {
+      if (cardRef.current) {
+        const width = cardRef.current.offsetWidth
+        const gap = 24 // space-x-6 = 1.5rem = 24px
+        setCardWidth(width + gap)
+      }
+    }
+
+    updateCardWidth()
+    window.addEventListener('resize', updateCardWidth)
+    return () => window.removeEventListener('resize', updateCardWidth)
+  }, [])
 
   const nextSlide = () => {
     setCurrentIndex((prev) => Math.min(prev + 1, maxIndex))
@@ -78,10 +94,16 @@ export default function GameCarousel({ game, tryouts }: { game: GameType; tryout
       <div className="overflow-hidden">
         <div
           className="flex space-x-6 transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * (320 + 24)}px)` }}
+          style={{ transform: `translateX(-${currentIndex * cardWidth}px)` }}
         >
-          {tryouts.map((tryout) => (
-            <TryoutCard key={tryout.id} tryout={tryout} />
+          {tryouts.map((tryout, index) => (
+            <div 
+              key={tryout.id} 
+              ref={index === 0 ? cardRef : null}
+              className="w-[320px] shrink-0"
+            >
+              <TryoutCard tryout={tryout} />
+            </div>
           ))}
         </div>
       </div>

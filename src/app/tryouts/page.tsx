@@ -147,6 +147,26 @@ const tryoutsData: Record<GameType, Tryout[]> = {
   ],
 }
 
+// FUNCTION FOR DEV USE
+const duplicateTryouts = (data: Record<GameType, Tryout[]>): void => {
+  (Object.keys(data) as GameType[]).forEach(game => {
+    const originalTryouts = data[game];
+    const lastId = Math.max(...originalTryouts.map(t => t.id));
+    
+    for (let i = 1; i <= 2; i++) {
+      const newTryouts: Tryout[] = originalTryouts.map(tryout => ({
+        ...tryout,
+        id: tryout.id + (lastId * i)
+      }));
+      data[game].push(...newTryouts);
+    }
+  });
+};
+
+// REMOVE THIS BEFORE DEPLOYING
+// duplicateTryouts(tryoutsData);
+// END
+
 export default function TryoutsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
