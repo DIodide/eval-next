@@ -1,16 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, ChevronLeft, ChevronRight, MapPin, Users, Calendar, User, Clock } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Search } from "lucide-react"
 import type { Tryout } from "./types"
+import type { GameType } from "./_components/GameCarousel"
+import GameCarousel from "./_components/GameCarousel"
 
-// Mock data for tryouts
-const tryoutsData: Record<keyof typeof gameIcons, Tryout[]> = {
+// TODO: replace with actual data from the database.
+const tryoutsData: Record<GameType, Tryout[]> = {
   VALORANT: [
     {
       id: 1,
@@ -56,7 +56,7 @@ const tryoutsData: Record<keyof typeof gameIcons, Tryout[]> = {
     },
   ],
   "Overwatch 2": [
-    { 
+    {
       id: 4,
       game: "Overwatch 2",
       title: "USC Trojans OW2 Tryouts",
@@ -147,156 +147,12 @@ const tryoutsData: Record<keyof typeof gameIcons, Tryout[]> = {
   ],
 }
 
-const gameColors = {
-  VALORANT: "from-red-500 to-red-700",
-  "Overwatch 2": "from-orange-500 to-orange-700",
-  "Smash Ultimate": "from-yellow-500 to-yellow-700",
-  "Rocket League": "from-blue-500 to-blue-700",
-}
-
-const gameIcons = {
-  VALORANT: "/valorant/logos/V_Lockup_Vertical Black.png",
-  "Overwatch 2": "/overwatch/logos/Overwatch 2 Secondary Black.png",
-  "Smash Ultimate": "/smash/logos/smash-logo.png",
-  "Rocket League": "/rocket-league/logos/rl-logo.png",
-}
-
-function TryoutCard({ tryout }: { tryout: Tryout }) {
-  return (
-    <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3 flex-1 mr-4">
-            <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
-              <Image 
-                src={"/eval/logos/eLOGO_white.png"} 
-                alt={tryout.title} 
-                width={32} 
-                height={32} 
-                className="object-contain"
-              />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-orbitron font-bold text-white text-sm tracking-wide">{tryout.title}</h3>
-              <p className="text-gray-400 text-xs font-rajdhani">{tryout.school}</p>
-            </div>
-          </div>
-          <Badge
-            variant={tryout.price === "Free" ? "secondary" : "outline"}
-            className={`${tryout.price === "Free" ? "bg-green-600 text-white" : "border-cyan-400 text-cyan-400"} font-orbitron text-xs flex-shrink-0`}
-          >
-            {tryout.price}
-          </Badge>
-        </div>
-
-        <p className="text-gray-300 text-sm mb-4 font-rajdhani">{tryout.description}</p>
-
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <MapPin className="w-4 h-4 text-cyan-400" />
-            <span className="text-gray-300 font-rajdhani">{tryout.type}</span>
-          </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Users className="w-4 h-4 text-cyan-400" />
-            <span className="text-gray-300 font-rajdhani">
-              {tryout.spots} • {tryout.totalSpots}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Calendar className="w-4 h-4 text-cyan-400" />
-            <span className="text-gray-300 font-rajdhani">{tryout.date}</span>
-          </div>
-          {tryout.time && (
-            <div className="flex items-center space-x-2 text-sm">
-              <Clock className="w-4 h-4 text-cyan-400" />
-              <span className="text-gray-300 font-rajdhani">{tryout.time}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400 font-rajdhani">by {tryout.organizer}</span>
-          <Button size="sm" className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron text-xs tracking-wide">
-            REGISTER
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function GameCarousel({ game, tryouts }: { game: keyof typeof gameIcons; tryouts: Tryout[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const itemsPerView = 3
-  const maxIndex = Math.max(0, tryouts.length - itemsPerView)
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex))
-  }
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0))
-  }
-
-  return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div
-            className={`w-16 h-16 bg-gradient-to-br ${gameColors[game]} rounded-lg flex items-center justify-center text-2xl`}
-          >
-            <Image 
-              src={gameIcons[game]} 
-              alt={game} 
-              width={48} 
-              height={48} 
-              className="object-contain" 
-            />
-          </div>
-          <h2 className="font-orbitron text-2xl font-bold text-white tracking-wide">{game}</h2>
-        </div>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={prevSlide}
-            disabled={currentIndex === 0}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={nextSlide}
-            disabled={currentIndex >= maxIndex}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="overflow-hidden">
-        <div
-          className="flex space-x-6 transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * (320 + 24)}px)` }}
-        >
-          {tryouts.map((tryout) => (
-            <TryoutCard key={tryout.id} tryout={tryout} />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function TryoutsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   return (
     <div className="min-h-screen bg-black">
-
+      
       <div className="container mx-auto px-6 py-12">
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -359,7 +215,7 @@ export default function TryoutsPage() {
         {/* Game Carousels */}
         <div className="space-y-16">
           {Object.entries(tryoutsData).map(([game, tryouts]) => (
-            <GameCarousel key={game} game={game as keyof typeof gameIcons} tryouts={tryouts} />
+            <GameCarousel key={game} game={game as GameType} tryouts={tryouts} />
           ))}
         </div>
 
@@ -376,8 +232,6 @@ export default function TryoutsPage() {
           </Button>
         </div>
       </div>
-
-
     </div>
   )
 }
