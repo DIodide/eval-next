@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/app/_components/Navbar";
@@ -18,12 +18,24 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+  weight: ["400", "500", "600", "700", "800", "900"],
+})
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  variable: "--font-rajdhani",
+  weight: ["300", "400", "500", "600", "700"],
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} bg-[#0f0f1a] text-white`}>
-      <body className="min-h-screen flex flex-col">
+    <html lang="en" className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} bg-[#0f0f1a] text-white`}>
+      <body className="min-h-screen flex flex-col font-rajdhani">
         <ClerkProvider>
           <TRPCReactProvider>
             <Navbar />

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
-import type { Tryout } from "./types"
+import type { Tryout } from "./college/types"
 import type { GameType } from "./_components/GameCarousel"
 import GameCarousel from "./_components/GameCarousel"
 

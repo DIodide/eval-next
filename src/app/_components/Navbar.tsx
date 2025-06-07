@@ -1,8 +1,9 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
+import { ChevronDown, Search } from "lucide-react"
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function Navbar() {
   return (
@@ -19,21 +20,59 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center space-x-8">
-          <Link href="/tryouts" className="hover:text-cyan-400 transition-colors">
-            TRYOUTS
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center">
+              TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+              <DropdownMenuItem className=" font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white">
+                <Link href="/tryouts/combines" className="w-full">
+                  EVAL COMBINES
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className=" font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white">
+                <Link href="/tryouts/college" className="w-full">
+                  COLLEGE
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
             RECRUITING
           </Link>
           <Link href="/leagues" className="hover:text-cyan-400 transition-colors">
             LEAGUES
           </Link>
-          <Link href="/partnerships" className="hover:text-cyan-400 transition-colors">
-            PARTNERSHIPS
+          <Link href="/pricing" className="hover:text-cyan-400 transition-colors">
+            PRICING
           </Link>
-          <Link href="/about" className="hover:text-cyan-400 transition-colors">
-            ABOUT US
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center">
+              ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <Link href="/about/partners" className="w-full">
+                  OUR PARTNERS
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <Link href="/about/team" className="w-full">
+                  OUR TEAM
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <Link href="/about/contact" className="w-full">
+                  CONTACT
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <Link href="/about/faq" className="w-full">
+                  FAQs
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex items-center space-x-4">

@@ -1,0 +1,16 @@
+export default function CombinesPage() {
+  return (
+    <div className="min-h-screen bg-black">
+      <div className="container mx-auto px-6 py-12">
+        <div className="text-center mb-12">
+          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
+            EVAL COMBINES
+          </h1>
+          <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-3xl mx-auto">
+            Coming soon! Official EVAL combines will be available for registration in early 2025.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
