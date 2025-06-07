@@ -101,7 +101,7 @@ export default function PartnersPage() {
               <p className="text-gray-300 font-rajdhani text-sm">Integrate your tools with our platform ecosystem</p>
             </div>
           </div>
-          <Link href="/contact">
+          <Link href="/about/contact">
             <Button className="bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-500 hover:to-purple-500 text-black font-orbitron font-bold px-8 py-3 text-lg tracking-wider">
               BECOME A PARTNER
             </Button>
