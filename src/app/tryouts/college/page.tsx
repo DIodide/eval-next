@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import type { Tryout } from "./types"
-import type { GameType } from "./GameCarousel"
-import GameCarousel from "./GameCarousel"
+import type { GameType } from "@/app/tryouts/college/_components/GameCarousel"
+import GameCarousel from "@/app/tryouts/college/_components/GameCarousel"
 
 // TODO: replace with actual data from the database.
 const tryoutsData: Record<GameType, Tryout[]> = {

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Users, Calendar, Clock } from "lucide-react"
-import type { Tryout } from "../college/types"
+import type { Tryout } from "../types"
 import { gameIcons } from "./GameCarousel"
 
 export default function TryoutCard({ tryout }: { tryout: Tryout }) {

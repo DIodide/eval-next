@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
-import type { Tryout } from "../college/types"
+import type { Tryout } from "../types"
 import TryoutCard from "./TryoutCard"
 
 const gameColors = {
