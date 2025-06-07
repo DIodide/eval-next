@@ -25,7 +25,7 @@ A modern platform connecting student gamers with college esports programs and sc
 1. Clone the repository
 2. Install dependencies:
    ```bash
-   npm install
+   npm install --force
    ```
 3. Set up environment variables (copy `.env.example` to `.env` and update the values)
 4. Run the development server:
