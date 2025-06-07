@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Users, Calendar, User, Clock, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react"
 import Link from "next/link"
-import type { Tryout } from "../types"
+import type { Tryout } from "../../types"
 
 // Flattened tryouts data for easier lookup by ID
 const allTryouts: Tryout[] = [
