@@ -21,20 +21,20 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center space-x-8">
           <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center">
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
               TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-gray-900 border-gray-700">
-              <DropdownMenuItem className=" font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white">
-                <Link href="/tryouts/combines" className="w-full">
+              <Link href="/tryouts/combines">
+                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
                   EVAL COMBINES
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className=" font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white">
-                <Link href="/tryouts/college" className="w-full">
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/tryouts/college">
+                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
                   COLLEGE
-                </Link>
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuContent>
           </DropdownMenu>
           <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
@@ -47,30 +47,30 @@ export default function Navbar() {
             PRICING
           </Link>
           <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center">
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-gray-900 border-gray-700">
-              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                <Link href="/about/partners" className="w-full">
+              <Link href="/about/partners">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
                   OUR PARTNERS
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                <Link href="/about/team" className="w-full">
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/about/team">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
                   OUR TEAM
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                <Link href="/about/contact" className="w-full">
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/about/contact">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
                   CONTACT
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                <Link href="/about/faq" className="w-full">
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/about/faq">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
                   FAQs
-                </Link>
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
