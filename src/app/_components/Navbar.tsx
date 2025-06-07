@@ -40,9 +40,23 @@ export default function Navbar() {
           <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
             RECRUITING
           </Link>
-          <Link href="/leagues" className="hover:text-cyan-400 transition-colors">
-            LEAGUES
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+              RANKINGS <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+              <Link href="/rankings/leagues">
+                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                  LEAGUES
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/rankings/combines">
+                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                  COMBINES
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href="/pricing" className="hover:text-cyan-400 transition-colors">
             PRICING
           </Link>

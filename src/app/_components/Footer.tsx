@@ -49,12 +49,12 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <Link href="/about" className="hover:text-white">
+                <Link href="/about/team" className="hover:text-white">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/partnerships" className="hover:text-white">
+                <Link href="/about/partners" className="hover:text-white">
                   Partnerships
                 </Link>
               </li>
@@ -64,7 +64,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-white">
+                <Link href="/about/contact" className="hover:text-white">
                   Contact
                 </Link>
               </li>
