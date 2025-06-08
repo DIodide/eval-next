@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, User, Quote } from "lucide-react"
 import FAQSection from "./_components/FAQSection"
+import { FlipWords } from "@/components/ui/flip-words"
 
 // Mock data for ranking previews
 const collegeTriouts = [
@@ -78,9 +79,11 @@ export default function HomePage() {
 
           {/* New Slogan */}
           <div className="mb-8">
-            <h2 className="font-orbitron text-2xl md:text-4xl font-bold text-white mb-4 tracking-wider">
-              <span className="text-cyan-400">GET RANKED</span> • <span className="text-purple-400">GET RECRUITED</span>{" "}
-              • <span className="text-orange-400">GET SCHOLARSHIPS</span>
+            <h2 className="font-orbitron text-2xl md:text-5xl font-bold text-white mb-4 tracking-wider">
+              <FlipWords 
+                words={["GET RANKED", "GET RECRUITED", "GET SCHOLARSHIPS"]} 
+                duration={2000}
+              />
             </h2>
           </div>
 
