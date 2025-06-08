@@ -25,23 +25,6 @@ export default function Navbar() {
               DASHBOARD
             </Link>
           </SignedIn>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
-              TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-700">
-              <Link href="/tryouts/combines">
-                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
-                  EVAL COMBINES
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/tryouts/college">
-                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
-                  COLLEGE
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Link href="/recruiting" className="font-orbitron hover:text-cyan-400 transition-colors">
             RECRUITING
           </Link>
@@ -58,6 +41,23 @@ export default function Navbar() {
               <Link href="/rankings/combines">
                 <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
                   COMBINES
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+              TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+              <Link href="/tryouts/combines">
+                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                  EVAL COMBINES
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/tryouts/college">
+                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                  COLLEGE
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
