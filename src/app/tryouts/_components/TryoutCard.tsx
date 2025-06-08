@@ -1,6 +1,7 @@
 'use client'
 
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -63,9 +64,11 @@ export default function TryoutCard({ tryout }: { tryout: Tryout }) {
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400 font-rajdhani">by {tryout.organizer}</span>
-          <Button size="sm" className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron text-xs tracking-wide">
-            REGISTER
-          </Button>
+          <Link href={`/tryouts/college/${tryout.id}`}>
+            <Button size="sm" className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron text-xs tracking-wide">
+              REGISTER
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
