@@ -20,6 +20,11 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center space-x-8">
+          <SignedIn>
+            <Link href="/dashboard" className="font-orbitron hover:text-cyan-400 transition-colors">
+              DASHBOARD
+            </Link>
+          </SignedIn>
           <DropdownMenu>
             <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
               TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
@@ -37,7 +42,7 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/recruiting" className="hover:text-cyan-400 transition-colors">
+          <Link href="/recruiting" className="font-orbitron hover:text-cyan-400 transition-colors">
             RECRUITING
           </Link>
           <DropdownMenu>
@@ -57,7 +62,7 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/pricing" className="hover:text-cyan-400 transition-colors">
+          <Link href="/pricing" className="font-orbitron hover:text-cyan-400 transition-colors">
             PRICING
           </Link>
           <DropdownMenu>
@@ -108,6 +113,7 @@ export default function Navbar() {
               </Button>
             </SignInButton>
           </SignedOut>
+
           <SignedIn>
             <UserButton 
               afterSignOutUrl="/"
