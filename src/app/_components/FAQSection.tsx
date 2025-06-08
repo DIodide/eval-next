@@ -54,7 +54,7 @@ export default function FAQSection() {
         <div className="max-w-4xl mx-auto space-y-4">
           {faqs.map((faq, index) => (
             <Collapsible key={index} open={openFaq === index} onOpenChange={() => toggleFaq(index)}>
-              <CollapsibleTrigger className="w-full">
+              <CollapsibleTrigger className="w-full cursor-pointer">
                 <div className="flex items-center justify-between p-6 bg-gray-800 hover:bg-gray-700 transition-colors border-b border-gray-600">
                   <h3 className="font-orbitron text-white text-lg font-semibold text-left">{faq.question}</h3>
                   <ChevronDown
