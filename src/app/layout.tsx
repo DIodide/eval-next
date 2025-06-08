@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 
+import { Analytics } from "@vercel/analytics/next"
 import { type Metadata } from "next";
 import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
@@ -45,6 +46,7 @@ export default function RootLayout({
             <Footer />
           </TRPCReactProvider>
         </ClerkProvider>
+        <Analytics />
       </body>
     </html>
   );
