@@ -18,7 +18,7 @@ const founders = [
       "Gaming has always been about community. We're building technology that brings players together and creates opportunities for the next generation.",
   },
   {
-    name: "Erica Yeung",
+    name: "Erika Yeung",
     role: "Chief Marketing Officer (CMO)",
     image: "/team/headshots/erica.png?height=200&width=200",
     quote:
