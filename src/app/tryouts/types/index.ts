@@ -21,3 +21,30 @@ export interface Tryout {
   requirements: TryoutRequirements;
   longDescription?: string;
 } 
+
+export interface Combine {
+  id: number;
+  title: string;
+  year: string;
+  date: string;
+  location: string;
+  spots: string;
+  prize: string;
+  status: string;
+  qualified: boolean;
+  description: string;
+  requirements: string;
+  game: string;
+  gameIcon: string;
+  gameColor: string;
+  bgColor: string;
+  image: string;
+  // UI-specific fields
+  time?: string;
+  type?: "Online" | "In-Person" | "Hybrid";
+  spotsRemaining?: number;
+  organizer?: string;
+  longDescription?: string;
+  prizePool?: string;
+  format?: string;
+}
