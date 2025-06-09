@@ -344,7 +344,8 @@ function CombineCard({ combine }: { combine: Combine }) {
 function GameCarousel({ game, gameData }: { game: string; gameData: { invitational: Combine; combines: Combine[] }  }) {
   const gameColor = gameColors[game as keyof typeof gameColors] || "from-gray-500 to-gray-700"
   const [currentIndex, setCurrentIndex] = useState(0)
-  const itemsPerView = window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1
+  // const itemsPerView = window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1
+  const itemsPerView = 3
   const maxIndex = Math.max(0, gameData.combines.length + 1 - itemsPerView)
 
   const nextSlide = () => {
