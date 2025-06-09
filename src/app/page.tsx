@@ -79,11 +79,9 @@ export default function HomePage() {
 
           {/* New Slogan */}
           <div className="mb-8">
-            <h2 className="font-orbitron text-2xl md:text-5xl font-bold text-white mb-4 tracking-wider">
-              <FlipWords 
-                words={["GET RANKED", "GET RECRUITED", "GET SCHOLARSHIPS"]} 
-                duration={2000}
-              />
+            <h2 className="font-orbitron text-2xl md:text-4xl font-bold text-white mb-4 tracking-wider">
+              <span className="text-cyan-400">GET RANKED</span> • <span className="text-purple-400">GET RECRUITED</span>{" "}
+              • <span className="text-orange-400">GET SCHOLARSHIPS</span>
             </h2>
           </div>
 
