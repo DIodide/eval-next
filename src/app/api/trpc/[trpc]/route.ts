@@ -5,7 +5,7 @@ import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 
-// CLERK
+// CLERK Auth Guide: https://clerk.com/docs/references/nextjs/trpc
 import { createClerkContext } from '@/server/context'
 
 /**
