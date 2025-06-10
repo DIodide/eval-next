@@ -1,11 +1,34 @@
+"use client"
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Search } from "lucide-react"
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { ChevronDown, Search, User, GraduationCap, School, X } from "lucide-react"
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function Navbar() {
+  const [showSignUpModal, setShowSignUpModal] = useState(false)
+  const [selectedUserType, setSelectedUserType] = useState<'player' | 'college' | null>(null)
+
+  const handleUserTypeSelect = (userType: 'player' | 'college') => {
+    setSelectedUserType(userType)
+  }
+
+  const handleSignUp = () => {
+    if (selectedUserType) {
+      setShowSignUpModal(false)
+      // Reset selection after a brief delay to allow modal to close
+      setTimeout(() => setSelectedUserType(null), 300)
+    }
+  }
+
+  const resetAndCloseModal = () => {
+    setSelectedUserType(null)
+    setShowSignUpModal(false)
+  }
+
   return (
     <nav className="bg-black text-white px-6 py-4">
       <div className="container mx-auto flex items-center justify-between">
@@ -107,8 +130,15 @@ export default function Navbar() {
           </div>
 
           <SignedOut>
+            <Button
+              onClick={() => setShowSignUpModal(true)}
+              variant="outline"
+              className="bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full px-6"
+            >
+              SIGN UP
+            </Button>
             <SignInButton mode="modal">
-              <Button variant="outline" className="bg-red-500 hover:bg-red-600 text-white border-none rounded-full px-6">
+              <Button variant="outline" className="bg-blue-500 hover:bg-blue-600 text-white border-none rounded-full px-6">
                 SIGN IN
               </Button>
             </SignInButton>
@@ -116,7 +146,6 @@ export default function Navbar() {
 
           <SignedIn>
             <UserButton 
-              afterSignOutUrl="/"
               appearance={{
                 elements: {
                   avatarBox: "w-10 h-10"
@@ -126,6 +155,120 @@ export default function Navbar() {
           </SignedIn>
         </div>
       </div>
+
+      {/* Sign Up Modal */}
+      <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
+        <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
+          <DialogHeader className="relative">
+            <button
+              onClick={resetAndCloseModal}
+              className="absolute right-0 top-0 p-1 hover:bg-slate-800 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+            <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">CHOOSE YOUR ACCOUNT TYPE</h2>
+              <p className="text-slate-300 text-sm">
+                Empowering students and college coaches to connect.
+              </p>
+            </div>
+
+            {/* Horizontal Options */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Player Option */}
+              <button
+                onClick={() => handleUserTypeSelect('player')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'player'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'player' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <User className={`w-6 h-6 ${
+                      selectedUserType === 'player' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">PLAYER</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a player looking to find an esports scholarship and related opportunities.
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* College Option */}
+              <button
+                onClick={() => handleUserTypeSelect('college')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'college'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'college' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <GraduationCap className={`w-6 h-6 ${
+                      selectedUserType === 'college' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">SCHOOL</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a coach, director or administrator looking to make finding players easier.
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Sign Up Button */}
+            {selectedUserType ? (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: selectedUserType }}
+              >
+                <Button
+                  onClick={handleSignUp}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-medium shadow-lg"
+                >
+                  SIGN UP AS {selectedUserType === 'college' ? 'SCHOOL' : selectedUserType.toUpperCase()}
+                </Button>
+              </SignUpButton>
+            ) : (
+              <Button
+                disabled
+                className="w-full bg-slate-700 text-slate-500 rounded-lg py-3 font-medium cursor-not-allowed"
+              >
+                SIGN UP
+              </Button>
+            )}
+
+            {/* Sign In Link */}
+            <div className="text-center">
+              <SignInButton mode="modal">
+                <button className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                  Already have an account? Sign In
+                </button>
+              </SignInButton>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </nav>
   )
 }

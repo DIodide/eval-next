@@ -38,7 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} bg-[#0f0f1a] text-white`}>
       <body className="min-h-screen flex flex-col font-rajdhani">
-        <ClerkProvider appearance={{ baseTheme: [dark, neobrutalism] }}>
+        <ClerkProvider appearance={{ 
+          baseTheme: [dark, neobrutalism],
+          variables: {
+            colorPrimary: '#719bf0'
+          }
+        }}>
           <TRPCReactProvider>
             <Navbar />
             <main className="flex-grow">
