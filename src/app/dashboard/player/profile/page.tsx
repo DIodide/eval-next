@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Dialog,
   DialogContent,
@@ -72,6 +73,15 @@ interface RecruitingData {
   academicBio: string;
 }
 
+type ValidationErrors = Record<string, string>;
+
+const supportedGames = [
+  "Valorant",
+  "Overwatch 2", 
+  "Smash Ultimate",
+  "Rocket League"
+];
+
 export default function ProfilePage() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editRecruitingOpen, setEditRecruitingOpen] = useState(false);
@@ -79,6 +89,11 @@ export default function ProfilePage() {
   const [editSocialConnectionOpen, setEditSocialConnectionOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string>("");
   const [connectionUsername, setConnectionUsername] = useState("");
+
+  // Validation state
+  const [profileErrors, setProfileErrors] = useState<ValidationErrors>({});
+  const [recruitingErrors, setRecruitingErrors] = useState<ValidationErrors>({});
+  const [connectionError, setConnectionError] = useState("");
 
   // Profile data state
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -192,8 +207,87 @@ export default function ProfilePage() {
     }
   ]);
 
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateGPA = (gpa: string): boolean => {
+    const gpaNum = parseFloat(gpa);
+    return !isNaN(gpaNum) && gpaNum >= 0 && gpaNum <= 4.0;
+  };
+
+  const validateYear = (year: string): boolean => {
+    const yearNum = parseInt(year);
+    const currentYear = new Date().getFullYear();
+    return !isNaN(yearNum) && yearNum >= currentYear && yearNum <= currentYear + 10;
+  };
+
+  const validateProfileData = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (profileData.email && !validateEmail(profileData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    if (profileData.username && profileData.username.length < 3) {
+      errors.username = "Username must be at least 3 characters";
+    }
+
+    if (profileData.realName && profileData.realName.length < 2) {
+      errors.realName = "Name must be at least 2 characters";
+    }
+
+    setProfileErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateRecruitingData = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (recruitingData.scholasticContactEmail && !validateEmail(recruitingData.scholasticContactEmail)) {
+      errors.scholasticContactEmail = "Please enter a valid email address";
+    }
+
+    if (recruitingData.parentContact && !validateEmail(recruitingData.parentContact)) {
+      errors.parentContact = "Please enter a valid email address";
+    }
+
+    if (recruitingData.gpa && !validateGPA(recruitingData.gpa)) {
+      errors.gpa = "GPA must be between 0.0 and 4.0";
+    }
+
+    if (recruitingData.class && !validateYear(recruitingData.class)) {
+      errors.class = "Please enter a valid graduation year";
+    }
+
+    setRecruitingErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateConnection = (): boolean => {
+    if (!selectedPlatform) {
+      setConnectionError("Please select a platform");
+      return false;
+    }
+
+    if (!connectionUsername.trim()) {
+      setConnectionError("Please enter a username");
+      return false;
+    }
+
+    if (connectionUsername.trim().length < 3) {
+      setConnectionError("Username must be at least 3 characters");
+      return false;
+    }
+
+    setConnectionError("");
+    return true;
+  };
+
   const handleGameConnectionSave = () => {
-    if (!selectedPlatform || !connectionUsername.trim()) return;
+    if (!validateConnection()) return;
     
     setGameConnections(prev => prev.map(conn => 
       conn.platform === selectedPlatform 
@@ -203,11 +297,12 @@ export default function ProfilePage() {
     
     setConnectionUsername("");
     setSelectedPlatform("");
+    setConnectionError("");
     setEditGameConnectionOpen(false);
   };
 
   const handleSocialConnectionSave = () => {
-    if (!selectedPlatform || !connectionUsername.trim()) return;
+    if (!validateConnection()) return;
     
     setSocialConnections(prev => prev.map(conn => 
       conn.platform === selectedPlatform 
@@ -217,6 +312,7 @@ export default function ProfilePage() {
     
     setConnectionUsername("");
     setSelectedPlatform("");
+    setConnectionError("");
     setEditSocialConnectionOpen(false);
   };
 
@@ -237,12 +333,12 @@ export default function ProfilePage() {
   };
 
   const handleProfileSave = () => {
-    // Here you would typically save to your backend
+    if (!validateProfileData()) return;
     setEditProfileOpen(false);
   };
 
   const handleRecruitingSave = () => {
-    // Here you would typically save to your backend
+    if (!validateRecruitingData()) return;
     setEditRecruitingOpen(false);
   };
 
@@ -311,6 +407,9 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="John Doe"
                         />
+                        {profileErrors.realName && (
+                          <p className="text-red-400 text-sm mt-1">{profileErrors.realName}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="username" className="font-rajdhani pb-2">Username</Label>
@@ -321,6 +420,9 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="gamertag123"
                         />
+                        {profileErrors.username && (
+                          <p className="text-red-400 text-sm mt-1">{profileErrors.username}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -333,6 +435,9 @@ export default function ProfilePage() {
                         className="bg-gray-800 border-gray-700 text-white"
                         placeholder="john@example.com"
                       />
+                      {profileErrors.email && (
+                        <p className="text-red-400 text-sm mt-1">{profileErrors.email}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="location" className="font-rajdhani pb-2">Location</Label>
@@ -454,18 +559,26 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="2025"
                         />
+                        {recruitingErrors.class && (
+                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.class}</p>
+                        )}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="mainGame" className="font-rajdhani pb-2">Main Game</Label>
-                        <Input
-                          id="mainGame"
-                          value={recruitingData.mainGame}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, mainGame: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="Valorant, League of Legends, etc."
-                        />
+                        <Select value={recruitingData.mainGame} onValueChange={(value) => setRecruitingData(prev => ({ ...prev, mainGame: value }))}>
+                          <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                            <SelectValue placeholder="Select your main game" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-gray-700">
+                            {supportedGames.map((game) => (
+                              <SelectItem key={game} value={game} className="text-white hover:bg-gray-700">
+                                {game}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <Label htmlFor="gpa" className="font-rajdhani pb-2">GPA</Label>
@@ -476,6 +589,9 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="3.5"
                         />
+                        {recruitingErrors.gpa && (
+                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.gpa}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -509,6 +625,9 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="counselor@school.edu"
                         />
+                        {recruitingErrors.scholasticContactEmail && (
+                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.scholasticContactEmail}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -521,6 +640,9 @@ export default function ProfilePage() {
                         className="bg-gray-800 border-gray-700 text-white"
                         placeholder="parent@email.com"
                       />
+                      {recruitingErrors.parentContact && (
+                        <p className="text-red-400 text-sm mt-1">{recruitingErrors.parentContact}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="extraCurriculars" className="font-rajdhani pb-2">Extra Curriculars</Label>
@@ -675,6 +797,9 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="Enter your username"
                         />
+                        {connectionError && (
+                          <p className="text-red-400 text-sm mt-1">{connectionError}</p>
+                        )}
                       </div>
                     )}
                     <div className="flex justify-end gap-2 pt-4">
@@ -682,13 +807,13 @@ export default function ProfilePage() {
                         setEditGameConnectionOpen(false);
                         setSelectedPlatform("");
                         setConnectionUsername("");
+                        setConnectionError("");
                       }}>
                         Cancel
                       </Button>
                       <Button 
                         className="bg-blue-600 hover:bg-blue-700" 
                         onClick={handleGameConnectionSave}
-                        disabled={!selectedPlatform || !connectionUsername.trim()}
                       >
                         Connect Account
                       </Button>
@@ -779,20 +904,23 @@ export default function ProfilePage() {
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="Enter your username"
                         />
+                        {connectionError && (
+                          <p className="text-red-400 text-sm mt-1">{connectionError}</p>
+                        )}
                       </div>
                     )}
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="text-black border-gray-600" onClick={() => {
+                      <Button variant="outline" className="border-gray-600" onClick={() => {
                         setEditSocialConnectionOpen(false);
                         setSelectedPlatform("");
                         setConnectionUsername("");
+                        setConnectionError("");
                       }}>
                         Cancel
                       </Button>
                       <Button 
                         className="bg-blue-600 hover:bg-blue-700" 
                         onClick={handleSocialConnectionSave}
-                        disabled={!selectedPlatform || !connectionUsername.trim()}
                       >
                         Connect Account
                       </Button>
