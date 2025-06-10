@@ -1,3 +1,17 @@
+// =================================================================
+// PRISMA SCHEMA
+// =================================================================
+// This schema is organized into the following sections:
+// 1. Configuration
+// 2. User Management & Authentication (Player, Coach)
+// 3. Gaming (Game, PlayerGameProfile)
+// 4. Educational Institutions (School)
+// 5. Teams & Competition (Team, TeamMember)
+// 6. Events (Tryout, Combine)
+// 7. Leagues & Rankings (League, LeagueTeam)
+// 8. Performance & Statistics (PlayerRanking, Match)
+// =================================================================
+
 generator client {
     provider = "prisma-client-js"
 }
@@ -8,9 +22,9 @@ datasource db {
     directUrl = env("DIRECT_URL")
 }
 
-// ===================================
-// USER MANAGEMENT & AUTHENTICATION
-// ===================================
+// =================================================================
+// 1. USER MANAGEMENT & AUTHENTICATION
+// =================================================================
 
 /// Players table with Clerk integration
 model Player {
@@ -50,11 +64,10 @@ model Coach {
     first_name String
     last_name  String
     school     String
-    school_id  String?  @db.Uuid // FK to School if we formalize schools
+    school_id  String?  @db.Uuid
     created_at DateTime @default(now()) @db.Timestamp(6)
     updated_at DateTime @updatedAt
 
-    // Optional school reference
     school_ref School? @relation(fields: [school_id], references: [id])
 
     // Coaching relationships
@@ -65,9 +78,9 @@ model Coach {
     @@map("coaches")
 }
 
-// ===================================
-// GAMING & COMPETITION STRUCTURE
-// ===================================
+// =================================================================
+// 2. GAMING & PROFILES
+// =================================================================
 
 /// Games supported by the platform
 model Game {
@@ -95,7 +108,6 @@ model PlayerGameProfile {
     player_id String @db.Uuid
     game_id   String @db.Uuid
 
-    // Game-specific data
     username    String
     rank        String?
     rating      Float?
@@ -111,22 +123,21 @@ model PlayerGameProfile {
     @@map("player_game_profiles")
 }
 
-// ===================================
-// EDUCATIONAL INSTITUTIONS
-// ===================================
+// =================================================================
+// 3. EDUCATIONAL INSTITUTIONS
+// =================================================================
 
 /// Schools (High Schools, Colleges, Universities)
 model School {
     id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     name       String
-    type       SchoolType // HIGH_SCHOOL, COLLEGE, UNIVERSITY
+    type       SchoolType
     location   String
     state      String
     region     String?
     website    String?
     created_at DateTime   @default(now()) @db.Timestamp(6)
 
-    // Relationships
     players            Player[]
     coaches            Coach[]
     teams              Team[]
@@ -143,9 +154,9 @@ enum SchoolType {
     UNIVERSITY
 }
 
-// ===================================
-// TEAMS & COMPETITION
-// ===================================
+// =================================================================
+// 4. TEAMS & COMPETITION
+// =================================================================
 
 /// Teams representing schools in specific games
 model Team {
@@ -163,10 +174,7 @@ model Team {
     game   Game   @relation(fields: [game_id], references: [id])
     coach  Coach? @relation(fields: [coach_id], references: [id])
 
-    // Team composition
-    members TeamMember[]
-
-    // Competition participation
+    members                TeamMember[]
     league_participations  LeagueTeam[]
     match_a_participations Match[]      @relation("TeamAMatches")
     match_b_participations Match[]      @relation("TeamBMatches")
@@ -180,8 +188,8 @@ model TeamMember {
     id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     team_id   String    @db.Uuid
     player_id String    @db.Uuid
-    role      String? // "Captain", "IGL", etc.
-    position  String? // Game-specific position
+    role      String?
+    position  String?
     joined_at DateTime  @default(now()) @db.Timestamp(6)
     left_at   DateTime?
     active    Boolean   @default(true)
@@ -200,9 +208,9 @@ enum TeamTier {
     DEVELOPMENTAL
 }
 
-// ===================================
-// TRYOUTS & COMBINES
-// ===================================
+// =================================================================
+// 5. EVENTS (TRYOUTS & COMBINES)
+// =================================================================
 
 /// Tryouts hosted by schools/coaches
 model Tryout {
@@ -211,7 +219,6 @@ model Tryout {
     description      String
     long_description String?
 
-    // Event details
     game_id    String    @db.Uuid
     school_id  String    @db.Uuid
     coach_id   String?   @db.Uuid
@@ -221,16 +228,14 @@ model Tryout {
     location   String
     type       EventType
 
-    // Registration details
-    price                 String // Could be "Free", "$25", etc.
+    price                 String
     max_spots             Int
     registered_spots      Int       @default(0)
     registration_deadline DateTime? @db.Timestamp(6)
 
-    // Requirements
     min_gpa        Decimal? @db.Decimal(3, 2)
-    class_years    String[] // ["Freshman", "Sophomore"]
-    required_roles String[] // ["IGL", "Support"]
+    class_years    String[]
+    required_roles String[]
 
     created_at DateTime @default(now()) @db.Timestamp(6)
     updated_at DateTime @updatedAt
@@ -267,7 +272,6 @@ model Combine {
     description      String
     long_description String?
 
-    // Event details  
     game_id  String    @db.Uuid
     coach_id String?   @db.Uuid
     date     DateTime  @db.Timestamp(6)
@@ -275,14 +279,12 @@ model Combine {
     type     EventType
     year     String
 
-    // Competition details
     max_spots     Int
     claimed_spots Int           @default(0)
     prize_pool    String
-    format        String? // "Single Elimination", "Swiss System"
+    format        String?
     status        CombineStatus
 
-    // Requirements
     requirements String
     invite_only  Boolean @default(false)
 
@@ -334,9 +336,9 @@ enum CombineStatus {
     COMPLETED
 }
 
-// ===================================
-// LEAGUES & RANKINGS
-// ===================================
+// =================================================================
+// 6. LEAGUES & COMPETITION
+// =================================================================
 
 /// Competitive leagues
 model League {
@@ -346,7 +348,6 @@ model League {
     description String
     game_id     String @db.Uuid
 
-    // League details
     region       String
     state        String?
     tier         LeagueTier
@@ -361,7 +362,6 @@ model League {
 
     game Game @relation(fields: [game_id], references: [id])
 
-    // Participation
     teams   LeagueTeam[]
     schools LeagueSchool[]
     matches Match[]
@@ -378,7 +378,6 @@ model LeagueTeam {
     season    String
     joined_at DateTime @default(now()) @db.Timestamp(6)
 
-    // Performance tracking
     wins   Int @default(0)
     losses Int @default(0)
     points Int @default(0)
@@ -419,9 +418,9 @@ enum LeagueStatus {
     CANCELLED
 }
 
-// ===================================
-// PERFORMANCE & RANKINGS
-// ===================================
+// =================================================================
+// 7. PERFORMANCE & RANKINGS
+// =================================================================
 
 /// Player rankings across different categories
 model PlayerRanking {
@@ -429,13 +428,12 @@ model PlayerRanking {
     player_id String @db.Uuid
     game_id   String @db.Uuid
 
-    // Ranking data
     rank     Int
     rating   Float
     region   String
     state    String
     season   String?
-    category RankingCategory // COMBINE, LEAGUE, OVERALL
+    category RankingCategory
 
     created_at DateTime @default(now()) @db.Timestamp(6)
     updated_at DateTime @updatedAt
@@ -453,9 +451,8 @@ model PlayerPerformanceStats {
     player_id String @db.Uuid
     game_id   String @db.Uuid
 
-    // Performance metrics (game-specific)
-    stats       Json // Flexible stats storage
-    match_type  String // "tryout", "combine", "league"
+    stats       Json
+    match_type  String
     match_id    String?  @db.Uuid
     recorded_at DateTime @default(now()) @db.Timestamp(6)
 
@@ -470,14 +467,12 @@ model Match {
     id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     league_id String? @db.Uuid
 
-    // Match details
     team_a_id    String      @db.Uuid
     team_b_id    String      @db.Uuid
     scheduled_at DateTime    @db.Timestamp(6)
     played_at    DateTime?   @db.Timestamp(6)
     status       MatchStatus
 
-    // Results
     team_a_score Int?
     team_b_score Int?
     winner_id    String? @db.Uuid
