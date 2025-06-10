@@ -261,7 +261,10 @@ export default function Navbar() {
             {/* Sign In Link */}
             <div className="text-center">
               <SignInButton mode="modal">
-                <button className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                <button 
+                  onClick={resetAndCloseModal}
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                >
                   Already have an account? Sign In
                 </button>
               </SignInButton>
