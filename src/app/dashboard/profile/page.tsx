@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+
 import { 
   Dialog,
   DialogContent,
@@ -26,7 +26,9 @@ import {
   TwitterIcon,
   MonitorIcon,
   PlusIcon,
-  ExternalLinkIcon
+  ExternalLinkIcon,
+  MessageCircleIcon,
+  GithubIcon
 } from "lucide-react";
 
 // Types for connections
@@ -53,13 +55,26 @@ interface ProfileData {
   username: string;
   email: string;
   location: string;
+  bio: string;
+}
+
+interface RecruitingData {
   school: string;
   class: string;
-  bio: string;
+  mainGame: string;
+  scholasticContact: string;
+  scholasticContactEmail: string;
+  parentContact: string;
+  gpa: string;
+  graduationDate: string;
+  intendedMajor: string;
+  extraCurriculars: string;
+  academicBio: string;
 }
 
 export default function ProfilePage() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [editRecruitingOpen, setEditRecruitingOpen] = useState(false);
   const [editGameConnectionOpen, setEditGameConnectionOpen] = useState(false);
   const [editSocialConnectionOpen, setEditSocialConnectionOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string>("");
@@ -71,9 +86,22 @@ export default function ProfilePage() {
     username: "",
     email: "",
     location: "",
+    bio: ""
+  });
+
+  // Recruiting data state
+  const [recruitingData, setRecruitingData] = useState<RecruitingData>({
     school: "",
     class: "",
-    bio: ""
+    mainGame: "",
+    scholasticContact: "",
+    scholasticContactEmail: "",
+    parentContact: "",
+    gpa: "",
+    graduationDate: "",
+    intendedMajor: "",
+    extraCurriculars: "",
+    academicBio: ""
   });
 
   // Game connections state
@@ -122,6 +150,22 @@ export default function ProfilePage() {
 
   // Social connections state
   const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([
+    {
+      platform: "github",
+      username: "",
+      connected: false,
+      icon: GithubIcon,
+      displayName: "GitHub",
+      color: "bg-gray-800"
+    },
+    {
+      platform: "discord",
+      username: "",
+      connected: false,
+      icon: MessageCircleIcon,
+      displayName: "Discord",
+      color: "bg-indigo-600"
+    },
     {
       platform: "instagram",
       username: "",
@@ -197,10 +241,27 @@ export default function ProfilePage() {
     setEditProfileOpen(false);
   };
 
+  const handleRecruitingSave = () => {
+    // Here you would typically save to your backend
+    setEditRecruitingOpen(false);
+  };
+
   const connectedGameAccounts = gameConnections.filter(conn => conn.connected).length;
   const connectedSocialAccounts = socialConnections.filter(conn => conn.connected).length;
-  const totalConnections = connectedGameAccounts + connectedSocialAccounts;
-  const profileCompletion = Math.min(25 + (totalConnections * 10), 100);
+  const hasBasicInfo = !!(profileData.realName || profileData.username || profileData.email || profileData.bio);
+  const hasRecruitingInfo = !!(recruitingData.school || recruitingData.mainGame || recruitingData.gpa || recruitingData.extraCurriculars || recruitingData.academicBio);
+  
+  // Cap game connections at 2 and social connections at 1 for progress calculation
+  const gameConnectionsForProgress = Math.min(connectedGameAccounts, 2);
+  const socialConnectionsForProgress = Math.min(connectedSocialAccounts, 1);
+  
+  const profileCompletion = Math.min(
+    (hasBasicInfo ? 20 : 0) + 
+    (hasRecruitingInfo ? 50 : 0) + 
+    (gameConnectionsForProgress * 10) + 
+    (socialConnectionsForProgress * 20), 
+    100
+  );
 
   return (
     <div className="space-y-6">
@@ -208,104 +269,12 @@ export default function ProfilePage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-orbitron font-bold text-white">
-            My Profile
+            Profile
           </h1>
           <p className="text-gray-400 mt-2">
             Manage your gaming profile and recruitment information
           </p>
         </div>
-        
-        <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <EditIcon className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Profile</DialogTitle>
-              <DialogDescription className="text-gray-400">
-                Update your basic profile information
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="realName">Real Name</Label>
-                  <Input
-                    id="realName"
-                    value={profileData.realName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, realName: e.target.value }))}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="John Doe"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={profileData.username}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="gamertag123"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="john@example.com"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="school">School</Label>
-                  <Input
-                    id="school"
-                    value={profileData.school}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, school: e.target.value }))}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="University Name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="class">Class Year</Label>
-                  <Input
-                    id="class"
-                    value={profileData.class}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, class: e.target.value }))}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="2025"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={profileData.location}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="City, State"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" className="border-gray-600" onClick={() => setEditProfileOpen(false)}>
-                  Cancel
-                </Button>
-                <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleProfileSave}>
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Profile Content */}
@@ -315,51 +284,348 @@ export default function ProfilePage() {
           
           {/* Basic Information */}
           <Card className="bg-[#1a1a2e] border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+              <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <EditIcon className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Update your basic profile information
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="realName" className="font-rajdhani pb-2">Real Name</Label>
+                        <Input
+                          id="realName"
+                          value={profileData.realName}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, realName: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="John Doe"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="username" className="font-rajdhani pb-2">Username</Label>
+                        <Input
+                          id="username"
+                          value={profileData.username}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="gamertag123"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="font-rajdhani pb-2">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="location" className="font-rajdhani pb-2">Location</Label>
+                      <Input
+                        id="location"
+                        value={profileData.location}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="City, State"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="bio" className="font-rajdhani pb-2">Bio</Label>
+                      <Input
+                        id="bio"
+                        value={profileData.bio}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="Tell us about yourself..."
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button variant="outline" className="text-black border-gray-600" onClick={() => setEditProfileOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleProfileSave}>
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
             <div className="space-y-4">
-              {profileData.realName || profileData.username || profileData.email ? (
+              {profileData.realName || profileData.username || profileData.email || profileData.bio ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   {profileData.realName && (
                     <div>
-                      <Label className="text-gray-400">Real Name</Label>
+                      <Label className="text-gray-400 font-rajdhani">Real Name</Label>
                       <p className="text-white">{profileData.realName}</p>
                     </div>
                   )}
                   {profileData.username && (
                     <div>
-                      <Label className="text-gray-400">Username</Label>
+                      <Label className="text-gray-400 font-rajdhani">Username</Label>
                       <p className="text-white">{profileData.username}</p>
                     </div>
                   )}
                   {profileData.email && (
                     <div>
-                      <Label className="text-gray-400">Email</Label>
+                      <Label className="text-gray-400 font-rajdhani">Email</Label>
                       <p className="text-white">{profileData.email}</p>
-                    </div>
-                  )}
-                  {profileData.school && (
-                    <div>
-                      <Label className="text-gray-400">School</Label>
-                      <p className="text-white">{profileData.school}</p>
                     </div>
                   )}
                   {profileData.location && (
                     <div>
-                      <Label className="text-gray-400">Location</Label>
+                      <Label className="text-gray-400 font-rajdhani">Location</Label>
                       <p className="text-white">{profileData.location}</p>
                     </div>
                   )}
-                  {profileData.class && (
-                    <div>
-                      <Label className="text-gray-400">Class Year</Label>
-                      <p className="text-white">{profileData.class}</p>
+                  {profileData.bio && (
+                    <div className="md:col-span-2">
+                      <Label className="text-gray-400 font-rajdhani">Bio</Label>
+                      <p className="text-white">{profileData.bio}</p>
                     </div>
                   )}
                 </div>
               ) : (
                 <p className="text-gray-400">
-                  Complete your profile to get noticed by college esports recruiters.
+                  Complete your basic profile information to get started.
                 </p>
+              )}
+            </div>
+          </Card>
+
+          {/* Recruiting Information */}
+          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Recruiting Information</h3>
+                <p className="text-sm text-gray-400 mt-1">Private information for college recruiters only</p>
+              </div>
+              <Dialog open={editRecruitingOpen} onOpenChange={setEditRecruitingOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="border-gray-600 text-black hover:bg-gray-200"
+                  >
+                    <EditIcon className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Recruiting Information</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Private information for college recruiters - not visible on public profile
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 max-h-96 overflow-y-auto pr-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="school" className="font-rajdhani pb-2">School/University</Label>
+                        <Input
+                          id="school"
+                          value={recruitingData.school}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, school: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="High School or University"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="class" className="font-rajdhani pb-2">Graduation Year</Label>
+                        <Input
+                          id="class"
+                          value={recruitingData.class}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, class: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="2025"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="mainGame" className="font-rajdhani pb-2">Main Game</Label>
+                        <Input
+                          id="mainGame"
+                          value={recruitingData.mainGame}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, mainGame: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="Valorant, League of Legends, etc."
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="gpa" className="font-rajdhani pb-2">GPA</Label>
+                        <Input
+                          id="gpa"
+                          value={recruitingData.gpa}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, gpa: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="3.5"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="intendedMajor" className="font-rajdhani pb-2">Intended Major</Label>
+                      <Input
+                        id="intendedMajor"
+                        value={recruitingData.intendedMajor}
+                        onChange={(e) => setRecruitingData(prev => ({ ...prev, intendedMajor: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="Computer Science, Business, etc."
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="scholasticContact" className="font-rajdhani pb-2">Scholastic Contact</Label>
+                        <Input
+                          id="scholasticContact"
+                          value={recruitingData.scholasticContact}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, scholasticContact: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="Guidance Counselor or Teacher Name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="scholasticContactEmail" className="font-rajdhani pb-2">Scholastic Contact Email</Label>
+                        <Input
+                          id="scholasticContactEmail"
+                          type="email"
+                          value={recruitingData.scholasticContactEmail}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, scholasticContactEmail: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="counselor@school.edu"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="parentContact" className="font-rajdhani pb-2">Parent/Guardian Contact Email</Label>
+                      <Input
+                        id="parentContact"
+                        type="email"
+                        value={recruitingData.parentContact}
+                        onChange={(e) => setRecruitingData(prev => ({ ...prev, parentContact: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="parent@email.com"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="extraCurriculars" className="font-rajdhani pb-2">Extra Curriculars</Label>
+                      <Input
+                        id="extraCurriculars"
+                        value={recruitingData.extraCurriculars}
+                        onChange={(e) => setRecruitingData(prev => ({ ...prev, extraCurriculars: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="Sports, clubs, leadership roles, etc."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="academicBio" className="font-rajdhani pb-2">Academic Bio</Label>
+                      <Input
+                        id="academicBio"
+                        value={recruitingData.academicBio}
+                        onChange={(e) => setRecruitingData(prev => ({ ...prev, academicBio: e.target.value }))}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="Academic achievements, honors, awards..."
+                      />
+                    </div>
+                    <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-3">
+                      <p className="text-yellow-400 text-sm flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <strong>Privacy Notice:</strong> This recruiting information will not be visible on your public profile and is only accessible to verified college recruiters.
+                      </p>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button variant="outline" className="text-black border-gray-600" onClick={() => setEditRecruitingOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleRecruitingSave}>
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <div className="space-y-4">
+              {hasRecruitingInfo ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {recruitingData.school && (
+                    <div>
+                      <Label className="text-gray-400 font-rajdhani">School</Label>
+                      <p className="text-white">{recruitingData.school}</p>
+                    </div>
+                  )}
+                  {recruitingData.class && (
+                    <div>
+                      <Label className="text-gray-400 font-rajdhani">Graduation Year</Label>
+                      <p className="text-white">{recruitingData.class}</p>
+                    </div>
+                  )}
+                  {recruitingData.mainGame && (
+                    <div>
+                      <Label className="text-gray-400 font-rajdhani">Main Game</Label>
+                      <p className="text-white">{recruitingData.mainGame}</p>
+                    </div>
+                  )}
+                  {recruitingData.gpa && (
+                    <div>
+                      <Label className="text-gray-400 font-rajdhani">GPA</Label>
+                      <p className="text-white">{recruitingData.gpa}</p>
+                    </div>
+                  )}
+                  {recruitingData.intendedMajor && (
+                    <div>
+                      <Label className="text-gray-400 font-rajdhani">Intended Major</Label>
+                      <p className="text-white">{recruitingData.intendedMajor}</p>
+                    </div>
+                  )}
+                  {recruitingData.scholasticContact && (
+                    <div>
+                      <Label className="text-gray-400 font-rajdhani">Scholastic Contact</Label>
+                      <p className="text-white">{recruitingData.scholasticContact}</p>
+                    </div>
+                  )}
+                  {recruitingData.extraCurriculars && (
+                    <div className="md:col-span-2">
+                      <Label className="text-gray-400 font-rajdhani">Extra Curriculars</Label>
+                      <p className="text-white">{recruitingData.extraCurriculars}</p>
+                    </div>
+                  )}
+                  {recruitingData.academicBio && (
+                    <div className="md:col-span-2">
+                      <Label className="text-gray-400 font-rajdhani">Academic Bio</Label>
+                      <p className="text-white">{recruitingData.academicBio}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">
+                    Add your recruiting information to help college scouts find and evaluate you.
+                  </p>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => setEditRecruitingOpen(true)}
+                  >
+                    Add Recruiting Info
+                  </Button>
+                </div>
               )}
             </div>
           </Card>
@@ -375,7 +641,7 @@ export default function ProfilePage() {
                     Connect Account
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white">
+                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Connect Game Account</DialogTitle>
                     <DialogDescription className="text-gray-400">
@@ -384,13 +650,13 @@ export default function ProfilePage() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Select Platform</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Label className="p-2">Select Platform</Label>
+                      <div className="grid grid-cols-2 gap-4 mt-2">
                         {gameConnections.filter(conn => !conn.connected).map((platform) => (
                           <Button
                             key={platform.platform}
                             variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                            className={`justify-start ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                            className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                             onClick={() => setSelectedPlatform(platform.platform)}
                           >
                             <platform.icon className="h-4 w-4 mr-2" />
@@ -412,7 +678,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="border-gray-600" onClick={() => {
+                      <Button variant="outline" className="text-black border-gray-600" onClick={() => {
                         setEditGameConnectionOpen(false);
                         setSelectedPlatform("");
                         setConnectionUsername("");
@@ -461,7 +727,7 @@ export default function ProfilePage() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-400 text-center py-4">
+                <p className="text-gray-400 py-2">
                   No game accounts connected yet. Connect your accounts to showcase your gaming achievements.
                 </p>
               )}
@@ -479,7 +745,7 @@ export default function ProfilePage() {
                     Connect Social
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white">
+                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Connect Social Account</DialogTitle>
                     <DialogDescription className="text-gray-400">
@@ -494,7 +760,7 @@ export default function ProfilePage() {
                           <Button
                             key={platform.platform}
                             variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                            className={`justify-start ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                            className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                             onClick={() => setSelectedPlatform(platform.platform)}
                           >
                             <platform.icon className="h-4 w-4 mr-2" />
@@ -516,7 +782,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="border-gray-600" onClick={() => {
+                      <Button variant="outline" className="text-black border-gray-600" onClick={() => {
                         setEditSocialConnectionOpen(false);
                         setSelectedPlatform("");
                         setConnectionUsername("");
@@ -565,7 +831,7 @@ export default function ProfilePage() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-400 text-center py-4">
+                <p className="text-gray-400 py-2">
                   No social accounts connected yet. Connect your social media to build your personal brand.
                 </p>
               )}
@@ -578,22 +844,86 @@ export default function ProfilePage() {
           <Card className="bg-[#1a1a2e] border-gray-800 p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Profile Completion</h3>
             <div className="space-y-4">
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${profileCompletion}%` }}
-                ></div>
+              {/* Circular Progress */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-24 h-24">
+                  <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                    {/* Background circle */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="rgb(55, 65, 81)"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    {/* Progress circle */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="rgb(59, 130, 246)"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - profileCompletion / 100)}`}
+                      className="transition-all duration-500 ease-in-out"
+                    />
+                  </svg>
+                  {/* Percentage text */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">{profileCompletion}%</span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-400 mt-2 text-center">Profile Complete</p>
               </div>
-              <p className="text-sm text-gray-400">{profileCompletion}% Complete</p>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+              
+              {/* Completion Breakdown */}
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Basic Information:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white">{hasBasicInfo ? '✓' : '○'}</span>
+                    <span className="text-blue-400">{hasBasicInfo ? '20pts' : '0pts'}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Recruiting Info:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white">{hasRecruitingInfo ? '✓' : '○'}</span>
+                    <span className="text-blue-400">{hasRecruitingInfo ? '50pts' : '0pts'}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
                   <span className="text-gray-400">Game Accounts:</span>
-                  <span className="text-white">{connectedGameAccounts}/5</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white">{connectedGameAccounts}/5 ({gameConnectionsForProgress}/2 count)</span>
+                    <span className="text-blue-400">{gameConnectionsForProgress * 10}pts</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-400">Social Accounts:</span>
-                  <span className="text-white">{connectedSocialAccounts}/3</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white">{connectedSocialAccounts}/5 ({socialConnectionsForProgress}/1 count)</span>
+                    <span className="text-blue-400">{socialConnectionsForProgress * 20}pts</span>
+                  </div>
                 </div>
+                
+                {/* Progress Tips */}
+                {profileCompletion < 100 && (
+                  <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+                    <p className="text-blue-400 text-xs">
+                      <strong>Tip:</strong> {
+                        !hasBasicInfo ? "Complete your basic information first!" :
+                        !hasRecruitingInfo ? "Add recruiting info to help scouts find you!" :
+                        gameConnectionsForProgress < 2 ? "Connect at least 2 gaming accounts to showcase your skills!" :
+                        socialConnectionsForProgress < 1 ? "Connect at least 1 social account to build your brand!" :
+                        "Great job! Your profile is complete!"
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </Card>

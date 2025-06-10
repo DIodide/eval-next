@@ -4,6 +4,35 @@
 @import "tw-animate-css"; */
 
 
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f1a;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d2d3a;
+  border-radius: 5px;
+  border: 2px solid #0f0f1a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3d3d4a;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2d2d3a #0f0f1a;
+}
+
+
+
 @custom-variant dark (&:is(.dark *));
 
 

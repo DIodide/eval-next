@@ -13,7 +13,9 @@ import {
   PlayIcon, 
   MessageSquareIcon,
   MenuIcon,
-  XIcon
+  XIcon,
+  UsersIcon,
+  ShieldCheckIcon
 } from "lucide-react";
 
 const sidebarItems = [
@@ -23,7 +25,7 @@ const sidebarItems = [
     icon: HomeIcon,
   },
   {
-    title: "My Profile",
+    title: "Profile",
     href: "/dashboard/profile",
     icon: UserIcon,
   },
@@ -41,6 +43,11 @@ const sidebarItems = [
     title: "Messages",
     href: "/dashboard/messages",
     icon: MessageSquareIcon,
+    },
+  {
+    title: "Memberships",
+    href: "/dashboard/memberships",
+    icon: ShieldCheckIcon,
   },
 ];
 
