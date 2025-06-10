@@ -1,25 +1,508 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model players {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email             String    @unique
-  full_name         String
-  school            String?
-  coach_email       String?
-  guardian_email    String?
-  gpa               Decimal?  @db.Decimal(3, 2)
-  transcript        String?
-  highest_ranks     Json?
-  trackergg_profile String?
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  games_played      Json[]
+// ===================================
+// USER MANAGEMENT & AUTHENTICATION
+// ===================================
+
+/// Players table with Clerk integration
+model Player {
+    id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    clerk_id          String   @unique // References Clerk user
+    email             String   @unique
+    full_name         String
+    school            String?
+    school_id         String?  @db.Uuid
+    gpa               Decimal? @db.Decimal(3, 2)
+    transcript        String? // File URL
+    class_year        String? // "Freshman", "Sophomore", etc.
+    guardian_email    String?
+    trackergg_profile String?
+    created_at        DateTime @default(now()) @db.Timestamp(6)
+    updated_at        DateTime @updatedAt
+
+    // Optional school reference
+    school_ref School? @relation(fields: [school_id], references: [id])
+
+    // Gaming data
+    game_profiles         PlayerGameProfile[]
+    tryout_registrations  TryoutRegistration[]
+    combine_registrations CombineRegistration[]
+    team_memberships      TeamMember[]
+    performance_stats     PlayerPerformanceStats[]
+    rankings              PlayerRanking[]
+
+    @@map("players")
+}
+
+/// Coaches table with Clerk integration
+model Coach {
+    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    clerk_id   String   @unique // References Clerk user
+    email      String   @unique
+    first_name String
+    last_name  String
+    school     String
+    school_id  String?  @db.Uuid // FK to School if we formalize schools
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    // Optional school reference
+    school_ref School? @relation(fields: [school_id], references: [id])
+
+    // Coaching relationships
+    teams            Team[]
+    tryouts_created  Tryout[]
+    combines_created Combine[]
+
+    @@map("coaches")
+}
+
+// ===================================
+// GAMING & COMPETITION STRUCTURE
+// ===================================
+
+/// Games supported by the platform
+model Game {
+    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name       String   @unique // "VALORANT", "Overwatch 2", etc.
+    short_name String   @unique // "VAL", "OW2", "SSU", "RL"
+    icon       String? // Static URL
+    color      String? // hex color code
+    created_at DateTime @default(now()) @db.Timestamp(6)
+
+    // Related entities
+    tryouts         Tryout[]
+    combines        Combine[]
+    leagues         League[]
+    teams           Team[]
+    player_profiles PlayerGameProfile[]
+    rankings        PlayerRanking[]
+
+    @@map("games")
+}
+
+/// Player profiles for specific games
+model PlayerGameProfile {
+    id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    player_id String @db.Uuid
+    game_id   String @db.Uuid
+
+    // Game-specific data
+    username    String
+    rank        String?
+    rating      Float?
+    role        String? // "IGL", "Support", "DPS", etc.
+    tracker_url String?
+    created_at  DateTime @default(now()) @db.Timestamp(6)
+    updated_at  DateTime @updatedAt
+
+    player Player @relation(fields: [player_id], references: [id])
+    game   Game   @relation(fields: [game_id], references: [id])
+
+    @@unique([player_id, game_id])
+    @@map("player_game_profiles")
+}
+
+// ===================================
+// EDUCATIONAL INSTITUTIONS
+// ===================================
+
+/// Schools (High Schools, Colleges, Universities)
+model School {
+    id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name       String
+    type       SchoolType // HIGH_SCHOOL, COLLEGE, UNIVERSITY
+    location   String
+    state      String
+    region     String?
+    website    String?
+    created_at DateTime   @default(now()) @db.Timestamp(6)
+
+    // Relationships
+    players            Player[]
+    coaches            Coach[]
+    teams              Team[]
+    tryouts            Tryout[]
+    league_memberships LeagueSchool[]
+
+    @@unique([name, type, state])
+    @@map("schools")
+}
+
+enum SchoolType {
+    HIGH_SCHOOL
+    COLLEGE
+    UNIVERSITY
+}
+
+// ===================================
+// TEAMS & COMPETITION
+// ===================================
+
+/// Teams representing schools in specific games
+model Team {
+    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name       String
+    school_id  String   @db.Uuid
+    game_id    String   @db.Uuid
+    coach_id   String?  @db.Uuid
+    tier       TeamTier @default(COMPETITIVE)
+    active     Boolean  @default(true)
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    school School @relation(fields: [school_id], references: [id])
+    game   Game   @relation(fields: [game_id], references: [id])
+    coach  Coach? @relation(fields: [coach_id], references: [id])
+
+    // Team composition
+    members TeamMember[]
+
+    // Competition participation
+    league_participations  LeagueTeam[]
+    match_a_participations Match[]      @relation("TeamAMatches")
+    match_b_participations Match[]      @relation("TeamBMatches")
+
+    @@unique([school_id, game_id, name])
+    @@map("teams")
+}
+
+/// Team membership tracking
+model TeamMember {
+    id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    team_id   String    @db.Uuid
+    player_id String    @db.Uuid
+    role      String? // "Captain", "IGL", etc.
+    position  String? // Game-specific position
+    joined_at DateTime  @default(now()) @db.Timestamp(6)
+    left_at   DateTime?
+    active    Boolean   @default(true)
+
+    team   Team   @relation(fields: [team_id], references: [id])
+    player Player @relation(fields: [player_id], references: [id])
+
+    @@unique([team_id, player_id])
+    @@map("team_members")
+}
+
+enum TeamTier {
+    ELITE
+    PROFESSIONAL
+    COMPETITIVE
+    DEVELOPMENTAL
+}
+
+// ===================================
+// TRYOUTS & COMBINES
+// ===================================
+
+/// Tryouts hosted by schools/coaches
+model Tryout {
+    id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    title            String
+    description      String
+    long_description String?
+
+    // Event details
+    game_id    String    @db.Uuid
+    school_id  String    @db.Uuid
+    coach_id   String?   @db.Uuid
+    date       DateTime  @db.Timestamp(6)
+    time_start String?
+    time_end   String?
+    location   String
+    type       EventType
+
+    // Registration details
+    price                 String // Could be "Free", "$25", etc.
+    max_spots             Int
+    registered_spots      Int       @default(0)
+    registration_deadline DateTime? @db.Timestamp(6)
+
+    // Requirements
+    min_gpa        Decimal? @db.Decimal(3, 2)
+    class_years    String[] // ["Freshman", "Sophomore"]
+    required_roles String[] // ["IGL", "Support"]
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    game      Game   @relation(fields: [game_id], references: [id])
+    school    School @relation(fields: [school_id], references: [id])
+    organizer Coach? @relation(fields: [coach_id], references: [id])
+
+    registrations TryoutRegistration[]
+
+    @@map("tryouts")
+}
+
+/// Tryout registration tracking
+model TryoutRegistration {
+    id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tryout_id     String             @db.Uuid
+    player_id     String             @db.Uuid
+    status        RegistrationStatus @default(PENDING)
+    registered_at DateTime           @default(now()) @db.Timestamp(6)
+    notes         String?
+
+    tryout Tryout @relation(fields: [tryout_id], references: [id])
+    player Player @relation(fields: [player_id], references: [id])
+
+    @@unique([tryout_id, player_id])
+    @@map("tryout_registrations")
+}
+
+/// Combines for competitive events
+model Combine {
+    id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    title            String
+    description      String
+    long_description String?
+
+    // Event details  
+    game_id  String    @db.Uuid
+    coach_id String?   @db.Uuid
+    date     DateTime  @db.Timestamp(6)
+    location String
+    type     EventType
+    year     String
+
+    // Competition details
+    max_spots     Int
+    claimed_spots Int           @default(0)
+    prize_pool    String
+    format        String? // "Single Elimination", "Swiss System"
+    status        CombineStatus
+
+    // Requirements
+    requirements String
+    invite_only  Boolean @default(false)
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    game          Game                  @relation(fields: [game_id], references: [id])
+    organizer     Coach?                @relation(fields: [coach_id], references: [id])
+    registrations CombineRegistration[]
+
+    @@map("combines")
+}
+
+/// Combine registration tracking
+model CombineRegistration {
+    id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    combine_id    String             @db.Uuid
+    player_id     String             @db.Uuid
+    status        RegistrationStatus @default(PENDING)
+    qualified     Boolean            @default(false)
+    registered_at DateTime           @default(now()) @db.Timestamp(6)
+
+    combine Combine @relation(fields: [combine_id], references: [id])
+    player  Player  @relation(fields: [player_id], references: [id])
+
+    @@unique([combine_id, player_id])
+    @@map("combine_registrations")
+}
+
+enum EventType {
+    ONLINE
+    IN_PERSON
+    HYBRID
+}
+
+enum RegistrationStatus {
+    PENDING
+    CONFIRMED
+    WAITLISTED
+    DECLINED
+    CANCELLED
+}
+
+enum CombineStatus {
+    UPCOMING
+    REGISTRATION_OPEN
+    REGISTRATION_CLOSED
+    IN_PROGRESS
+    COMPLETED
+}
+
+// ===================================
+// LEAGUES & RANKINGS
+// ===================================
+
+/// Competitive leagues
+model League {
+    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name        String
+    short_name  String
+    description String
+    game_id     String @db.Uuid
+
+    // League details
+    region       String
+    state        String?
+    tier         LeagueTier
+    season       String
+    status       LeagueStatus
+    format       String?
+    prize_pool   String?
+    founded_year Int?
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    game Game @relation(fields: [game_id], references: [id])
+
+    // Participation
+    teams   LeagueTeam[]
+    schools LeagueSchool[]
+    matches Match[]
+
+    @@unique([name, season, game_id])
+    @@map("leagues")
+}
+
+/// League team participation
+model LeagueTeam {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    league_id String   @db.Uuid
+    team_id   String   @db.Uuid
+    season    String
+    joined_at DateTime @default(now()) @db.Timestamp(6)
+
+    // Performance tracking
+    wins   Int @default(0)
+    losses Int @default(0)
+    points Int @default(0)
+
+    league League @relation(fields: [league_id], references: [id])
+    team   Team   @relation(fields: [team_id], references: [id])
+
+    @@unique([league_id, team_id, season])
+    @@map("league_teams")
+}
+
+/// League school memberships
+model LeagueSchool {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    league_id String   @db.Uuid
+    school_id String   @db.Uuid
+    season    String
+    joined_at DateTime @default(now()) @db.Timestamp(6)
+
+    league League @relation(fields: [league_id], references: [id])
+    school School @relation(fields: [school_id], references: [id])
+
+    @@unique([league_id, school_id, season])
+    @@map("league_schools")
+}
+
+enum LeagueTier {
+    ELITE
+    PROFESSIONAL
+    COMPETITIVE
+    DEVELOPMENTAL
+}
+
+enum LeagueStatus {
+    ACTIVE
+    COMPLETED
+    UPCOMING
+    CANCELLED
+}
+
+// ===================================
+// PERFORMANCE & RANKINGS
+// ===================================
+
+/// Player rankings across different categories
+model PlayerRanking {
+    id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    player_id String @db.Uuid
+    game_id   String @db.Uuid
+
+    // Ranking data
+    rank     Int
+    rating   Float
+    region   String
+    state    String
+    season   String?
+    category RankingCategory // COMBINE, LEAGUE, OVERALL
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    player Player @relation(fields: [player_id], references: [id])
+    game   Game   @relation(fields: [game_id], references: [id])
+
+    @@unique([player_id, game_id, category, season])
+    @@map("player_rankings")
+}
+
+/// Player performance statistics
+model PlayerPerformanceStats {
+    id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    player_id String @db.Uuid
+    game_id   String @db.Uuid
+
+    // Performance metrics (game-specific)
+    stats       Json // Flexible stats storage
+    match_type  String // "tryout", "combine", "league"
+    match_id    String?  @db.Uuid
+    recorded_at DateTime @default(now()) @db.Timestamp(6)
+
+    player Player @relation(fields: [player_id], references: [id])
+
+    @@index([player_id, game_id])
+    @@map("player_performance_stats")
+}
+
+/// Match tracking
+model Match {
+    id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    league_id String? @db.Uuid
+
+    // Match details
+    team_a_id    String      @db.Uuid
+    team_b_id    String      @db.Uuid
+    scheduled_at DateTime    @db.Timestamp(6)
+    played_at    DateTime?   @db.Timestamp(6)
+    status       MatchStatus
+
+    // Results
+    team_a_score Int?
+    team_b_score Int?
+    winner_id    String? @db.Uuid
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    league League? @relation(fields: [league_id], references: [id])
+    team_a Team    @relation("TeamAMatches", fields: [team_a_id], references: [id])
+    team_b Team    @relation("TeamBMatches", fields: [team_b_id], references: [id])
+
+    @@map("matches")
+}
+
+enum RankingCategory {
+    COMBINE
+    LEAGUE
+    OVERALL
+    TRYOUT
+}
+
+enum MatchStatus {
+    SCHEDULED
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+    POSTPONED
 }
