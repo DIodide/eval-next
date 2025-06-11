@@ -115,9 +115,23 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/test-playerprofile" className="font-orbitron hover:text-cyan-400 transition-colors">
-            DEV
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+              DEV <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+              <Link href="/test-playerprofile">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  PLAYER PROFILE TEST
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/test-tryouts">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  TRYOUTS TEST
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex items-center space-x-4">
