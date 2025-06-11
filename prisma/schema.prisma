@@ -82,6 +82,12 @@ model Player {
     performance_stats     PlayerPerformanceStats[]
     rankings              PlayerRanking[]
 
+    // Performance indexes
+    @@index([school_id])
+    @@index([main_game_id])
+    @@index([class_year])
+    @@index([created_at])
+    @@index([location])
     @@map("players")
 }
 
