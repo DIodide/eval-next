@@ -122,6 +122,138 @@ export const playerProfileRouter = createTRPCRouter({
     }
   }),
 
+  // Optimized: Get basic profile info only (faster loading)
+  getBasicProfile: protectedProcedure.query(async ({ ctx }) => {
+    const { userId } = await verifyPlayerUser(ctx);
+    
+    try {
+      const player = await withRetry(() =>
+        ctx.db.player.findUnique({
+          where: { clerk_id: userId },
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+            username: true,
+            location: true,
+            bio: true,
+            school: true,
+            class_year: true,
+            gpa: true,
+            graduation_date: true,
+            main_game_id: true,
+            created_at: true,
+            updated_at: true,
+          },
+        })
+      );
+      
+      return player;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch basic profile',
+      });
+    }
+  }),
+
+  // Optimized: Get connections only (for connection management)
+  getConnections: protectedProcedure.query(async ({ ctx }) => {
+    const { playerId } = await verifyPlayerUser(ctx);
+    
+    try {
+      const [platformConnections, socialConnections] = await Promise.all([
+        withRetry(() =>
+          ctx.db.playerPlatformConnection.findMany({
+            where: { player_id: playerId },
+            select: {
+              platform: true,
+              username: true,
+              connected: true,
+              updated_at: true,
+            },
+            orderBy: { platform: 'asc' },
+          })
+        ),
+        withRetry(() =>
+          ctx.db.playerSocialConnection.findMany({
+            where: { player_id: playerId },
+            select: {
+              platform: true,
+              username: true,
+              connected: true,
+              updated_at: true,
+            },
+            orderBy: { platform: 'asc' },
+          })
+        ),
+      ]);
+      
+      return {
+        platform_connections: platformConnections,
+        social_connections: socialConnections,
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch connections',
+      });
+    }
+  }),
+
+  // Optimized: Get recruiting info only
+  getRecruitingInfo: protectedProcedure.query(async ({ ctx }) => {
+    const { userId } = await verifyPlayerUser(ctx);
+    
+    try {
+      const player = await withRetry(() =>
+        ctx.db.player.findUnique({
+          where: { clerk_id: userId },
+          select: {
+            school: true,
+            school_id: true,
+            gpa: true,
+            class_year: true,
+            graduation_date: true,
+            intended_major: true,
+            guardian_email: true,
+            scholastic_contact: true,
+            scholastic_contact_email: true,
+            extra_curriculars: true,
+            academic_bio: true,
+            main_game_id: true,
+            school_ref: {
+              select: {
+                id: true,
+                name: true,
+                type: true,
+                location: true,
+                state: true,
+              },
+            },
+            main_game: {
+              select: {
+                id: true,
+                name: true,
+                short_name: true,
+                icon: true,
+                color: true,
+              },
+            },
+          },
+        })
+      );
+      
+      return player;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch recruiting info',
+      });
+    }
+  }),
+
   // Update player profile
   updateProfile: protectedProcedure
     .input(profileUpdateSchema)
