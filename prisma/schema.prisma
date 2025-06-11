@@ -31,14 +31,16 @@ model Player {
     id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     clerk_id          String   @unique // References Clerk user
     email             String   @unique
-    full_name         String
+    first_name        String
+    last_name         String
+    username          String?  @unique // Optional username from Clerk
+    external_accounts Json? // Store Clerk external accounts (OAuth connections)
     school            String?
     school_id         String?  @db.Uuid
     gpa               Decimal? @db.Decimal(3, 2)
     transcript        String? // File URL
     class_year        String? // "Freshman", "Sophomore", etc.
     guardian_email    String?
-    trackergg_profile String?
     created_at        DateTime @default(now()) @db.Timestamp(6)
     updated_at        DateTime @updatedAt
 
@@ -58,15 +60,17 @@ model Player {
 
 /// Coaches table with Clerk integration
 model Coach {
-    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    clerk_id   String   @unique // References Clerk user
-    email      String   @unique
-    first_name String
-    last_name  String
-    school     String
-    school_id  String?  @db.Uuid
-    created_at DateTime @default(now()) @db.Timestamp(6)
-    updated_at DateTime @updatedAt
+    id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    clerk_id          String   @unique // References Clerk user
+    email             String   @unique
+    first_name        String
+    last_name         String
+    username          String   @unique // Clerk username
+    external_accounts Json? // Store Clerk external accounts (OAuth connections)
+    school            String
+    school_id         String?  @db.Uuid
+    created_at        DateTime @default(now()) @db.Timestamp(6)
+    updated_at        DateTime @updatedAt
 
     school_ref School? @relation(fields: [school_id], references: [id])
 

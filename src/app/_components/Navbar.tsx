@@ -10,9 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 export default function Navbar() {
   const [showSignUpModal, setShowSignUpModal] = useState(false)
-  const [selectedUserType, setSelectedUserType] = useState<'player' | 'college' | null>(null)
+  const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
 
-  const handleUserTypeSelect = (userType: 'player' | 'college') => {
+  const handleUserTypeSelect = (userType: 'player' | 'coach') => {
     setSelectedUserType(userType)
   }
 
@@ -209,21 +209,21 @@ export default function Navbar() {
 
               {/* College Option */}
               <button
-                onClick={() => handleUserTypeSelect('college')}
+                onClick={() => handleUserTypeSelect('coach')}
                 className={`p-6 rounded-lg border-2 text-center transition-all ${
-                  selectedUserType === 'college'
+                  selectedUserType === 'coach'
                     ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
                     : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
                 }`}
               >
                 <div className="flex flex-col items-center space-y-3">
                   <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
-                    selectedUserType === 'college' 
+                    selectedUserType === 'coach' 
                       ? 'border-blue-400 bg-blue-500/20' 
                       : 'border-slate-500 bg-slate-700/50'
                   }`}>
                     <GraduationCap className={`w-6 h-6 ${
-                      selectedUserType === 'college' ? 'text-blue-400' : 'text-slate-400'
+                      selectedUserType === 'coach' ? 'text-blue-400' : 'text-slate-400'
                     }`} />
                   </div>
                   <div>
@@ -246,7 +246,7 @@ export default function Navbar() {
                   onClick={handleSignUp}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-medium shadow-lg"
                 >
-                  SIGN UP AS {selectedUserType === 'college' ? 'SCHOOL' : selectedUserType.toUpperCase()}
+                  SIGN UP AS {selectedUserType === 'coach' ? 'SCHOOL' : selectedUserType.toUpperCase()}
                 </Button>
               </SignUpButton>
             ) : (
