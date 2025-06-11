@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +84,8 @@ const supportedGames = [
 ];
 
 export default function ProfilePage() {
+  const { user } = useUser();
+  
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editRecruitingOpen, setEditRecruitingOpen] = useState(false);
   const [editGameConnectionOpen, setEditGameConnectionOpen] = useState(false);
@@ -103,6 +106,19 @@ export default function ProfilePage() {
     location: "",
     bio: ""
   });
+
+  // Populate profile data from Clerk when user data is available
+  useEffect(() => {
+    if (user) {
+      setProfileData(prev => ({
+        ...prev,
+        realName: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
+        username: user.username ?? '',
+        email: user.emailAddresses[0]?.emailAddress ?? '',
+        // Leave location and bio empty - these will come from your database
+      }));
+    }
+  }, [user]);
 
   // Recruiting data state
   const [recruitingData, setRecruitingData] = useState<RecruitingData>({
