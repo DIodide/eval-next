@@ -28,27 +28,52 @@ datasource db {
 
 /// Players table with Clerk integration
 model Player {
-    id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    clerk_id          String   @unique // References Clerk user
-    email             String   @unique
+    id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    clerk_id          String  @unique // References Clerk user
+    email             String  @unique
     first_name        String
     last_name         String
-    username          String?  @unique // Optional username from Clerk
+    username          String? @unique // Optional username from Clerk
     external_accounts Json? // Store Clerk external accounts (OAuth connections)
-    school            String?
-    school_id         String?  @db.Uuid
-    gpa               Decimal? @db.Decimal(3, 2)
-    transcript        String? // File URL
-    class_year        String? // "Freshman", "Sophomore", etc.
-    guardian_email    String?
-    created_at        DateTime @default(now()) @db.Timestamp(6)
-    updated_at        DateTime @updatedAt
+
+    // Basic profile information
+    location String? // Player location (City, State)
+    bio      String? // Player bio/description
+
+    // Academic/School information
+    school          String?
+    school_id       String?  @db.Uuid
+    gpa             Decimal? @db.Decimal(3, 2)
+    transcript      String? // File URL
+    class_year      String? // "Freshman", "Sophomore", etc.
+    graduation_date String? // Expected graduation year
+    intended_major  String? // Intended college major
+
+    // Recruiting contact information
+    guardian_email           String?
+    scholastic_contact       String? // Guidance counselor or teacher name
+    scholastic_contact_email String? // Counselor/teacher email
+
+    // Additional recruiting information
+    extra_curriculars String? // Extracurricular activities
+    academic_bio      String? // Academic achievements and honors
+
+    // Main game preference
+    main_game_id String? @db.Uuid
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
 
     // Optional school reference
     school_ref School? @relation(fields: [school_id], references: [id])
 
+    // Main game reference
+    main_game Game? @relation("PlayerMainGame", fields: [main_game_id], references: [id])
+
     // Gaming data
     game_profiles         PlayerGameProfile[]
+    platform_connections  PlayerPlatformConnection[]
+    social_connections    PlayerSocialConnection[]
     tryout_registrations  TryoutRegistration[]
     combine_registrations CombineRegistration[]
     team_memberships      TeamMember[]
@@ -96,12 +121,13 @@ model Game {
     created_at DateTime @default(now()) @db.Timestamp(6)
 
     // Related entities
-    tryouts         Tryout[]
-    combines        Combine[]
-    leagues         League[]
-    teams           Team[]
-    player_profiles PlayerGameProfile[]
-    rankings        PlayerRanking[]
+    tryouts           Tryout[]
+    combines          Combine[]
+    leagues           League[]
+    teams             Team[]
+    player_profiles   PlayerGameProfile[]
+    rankings          PlayerRanking[]
+    main_game_players Player[]            @relation("PlayerMainGame")
 
     @@map("games")
 }
@@ -125,6 +151,38 @@ model PlayerGameProfile {
 
     @@unique([player_id, game_id])
     @@map("player_game_profiles")
+}
+
+/// Player gaming platform connections (Steam, Battle.net, etc.)
+model PlayerPlatformConnection {
+    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    player_id  String   @db.Uuid
+    platform   String // "steam", "valorant", "battlenet", "epicgames", "startgg"
+    username   String
+    connected  Boolean  @default(true)
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    player Player @relation(fields: [player_id], references: [id])
+
+    @@unique([player_id, platform])
+    @@map("player_platform_connections")
+}
+
+/// Player social media connections
+model PlayerSocialConnection {
+    id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    player_id  String   @db.Uuid
+    platform   String // "github", "discord", "instagram", "twitch", "x"
+    username   String
+    connected  Boolean  @default(true)
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    player Player @relation(fields: [player_id], references: [id])
+
+    @@unique([player_id, platform])
+    @@map("player_social_connections")
 }
 
 // =================================================================

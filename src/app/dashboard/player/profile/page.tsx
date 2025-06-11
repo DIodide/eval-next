@@ -20,17 +20,17 @@ import {
   GamepadIcon,
   LinkIcon,
   EditIcon,
-  CheckIcon,
   XIcon,
   InstagramIcon,
   TwitchIcon,
   TwitterIcon,
   MonitorIcon,
   PlusIcon,
-  ExternalLinkIcon,
   MessageCircleIcon,
-  GithubIcon
+  GithubIcon,
+  LoaderIcon
 } from "lucide-react";
+import { api } from "@/trpc/react";
 
 // Types for connections
 interface GameConnection {
@@ -52,9 +52,6 @@ interface SocialConnection {
 }
 
 interface ProfileData {
-  realName: string;
-  username: string;
-  email: string;
   location: string;
   bio: string;
 }
@@ -85,6 +82,25 @@ const supportedGames = [
 export default function ProfilePage() {
   const { user } = useUser();
   
+  // tRPC hooks
+  const { 
+    data: profileData, 
+    isLoading: isLoadingProfile, 
+    error: profileError,
+    refetch: refetchProfile 
+  } = api.playerProfile.getProfile.useQuery();
+  
+  const updateProfileMutation = api.playerProfile.updateProfile.useMutation({
+    onSuccess: () => {
+      void refetchProfile();
+      setEditProfileOpen(false);
+      setProfileErrors({});
+    },
+    onError: (error) => {
+      setProfileErrors({ general: error.message });
+    }
+  });
+  
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editRecruitingOpen, setEditRecruitingOpen] = useState(false);
   const [editGameConnectionOpen, setEditGameConnectionOpen] = useState(false);
@@ -97,27 +113,21 @@ export default function ProfilePage() {
   const [recruitingErrors, setRecruitingErrors] = useState<ValidationErrors>({});
   const [connectionError, setConnectionError] = useState("");
 
-  // Profile data state
-  const [profileData, setProfileData] = useState<ProfileData>({
-    realName: "",
-    username: "",
-    email: "",
+  // Editable profile data state (only location and bio)
+  const [editableProfileData, setEditableProfileData] = useState<ProfileData>({
     location: "",
     bio: ""
   });
 
-  // Populate profile data from Clerk when user data is available
+  // Update editable data when profile data loads
   useEffect(() => {
-    if (user) {
-      setProfileData(prev => ({
-        ...prev,
-        realName: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
-        username: user.username ?? '',
-        email: user.emailAddresses[0]?.emailAddress ?? '',
-        // Leave location and bio empty - these will come from your database
-      }));
+    if (profileData) {
+      setEditableProfileData({
+        location: profileData.location ?? "",
+        bio: profileData.bio ?? ""
+      });
     }
-  }, [user]);
+  }, [profileData]);
 
   // Recruiting data state
   const [recruitingData, setRecruitingData] = useState<RecruitingData>({
@@ -242,16 +252,12 @@ export default function ProfilePage() {
   const validateProfileData = (): boolean => {
     const errors: ValidationErrors = {};
 
-    if (profileData.email && !validateEmail(profileData.email)) {
-      errors.email = "Please enter a valid email address";
+    if (editableProfileData.location && editableProfileData.location.length < 2) {
+      errors.location = "Location must be at least 2 characters";
     }
 
-    if (profileData.username && profileData.username.length < 3) {
-      errors.username = "Username must be at least 3 characters";
-    }
-
-    if (profileData.realName && profileData.realName.length < 2) {
-      errors.realName = "Name must be at least 2 characters";
+    if (editableProfileData.bio && editableProfileData.bio.length < 10) {
+      errors.bio = "Bio must be at least 10 characters";
     }
 
     setProfileErrors(errors);
@@ -349,7 +355,11 @@ export default function ProfilePage() {
 
   const handleProfileSave = () => {
     if (!validateProfileData()) return;
-    setEditProfileOpen(false);
+    
+    updateProfileMutation.mutate({
+      location: editableProfileData.location,
+      bio: editableProfileData.bio
+    });
   };
 
   const handleRecruitingSave = () => {
@@ -359,7 +369,7 @@ export default function ProfilePage() {
 
   const connectedGameAccounts = gameConnections.filter(conn => conn.connected).length;
   const connectedSocialAccounts = socialConnections.filter(conn => conn.connected).length;
-  const hasBasicInfo = !!(profileData.realName || profileData.username || profileData.email || profileData.bio);
+  const hasBasicInfo = !!(editableProfileData.location || editableProfileData.bio);
   const hasRecruitingInfo = !!(recruitingData.school || recruitingData.mainGame || recruitingData.gpa || recruitingData.extraCurriculars || recruitingData.academicBio);
   
   // Cap game connections at 2 and social connections at 1 for progress calculation
@@ -399,8 +409,16 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-white">Basic Information</h3>
               <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    <EditIcon className="h-4 w-4 mr-2" />
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={isLoadingProfile || updateProfileMutation.isPending}
+                  >
+                    {updateProfileMutation.isPending ? (
+                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <EditIcon className="h-4 w-4 mr-2" />
+                    )}
                     Edit Profile
                   </Button>
                 </DialogTrigger>
@@ -408,77 +426,53 @@ export default function ProfilePage() {
                   <DialogHeader>
                     <DialogTitle>Edit Profile</DialogTitle>
                     <DialogDescription className="text-gray-400">
-                      Update your basic profile information
+                      Update your profile information (Real name, username, and email are managed by your account settings)
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="realName" className="font-rajdhani pb-2">Real Name</Label>
-                        <Input
-                          id="realName"
-                          value={profileData.realName}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, realName: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="John Doe"
-                        />
-                        {profileErrors.realName && (
-                          <p className="text-red-400 text-sm mt-1">{profileErrors.realName}</p>
-                        )}
+                    {profileErrors.general && (
+                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                        <p className="text-red-400 text-sm">{profileErrors.general}</p>
                       </div>
-                      <div>
-                        <Label htmlFor="username" className="font-rajdhani pb-2">Username</Label>
-                        <Input
-                          id="username"
-                          value={profileData.username}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="gamertag123"
-                        />
-                        {profileErrors.username && (
-                          <p className="text-red-400 text-sm mt-1">{profileErrors.username}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="email" className="font-rajdhani pb-2">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="john@example.com"
-                      />
-                      {profileErrors.email && (
-                        <p className="text-red-400 text-sm mt-1">{profileErrors.email}</p>
-                      )}
-                    </div>
+                    )}
                     <div>
                       <Label htmlFor="location" className="font-rajdhani pb-2">Location</Label>
                       <Input
                         id="location"
-                        value={profileData.location}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
+                        value={editableProfileData.location}
+                        onChange={(e) => setEditableProfileData(prev => ({ ...prev, location: e.target.value }))}
                         className="bg-gray-800 border-gray-700 text-white"
                         placeholder="City, State"
                       />
+                      {profileErrors.location && (
+                        <p className="text-red-400 text-sm mt-1">{profileErrors.location}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="bio" className="font-rajdhani pb-2">Bio</Label>
                       <Input
                         id="bio"
-                        value={profileData.bio}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                        value={editableProfileData.bio}
+                        onChange={(e) => setEditableProfileData(prev => ({ ...prev, bio: e.target.value }))}
                         className="bg-gray-800 border-gray-700 text-white"
                         placeholder="Tell us about yourself..."
                       />
+                      {profileErrors.bio && (
+                        <p className="text-red-400 text-sm mt-1">{profileErrors.bio}</p>
+                      )}
                     </div>
                     <div className="flex justify-end gap-2 pt-4">
                       <Button variant="outline" className="text-black border-gray-600" onClick={() => setEditProfileOpen(false)}>
                         Cancel
                       </Button>
-                      <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleProfileSave}>
+                      <Button 
+                        className="bg-blue-600 hover:bg-blue-700" 
+                        onClick={handleProfileSave}
+                        disabled={updateProfileMutation.isPending}
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                        ) : null}
                         Save Changes
                       </Button>
                     </div>
@@ -486,46 +480,79 @@ export default function ProfilePage() {
                 </DialogContent>
               </Dialog>
             </div>
-            <div className="space-y-4">
-              {profileData.realName || profileData.username || profileData.email || profileData.bio ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {profileData.realName && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Real Name</Label>
-                      <p className="text-white">{profileData.realName}</p>
-                    </div>
-                  )}
-                  {profileData.username && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Username</Label>
-                      <p className="text-white">{profileData.username}</p>
-                    </div>
-                  )}
-                  {profileData.email && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Email</Label>
-                      <p className="text-white">{profileData.email}</p>
-                    </div>
-                  )}
-                  {profileData.location && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Location</Label>
-                      <p className="text-white">{profileData.location}</p>
-                    </div>
-                  )}
-                  {profileData.bio && (
-                    <div className="md:col-span-2">
-                      <Label className="text-gray-400 font-rajdhani">Bio</Label>
-                      <p className="text-white">{profileData.bio}</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-400">
-                  Complete your basic profile information to get started.
-                </p>
-              )}
-            </div>
+            
+            {/* Loading State */}
+            {isLoadingProfile && (
+              <div className="flex items-center justify-center py-8">
+                <LoaderIcon className="h-6 w-6 animate-spin text-blue-400" />
+                <span className="ml-2 text-gray-400">Loading profile...</span>
+              </div>
+            )}
+
+            {/* Error State */}
+            {profileError && (
+              <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
+                <p className="text-red-400">Failed to load profile: {profileError.message}</p>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-2 border-red-600 text-red-400 hover:bg-red-900/20"
+                  onClick={() => void refetchProfile()}
+                >
+                  Retry
+                </Button>
+              </div>
+            )}
+
+            {/* Profile Content */}
+            {!isLoadingProfile && !profileError && (
+              <div className="space-y-4">
+                {user || editableProfileData.location || editableProfileData.bio ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Clerk-managed fields (read-only) */}
+                    {user?.firstName && user?.lastName && (
+                      <div>
+                        <Label className="text-gray-400 font-rajdhani">Real Name</Label>
+                        <p className="text-white">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
+                      </div>
+                    )}
+                    {user?.username && (
+                      <div>
+                        <Label className="text-gray-400 font-rajdhani">Username</Label>
+                        <p className="text-white">{user.username}</p>
+                        <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
+                      </div>
+                    )}
+                    {user?.emailAddresses[0]?.emailAddress && (
+                      <div>
+                        <Label className="text-gray-400 font-rajdhani">Email</Label>
+                        <p className="text-white">{user.emailAddresses[0].emailAddress}</p>
+                        <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
+                      </div>
+                    )}
+                    
+                    {/* Editable fields */}
+                    {editableProfileData.location && (
+                      <div>
+                        <Label className="text-gray-400 font-rajdhani">Location</Label>
+                        <p className="text-white">{editableProfileData.location}</p>
+                      </div>
+                    )}
+                    {editableProfileData.bio && (
+                      <div className="md:col-span-2">
+                        <Label className="text-gray-400 font-rajdhani">Bio</Label>
+                        <p className="text-white">{editableProfileData.bio}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">
+                    Complete your basic profile information to get started.
+                  </p>
+                )}
+              </div>
+            )}
           </Card>
 
           {/* Recruiting Information */}
