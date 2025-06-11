@@ -26,11 +26,12 @@ import { createClerkContext } from "../context";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  // CLERK Auth Guide: https://clerk.com/docs/references/nextjs/trpc
   const clerkContext = await createClerkContext();
   return {
-    db,
-    ...opts,
+    db, // can't have a ...db here, it's not a valid object (ctx.db)
     ...clerkContext,
+    ...opts,
   };
 };
 
@@ -121,4 +122,10 @@ const isAuthed = t.middleware(({ next, ctx }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
-export const protectedProcedure = t.procedure.use(isAuthed)
+
+/**
+ * Protected procedure
+ *
+ * This is a procedure that requires the user to be signed in.
+ */
+export const protectedProcedure = t.procedure.use(isAuthed);
