@@ -21,32 +21,32 @@ import {
 const sidebarItems = [
   {
     title: "EVAL Home",
-    href: "/dashboard",
+    href: "/dashboard/player",
     icon: HomeIcon,
   },
   {
     title: "Profile",
-    href: "/dashboard/profile",
+    href: "/dashboard/player/profile",
     icon: UserIcon,
   },
   {
     title: "My Tryouts",
-    href: "/dashboard/tryouts",
+    href: "/dashboard/player/tryouts",
     icon: TrophyIcon,
   },
   {
     title: "My Highlights",
-    href: "/dashboard/highlights",
+    href: "/dashboard/player/highlights",
     icon: PlayIcon,
   },
   {
     title: "Messages",
-    href: "/dashboard/messages",
+    href: "/dashboard/player/messages",
     icon: MessageSquareIcon,
     },
   {
     title: "Memberships",
-    href: "/dashboard/memberships",
+    href: "/dashboard/player/memberships",
     icon: ShieldCheckIcon,
   },
 ];
