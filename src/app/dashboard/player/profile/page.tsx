@@ -58,16 +58,16 @@ interface ProfileData {
 
 interface RecruitingData {
   school: string;
-  class: string;
-  mainGame: string;
-  scholasticContact: string;
-  scholasticContactEmail: string;
-  parentContact: string;
+  class_year: string;
+  main_game_id: string;
+  scholastic_contact: string;
+  scholastic_contact_email: string;
+  guardian_email: string;
   gpa: string;
-  graduationDate: string;
-  intendedMajor: string;
-  extraCurriculars: string;
-  academicBio: string;
+  graduation_date: string;
+  intended_major: string;
+  extra_curriculars: string;
+  academic_bio: string;
 }
 
 type ValidationErrors = Record<string, string>;
@@ -89,15 +89,23 @@ export default function ProfilePage() {
     error: profileError,
     refetch: refetchProfile 
   } = api.playerProfile.getProfile.useQuery();
+
+  const { 
+    data: availableGames, 
+    isLoading: isLoadingGames 
+  } = api.playerProfile.getAvailableGames.useQuery();
   
   const updateProfileMutation = api.playerProfile.updateProfile.useMutation({
     onSuccess: () => {
       void refetchProfile();
       setEditProfileOpen(false);
+      setEditRecruitingOpen(false);
       setProfileErrors({});
+      setRecruitingErrors({});
     },
     onError: (error) => {
       setProfileErrors({ general: error.message });
+      setRecruitingErrors({ general: error.message });
     }
   });
   
@@ -126,22 +134,37 @@ export default function ProfilePage() {
         location: profileData.location ?? "",
         bio: profileData.bio ?? ""
       });
+      
+      // Update recruiting data from API
+      setRecruitingData({
+        school: profileData.school ?? "",
+        class_year: profileData.class_year ?? "",
+        main_game_id: profileData.main_game_id ?? "",
+        scholastic_contact: profileData.scholastic_contact ?? "",
+        scholastic_contact_email: profileData.scholastic_contact_email ?? "",
+        guardian_email: profileData.guardian_email ?? "",
+        gpa: profileData.gpa?.toString() ?? "",
+        graduation_date: profileData.graduation_date ?? "",
+        intended_major: profileData.intended_major ?? "",
+        extra_curriculars: profileData.extra_curriculars ?? "",
+        academic_bio: profileData.academic_bio ?? ""
+      });
     }
   }, [profileData]);
 
   // Recruiting data state
   const [recruitingData, setRecruitingData] = useState<RecruitingData>({
     school: "",
-    class: "",
-    mainGame: "",
-    scholasticContact: "",
-    scholasticContactEmail: "",
-    parentContact: "",
+    class_year: "",
+    main_game_id: "",
+    scholastic_contact: "",
+    scholastic_contact_email: "",
+    guardian_email: "",
     gpa: "",
-    graduationDate: "",
-    intendedMajor: "",
-    extraCurriculars: "",
-    academicBio: ""
+    graduation_date: "",
+    intended_major: "",
+    extra_curriculars: "",
+    academic_bio: ""
   });
 
   // Game connections state
@@ -267,20 +290,20 @@ export default function ProfilePage() {
   const validateRecruitingData = (): boolean => {
     const errors: ValidationErrors = {};
 
-    if (recruitingData.scholasticContactEmail && !validateEmail(recruitingData.scholasticContactEmail)) {
-      errors.scholasticContactEmail = "Please enter a valid email address";
+    if (recruitingData.scholastic_contact_email && !validateEmail(recruitingData.scholastic_contact_email)) {
+      errors.scholastic_contact_email = "Please enter a valid email address";
     }
 
-    if (recruitingData.parentContact && !validateEmail(recruitingData.parentContact)) {
-      errors.parentContact = "Please enter a valid email address";
+    if (recruitingData.guardian_email && !validateEmail(recruitingData.guardian_email)) {
+      errors.guardian_email = "Please enter a valid email address";
     }
 
     if (recruitingData.gpa && !validateGPA(recruitingData.gpa)) {
       errors.gpa = "GPA must be between 0.0 and 4.0";
     }
 
-    if (recruitingData.class && !validateYear(recruitingData.class)) {
-      errors.class = "Please enter a valid graduation year";
+    if (recruitingData.class_year && !validateYear(recruitingData.class_year)) {
+      errors.class_year = "Please enter a valid graduation year";
     }
 
     setRecruitingErrors(errors);
@@ -364,13 +387,29 @@ export default function ProfilePage() {
 
   const handleRecruitingSave = () => {
     if (!validateRecruitingData()) return;
-    setEditRecruitingOpen(false);
+    
+    // Convert GPA to number if provided
+    const gpaNumber = recruitingData.gpa ? parseFloat(recruitingData.gpa) : undefined;
+    
+    updateProfileMutation.mutate({
+      school: recruitingData.school || undefined,
+      class_year: recruitingData.class_year || undefined,
+      main_game_id: recruitingData.main_game_id || undefined,
+      scholastic_contact: recruitingData.scholastic_contact || undefined,
+      scholastic_contact_email: recruitingData.scholastic_contact_email || undefined,
+      guardian_email: recruitingData.guardian_email || undefined,
+      gpa: gpaNumber,
+      graduation_date: recruitingData.graduation_date || undefined,
+      intended_major: recruitingData.intended_major || undefined,
+      extra_curriculars: recruitingData.extra_curriculars || undefined,
+      academic_bio: recruitingData.academic_bio || undefined
+    });
   };
 
   const connectedGameAccounts = gameConnections.filter(conn => conn.connected).length;
   const connectedSocialAccounts = socialConnections.filter(conn => conn.connected).length;
   const hasBasicInfo = !!(editableProfileData.location || editableProfileData.bio);
-  const hasRecruitingInfo = !!(recruitingData.school || recruitingData.mainGame || recruitingData.gpa || recruitingData.extraCurriculars || recruitingData.academicBio);
+  const hasRecruitingInfo = !!(recruitingData.school || recruitingData.main_game_id || recruitingData.gpa || recruitingData.extra_curriculars || recruitingData.academic_bio);
   
   // Cap game connections at 2 and social connections at 1 for progress calculation
   const gameConnectionsForProgress = Math.min(connectedGameAccounts, 2);
@@ -568,8 +607,13 @@ export default function ProfilePage() {
                     size="sm" 
                     variant="outline" 
                     className="border-gray-600 text-black hover:bg-gray-200"
+                    disabled={isLoadingProfile || updateProfileMutation.isPending}
                   >
-                    <EditIcon className="h-4 w-4 mr-2" />
+                    {updateProfileMutation.isPending ? (
+                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <EditIcon className="h-4 w-4 mr-2" />
+                    )}
                     Edit
                   </Button>
                 </DialogTrigger>
@@ -581,42 +625,52 @@ export default function ProfilePage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 max-h-96 overflow-y-auto pr-4">
+                    {recruitingErrors.general && (
+                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                        <p className="text-red-400 text-sm">{recruitingErrors.general}</p>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="school" className="font-rajdhani pb-2">School/University</Label>
+                        <Label htmlFor="school" className="font-rajdhani pb-2">School</Label>
                         <Input
                           id="school"
                           value={recruitingData.school}
                           onChange={(e) => setRecruitingData(prev => ({ ...prev, school: e.target.value }))}
                           className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="High School or University"
+                          placeholder="University Name"
                         />
                       </div>
                       <div>
                         <Label htmlFor="class" className="font-rajdhani pb-2">Graduation Year</Label>
                         <Input
                           id="class"
-                          value={recruitingData.class}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, class: e.target.value }))}
+                          value={recruitingData.class_year}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, class_year: e.target.value }))}
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="2025"
                         />
-                        {recruitingErrors.class && (
-                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.class}</p>
+                        {recruitingErrors.class_year && (
+                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.class_year}</p>
                         )}
                       </div>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="mainGame" className="font-rajdhani pb-2">Main Game</Label>
-                        <Select value={recruitingData.mainGame} onValueChange={(value) => setRecruitingData(prev => ({ ...prev, mainGame: value }))}>
+                        <Select 
+                          value={recruitingData.main_game_id} 
+                          onValueChange={(value) => setRecruitingData(prev => ({ ...prev, main_game_id: value }))}
+                          disabled={isLoadingGames}
+                        >
                           <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                            <SelectValue placeholder="Select your main game" />
+                            <SelectValue placeholder={isLoadingGames ? "Loading games..." : "Select your main game"} />
                           </SelectTrigger>
                           <SelectContent className="bg-gray-800 border-gray-700">
-                            {supportedGames.map((game) => (
-                              <SelectItem key={game} value={game} className="text-white hover:bg-gray-700">
-                                {game}
+                            {availableGames?.map((game) => (
+                              <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
+                                {game.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -636,89 +690,98 @@ export default function ProfilePage() {
                         )}
                       </div>
                     </div>
+
                     <div>
-                      <Label htmlFor="intendedMajor" className="font-rajdhani pb-2">Intended Major</Label>
+                      <Label htmlFor="intended_major" className="font-rajdhani pb-2">Intended Major</Label>
                       <Input
-                        id="intendedMajor"
-                        value={recruitingData.intendedMajor}
-                        onChange={(e) => setRecruitingData(prev => ({ ...prev, intendedMajor: e.target.value }))}
+                        id="intended_major"
+                        value={recruitingData.intended_major}
+                        onChange={(e) => setRecruitingData(prev => ({ ...prev, intended_major: e.target.value }))}
                         className="bg-gray-800 border-gray-700 text-white"
                         placeholder="Computer Science, Business, etc."
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="scholasticContact" className="font-rajdhani pb-2">Scholastic Contact</Label>
-                        <Input
-                          id="scholasticContact"
-                          value={recruitingData.scholasticContact}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, scholasticContact: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="Guidance Counselor or Teacher Name"
-                        />
+
+                    <div className="space-y-4">
+                      <h4 className="text-md font-semibold text-white">Contact Information</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="scholastic_contact" className="font-rajdhani pb-2">Scholastic Contact</Label>
+                          <Input
+                            id="scholastic_contact"
+                            value={recruitingData.scholastic_contact}
+                            onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact: e.target.value }))}
+                            className="bg-gray-800 border-gray-700 text-white"
+                            placeholder="Guidance Counselor or Teacher Name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="scholastic_contact_email" className="font-rajdhani pb-2">Scholastic Contact Email</Label>
+                          <Input
+                            id="scholastic_contact_email"
+                            type="email"
+                            value={recruitingData.scholastic_contact_email}
+                            onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact_email: e.target.value }))}
+                            className="bg-gray-800 border-gray-700 text-white"
+                            placeholder="counselor@school.edu"
+                          />
+                          {recruitingErrors.scholastic_contact_email && (
+                            <p className="text-red-400 text-sm mt-1">{recruitingErrors.scholastic_contact_email}</p>
+                          )}
+                        </div>
                       </div>
                       <div>
-                        <Label htmlFor="scholasticContactEmail" className="font-rajdhani pb-2">Scholastic Contact Email</Label>
+                        <Label htmlFor="guardian_email" className="font-rajdhani pb-2">Parent/Guardian Email</Label>
                         <Input
-                          id="scholasticContactEmail"
+                          id="guardian_email"
                           type="email"
-                          value={recruitingData.scholasticContactEmail}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, scholasticContactEmail: e.target.value }))}
+                          value={recruitingData.guardian_email}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, guardian_email: e.target.value }))}
                           className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="counselor@school.edu"
+                          placeholder="parent@email.com"
                         />
-                        {recruitingErrors.scholasticContactEmail && (
-                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.scholasticContactEmail}</p>
+                        {recruitingErrors.guardian_email && (
+                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.guardian_email}</p>
                         )}
                       </div>
                     </div>
-                    <div>
-                      <Label htmlFor="parentContact" className="font-rajdhani pb-2">Parent/Guardian Contact Email</Label>
-                      <Input
-                        id="parentContact"
-                        type="email"
-                        value={recruitingData.parentContact}
-                        onChange={(e) => setRecruitingData(prev => ({ ...prev, parentContact: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="parent@email.com"
-                      />
-                      {recruitingErrors.parentContact && (
-                        <p className="text-red-400 text-sm mt-1">{recruitingErrors.parentContact}</p>
-                      )}
+
+                    <div className="space-y-4">
+                      <h4 className="text-md font-semibold text-white">Additional Information</h4>
+                      <div>
+                        <Label htmlFor="extra_curriculars" className="font-rajdhani pb-2">Extra Curriculars</Label>
+                        <Input
+                          id="extra_curriculars"
+                          value={recruitingData.extra_curriculars}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, extra_curriculars: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="Sports, clubs, leadership roles, etc."
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="academic_bio" className="font-rajdhani pb-2">Academic Bio</Label>
+                        <Input
+                          id="academic_bio"
+                          value={recruitingData.academic_bio}
+                          onChange={(e) => setRecruitingData(prev => ({ ...prev, academic_bio: e.target.value }))}
+                          className="bg-gray-800 border-gray-700 text-white"
+                          placeholder="Academic achievements, honors, awards..."
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="extraCurriculars" className="font-rajdhani pb-2">Extra Curriculars</Label>
-                      <Input
-                        id="extraCurriculars"
-                        value={recruitingData.extraCurriculars}
-                        onChange={(e) => setRecruitingData(prev => ({ ...prev, extraCurriculars: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="Sports, clubs, leadership roles, etc."
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="academicBio" className="font-rajdhani pb-2">Academic Bio</Label>
-                      <Input
-                        id="academicBio"
-                        value={recruitingData.academicBio}
-                        onChange={(e) => setRecruitingData(prev => ({ ...prev, academicBio: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="Academic achievements, honors, awards..."
-                      />
-                    </div>
-                    <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-3">
-                      <p className="text-yellow-400 text-sm flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                        <strong>Privacy Notice:</strong> This recruiting information will not be visible on your public profile and is only accessible to verified college recruiters.
-                      </p>
-                    </div>
+
                     <div className="flex justify-end gap-2 pt-4">
                       <Button variant="outline" className="text-black border-gray-600" onClick={() => setEditRecruitingOpen(false)}>
                         Cancel
                       </Button>
-                      <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleRecruitingSave}>
+                      <Button 
+                        className="bg-blue-600 hover:bg-blue-700" 
+                        onClick={handleRecruitingSave}
+                        disabled={updateProfileMutation.isPending}
+                      >
+                        {updateProfileMutation.isPending ? (
+                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                        ) : null}
                         Save Changes
                       </Button>
                     </div>
@@ -727,7 +790,7 @@ export default function ProfilePage() {
               </Dialog>
             </div>
             <div className="space-y-4">
-              {hasRecruitingInfo ? (
+              {recruitingData.school || recruitingData.class_year || recruitingData.main_game_id || recruitingData.gpa || recruitingData.intended_major || recruitingData.scholastic_contact || recruitingData.extra_curriculars || recruitingData.academic_bio ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   {recruitingData.school && (
                     <div>
@@ -735,16 +798,16 @@ export default function ProfilePage() {
                       <p className="text-white">{recruitingData.school}</p>
                     </div>
                   )}
-                  {recruitingData.class && (
+                  {recruitingData.class_year && (
                     <div>
                       <Label className="text-gray-400 font-rajdhani">Graduation Year</Label>
-                      <p className="text-white">{recruitingData.class}</p>
+                      <p className="text-white">{recruitingData.class_year}</p>
                     </div>
                   )}
-                  {recruitingData.mainGame && (
+                  {recruitingData.main_game_id && (
                     <div>
                       <Label className="text-gray-400 font-rajdhani">Main Game</Label>
-                      <p className="text-white">{recruitingData.mainGame}</p>
+                      <p className="text-white">{availableGames?.find(game => game.id === recruitingData.main_game_id)?.name || recruitingData.main_game_id}</p>
                     </div>
                   )}
                   {recruitingData.gpa && (
@@ -753,28 +816,28 @@ export default function ProfilePage() {
                       <p className="text-white">{recruitingData.gpa}</p>
                     </div>
                   )}
-                  {recruitingData.intendedMajor && (
+                  {recruitingData.intended_major && (
                     <div>
                       <Label className="text-gray-400 font-rajdhani">Intended Major</Label>
-                      <p className="text-white">{recruitingData.intendedMajor}</p>
+                      <p className="text-white">{recruitingData.intended_major}</p>
                     </div>
                   )}
-                  {recruitingData.scholasticContact && (
+                  {recruitingData.scholastic_contact && (
                     <div>
                       <Label className="text-gray-400 font-rajdhani">Scholastic Contact</Label>
-                      <p className="text-white">{recruitingData.scholasticContact}</p>
+                      <p className="text-white">{recruitingData.scholastic_contact}</p>
                     </div>
                   )}
-                  {recruitingData.extraCurriculars && (
+                  {recruitingData.extra_curriculars && (
                     <div className="md:col-span-2">
                       <Label className="text-gray-400 font-rajdhani">Extra Curriculars</Label>
-                      <p className="text-white">{recruitingData.extraCurriculars}</p>
+                      <p className="text-white">{recruitingData.extra_curriculars}</p>
                     </div>
                   )}
-                  {recruitingData.academicBio && (
+                  {recruitingData.academic_bio && (
                     <div className="md:col-span-2">
                       <Label className="text-gray-400 font-rajdhani">Academic Bio</Label>
-                      <p className="text-white">{recruitingData.academicBio}</p>
+                      <p className="text-white">{recruitingData.academic_bio}</p>
                     </div>
                   )}
                 </div>
