@@ -31,7 +31,7 @@ export class DatabaseError extends Error {
 export async function withRetry<T>(
   operation: () => Promise<T>,
   maxRetries = 3,
-  delayMs = 1000,
+  delayMs = 100,
 ): Promise<T> {
   let lastError: unknown;
 

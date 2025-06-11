@@ -72,7 +72,6 @@ interface RecruitingData {
 
 type ValidationErrors = Record<string, string>;
 
-
 export default function ProfilePage() {
   const { user } = useUser();
   
@@ -100,6 +99,51 @@ export default function ProfilePage() {
     onError: (error) => {
       setProfileErrors({ general: error.message });
       setRecruitingErrors({ general: error.message });
+    }
+  });
+
+  // Connection mutations
+  const updatePlatformMutation = api.playerProfile.updatePlatformConnection.useMutation({
+    onSuccess: () => {
+      void refetchProfile();
+      setConnectionUsername("");
+      setSelectedPlatform("");
+      setConnectionError("");
+      setEditGameConnectionOpen(false);
+    },
+    onError: (error) => {
+      setConnectionError(error.message);
+    }
+  });
+
+  const updateSocialMutation = api.playerProfile.updateSocialConnection.useMutation({
+    onSuccess: () => {
+      void refetchProfile();
+      setConnectionUsername("");
+      setSelectedPlatform("");
+      setConnectionError("");
+      setEditSocialConnectionOpen(false);
+    },
+    onError: (error) => {
+      setConnectionError(error.message);
+    }
+  });
+
+  const removePlatformMutation = api.playerProfile.removePlatformConnection.useMutation({
+    onSuccess: () => {
+      void refetchProfile();
+    },
+    onError: (error) => {
+      setConnectionError(error.message);
+    }
+  });
+
+  const removeSocialMutation = api.playerProfile.removeSocialConnection.useMutation({
+    onSuccess: () => {
+      void refetchProfile();
+    },
+    onError: (error) => {
+      setConnectionError(error.message);
     }
   });
   
@@ -161,8 +205,8 @@ export default function ProfilePage() {
     academic_bio: ""
   });
 
-  // Game connections state
-  const [gameConnections, setGameConnections] = useState<GameConnection[]>([
+  // Game connections configurations
+  const gameConnectionsConfig: GameConnection[] = [
     {
       platform: "steam",
       username: "",
@@ -203,10 +247,10 @@ export default function ProfilePage() {
       displayName: "start.gg",
       color: "bg-purple-600"
     }
-  ]);
+  ];
 
-  // Social connections state
-  const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([
+  // Social connections configurations
+  const socialConnectionsConfig: SocialConnection[] = [
     {
       platform: "github",
       username: "",
@@ -247,7 +291,26 @@ export default function ProfilePage() {
       displayName: "X (Twitter)",
       color: "bg-gray-900"
     }
-  ]);
+  ];
+
+  // Create connection arrays from database data and config
+  const gameConnections = gameConnectionsConfig.map(config => {
+    const dbConnection = profileData?.platform_connections?.find(conn => conn.platform === config.platform);
+    return {
+      ...config,
+      username: dbConnection?.username ?? "",
+      connected: dbConnection?.connected ?? false
+    };
+  });
+
+  const socialConnections = socialConnectionsConfig.map(config => {
+    const dbConnection = profileData?.social_connections?.find(conn => conn.platform === config.platform);
+    return {
+      ...config,
+      username: dbConnection?.username ?? "",
+      connected: dbConnection?.connected ?? false
+    };
+  });
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -327,46 +390,30 @@ export default function ProfilePage() {
   const handleGameConnectionSave = () => {
     if (!validateConnection()) return;
     
-    setGameConnections(prev => prev.map(conn => 
-      conn.platform === selectedPlatform 
-        ? { ...conn, username: connectionUsername.trim(), connected: true }
-        : conn
-    ));
-    
-    setConnectionUsername("");
-    setSelectedPlatform("");
-    setConnectionError("");
-    setEditGameConnectionOpen(false);
+    updatePlatformMutation.mutate({
+      platform: selectedPlatform as "steam" | "valorant" | "battlenet" | "epicgames" | "startgg",
+      username: connectionUsername.trim()
+    });
   };
 
   const handleSocialConnectionSave = () => {
     if (!validateConnection()) return;
     
-    setSocialConnections(prev => prev.map(conn => 
-      conn.platform === selectedPlatform 
-        ? { ...conn, username: connectionUsername.trim(), connected: true }
-        : conn
-    ));
-    
-    setConnectionUsername("");
-    setSelectedPlatform("");
-    setConnectionError("");
-    setEditSocialConnectionOpen(false);
+    updateSocialMutation.mutate({
+      platform: selectedPlatform as "github" | "discord" | "instagram" | "twitch" | "x",
+      username: connectionUsername.trim()
+    });
   };
 
   const disconnectAccount = (platform: string, type: 'game' | 'social') => {
     if (type === 'game') {
-      setGameConnections(prev => prev.map(conn => 
-        conn.platform === platform 
-          ? { ...conn, username: "", connected: false }
-          : conn
-      ));
+      removePlatformMutation.mutate({
+        platform: platform as "steam" | "valorant" | "battlenet" | "epicgames" | "startgg"
+      });
     } else {
-      setSocialConnections(prev => prev.map(conn => 
-        conn.platform === platform 
-          ? { ...conn, username: "", connected: false }
-          : conn
-      ));
+      removeSocialMutation.mutate({
+        platform: platform as "github" | "discord" | "instagram" | "twitch" | "x"
+      });
     }
   };
 
@@ -857,8 +904,16 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-white">Game Connections</h3>
               <Dialog open={editGameConnectionOpen} onOpenChange={setEditGameConnectionOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    <PlusIcon className="h-4 w-4 mr-2" />
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={updatePlatformMutation.isPending || removePlatformMutation.isPending}
+                  >
+                    {updatePlatformMutation.isPending ? (
+                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                    )}
                     Connect Account
                   </Button>
                 </DialogTrigger>
@@ -870,15 +925,24 @@ export default function ProfilePage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
+                    {connectionError && (
+                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                        <p className="text-red-400 text-sm">{connectionError}</p>
+                      </div>
+                    )}
                     <div>
                       <Label className="p-2">Select Platform</Label>
                       <div className="grid grid-cols-2 gap-4 mt-2">
-                        {gameConnections.filter(conn => !conn.connected).map((platform) => (
+                        {gameConnectionsConfig.filter(config => {
+                          const isConnected = gameConnections.find(conn => conn.platform === config.platform)?.connected;
+                          return !isConnected;
+                        }).map((platform) => (
                           <Button
                             key={platform.platform}
                             variant={selectedPlatform === platform.platform ? "default" : "outline"}
                             className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                             onClick={() => setSelectedPlatform(platform.platform)}
+                            disabled={updatePlatformMutation.isPending}
                           >
                             <platform.icon className="h-4 w-4 mr-2" />
                             {platform.displayName}
@@ -895,25 +959,32 @@ export default function ProfilePage() {
                           onChange={(e) => setConnectionUsername(e.target.value)}
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="Enter your username"
+                          disabled={updatePlatformMutation.isPending}
                         />
-                        {connectionError && (
-                          <p className="text-red-400 text-sm mt-1">{connectionError}</p>
-                        )}
                       </div>
                     )}
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="text-black border-gray-600" onClick={() => {
-                        setEditGameConnectionOpen(false);
-                        setSelectedPlatform("");
-                        setConnectionUsername("");
-                        setConnectionError("");
-                      }}>
+                      <Button 
+                        variant="outline" 
+                        className="text-black border-gray-600" 
+                        onClick={() => {
+                          setEditGameConnectionOpen(false);
+                          setSelectedPlatform("");
+                          setConnectionUsername("");
+                          setConnectionError("");
+                        }}
+                        disabled={updatePlatformMutation.isPending}
+                      >
                         Cancel
                       </Button>
                       <Button 
                         className="bg-blue-600 hover:bg-blue-700" 
                         onClick={handleGameConnectionSave}
+                        disabled={updatePlatformMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
                       >
+                        {updatePlatformMutation.isPending ? (
+                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                        ) : null}
                         Connect Account
                       </Button>
                     </div>
@@ -944,16 +1015,33 @@ export default function ProfilePage() {
                         variant="ghost"
                         className="text-gray-400 hover:text-red-400"
                         onClick={() => disconnectAccount(connection.platform, 'game')}
+                        disabled={removePlatformMutation.isPending}
                       >
-                        <XIcon className="h-4 w-4" />
+                        {removePlatformMutation.isPending ? (
+                          <LoaderIcon className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <XIcon className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-400 py-2">
-                  No game accounts connected yet. Connect your accounts to showcase your gaming achievements.
-                </p>
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">
+                    No game accounts connected yet. Connect your accounts to showcase your gaming achievements.
+                  </p>
+                  {isLoadingProfile ? (
+                    <LoaderIcon className="h-5 w-5 animate-spin text-blue-400 mx-auto" />
+                  ) : (
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setEditGameConnectionOpen(true)}
+                    >
+                      Connect Your First Account
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </Card>
@@ -964,8 +1052,16 @@ export default function ProfilePage() {
               <h3 className="text-lg font-semibold text-white">Social Connections</h3>
               <Dialog open={editSocialConnectionOpen} onOpenChange={setEditSocialConnectionOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    <PlusIcon className="h-4 w-4 mr-2" />
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={updateSocialMutation.isPending || removeSocialMutation.isPending}
+                  >
+                    {updateSocialMutation.isPending ? (
+                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                    )}
                     Connect Social
                   </Button>
                 </DialogTrigger>
@@ -977,15 +1073,24 @@ export default function ProfilePage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
+                    {connectionError && (
+                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                        <p className="text-red-400 text-sm">{connectionError}</p>
+                      </div>
+                    )}
                     <div>
                       <Label>Select Platform</Label>
                       <div className="grid grid-cols-1 gap-2 mt-2">
-                        {socialConnections.filter(conn => !conn.connected).map((platform) => (
+                        {socialConnectionsConfig.filter(config => {
+                          const isConnected = socialConnections.find(conn => conn.platform === config.platform)?.connected;
+                          return !isConnected;
+                        }).map((platform) => (
                           <Button
                             key={platform.platform}
                             variant={selectedPlatform === platform.platform ? "default" : "outline"}
                             className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                             onClick={() => setSelectedPlatform(platform.platform)}
+                            disabled={updateSocialMutation.isPending}
                           >
                             <platform.icon className="h-4 w-4 mr-2" />
                             {platform.displayName}
@@ -1002,25 +1107,32 @@ export default function ProfilePage() {
                           onChange={(e) => setConnectionUsername(e.target.value)}
                           className="bg-gray-800 border-gray-700 text-white"
                           placeholder="Enter your username"
+                          disabled={updateSocialMutation.isPending}
                         />
-                        {connectionError && (
-                          <p className="text-red-400 text-sm mt-1">{connectionError}</p>
-                        )}
                       </div>
                     )}
                     <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="border-gray-600" onClick={() => {
-                        setEditSocialConnectionOpen(false);
-                        setSelectedPlatform("");
-                        setConnectionUsername("");
-                        setConnectionError("");
-                      }}>
+                      <Button 
+                        variant="outline" 
+                        className="border-gray-600" 
+                        onClick={() => {
+                          setEditSocialConnectionOpen(false);
+                          setSelectedPlatform("");
+                          setConnectionUsername("");
+                          setConnectionError("");
+                        }}
+                        disabled={updateSocialMutation.isPending}
+                      >
                         Cancel
                       </Button>
                       <Button 
                         className="bg-blue-600 hover:bg-blue-700" 
                         onClick={handleSocialConnectionSave}
+                        disabled={updateSocialMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
                       >
+                        {updateSocialMutation.isPending ? (
+                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                        ) : null}
                         Connect Account
                       </Button>
                     </div>
@@ -1051,16 +1163,33 @@ export default function ProfilePage() {
                         variant="ghost"
                         className="text-gray-400 hover:text-red-400"
                         onClick={() => disconnectAccount(connection.platform, 'social')}
+                        disabled={removeSocialMutation.isPending}
                       >
-                        <XIcon className="h-4 w-4" />
+                        {removeSocialMutation.isPending ? (
+                          <LoaderIcon className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <XIcon className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-400 py-2">
-                  No social accounts connected yet. Connect your social media to build your personal brand.
-                </p>
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">
+                    No social accounts connected yet. Connect your social media to build your personal brand.
+                  </p>
+                  {isLoadingProfile ? (
+                    <LoaderIcon className="h-5 w-5 animate-spin text-blue-400 mx-auto" />
+                  ) : (
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setEditSocialConnectionOpen(true)}
+                    >
+                      Connect Your First Account
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </Card>
