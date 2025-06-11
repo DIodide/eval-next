@@ -3,7 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Search, User, GraduationCap, School, X } from "lucide-react"
+import { ChevronDown, Search, User, GraduationCap, X } from "lucide-react"
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -115,6 +115,9 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Link href="/test-playerprofile" className="font-orbitron hover:text-cyan-400 transition-colors">
+            DEV
+          </Link>
         </div>
 
         <div className="flex items-center space-x-4">
