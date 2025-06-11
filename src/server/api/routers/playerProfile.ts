@@ -11,6 +11,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
+import { withRetry } from "@/lib/db-utils";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
@@ -64,12 +65,14 @@ async function verifyPlayerUser(ctx: Context) {
     });
   }
 
-  // Check if the player exists in our database
+  // Check if the player exists in our database using retry wrapper
   // The userType verification should happen during user creation via webhooks
-  const player = await ctx.db.player.findUnique({
-    where: { clerk_id: userId },
-    select: { id: true },
-  });
+  const player = await withRetry(() => 
+    ctx.db.player.findUnique({
+      where: { clerk_id: userId },
+      select: { id: true },
+    })
+  );
 
   if (!player) {
     throw new TRPCError({
@@ -88,15 +91,17 @@ export const playerProfileRouter = createTRPCRouter({
     const { userId } = await verifyPlayerUser(ctx);
     
     try {
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-        include: {
-          school_ref: true,
-          main_game: true,
-          platform_connections: true,
-          social_connections: true,
-        },
-      });
+      const player = await withRetry(() =>
+        ctx.db.player.findUnique({
+          where: { clerk_id: userId },
+          include: {
+            school_ref: true,
+            main_game: true,
+            platform_connections: true,
+            social_connections: true,
+          },
+        })
+      );
       
       if (!player) {
         throw new TRPCError({
@@ -125,19 +130,21 @@ export const playerProfileRouter = createTRPCRouter({
       const { userId } = await verifyPlayerUser(ctx);
       
       try {
-        const updatedPlayer = await ctx.db.player.update({
-          where: { clerk_id: userId },
-          data: {
-            ...input,
-            updated_at: new Date(),
-          },
-          include: {
-            school_ref: true,
-            main_game: true,
-            platform_connections: true,
-            social_connections: true,
-          },
-        });
+        const updatedPlayer = await withRetry(() =>
+          ctx.db.player.update({
+            where: { clerk_id: userId },
+            data: {
+              ...input,
+              updated_at: new Date(),
+            },
+            include: {
+              school_ref: true,
+              main_game: true,
+              platform_connections: true,
+              social_connections: true,
+            },
+          })
+        );
         
         return updatedPlayer;
       } catch (error) {
@@ -158,26 +165,28 @@ export const playerProfileRouter = createTRPCRouter({
       
       try {
         // Upsert platform connection using the correct unique constraint
-        const connection = await ctx.db.playerPlatformConnection.upsert({
-          where: {
-            // Use the compound unique constraint properly
-            player_id_platform: {
+        const connection = await withRetry(() =>
+          ctx.db.playerPlatformConnection.upsert({
+            where: {
+              // Use the compound unique constraint properly
+              player_id_platform: {
+                player_id: playerId,
+                platform: input.platform,
+              },
+            },
+            update: {
+              username: input.username,
+              connected: true,
+              updated_at: new Date(),
+            },
+            create: {
               player_id: playerId,
               platform: input.platform,
+              username: input.username,
+              connected: true,
             },
-          },
-          update: {
-            username: input.username,
-            connected: true,
-            updated_at: new Date(),
-          },
-          create: {
-            player_id: playerId,
-            platform: input.platform,
-            username: input.username,
-            connected: true,
-          },
-        });
+          })
+        );
         
         return connection;
       } catch (error) {
@@ -198,26 +207,28 @@ export const playerProfileRouter = createTRPCRouter({
       
       try {
         // Upsert social connection using the correct unique constraint
-        const connection = await ctx.db.playerSocialConnection.upsert({
-          where: {
-            // Use the compound unique constraint properly
-            player_id_platform: {
+        const connection = await withRetry(() =>
+          ctx.db.playerSocialConnection.upsert({
+            where: {
+              // Use the compound unique constraint properly
+              player_id_platform: {
+                player_id: playerId,
+                platform: input.platform,
+              },
+            },
+            update: {
+              username: input.username,
+              connected: true,
+              updated_at: new Date(),
+            },
+            create: {
               player_id: playerId,
               platform: input.platform,
+              username: input.username,
+              connected: true,
             },
-          },
-          update: {
-            username: input.username,
-            connected: true,
-            updated_at: new Date(),
-          },
-          create: {
-            player_id: playerId,
-            platform: input.platform,
-            username: input.username,
-            connected: true,
-          },
-        });
+          })
+        );
         
         return connection;
       } catch (error) {
@@ -238,14 +249,16 @@ export const playerProfileRouter = createTRPCRouter({
       
       try {
           // Delete platform connection using the correct unique constraint
-          await ctx.db.playerPlatformConnection.delete({
-          where: {
-            player_id_platform: {
-              player_id: playerId,
-              platform: input.platform,
-            },
-          },
-        });
+          await withRetry(() =>
+            ctx.db.playerPlatformConnection.delete({
+              where: {
+                player_id_platform: {
+                  player_id: playerId,
+                  platform: input.platform,
+                },
+              },
+            })
+          );
         
         return { success: true };
       } catch (error) {
@@ -266,14 +279,16 @@ export const playerProfileRouter = createTRPCRouter({
       
       try {
         // Delete social connection using the correct unique constraint
-        await ctx.db.playerSocialConnection.delete({
-          where: {
-            player_id_platform: {
-              player_id: playerId,
-              platform: input.platform,
+        await withRetry(() =>
+          ctx.db.playerSocialConnection.delete({
+            where: {
+              player_id_platform: {
+                player_id: playerId,
+                platform: input.platform,
+              },
             },
-          },
-        });
+          })
+        );
         
         return { success: true };
       } catch (error) {
@@ -291,18 +306,20 @@ export const playerProfileRouter = createTRPCRouter({
     await verifyPlayerUser(ctx);
     
     try {
-      const games = await ctx.db.game.findMany({
-        select: {
-          id: true,
-          name: true,
-          short_name: true,
-          icon: true,
-          color: true,
-        },
-        orderBy: {
-          name: 'asc',
-        },
-      });
+      const games = await withRetry(() =>
+        ctx.db.game.findMany({
+          select: {
+            id: true,
+            name: true,
+            short_name: true,
+            icon: true,
+            color: true,
+          },
+          orderBy: {
+            name: 'asc',
+          },
+        })
+      );
       
       return games;
     } catch (error) {
