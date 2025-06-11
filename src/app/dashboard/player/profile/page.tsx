@@ -72,12 +72,6 @@ interface RecruitingData {
 
 type ValidationErrors = Record<string, string>;
 
-const supportedGames = [
-  "Valorant",
-  "Overwatch 2", 
-  "Smash Ultimate",
-  "Rocket League"
-];
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -807,7 +801,7 @@ export default function ProfilePage() {
                   {recruitingData.main_game_id && (
                     <div>
                       <Label className="text-gray-400 font-rajdhani">Main Game</Label>
-                      <p className="text-white">{availableGames?.find(game => game.id === recruitingData.main_game_id)?.name || recruitingData.main_game_id}</p>
+                      <p className="text-white">{availableGames?.find(game => game.id === recruitingData.main_game_id)?.name ?? recruitingData.main_game_id}</p>
                     </div>
                   )}
                   {recruitingData.gpa && (
