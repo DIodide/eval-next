@@ -37,6 +37,8 @@ import {
 } from "lucide-react"
 import { api } from "@/trpc/react"
 import { gameIcons } from "@/app/tryouts/_components/GameCarousel"
+import TryoutCard from "@/app/tryouts/_components/TryoutCard"
+import type { CardTryout } from "@/app/tryouts/_components/TryoutCard"
 
 // Map database game names to UI game names
 const gameNameMap: Record<string, keyof typeof gameIcons> = {
@@ -134,6 +136,21 @@ export default function TryoutDetailPage() {
     }
   )
 
+  // Fetch related tryouts from the same game
+  const { data: relatedTryoutsResponse } = api.tryouts.browse.useQuery(
+    {
+      game_id: tryout?.game.id,
+      upcoming_only: true,
+      limit: 10,
+      offset: 0,
+    },
+    {
+      enabled: !!tryout?.game.id,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    }
+  )
+
   // Register for tryout mutation
   const registerMutation = api.tryouts.register.useMutation({
     onSuccess: () => {
@@ -186,6 +203,24 @@ export default function TryoutDetailPage() {
   // Check if user can cancel registration
   const canCancelRegistration = existingRegistration && 
     ['PENDING', 'WAITLISTED', 'CONFIRMED'].includes(existingRegistration.status)
+
+  // Transform related tryouts to card format, excluding current tryout
+  const relatedTryouts: CardTryout[] = relatedTryoutsResponse?.tryouts
+    ?.filter(relatedTryout => relatedTryout.id !== tryoutId)
+    ?.map(apiTryout => ({
+      id: apiTryout.id,
+      title: apiTryout.title,
+      description: apiTryout.description,
+      game: gameNameMap[apiTryout.game.name] ?? apiTryout.game.name as keyof typeof gameIcons,
+      school: apiTryout.school.name,
+      date: formatDate(apiTryout.date),
+      time: formatTime(apiTryout.time_start, apiTryout.time_end),
+      type: apiTryout.type,
+      price: apiTryout.price === "Free" ? "Free" : apiTryout.price,
+      spots: `${apiTryout.max_spots - apiTryout.registered_spots} spots left`,
+      totalSpots: `${apiTryout.max_spots} total`,
+      organizer: apiTryout.organizer ? `${apiTryout.organizer.first_name} ${apiTryout.organizer.last_name}` : "TBA",
+    })) ?? []
 
   if (isLoadingTryout) {
     return (
@@ -306,6 +341,7 @@ export default function TryoutDetailPage() {
                     <MapPin className="w-5 h-5 text-cyan-400" />
                     <div>
                       <p className="text-white font-medium">{tryout.type}</p>
+                      <p className="text-gray-400 text-sm">{tryout.school.location}, {tryout.school.state} ◦ NA {tryout.school.region}</p>
                       <p className="text-gray-400 text-sm">{tryout.location}</p>
                     </div>
                   </div>
@@ -319,8 +355,9 @@ export default function TryoutDetailPage() {
                   <div className="flex items-center space-x-3">
                     <GraduationCap className="w-5 h-5 text-cyan-400" />
                     <div>
-                      <p className="text-white font-medium">{tryout.game.name}</p>
+                      <p className="text-white font-medium">{tryout.school.name}</p>
                       <p className="text-gray-400 text-sm">{tryout.school.type}</p>
+                      {tryout.school.website && <Link href={tryout.school.website} className="text-sm text-cyan-500 hover:text-cyan-400 hover:underline ">{tryout.school.website}</Link>}
                     </div>
                   </div>
                 </div>
@@ -346,7 +383,7 @@ export default function TryoutDetailPage() {
                             <Button 
                               variant="outline"
                               size="sm"
-                              className="border-red-400/50 text-red-300 hover:bg-red-500/10 hover:border-red-400 font-rajdhani"
+                              className="bg-red-700 border-red-700 text-white hover:bg-red-600 hover:text-white hover:border-red-600 font-rajdhani"
                               disabled={cancelRegistrationMutation.isPending}
                             >
                               {cancelRegistrationMutation.isPending ? (
@@ -544,6 +581,9 @@ export default function TryoutDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-300 font-rajdhani leading-relaxed text-lg">
+                  {tryout.long_description}
+                  <br />
+                  <br />
                   {tryout.description}
                 </p>
               </CardContent>
@@ -664,6 +704,43 @@ export default function TryoutDetailPage() {
             </Card>
           </div>
         </div>
+
+        {/* More Tryouts Section */}
+        {relatedTryouts.length > 0 && (
+          <div className="mt-16">
+            <div className="mb-8">
+              <h2 className="font-orbitron text-2xl font-bold text-white mb-2">
+                More {tryout.game.name} Tryouts
+              </h2>
+              <p className="text-gray-400 font-rajdhani">
+                Discover other {tryout.game.name} tryouts happening soon
+              </p>
+            </div>
+
+            {/* Horizontal Scrollable Cards */}
+            <div className="relative">
+              <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                {relatedTryouts.map((relatedTryout) => (
+                  <div key={relatedTryout.id} className="flex-shrink-0">
+                    <TryoutCard tryout={relatedTryout} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* View All Button */}
+            <div className="text-center mt-8">
+              <Link href={`/tryouts/college?game=${encodeURIComponent(tryout.game.name)}`}>
+                <Button 
+                  variant="outline" 
+                  className="bg-blue-700 border-blue-700 text-white hover:bg-blue-600 hover:text-white hover:border-blue-600 font-orbitron"
+                >
+                  View All {tryout.game.name} Tryouts
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
