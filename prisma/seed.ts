@@ -708,6 +708,115 @@ async function main() {
     }
   }
 
+  // Seed Combines
+  console.log('🎮 Seeding combines...')
+  const combines = [
+    {
+      title: 'VALORANT Summer Showcase',
+      description: 'Join our premier VALORANT combine event featuring top collegiate scouts.',
+      long_description: 'The EVAL Summer Showcase is a premier scouting event where players can demonstrate their skills in front of collegiate recruiters. The event includes aim testing, team coordination exercises, and full match analysis.',
+      game_id: valorantGame.id,
+      date: futureDate1,
+      location: 'Online - EVAL Tournament Server',
+      type: 'ONLINE' as const,
+      year: '2024',
+      max_spots: 64,
+      prize_pool: 'Scholarship Opportunities',
+      format: 'Swiss System + Playoffs',
+      requirements: 'Immortal 1+ or Competitive Team Experience',
+      invite_only: false,
+      status: 'REGISTRATION_OPEN' as const
+    },
+    {
+      title: 'Overwatch 2 Elite Combine',
+      description: 'High-level OW2 scouting event for collegiate programs.',
+      long_description: 'A comprehensive scouting combine for Overwatch 2 players looking to join collegiate programs. Players will be evaluated on mechanical skill, game sense, and team coordination through various drills and scrimmages.',
+      game_id: overwatchGame.id,
+      date: futureDate2,
+      location: 'EVAL Esports Center - Los Angeles',
+      type: 'IN_PERSON' as const,
+      year: '2024',
+      max_spots: 36,
+      prize_pool: '$2,000 + College Scout Exposure',
+      format: 'Role-Based Assessment + Team Matches',
+      requirements: 'Masters+ or Organized Team Experience',
+      invite_only: true,
+      status: 'UPCOMING' as const
+    },
+    {
+      title: 'Rocket League Prospect Series',
+      description: 'Multi-day combine event for aspiring Rocket League pros.',
+      long_description: 'The Prospect Series is a comprehensive scouting combine featuring individual skill assessments, team play evaluation, and mentorship from professional coaches. Perfect for players seeking collegiate opportunities.',
+      game_id: rocketLeagueGame.id,
+      date: futureDate3,
+      location: 'Hybrid - Multiple Locations',
+      type: 'HYBRID' as const,
+      year: '2024',
+      max_spots: 48,
+      prize_pool: 'College Scholarships + Cash Prizes',
+      format: 'Individual Skills + 3v3 Tournament',
+      requirements: 'Grand Champion 1+ in any playlist',
+      invite_only: false,
+      status: 'UPCOMING' as const
+    },
+    {
+      title: 'Smash Ultimate College Circuit',
+      description: 'Regional scouting combine for Smash Ultimate players.',
+      long_description: 'A regional scouting combine focused on identifying top Smash Ultimate talent for collegiate programs. Features bracket play, friendlies with coaches, and individual skill assessment stations.',
+      game_id: smashGame.id,
+      date: futureDate4,
+      location: 'Regional Gaming Centers',
+      type: 'IN_PERSON' as const,
+      year: '2024',
+      max_spots: 128,
+      prize_pool: 'Scholarship Consideration + Equipment',
+      format: 'Round Robin Pools + Bracket',
+      requirements: 'PR Ranked or Tournament Experience',
+      invite_only: false,
+      status: 'REGISTRATION_OPEN' as const
+    },
+    {
+      title: 'VALORANT Women\'s Combine',
+      description: 'Exclusive scouting event for women VALORANT players.',
+      long_description: 'An inclusive combine event specifically designed to showcase women VALORANT players to collegiate programs. Features individual skill assessment, team play evaluation, and networking opportunities.',
+      game_id: valorantGame.id,
+      date: futureDate5,
+      location: 'Online - Private Servers',
+      type: 'ONLINE' as const,
+      year: '2024',
+      max_spots: 40,
+      prize_pool: 'Direct College Scout Access',
+      format: 'Skills Assessment + 5v5 Matches',
+      requirements: 'Diamond+ or Competitive Experience',
+      invite_only: true,
+      status: 'UPCOMING' as const
+    }
+  ]
+
+  const createdCombines = []
+  for (const combine of combines) {
+    try {
+      const existingCombine = await prisma.combine.findFirst({
+        where: {
+          title: combine.title,
+          game_id: combine.game_id,
+          date: combine.date
+        }
+      })
+      
+      if (existingCombine) {
+        console.log(`⏭️  Combine already exists: ${combine.title}`)
+        createdCombines.push(existingCombine)
+      } else {
+        const newCombine = await prisma.combine.create({ data: combine })
+        console.log(`✅ Created combine: ${combine.title}`)
+        createdCombines.push(newCombine)
+      }
+    } catch (error) {
+      console.log(`⚠️  Could not create combine ${combine.title}:`, error)
+    }
+  }
+
   console.log('🎉 Database seed completed successfully!')
   console.log('')
   console.log('🎮 Available games:')
