@@ -288,7 +288,7 @@ export default function TryoutDetailPage() {
         {/* Back Button */}
         <div className="mb-8">
           <Link href="/tryouts/college">
-            <Button variant="ghost" className="text-gray-400 hover:text-white">
+            <Button variant="ghost" className="text-gray-400 hover:bg-transparent hover:text-blue-300">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Tryouts
             </Button>
