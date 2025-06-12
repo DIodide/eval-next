@@ -71,24 +71,24 @@ export default function HomePage() {
               className="mx-auto mb-6"
             />
           </div>
-          <h1 className="font-orbitron text-5xl md:text-7xl font-black mb-6 leading-tight tracking-wider cyber-text">
-            THE COLLEGE ESPORTS
-            <br />
-            <span className="text-cyan-400">RECRUITING PLATFORM</span>
-          </h1>
+            <h2 className="text-5xl md:text-7xl font-black leading-tight text-white mb-6 font-orbitron">
+              CONNECTING <span className="text-cyan-400">GAMERS</span>
+              <br />
+              TO <span className="text-cyan-400">COLLEGE</span> SCHOLARSHIPS
+            </h2>
 
           {/* New Slogan */}
-          <div className="mb-8">
-            <h2 className="font-orbitron text-2xl md:text-4xl font-bold text-white mb-4 tracking-wider">
-              <span className="text-cyan-400">GET RANKED</span> • <span className="text-purple-400">GET RECRUITED</span>{" "}
-              • <span className="text-orange-400">GET SCHOLARSHIPS</span>
+          {/* <div className="mb-8">
+            <h2 className="font-rajdani text-xl md:text-3xl font-bold text-white mb-4 tracking-wider">
+              <span className="text-white">GET RANKED</span> • <span className="text-white">GET RECRUITED</span>{" "}
+              • <span className="text-white">GET SCHOLARSHIPS</span>
             </h2>
-          </div>
+          </div> */}
 
-          <p className="text-xl md:text-2xl mb-8 font-medium max-w-4xl mx-auto font-rajdhani">
+          {/* <p className="text-xl md:text-2xl mb-8 font-medium max-w-4xl mx-auto font-rajdhani">
             The premier platform connecting high school esports players with college programs through advanced
             analytics, elite combines, and direct recruitment opportunities.
-          </p>
+          </p> */}
 
           {/* Key Stats */}
           <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-12">
