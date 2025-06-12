@@ -39,11 +39,11 @@ model Player {
     external_accounts Json? // Store Clerk external accounts (OAuth connections)
 
     // Basic profile information
-    location String? // Player location (City, State)
+    location String? // Player location (City, State) opt-in show for public profile
     bio      String? // Player bio/description
 
     // Academic/School information
-    school          String?
+    school          String? // not on public profile
     school_id       String?  @db.Uuid
     gpa             Decimal? @db.Decimal(3, 2)
     transcript      String? // File URL
@@ -70,7 +70,7 @@ model Player {
     school_ref School? @relation(fields: [school_id], references: [id])
 
     // Main game reference
-    main_game Game? @relation("PlayerMainGame", fields: [main_game_id], references: [id])
+    main_game Game? @relation("PlayerMainGame", fields: [main_game_id], references: [id]) // on 
 
     // Gaming data
     game_profiles         PlayerGameProfile[]
