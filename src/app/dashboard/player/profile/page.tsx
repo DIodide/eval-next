@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, UserButton } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ import {
   LoaderIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
+import { neobrutalism } from "@clerk/themes";
 
 // Types for connections
 interface GameConnection {
@@ -588,43 +589,62 @@ export default function ProfilePage() {
             {!isLoadingProfile && !profileError && (
               <div className="space-y-4">
                 {user || editableProfileData.location || editableProfileData.bio ? (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {/* Clerk-managed fields (read-only) */}
-                    {user?.firstName && user?.lastName && (
-                      <div>
-                        <Label className="text-gray-400 font-rajdhani">Real Name</Label>
-                        <p className="text-white">{user.firstName} {user.lastName}</p>
-                        <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
-                      </div>
-                    )}
-                    {user?.username && (
-                      <div>
-                        <Label className="text-gray-400 font-rajdhani">Username</Label>
-                        <p className="text-white">{user.username}</p>
-                        <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
-                      </div>
-                    )}
-                    {user?.emailAddresses[0]?.emailAddress && (
-                      <div>
-                        <Label className="text-gray-400 font-rajdhani">Email</Label>
-                        <p className="text-white">{user.emailAddresses[0].emailAddress}</p>
-                        <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
-                      </div>
-                    )}
+                  <div className="space-y-4">
+                    {/* Profile Image */}
+                    <div className="flex justify-center">
+                      <UserButton 
+                        appearance={{
+                          baseTheme: neobrutalism,
+                          elements: {
+                            avatarBox: "profile-avatar-large",
+                            //userButtonPopoverCard: "bg-[#1a1a2e] border-gray-800 p-5",
+                            userButtonPopoverActions: "text-white"
+                          }
+                        }}
+                      />
+                    </div>
                     
-                    {/* Editable fields */}
-                    {editableProfileData.location && (
-                      <div>
-                        <Label className="text-gray-400 font-rajdhani">Location</Label>
-                        <p className="text-white">{editableProfileData.location}</p>
-                      </div>
-                    )}
-                    {editableProfileData.bio && (
-                      <div className="md:col-span-2">
-                        <Label className="text-gray-400 font-rajdhani">Bio</Label>
-                        <p className="text-white">{editableProfileData.bio}</p>
-                      </div>
-                    )}
+                    {/* Horizontal Separator */}
+                    <div className="border-t border-gray-700"></div>
+                    
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {/* Clerk-managed fields (read-only) */}
+                      {user?.firstName && user?.lastName && (
+                        <div>
+                          <Label className="text-gray-400 font-rajdhani">Real Name</Label>
+                          <p className="text-white">{user.firstName} {user.lastName}</p>
+                          <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
+                        </div>
+                      )}
+                      {user?.username && (
+                        <div>
+                          <Label className="text-gray-400 font-rajdhani">Username</Label>
+                          <p className="text-white">{user.username}</p>
+                          <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
+                        </div>
+                      )}
+                      {user?.emailAddresses[0]?.emailAddress && (
+                        <div>
+                          <Label className="text-gray-400 font-rajdhani">Email</Label>
+                          <p className="text-white">{user.emailAddresses[0].emailAddress}</p>
+                          <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
+                        </div>
+                      )}
+                      
+                      {/* Editable fields */}
+                      {editableProfileData.location && (
+                        <div>
+                          <Label className="text-gray-400 font-rajdhani">Location</Label>
+                          <p className="text-white">{editableProfileData.location}</p>
+                        </div>
+                      )}
+                      {editableProfileData.bio && (
+                        <div className="md:col-span-2">
+                          <Label className="text-gray-400 font-rajdhani">Bio</Label>
+                          <p className="text-white">{editableProfileData.bio}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <p className="text-gray-400">

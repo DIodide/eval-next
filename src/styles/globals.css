@@ -32,7 +32,6 @@
 }
 
 
-
 @custom-variant dark (&:is(.dark *));
 
 
@@ -151,4 +150,15 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Clerk UserButton Profile Avatar Styles */
+.profile-avatar-large {
+  width: 8rem !important;
+  height: 8rem !important;
+}
+
+.profile-avatar-image-large {
+  width: 8rem !important;
+  height: 8rem !important;
 }
