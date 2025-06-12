@@ -4,7 +4,7 @@
 // It uses the protectedProcedure from the trpc router to ensure that the user is authenticated.
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
@@ -94,7 +94,7 @@ async function verifyCoachUser(ctx: Context) {
 
 export const tryoutsRouter = createTRPCRouter({
   // Browse all available tryouts with filtering
-  browse: protectedProcedure
+  browse: publicProcedure
     .input(tryoutFiltersSchema)
     .query(async ({ ctx, input }) => {
       try {
@@ -192,7 +192,7 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Get tryouts by game
-  getByGame: protectedProcedure
+  getByGame: publicProcedure
     .input(z.object({
       game_id: z.string().uuid(),
       limit: z.number().min(1).max(50).default(20),
@@ -252,10 +252,12 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Get single tryout details
-  getById: protectedProcedure
+  getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       try {
+        const isAuthenticated = !!ctx.auth.userId;
+        
         const tryout = await withRetry(() =>
           ctx.db.tryout.findUnique({
             where: { id: input.id },
@@ -267,24 +269,27 @@ export const tryoutsRouter = createTRPCRouter({
                   id: true,
                   first_name: true,
                   last_name: true,
-                  email: true,
+                  email: isAuthenticated, // Only include email if authenticated
                 },
               },
-              registrations: {
-                select: {
-                  id: true,
-                  status: true,
-                  registered_at: true,
-                  player: {
-                    select: {
-                      id: true,
-                      first_name: true,
-                      last_name: true,
+              // Only include registration details if authenticated
+              ...(isAuthenticated && {
+                registrations: {
+                  select: {
+                    id: true,
+                    status: true,
+                    registered_at: true,
+                    player: {
+                      select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                      },
                     },
                   },
+                  orderBy: { registered_at: 'asc' },
                 },
-                orderBy: { registered_at: 'asc' },
-              },
+              }),
             },
           })
         );
