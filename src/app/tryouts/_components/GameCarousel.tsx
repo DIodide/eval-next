@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
-import type { Tryout } from "@/app/tryouts/types"
-import TryoutCard from "./TryoutCard"
+import TryoutCard, { type CardTryout } from "./TryoutCard"
 
 const gameColors = {
   VALORANT: "from-red-500 to-red-700",
@@ -23,7 +22,7 @@ export const gameIcons = {
 
 export type GameType = keyof typeof gameIcons;
 
-export default function GameCarousel({ game, tryouts }: { game: GameType; tryouts: Tryout[] }) {
+export default function GameCarousel({ game, tryouts }: { game: GameType; tryouts: CardTryout[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [cardWidth, setCardWidth] = useState(320)
   const cardRef = useRef<HTMLDivElement>(null)

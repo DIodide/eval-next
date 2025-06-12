@@ -1,3 +1,5 @@
+import type { Decimal } from "@prisma/client/runtime/library";
+
 export interface TryoutRequirements {
   gpa: string;
   location: string;
@@ -6,21 +8,51 @@ export interface TryoutRequirements {
 }
 
 export interface Tryout {
-  id: number;
-  game: "VALORANT" | "Overwatch 2" | "Smash Ultimate" | "Rocket League";
+  id: string;
   title: string;
-  school: string;
-  price: string;
-  type: "Online" | "In-Person" | "Hybrid";
-  spots: string;
-  totalSpots: string;
-  time: string;
-  date: string;
-  organizer: string;
   description: string;
-  requirements: TryoutRequirements;
-  longDescription?: string;
-} 
+  date: Date;
+  time_start: string | null;
+  time_end: string | null;
+  type: "ONLINE" | "IN_PERSON" | "HYBRID";
+  price: string;
+  max_spots: number;
+  registered_spots: number;
+  registration_deadline: Date | null;
+  min_gpa: Decimal | null;
+  class_years: string[];
+  required_roles: string[];
+  location: string;
+  game: {
+    id: string;
+    name: string;
+    short_name: string;
+    icon: string | null;
+    color: string | null;
+  };
+  school: {
+    id: string;
+    name: string;
+    location: string;
+    state: string;
+    type: string;
+  };
+  organizer: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
+  _count: {
+    registrations: number;
+  };
+  // UI-specific computed fields
+  gameType?: "VALORANT" | "Overwatch 2" | "Smash Ultimate" | "Rocket League";
+  formattedDate?: string;
+  formattedTime?: string;
+  formattedPrice?: string;
+  spotsLeft?: string;
+  organizerName?: string;
+}
 
 export interface Combine {
   id: number;

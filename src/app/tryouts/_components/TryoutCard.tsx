@@ -6,10 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Users, Calendar, Clock } from "lucide-react"
-import type { Tryout } from "@/app/tryouts/types"
 import { gameIcons } from "./GameCarousel"
 
-export default function TryoutCard({ tryout }: { tryout: Tryout }) {
+// Interface for the card display (simplified from the API response)
+export interface CardTryout {
+  id: string;
+  game: "VALORANT" | "Overwatch 2" | "Smash Ultimate" | "Rocket League";
+  title: string;
+  school: string;
+  price: string;
+  type: string;
+  spots: string;
+  totalSpots: string;
+  time?: string;
+  date: string;
+  organizer: string;
+  description: string;
+}
+
+export default function TryoutCard({ tryout }: { tryout: CardTryout }) {
   return (
     <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20">
       <CardContent className="p-6">
@@ -41,22 +56,22 @@ export default function TryoutCard({ tryout }: { tryout: Tryout }) {
 
         <div className="space-y-2 mb-4">
           <div className="flex items-center space-x-2 text-sm">
-            <MapPin className="w-4 h-4 text-cyan-400" />
+            <MapPin className="w-4 h-4 text-gray-400" />
             <span className="text-gray-300 font-rajdhani">{tryout.type}</span>
           </div>
           <div className="flex items-center space-x-2 text-sm">
-            <Users className="w-4 h-4 text-cyan-400" />
+            <Users className="w-4 h-4 text-gray-400" />
             <span className="text-gray-300 font-rajdhani">
               {tryout.spots} • {tryout.totalSpots}
             </span>
           </div>
           <div className="flex items-center space-x-2 text-sm">
-            <Calendar className="w-4 h-4 text-cyan-400" />
+            <Calendar className="w-4 h-4 text-gray-400" />
             <span className="text-gray-300 font-rajdhani">{tryout.date}</span>
           </div>
           {tryout.time && (
             <div className="flex items-center space-x-2 text-sm">
-              <Clock className="w-4 h-4 text-cyan-400" />
+              <Clock className="w-4 h-4 text-gray-400" />
               <span className="text-gray-300 font-rajdhani">{tryout.time}</span>
             </div>
           )}
@@ -65,8 +80,8 @@ export default function TryoutCard({ tryout }: { tryout: Tryout }) {
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400 font-rajdhani">by {tryout.organizer}</span>
           <Link href={`/tryouts/college/${tryout.id}`}>
-            <Button size="sm" className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron text-xs tracking-wide">
-              REGISTER
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-orbitron text-xs tracking-wide">
+              VIEW DETAILS
             </Button>
           </Link>
         </div>
