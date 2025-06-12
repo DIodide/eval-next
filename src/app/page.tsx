@@ -130,7 +130,6 @@ export default function HomePage() {
           <h2 className="font-orbitron text-2xl text-center text-white mb-8 tracking-wide">TRUSTED BY</h2>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
             <Image src="/partners/gse/GSE_LOGO.png" alt="Garden State Esports" width={150} height={60} />
-            <Image src="/partners/psv/psv.png" alt="Princeton Student Ventures" width={150} height={60} />
             <Image src="/partners/keller/keller.png" alt="Keller Center" width={150} height={60} />
           </div>
         </div>

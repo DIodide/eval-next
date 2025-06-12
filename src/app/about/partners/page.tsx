@@ -17,12 +17,7 @@ const partners = [
     description: "Princeton University's hub for entrepreneurship, innovation, and impact-driven startups.",
     website: "https://kellercenter.princeton.edu/people/startups-teams/eval",
   },
-  {
-    name: "Princeton Student Ventures",
-    logo: "/partners/psv/psv.png?height=120&width=200",
-    description: "Supporting Princeton student founders through funding, mentorship, and startup incubation.",
-    website: "https://www.psv.vc/",
-  },
+
 ]
 
 export default function PartnersPage() {
