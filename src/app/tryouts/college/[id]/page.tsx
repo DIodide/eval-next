@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { useUser } from "@clerk/nextjs"
-import { useParams, useRouter } from "next/navigation"
+import { SignInButton, SignUpButton } from "@clerk/nextjs"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { 
@@ -24,16 +24,16 @@ import {
   Users, 
   Calendar, 
   Clock,
-  DollarSign,
   GraduationCap,
   Mail,
-  Phone,
   ArrowLeft,
   LoaderIcon,
   CheckCircle,
   AlertCircle,
   XCircle,
-  UserCheck
+  UserCheck,
+  User,
+  X
 } from "lucide-react"
 import { api } from "@/trpc/react"
 import { gameIcons } from "@/app/tryouts/_components/GameCarousel"
@@ -100,13 +100,31 @@ const getStatusIcon = (status: string) => {
 export default function TryoutDetailPage() {
   const { user } = useUser()
   const params = useParams()
-  const router = useRouter()
   const tryoutId = params.id as string
 
   const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false)
   const [registrationNotes, setRegistrationNotes] = useState("")
   const [registrationError, setRegistrationError] = useState("")
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [showSignUpModal, setShowSignUpModal] = useState(false)
+  const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
+
+  const handleUserTypeSelect = (userType: 'player' | 'coach') => {
+    setSelectedUserType(userType)
+  }
+
+  const handleSignUp = () => {
+    if (selectedUserType) {
+      setShowSignUpModal(false)
+      // Reset selection after a brief delay to allow modal to close
+      setTimeout(() => setSelectedUserType(null), 300)
+    }
+  }
+
+  const resetAndCloseModal = () => {
+    setSelectedUserType(null)
+    setShowSignUpModal(false)
+  }
 
   // Fetch tryout details
   const { 
@@ -419,7 +437,7 @@ export default function TryoutDetailPage() {
                                     setCancelDialogOpen(false)
                                     setRegistrationError("")
                                   }}
-                                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                  className="border-gray-600 text-black hover:bg-gray-700"
                                 >
                                   Keep Registration
                                 </Button>
@@ -521,38 +539,44 @@ export default function TryoutDetailPage() {
                         </Dialog>
                       ) : (
                         <div className="space-y-3">
-                          <Button 
-                            disabled
-                            className="bg-gray-600 text-gray-300 font-orbitron text-lg px-8 py-3 cursor-not-allowed"
-                            size="lg"
-                          >
-                            {!user ? (
-                              <>
-                                <UserCheck className="w-5 h-5 mr-2" />
-                                SIGN IN TO REGISTER
-                              </>
-                            ) : isPastTryout ? (
-                              <>
-                                <XCircle className="w-5 h-5 mr-2" />
-                                TRYOUT ENDED
-                              </>
-                            ) : isDeadlinePassed ? (
-                              <>
-                                <Clock className="w-5 h-5 mr-2" />
-                                REGISTRATION CLOSED
-                              </>
-                            ) : spotsLeft <= 0 ? (
-                              <>
-                                <XCircle className="w-5 h-5 mr-2" />
-                                TRYOUT FULL
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="w-5 h-5 mr-2" />
-                                UNAVAILABLE
-                              </>
-                            )}
-                          </Button>
+                          {!user ? (
+                            <Button 
+                              onClick={() => setShowSignUpModal(true)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-orbitron text-lg px-8 py-3"
+                              size="lg"
+                            >
+                              <UserCheck className="w-5 h-5 mr-2" />
+                              SIGN IN TO REGISTER
+                            </Button>
+                          ) : (
+                            <Button 
+                              disabled
+                              className="bg-gray-600 text-gray-300 font-orbitron text-lg px-8 py-3 cursor-not-allowed"
+                              size="lg"
+                            >
+                              {isPastTryout ? (
+                                <>
+                                  <XCircle className="w-5 h-5 mr-2" />
+                                  TRYOUT ENDED
+                                </>
+                              ) : isDeadlinePassed ? (
+                                <>
+                                  <Clock className="w-5 h-5 mr-2" />
+                                  REGISTRATION CLOSED
+                                </>
+                              ) : spotsLeft <= 0 ? (
+                                <>
+                                  <XCircle className="w-5 h-5 mr-2" />
+                                  TRYOUT FULL
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-5 h-5 mr-2" />
+                                  UNAVAILABLE
+                                </>
+                              )}
+                            </Button>
+                          )}
                           
                           {/* Explanation text */}
                           <div className="text-center text-sm text-gray-400">
@@ -742,6 +766,117 @@ export default function TryoutDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Sign Up Modal */}
+      <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
+        <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">CHOOSE YOUR ACCOUNT TYPE</h2>
+              <p className="text-slate-300 text-sm">
+                Empowering students and college coaches to connect.
+              </p>
+            </div>
+
+            {/* Horizontal Options */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Player Option */}
+              <button
+                onClick={() => handleUserTypeSelect('player')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'player'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'player' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <User className={`w-6 h-6 ${
+                      selectedUserType === 'player' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">PLAYER</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a player looking to find an esports scholarship and related opportunities.
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* College Option */}
+              <button
+                onClick={() => handleUserTypeSelect('coach')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'coach'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'coach' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <GraduationCap className={`w-6 h-6 ${
+                      selectedUserType === 'coach' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">SCHOOL</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a coach, director or administrator looking to make finding players easier.
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Sign Up Button */}
+            {selectedUserType ? (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: selectedUserType }}
+              >
+                <Button
+                  onClick={handleSignUp}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-medium shadow-lg"
+                >
+                  SIGN UP AS {selectedUserType === 'coach' ? 'SCHOOL' : selectedUserType.toUpperCase()}
+                </Button>
+              </SignUpButton>
+            ) : (
+              <Button
+                disabled
+                className="w-full bg-slate-700 text-slate-500 rounded-lg py-3 font-medium cursor-not-allowed"
+              >
+                SIGN UP
+              </Button>
+            )}
+
+            {/* Sign In Link */}
+            <div className="text-center">
+              <SignInButton mode="modal">
+                <button 
+                  onClick={resetAndCloseModal}
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                >
+                  Already have an account? Sign In
+                </button>
+              </SignInButton>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

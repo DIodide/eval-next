@@ -12,10 +12,10 @@
  * - Smart refetch on mount and reconnect for fresh data
  */
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useUser } from "@clerk/nextjs"
+import { useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -26,7 +26,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { 
   Search, 
@@ -84,6 +83,7 @@ const transformToCardTryout = (apiTryout: Tryout): CardTryout => ({
 
 export default function TryoutsPage() {
   const { user } = useUser()
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
   const [gameFilter, setGameFilter] = useState<string>("all")
   const [typeFilter, setTypeFilter] = useState<string>("all")
@@ -175,6 +175,20 @@ export default function TryoutsPage() {
     retry: 2,
   })
 
+  // Handle URL query parameters
+  useEffect(() => {
+    const gameParam = searchParams.get('game')
+    if (gameParam) {
+      // Find game by name (since URL passes game name, not ID)
+      const matchingGame = availableGames?.find(game => 
+        game.name === decodeURIComponent(gameParam)
+      )
+      if (matchingGame) {
+        setGameFilter(matchingGame.id)
+      }
+    }
+  }, [searchParams, availableGames])
+
   // Register for tryout mutation
   const registerMutation = api.tryouts.register.useMutation({
     onSuccess: () => {
@@ -219,11 +233,6 @@ export default function TryoutsPage() {
         notes: registrationNotes || undefined
       })
     }
-  }
-
-  const openRegistrationDialog = (tryoutId: string) => {
-    setSelectedTryout(tryoutId)
-    setRegistrationDialogOpen(true)
   }
 
   const clearFilters = (resetUpcomingOnly = false) => {
