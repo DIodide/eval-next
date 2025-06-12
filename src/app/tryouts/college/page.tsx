@@ -1,5 +1,17 @@
 "use client"
 
+/**
+ * College Tryouts Page
+ * 
+ * Caching Strategy:
+ * - Fetch all tryouts once with minimal server-side filtering (upcoming_only)
+ * - Cache data for 5 minutes with 10-minute garbage collection
+ * - All other filters (game, type, state, search, free_only) applied client-side
+ * - No network requests when changing filters - instant filtering from cache
+ * - Games data cached separately for 15 minutes (more static)
+ * - Smart refetch on mount and reconnect for fresh data
+ */
+
 import { useState, useMemo } from "react"
 import { useUser } from "@clerk/nextjs"
 import { Input } from "@/components/ui/input"
@@ -81,30 +93,91 @@ export default function TryoutsPage() {
   const [selectedTryout, setSelectedTryout] = useState<string | null>(null)
   const [registrationNotes, setRegistrationNotes] = useState("")
 
-  // Fetch tryouts with filters
+  // Fetch ALL tryouts once and filter client-side for better caching
   const { 
-    data: tryoutsResponse, 
+    data: allTryoutsResponse, 
     isLoading: isLoadingTryouts, 
     error: tryoutsError,
     refetch: refetchTryouts 
   } = api.tryouts.browse.useQuery({
-    game_id: gameFilter !== "all" ? gameFilter : undefined,
-    type: typeFilter !== "all" ? (typeFilter as "ONLINE" | "IN_PERSON" | "HYBRID") : undefined,
-    state: stateFilter !== "all" ? stateFilter : undefined,
-    free_only: freeOnly,
-    upcoming_only: upcomingOnly,
-    search: searchQuery || undefined,
-    limit: 50,
+    // Fetch all data without filters - this gets cached and reused
+    upcoming_only: upcomingOnly, // Only this filter affects the server query (performance optimization)
+    limit: 100, // Fetch more data upfront
     offset: 0
+  }, {
+    // Time-based invalidation: 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes - garbage collection time for cached data
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnReconnect: true, // Refetch when internet connection is restored
+    retry: 3, // Retry failed requests 3 times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   })
 
+  // Client-side filtering of the cached data
+  const tryoutsResponse = useMemo(() => {
+    if (!allTryoutsResponse?.tryouts) return allTryoutsResponse;
+
+    const filteredTryouts = allTryoutsResponse.tryouts.filter(tryout => {
+      // Game filter
+      if (gameFilter !== "all" && tryout.game.id !== gameFilter) {
+        return false;
+      }
+
+      // Type filter
+      if (typeFilter !== "all" && tryout.type !== typeFilter) {
+        return false;
+      }
+
+      // State filter
+      if (stateFilter !== "all" && tryout.school.state !== stateFilter) {
+        return false;
+      }
+
+      // Free only filter
+      if (freeOnly && tryout.price !== "Free") {
+        return false;
+      }
+
+      // Search filter
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = 
+          tryout.title.toLowerCase().includes(searchLower) ||
+          tryout.description.toLowerCase().includes(searchLower) ||
+          tryout.school.name.toLowerCase().includes(searchLower) ||
+          tryout.game.name.toLowerCase().includes(searchLower);
+        
+        if (!matchesSearch) return false;
+      }
+
+      return true;
+    });
+
+    return {
+      ...allTryoutsResponse,
+      tryouts: filteredTryouts,
+      total: filteredTryouts.length,
+      hasMore: false // All data is loaded client-side
+    };
+  }, [allTryoutsResponse, gameFilter, typeFilter, stateFilter, freeOnly, searchQuery])
+
   // Get available games for filter
-  const { data: availableGames } = api.playerProfile.getAvailableGames.useQuery()
+  const { data: availableGames } = api.playerProfile.getAvailableGames.useQuery(undefined, {
+    // Games data is more static, cache for longer
+    staleTime: 15 * 60 * 1000, // 15 minutes - games don't change often
+    gcTime: 30 * 60 * 1000, // 30 minutes garbage collection time
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch games on every mount
+    refetchOnReconnect: false,
+    retry: 2,
+  })
 
   // Register for tryout mutation
   const registerMutation = api.tryouts.register.useMutation({
     onSuccess: () => {
-      void refetchTryouts()
+      void refetchTryouts() // This refetches the base data, then client-side filtering applies automatically
       setRegistrationDialogOpen(false)
       setSelectedTryout(null)
       setRegistrationNotes("")
@@ -167,6 +240,14 @@ export default function TryoutsPage() {
             <p className="text-sm text-blue-400 mb-4">
               Logged in as: {user.emailAddresses[0]?.emailAddress}
             </p>
+          )}
+
+          {/* Cache Status Indicator */}
+          {tryoutsResponse && (
+            <div className="text-xs text-gray-500 mb-4 flex items-center justify-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400"></div>
+              <span>Data cached • Client-side filtering • No network requests on filter changes</span>
+            </div>
           )}
 
           {/* Search Bar */}
@@ -272,10 +353,12 @@ export default function TryoutsPage() {
             </div>
 
             {/* Results Summary */}
-            {tryoutsResponse && (
+            {tryoutsResponse && allTryoutsResponse && (
               <div className="text-sm text-gray-400">
-                Showing {tryoutsResponse.tryouts.length} tryouts
-                {tryoutsResponse.hasMore && " (showing first 50 results)"}
+                Showing {tryoutsResponse.tryouts.length} of {allTryoutsResponse.tryouts.length} tryouts
+                {tryoutsResponse.tryouts.length !== allTryoutsResponse.tryouts.length && (
+                  <span className="text-cyan-400"> (filtered)</span>
+                )}
               </div>
             )}
           </div>
