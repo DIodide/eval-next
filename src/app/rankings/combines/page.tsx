@@ -176,7 +176,7 @@ function GameRankingCard({ game, players }: { game: string; players: Player[] })
         <div className="mt-4 pt-4 border-t border-gray-600">
           <Button
             variant="outline"
-            className="w-full border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron text-sm"
+            className="w-full border-cyan-400 text-cyan-black hover:bg-cyan-400 hover:text-black font-orbitron text-sm"
           >
             VIEW FULL RANKINGS
           </Button>
@@ -277,7 +277,7 @@ export default function CombinesRankingPage() {
                   setSelectedGame("all")
                   setSelectedRegion("all")
                 }}
-                className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
+                className="border-gray-600 text-black hover:border-cyan-500 hover:text-cyan-600 font-rajdhani"
               >
                 Clear Filters
               </Button>
@@ -344,7 +344,7 @@ export default function CombinesRankingPage() {
             </Button>
             <Button
               variant="outline"
-              className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider"
+              className="border-cyan-400 text-cyan-800 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider"
             >
               VIEW SCHEDULE
             </Button>

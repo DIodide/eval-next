@@ -324,7 +324,7 @@ export default function LeaguesRankingPage() {
                   setSelectedRegion("all")
                   setSelectedTier("all")
                 }}
-                className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
+                className="border-gray-600 text-cyan-800 hover:border-cyan-400 hover:text-cyan-600 font-rajdhani"
               >
                 Clear Filters
               </Button>
