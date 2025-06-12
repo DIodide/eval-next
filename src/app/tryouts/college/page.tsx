@@ -34,7 +34,8 @@ import {
   FilterIcon,
   XCircleIcon,
   GamepadIcon,
-  AlertCircleIcon
+  AlertCircleIcon,
+  X
 } from "lucide-react"
 import Link from "next/link"
 import { api } from "@/trpc/react"
@@ -225,6 +226,24 @@ export default function TryoutsPage() {
     setRegistrationDialogOpen(true)
   }
 
+  const clearFilters = (resetUpcomingOnly = false) => {
+    setSearchQuery("")
+    setGameFilter("all")
+    setTypeFilter("all")
+    setStateFilter("all")
+    setFreeOnly(false)
+    if (resetUpcomingOnly) {
+      setUpcomingOnly(true)
+    }
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery !== "" || 
+                          gameFilter !== "all" || 
+                          typeFilter !== "all" || 
+                          stateFilter !== "all" || 
+                          freeOnly
+
   return (
     <div className="min-h-screen bg-black">
       <div className="container mx-auto px-6 py-12">
@@ -269,6 +288,26 @@ export default function TryoutsPage() {
             <div className="flex items-center gap-4 mb-4">
               <FilterIcon className="h-5 w-5 text-cyan-400" />
               <h2 className="text-lg font-orbitron font-bold text-white">Filters</h2>
+              <div className="flex-1"></div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => clearFilters()}
+                className={`flex items-center gap-2 ${
+                  hasActiveFilters 
+                    ? "text-cyan-400 hover:text-white hover:bg-cyan-900/20 border border-cyan-400/20" 
+                    : "text-gray-400 hover:text-white hover:bg-gray-800"
+                }`}
+                disabled={!hasActiveFilters}
+              >
+                <X className="h-4 w-4" />
+                Clear Filters
+                {hasActiveFilters && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-cyan-400 text-black font-medium">
+                    {[searchQuery, gameFilter !== "all", typeFilter !== "all", stateFilter !== "all", freeOnly].filter(Boolean).length}
+                  </span>
+                )}
+              </Button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -404,14 +443,7 @@ export default function TryoutsPage() {
                     No tryouts match your current filters. Try adjusting your search criteria or check back later for new opportunities.
                   </p>
                   <Button 
-                    onClick={() => {
-                      setSearchQuery("")
-                      setGameFilter("all")
-                      setTypeFilter("all")
-                      setStateFilter("all")
-                      setFreeOnly(false)
-                      setUpcomingOnly(true)
-                    }}
+                    onClick={() => clearFilters(true)}
                     className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron"
                   >
                     Reset Filters
