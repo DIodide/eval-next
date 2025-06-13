@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
               first_name: userData.first_name ?? '',
               last_name: userData.last_name ?? '',
               username: userData.username,
+              image_url: userData.image_url,
               external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
               // Optional fields - can be updated later through user profile
               school: null,
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
               first_name: userData.first_name ?? '',
               last_name: userData.last_name ?? '',
               username: userData.username ?? '',
+              image_url: userData.image_url,
               external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
               school: '', // TODO: This should be set during onboarding
               school_id: null, // Optional - can be linked later
@@ -139,6 +141,7 @@ export async function POST(req: NextRequest) {
               first_name: userData.first_name ?? '',
               last_name: userData.last_name ?? '',
               username: userData.username,
+              image_url: userData.image_url,
               external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
               // Note: We only update basic fields from Clerk
               // School info, GPA, etc. should be updated through your app's profile system
@@ -160,6 +163,7 @@ export async function POST(req: NextRequest) {
               first_name: userData.first_name ?? '',
               last_name: userData.last_name ?? '',
               username: userData.username ?? '',
+              image_url: userData.image_url,
               external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
               // Note: We only update basic fields from Clerk
               // School info should be updated through your app's profile system

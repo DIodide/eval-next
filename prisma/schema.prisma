@@ -36,6 +36,7 @@ model Player {
     first_name        String
     last_name         String
     username          String? @unique // Optional username from Clerk
+    image_url         String? // Profile image URL from Clerk
     external_accounts Json? // Store Clerk external accounts (OAuth connections)
 
     // Basic profile information
@@ -99,6 +100,7 @@ model Coach {
     first_name        String
     last_name         String
     username          String   @unique // Clerk username
+    image_url         String? // Profile image URL from Clerk
     external_accounts Json? // Store Clerk external accounts (OAuth connections)
     school            String
     school_id         String?  @db.Uuid
