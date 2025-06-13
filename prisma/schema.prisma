@@ -82,6 +82,7 @@ model Player {
     team_memberships      TeamMember[]
     performance_stats     PlayerPerformanceStats[]
     rankings              PlayerRanking[]
+    Conversation          Conversation[]
 
     // Performance indexes
     @@index([school_id])
@@ -113,6 +114,7 @@ model Coach {
     teams            Team[]
     tryouts_created  Tryout[]
     combines_created Combine[]
+    Conversation     Conversation[]
 
     @@map("coaches")
 }
@@ -581,4 +583,54 @@ enum MatchStatus {
     COMPLETED
     CANCELLED
     POSTPONED
+}
+
+// =================================================================
+// 8. MESSAGING & COMMUNICATION
+// =================================================================
+
+/// Conversations between coaches and players
+model Conversation {
+    id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    coach_id    String   @db.Uuid
+    player_id   String   @db.Uuid
+    is_starred  Boolean  @default(false)
+    is_archived Boolean  @default(false)
+    created_at  DateTime @default(now()) @db.Timestamp(6)
+    updated_at  DateTime @updatedAt
+
+    coach    Coach     @relation(fields: [coach_id], references: [id], onDelete: Cascade)
+    player   Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+    messages Message[]
+
+    @@unique([coach_id, player_id])
+    @@index([coach_id])
+    @@index([player_id])
+    @@index([updated_at])
+    @@map("conversations")
+}
+
+/// Individual messages within conversations
+model Message {
+    id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    conversation_id String     @db.Uuid
+    sender_id       String     @db.Uuid
+    sender_type     SenderType
+    content         String
+    is_read         Boolean    @default(false)
+    created_at      DateTime   @default(now()) @db.Timestamp(6)
+    updated_at      DateTime   @updatedAt
+
+    conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+
+    @@index([conversation_id])
+    @@index([sender_id])
+    @@index([created_at])
+    @@index([is_read])
+    @@map("messages")
+}
+
+enum SenderType {
+    COACH
+    PLAYER
 }
