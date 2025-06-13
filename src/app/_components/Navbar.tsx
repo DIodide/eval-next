@@ -140,6 +140,11 @@ export default function Navbar() {
                   MESSAGES TEST
                 </DropdownMenuItem>
               </Link>
+              <Link href="/test-player-search">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  PLAYER SEARCH TEST
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
