@@ -1,5 +1,6 @@
 import { greetingRouter } from "@/server/api/routers/greeting";
 import { playerProfileRouter } from "@/server/api/routers/playerProfile";
+import { coachProfileRouter } from "@/server/api/routers/coachProfile";
 import { tryoutsRouter } from "@/server/api/routers/tryouts";
 import { combinesRouter } from "@/server/api/routers/combines";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
@@ -12,6 +13,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 export const appRouter = createTRPCRouter({
   greeting: greetingRouter,
   playerProfile: playerProfileRouter,
+  coachProfile: coachProfileRouter,
   tryouts: tryoutsRouter,
   combines: combinesRouter,
 });
