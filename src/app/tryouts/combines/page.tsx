@@ -1,269 +1,136 @@
 "use client"
 
-import { useState } from "react"
+/**
+ * Combines Page
+ * 
+ * Caching Strategy:
+ * - Fetch all combines once with minimal server-side filtering (upcoming_only)
+ * - Cache data for 5 minutes with 10-minute garbage collection
+ * - All other filters (game, type, search, invite_only) applied client-side
+ * - No network requests when changing filters - instant filtering from cache
+ * - Games data cached separately for 15 minutes (more static)
+ * - Smart refetch on mount and reconnect for fresh data
+ */
+
+import { useState, useMemo, useEffect } from "react"
+import { useUser } from "@clerk/nextjs"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, Trophy, ChevronRight, MapPin, Lock, ChevronLeft } from "lucide-react"
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { 
+  Search, 
+  Filter, 
+  Trophy, 
+  ChevronRight, 
+  MapPin, 
+  Lock, 
+  ChevronLeft,
+  LoaderIcon,
+  AlertCircleIcon,
+  X
+} from "lucide-react"
 import Link from "next/link"
-import type { Combine } from "../types"
+import { api } from "@/trpc/react"
 
-// Mock data for combine rankings
-const combinesData = {
-  VALORANT: {
-    invitational: {
-      id: 1,
-      title: "EVAL INVITATIONAL",
-      year: "2025",
-      game: "VALORANT",
-      date: "March 15, 2025",
-      location: "Los Angeles, CA",
-      spots: "20",
-      prize: "$10,000",
-      status: "invitation-only",
-      qualified: false,
-      description: "The most prestigious VALORANT combine event of the year",
-      requirements: "Top 100 ranked players only",
-      gameIcon: "🎯",
-      gameColor: "from-red-500 to-red-700",
-      bgColor: "bg-gradient-to-br from-red-900/80 to-red-800/80",
-      image: "/placeholder.svg?height=200&width=300",
-    },
-    combines: [
-      {
-        id: 2,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "VALORANT",
-        date: "April 22, 2025",
-        location: "Online",
-        spots: "12/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "Online VALORANT combine event",
-        requirements: "All ranks welcome",
-        gameIcon: "🎯",
-        gameColor: "from-red-500 to-red-700",
-        bgColor: "bg-gradient-to-br from-red-900/60 to-red-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-      {
-        id: 3,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "VALORANT",
-        date: "May 10, 2025",
-        location: "Chicago, IL",
-        spots: "8/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "In-person VALORANT combine event in Chicago",
-        requirements: "All ranks welcome",
-        gameIcon: "🎯",
-        gameColor: "from-red-500 to-red-700",
-        bgColor: "bg-gradient-to-br from-red-900/60 to-red-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-    ],
-  },
-  "Overwatch 2": {
-    invitational: {
-      id: 4,
-      title: "EVAL INVITATIONAL",
-      year: "2025",
-      game: "Overwatch 2",
-      date: "March 8, 2025",
-      location: "New York, NY",
-      spots: "20",
-      prize: "$10,000",
-      status: "invitation-only",
-      qualified: false,
-      description: "The most prestigious Overwatch 2 combine event of the year",
-      requirements: "Grandmaster rank or higher",
-      gameIcon: "⚡",
-      gameColor: "from-orange-500 to-orange-700",
-      bgColor: "bg-gradient-to-br from-orange-900/80 to-orange-800/80",
-      image: "/placeholder.svg?height=200&width=300",
-    },
-    combines: [
-      {
-        id: 5,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "Overwatch 2",
-        date: "April 5, 2025",
-        location: "Online",
-        spots: "15/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "Online Overwatch 2 combine event",
-        requirements: "All ranks welcome",
-        gameIcon: "⚡",
-        gameColor: "from-orange-500 to-orange-700",
-        bgColor: "bg-gradient-to-br from-orange-900/60 to-orange-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-      {
-        id: 6,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "Overwatch 2",
-        date: "June 15, 2025",
-        location: "Seattle, WA",
-        spots: "10/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "In-person Overwatch 2 combine event in Seattle",
-        requirements: "All ranks welcome",
-        gameIcon: "⚡",
-        gameColor: "from-orange-500 to-orange-700",
-        bgColor: "bg-gradient-to-br from-orange-900/60 to-orange-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-    ],
-  },
-  "Rocket League": {
-    invitational: {
-      id: 7,
-      title: "EVAL INVITATIONAL",
-      year: "2025",
-      game: "Rocket League",
-      date: "March 29, 2025",
-      location: "Austin, TX",
-      spots: "20",
-      prize: "$10,000",
-      status: "invitation-only",
-      qualified: false,
-      description: "The most prestigious Rocket League combine event of the year",
-      requirements: "Champion rank teams only",
-      gameIcon: "🚀",
-      gameColor: "from-blue-500 to-blue-700",
-      bgColor: "bg-gradient-to-br from-blue-900/80 to-blue-800/80",
-      image: "/placeholder.svg?height=200&width=300",
-    },
-    combines: [
-      {
-        id: 8,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "Rocket League",
-        date: "May 17, 2025",
-        location: "Online",
-        spots: "18/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "Online Rocket League combine event",
-        requirements: "All ranks welcome",
-        gameIcon: "🚀",
-        gameColor: "from-blue-500 to-blue-700",
-        bgColor: "bg-gradient-to-br from-blue-900/60 to-blue-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-      {
-        id: 9,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "Rocket League",
-        date: "July 8, 2025",
-        location: "Miami, FL",
-        spots: "5/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "In-person Rocket League combine event in Miami",
-        requirements: "All ranks welcome",
-        gameIcon: "🚀",
-        gameColor: "from-blue-500 to-blue-700",
-        bgColor: "bg-gradient-to-br from-blue-900/60 to-blue-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-    ],
-  },
-  "League of Legends": {
-    invitational: {
-      id: 10,
-      title: "EVAL INVITATIONAL",
-      year: "2025",
-      game: "League of Legends",
-      date: "April 12, 2025",
-      location: "Las Vegas, NV",
-      spots: "20",
-      prize: "$10,000",
-      status: "invitation-only",
-      qualified: false,
-      description: "The most prestigious League of Legends combine event of the year",
-      requirements: "Master tier teams only",
-      gameIcon: "⚔️",
-      gameColor: "from-purple-500 to-purple-700",
-      bgColor: "bg-gradient-to-br from-purple-900/80 to-purple-800/80",
-      image: "/placeholder.svg?height=200&width=300",
-    },
-    combines: [
-      {
-        id: 11,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "League of Legends",
-        date: "June 7, 2025",
-        location: "Online",
-        spots: "14/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "Online League of Legends combine event",
-        requirements: "All ranks welcome",
-        gameIcon: "⚔️",
-        gameColor: "from-purple-500 to-purple-700",
-        bgColor: "bg-gradient-to-br from-purple-900/60 to-purple-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-      {
-        id: 12,
-        title: "EVAL COMBINE",
-        year: "2025",
-        game: "League of Legends",
-        date: "August 22, 2025",
-        location: "Boston, MA",
-        spots: "9/20",
-        prize: "$5,000",
-        status: "open",
-        qualified: false,
-        description: "In-person League of Legends combine event in Boston",
-        requirements: "All ranks welcome",
-        gameIcon: "⚔️",
-        gameColor: "from-purple-500 to-purple-700",
-        bgColor: "bg-gradient-to-br from-purple-900/60 to-purple-800/60",
-        image: "/placeholder.svg?height=200&width=300",
-      },
-    ],
-  },
+// Map database game names to UI game names
+const gameNameMap: Record<string, string> = {
+  "VALORANT": "VALORANT",
+  "Overwatch 2": "Overwatch 2", 
+  "Super Smash Bros. Ultimate": "Smash Ultimate",
+  "Rocket League": "Rocket League",
+  "League of Legends": "League of Legends"
 }
 
+// Game colors for UI consistency
 const gameColors = {
   VALORANT: "from-red-500 to-red-700",
   "Overwatch 2": "from-orange-500 to-orange-700",
   "Rocket League": "from-blue-500 to-blue-700",
   "League of Legends": "from-purple-500 to-purple-700",
+  "Smash Ultimate": "from-green-500 to-green-700",
 }
 
-function InvitationalCard({ combine }: { combine: Combine }) {
+// Game icons
+const gameIcons = {
+  VALORANT: "🎯",
+  "Overwatch 2": "⚡",
+  "Rocket League": "🚀",
+  "League of Legends": "⚔️",
+  "Smash Ultimate": "🎮",
+}
+
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(new Date(date))
+}
+
+const formatTime = (timeStart?: string, timeEnd?: string) => {
+  if (!timeStart) return "Time TBA"
+  if (!timeEnd) return timeStart
+  return `${timeStart} - ${timeEnd}`
+}
+
+interface CombineCardProps {
+  combine: {
+    id: string;
+    title: string;
+    description: string;
+    date: Date;
+    location: string;
+    type: "ONLINE" | "IN_PERSON" | "HYBRID";
+    year: string;
+    max_spots: number;
+    claimed_spots: number;
+    prize_pool: string;
+    status: string;
+    invite_only: boolean;
+    game: {
+      id: string;
+      name: string;
+      short_name: string;
+      icon: string | null;
+      color: string | null;
+    };
+    organizer: {
+      id: string;
+      first_name: string;
+      last_name: string;
+    } | null;
+    _count: {
+      registrations: number;
+    };
+  };
+  isInvitational?: boolean;
+}
+
+function InvitationalCard({ combine }: CombineCardProps) {
+  const gameName = gameNameMap[combine.game.name] ?? combine.game.name
+  const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
+  const bgColor = `bg-gradient-to-br ${gameColor.replace('from-', 'from-')}/80 ${gameColor.replace('to-', 'to-')}/80`
+
   return (
     <Link href={`/tryouts/combines/${combine.id}`} className="block h-full">
       <Card
-        className={`border-gray-700 hover:border-cyan-400/50 transition-all duration-300 h-full group ${combine.bgColor}`}
+        className={`border-gray-700 hover:border-cyan-400/50 transition-all duration-300 h-full group ${bgColor}`}
       >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex items-start justify-between mb-3">
             <div>
               <Badge variant="outline" className="border-white/30 text-white font-rajdhani text-xs">
-                {combine.date}
+                {formatDate(combine.date)}
               </Badge>
             </div>
           </div>
@@ -278,7 +145,7 @@ function InvitationalCard({ combine }: { combine: Combine }) {
 
             <div className="flex items-center space-x-2 text-sm">
               <Trophy className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-200 font-rajdhani">{combine.game}</span>
+              <span className="text-gray-200 font-rajdhani">{gameName}</span>
             </div>
           </div>
 
@@ -289,7 +156,7 @@ function InvitationalCard({ combine }: { combine: Combine }) {
               <Badge className="bg-yellow-400 text-black font-orbitron text-xs">INVITATIONAL</Badge>
             </div>
             <div className="text-right">
-              <span className="text-xs text-gray-200 font-rajdhani">{combine.spots} spots</span>
+              <span className="text-lg text-gray-200 font-rajdhani">{combine.claimed_spots}/{combine.max_spots} spots taken</span>
             </div>
           </div>
         </CardContent>
@@ -298,11 +165,16 @@ function InvitationalCard({ combine }: { combine: Combine }) {
   )
 }
 
-function CombineCard({ combine }: { combine: Combine }) {
+function CombineCard({ combine }: CombineCardProps) {
+  const gameName = gameNameMap[combine.game.name] ?? combine.game.name
+  const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
+  const bgColor = `bg-gradient-to-br ${gameColor.replace('from-', 'from-')}/60 ${gameColor.replace('to-', 'to-')}/60`
+  const spotsLeft = combine.max_spots - combine.claimed_spots
+
   return (
     <Link href={`/tryouts/combines/${combine.id}`} className="block h-full">
       <Card
-        className={`border-gray-700 hover:border-cyan-400/50 transition-all duration-300 h-full group ${combine.bgColor}`}
+        className={`border-gray-700 hover:border-cyan-400/50 transition-all duration-300 h-full group ${bgColor}`}
       >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex items-start justify-between mb-3">
@@ -311,7 +183,7 @@ function CombineCard({ combine }: { combine: Combine }) {
             </div>
             <div className="text-right">
               <Badge variant="outline" className="border-white/30 text-white font-rajdhani text-xs">
-                {combine.date}
+                {formatDate(combine.date)}
               </Badge>
             </div>
           </div>
@@ -332,7 +204,7 @@ function CombineCard({ combine }: { combine: Combine }) {
               VIEW DETAILS
             </Button>
             <div className="text-right">
-              <span className="text-xs text-gray-200 font-rajdhani">{combine.spots}/20 spots</span>
+              <span className="text-lg  text-gray-200 font-rajdhani">{combine.claimed_spots}/{combine.max_spots} spots taken</span>
             </div>
           </div>
         </CardContent>
@@ -341,12 +213,17 @@ function CombineCard({ combine }: { combine: Combine }) {
   )
 }
 
-function GameCarousel({ game, gameData }: { game: string; gameData: { invitational: Combine; combines: Combine[] }  }) {
+interface GameCarouselProps {
+  game: string;
+  combines: CombineCardProps['combine'][];
+}
+
+function GameCarousel({ game, combines }: GameCarouselProps) {
   const gameColor = gameColors[game as keyof typeof gameColors] || "from-gray-500 to-gray-700"
+  const gameIcon = gameIcons[game as keyof typeof gameIcons] || "🎮"
   const [currentIndex, setCurrentIndex] = useState(0)
-  // const itemsPerView = window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1
   const itemsPerView = 3
-  const maxIndex = Math.max(0, gameData.combines.length + 1 - itemsPerView)
+  const maxIndex = Math.max(0, combines.length - itemsPerView)
 
   const nextSlide = () => {
     setCurrentIndex((prev) => Math.min(prev + 1, maxIndex))
@@ -356,8 +233,14 @@ function GameCarousel({ game, gameData }: { game: string; gameData: { invitation
     setCurrentIndex((prev) => Math.max(prev - 1, 0))
   }
 
-  // Combine invitational and regular combines into one array for the carousel
-  const allCombines = [gameData.invitational, ...gameData.combines]
+  // Separate invitational and regular combines
+  const invitational = combines.find(c => c.invite_only)
+  const regularCombines = combines.filter(c => !c.invite_only)
+
+  // Combine them for display - invitational first if it exists
+  const displayCombines = invitational ? [invitational, ...regularCombines] : regularCombines
+
+  if (displayCombines.length === 0) return null
 
   return (
     <div className="mb-12">
@@ -366,10 +249,7 @@ function GameCarousel({ game, gameData }: { game: string; gameData: { invitation
           <div
             className={`w-16 h-16 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center text-2xl`}
           >
-            {game === "VALORANT" && "🎯"}
-            {game === "Overwatch 2" && "⚡"}
-            {game === "Rocket League" && "🚀"}
-            {game === "League of Legends" && "⚔️"}
+            {gameIcon}
           </div>
           <h2 className="font-orbitron text-2xl font-bold text-white tracking-wide">{game}</h2>
         </div>
@@ -400,12 +280,16 @@ function GameCarousel({ game, gameData }: { game: string; gameData: { invitation
           className="flex space-x-4 transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
         >
-          {allCombines.map((combine, index) => (
+          {displayCombines.map((combine, index) => (
             <div
               key={combine.id}
               className="min-w-[calc(100%/3-1rem)] md:min-w-[calc(50%-0.5rem)] lg:min-w-[calc(33.333%-0.667rem)] h-64"
             >
-              {index === 0 ? <InvitationalCard combine={combine} /> : <CombineCard combine={combine} />}
+              {combine.invite_only ? (
+                <InvitationalCard combine={combine} isInvitational={true} />
+              ) : (
+                <CombineCard combine={combine} />
+              )}
             </div>
           ))}
         </div>
@@ -415,9 +299,163 @@ function GameCarousel({ game, gameData }: { game: string; gameData: { invitation
 }
 
 export default function EvalCombinesPage() {
+  const { user } = useUser()
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedGame, setSelectedGame] = useState("all")
   const [selectedRegion, setSelectedRegion] = useState("all")
+  const [inviteOnly, setInviteOnly] = useState<boolean | undefined>(undefined)
+  const [upcomingOnly, setUpcomingOnly] = useState<boolean>(true)
+  const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false)
+  const [selectedCombine, setSelectedCombine] = useState<string | null>(null)
+
+  // Fetch ALL combines once and filter client-side for better caching
+  const { 
+    data: allCombinesResponse, 
+    isLoading: isLoadingCombines, 
+    error: combinesError,
+    refetch: refetchCombines 
+  } = api.combines.browse.useQuery({
+    // Fetch all data without filters - this gets cached and reused
+    upcoming_only: upcomingOnly, // Only this filter affects the server query (performance optimization)
+    limit: 100, // Fetch more data upfront
+    offset: 0
+  }, {
+    // Time-based invalidation: 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes - garbage collection time for cached data
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnReconnect: true, // Refetch when internet connection is restored
+    retry: 3, // Retry failed requests 3 times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+  })
+
+  // Client-side filtering of the cached data
+  const combinesResponse = useMemo(() => {
+    if (!allCombinesResponse?.combines) return allCombinesResponse;
+
+    const filteredCombines = allCombinesResponse.combines.filter(combine => {
+      // Game filter
+      if (selectedGame !== "all" && combine.game.id !== selectedGame) {
+        return false;
+      }
+
+      // Region filter (based on location)
+      if (selectedRegion !== "all") {
+        const location = combine.location.toLowerCase();
+        if (selectedRegion === "online" && !location.includes("online")) return false;
+        if (selectedRegion === "west" && !location.includes("ca") && !location.includes("wa") && !location.includes("seattle") && !location.includes("los angeles")) return false;
+        if (selectedRegion === "east" && !location.includes("ny") && !location.includes("boston") && !location.includes("new york")) return false;
+        if (selectedRegion === "central" && !location.includes("chicago") && !location.includes("austin") && !location.includes("il") && !location.includes("tx")) return false;
+      }
+
+      // Invite only filter
+      if (inviteOnly !== undefined && combine.invite_only !== inviteOnly) {
+        return false;
+      }
+
+      // Search filter
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = 
+          combine.title.toLowerCase().includes(searchLower) ||
+          combine.description.toLowerCase().includes(searchLower) ||
+          combine.location.toLowerCase().includes(searchLower) ||
+          combine.game.name.toLowerCase().includes(searchLower);
+        
+        if (!matchesSearch) return false;
+      }
+
+      return true;
+    });
+
+    return {
+      ...allCombinesResponse,
+      combines: filteredCombines,
+      total: filteredCombines.length,
+      hasMore: false // All data is loaded client-side
+    };
+  }, [allCombinesResponse, selectedGame, selectedRegion, inviteOnly, searchQuery])
+
+  // Get available games for filter
+  const { data: availableGames } = api.playerProfile.getAvailableGames.useQuery(undefined, {
+    // Games data is more static, cache for longer
+    staleTime: 15 * 60 * 1000, // 15 minutes - games don't change often
+    gcTime: 30 * 60 * 1000, // 30 minutes garbage collection time
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch games on every mount
+    refetchOnReconnect: false,
+    retry: 2,
+  })
+
+  // Handle URL query parameters
+  useEffect(() => {
+    const gameParam = searchParams.get('game')
+    if (gameParam) {
+      // Find game by name (since URL passes game name, not ID)
+      const matchingGame = availableGames?.find(game => 
+        game.name === decodeURIComponent(gameParam)
+      )
+      if (matchingGame) {
+        setSelectedGame(matchingGame.id)
+      }
+    }
+  }, [searchParams, availableGames])
+
+  // Group combines by game for display
+  const combinesByGame = useMemo(() => {
+    if (!combinesResponse?.combines || !availableGames) return {};
+
+    const grouped: Record<string, typeof combinesResponse.combines> = {};
+    
+    availableGames.forEach(game => {
+      const gameCombines = combinesResponse.combines.filter(combine => combine.game.id === game.id);
+      if (gameCombines.length > 0) {
+        const gameName = gameNameMap[game.name] ?? game.name;
+        grouped[gameName] = gameCombines;
+      }
+    });
+
+    return grouped;
+  }, [combinesResponse, availableGames]);
+
+  const clearFilters = (resetUpcomingOnly = false) => {
+    setSearchQuery("")
+    setSelectedGame("all")
+    setSelectedRegion("all")
+    setInviteOnly(undefined)
+    if (resetUpcomingOnly) {
+      setUpcomingOnly(true)
+    }
+  }
+
+  // Loading state
+  if (isLoadingCombines) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
+          <p className="text-white font-rajdhani">Loading combines...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (combinesError) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircleIcon className="w-8 h-8 text-red-400 mx-auto mb-4" />
+          <p className="text-white font-rajdhani mb-4">Failed to load combines. Please try again.</p>
+          <Button onClick={() => void refetchCombines()} className="bg-cyan-400 hover:bg-cyan-500 text-black">
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black">
@@ -469,9 +507,9 @@ export default function EvalCombinesPage() {
               <SelectItem value="all" className="text-white font-rajdhani">
                 All Games
               </SelectItem>
-              {Object.keys(combinesData).map((game) => (
-                <SelectItem key={game} value={game} className="text-white font-rajdhani">
-                  {game}
+              {availableGames?.map((game) => (
+                <SelectItem key={game.id} value={game.id} className="text-white font-rajdhani">
+                  {gameNameMap[game.name] ?? game.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -500,13 +538,26 @@ export default function EvalCombinesPage() {
             </SelectContent>
           </Select>
 
+          <Select value={inviteOnly === undefined ? "all" : inviteOnly ? "invite" : "open"} onValueChange={(value) => setInviteOnly(value === "all" ? undefined : value === "invite")}>
+            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-800 border-gray-700">
+              <SelectItem value="all" className="text-white font-rajdhani">
+                All Types
+              </SelectItem>
+              <SelectItem value="invite" className="text-white font-rajdhani">
+                Invitational
+              </SelectItem>
+              <SelectItem value="open" className="text-white font-rajdhani">
+                Open
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
-            onClick={() => {
-              setSearchQuery("")
-              setSelectedGame("all")
-              setSelectedRegion("all")
-            }}
+            onClick={() => clearFilters()}
             className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
           >
             Clear Filters
@@ -527,12 +578,26 @@ export default function EvalCombinesPage() {
 
         {/* Game Carousels */}
         <div className="space-y-16">
-          {Object.entries(combinesData)
-            .filter(([game]) => selectedGame === "all" || game === selectedGame)
-            .map(([game, gameData]) => (
-              <GameCarousel key={game} game={game} gameData={gameData} />
+          {Object.entries(combinesByGame)
+            .filter(([game]) => selectedGame === "all" || combinesByGame[game]?.some(c => c.game.id === selectedGame))
+            .map(([game, combines]) => (
+              <GameCarousel key={game} game={game} combines={combines} />
             ))}
         </div>
+
+        {/* No results message */}
+        {Object.keys(combinesByGame).length === 0 && (
+          <div className="text-center py-16">
+            <p className="text-gray-400 font-rajdhani text-lg mb-4">No combines found matching your criteria.</p>
+            <Button
+              variant="outline"
+              onClick={() => clearFilters(true)}
+              className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
+            >
+              Clear All Filters
+            </Button>
+          </div>
+        )}
 
         {/* Call to Action */}
         <div className="text-center mt-20 py-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl">
@@ -544,19 +609,22 @@ export default function EvalCombinesPage() {
             EVAL&apos;s most prestigious tournaments.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-            <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 tracking-wider">
-              CREATE PROFILE
-            </Button>
-            <Button
-              variant="outline"
-              className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider"
-            >
-              VIEW RANKINGS
-            </Button>
+            <Link href="/dashboard/player/profile">
+              <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto">
+                CREATE PROFILE
+              </Button>
+            </Link>
+            <Link href="/rankings">
+              <Button
+                variant="outline"
+                className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto"
+              >
+                VIEW RANKINGS
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
-
     </div>
   )
 }
