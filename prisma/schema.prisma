@@ -291,14 +291,15 @@ model Tryout {
     description      String
     long_description String?
 
-    game_id    String    @db.Uuid
-    school_id  String    @db.Uuid
-    coach_id   String?   @db.Uuid
-    date       DateTime  @db.Timestamp(6)
+    game_id    String       @db.Uuid
+    school_id  String       @db.Uuid
+    coach_id   String?      @db.Uuid
+    date       DateTime     @db.Timestamp(6)
     time_start String?
     time_end   String?
     location   String
     type       EventType
+    status     TryoutStatus @default(DRAFT)
 
     price                 String
     max_spots             Int
@@ -392,6 +393,12 @@ enum EventType {
     ONLINE
     IN_PERSON
     HYBRID
+}
+
+enum TryoutStatus {
+    DRAFT
+    PUBLISHED
+    CANCELLED
 }
 
 enum RegistrationStatus {
