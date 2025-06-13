@@ -12,7 +12,7 @@
  * - Smart refetch on mount and reconnect for fresh data
  */
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useUser } from "@clerk/nextjs"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -20,13 +20,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { 
   Search, 
   Filter, 
@@ -37,8 +30,6 @@ import {
   ChevronLeft,
   LoaderIcon,
   AlertCircleIcon,
-  X,
-  ClockIcon,
   Clock
 } from "lucide-react"
 import Link from "next/link"
@@ -177,7 +168,6 @@ function CombineCard({ combine }: CombineCardProps) {
   const gameName = gameNameMap[combine.game.name] ?? combine.game.name
   const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
   const bgColor = `bg-gradient-to-br ${gameColor.replace('from-', 'from-')}/60 ${gameColor.replace('to-', 'to-')}/60`
-  const spotsLeft = combine.max_spots - combine.claimed_spots
 
   return (
     <Link href={`/tryouts/combines/${combine.id}`} className="block h-full">
@@ -292,7 +282,7 @@ function GameCarousel({ game, combines }: GameCarouselProps) {
           className="flex space-x-4 transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
         >
-          {displayCombines.map((combine, index) => (
+          {displayCombines.map((combine) => (
             <div
               key={combine.id}
               className="min-w-[calc(100%/3-1rem)] md:min-w-[calc(50%-0.5rem)] lg:min-w-[calc(33.333%-0.667rem)] h-64"
@@ -310,7 +300,7 @@ function GameCarousel({ game, combines }: GameCarouselProps) {
   )
 }
 
-export default function EvalCombinesPage() {
+function CombinesPageContent() {
   const { user } = useUser()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -318,8 +308,6 @@ export default function EvalCombinesPage() {
   const [selectedRegion, setSelectedRegion] = useState("all")
   const [inviteOnly, setInviteOnly] = useState<boolean | undefined>(undefined)
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(true)
-  const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false)
-  const [selectedCombine, setSelectedCombine] = useState<string | null>(null)
 
   // Fetch ALL combines once and filter client-side for better caching
   const { 
@@ -638,5 +626,13 @@ export default function EvalCombinesPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function EvalCombinesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CombinesPageContent />
+    </Suspense>
   )
 }

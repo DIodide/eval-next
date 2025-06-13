@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,7 +122,31 @@ const isCombineUpcoming = (date: Date) => {
   return new Date(date) > new Date();
 };
 
-export default function CombinesPage() {
+// Loading component for Suspense fallback
+function CombinesPageLoading() {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-orbitron font-bold text-white">
+            My Combines
+          </h1>
+          <p className="text-gray-400 mt-2">
+            Track your combine registrations and view your performance analytics
+          </p>
+        </div>
+      </div>
+      <Card className="bg-[#1a1a2e] border-gray-800 p-8">
+        <div className="flex items-center justify-center space-x-2">
+          <LoaderIcon className="h-6 w-6 animate-spin text-cyan-400" />
+          <span className="text-gray-400">Loading your combine registrations...</span>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function CombinesPageContent() {
   const { user } = useUser();
   const [activeFilter, setActiveFilter] = useState<"upcoming" | "past" | "all">("upcoming");
   const [searchQuery, setSearchQuery] = useState("");
@@ -445,7 +469,10 @@ export default function CombinesPage() {
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <ClockIcon className="h-4 w-4 text-green-400" />
-                          <span>{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</span>
+                          <span>{formatTime(
+                            typeof combine.time_start === 'string' ? combine.time_start : undefined, 
+                            typeof combine.time_end === 'string' ? combine.time_end : undefined
+                          )}</span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <MapPinIcon className="h-4 w-4 text-purple-400" />
@@ -543,5 +570,13 @@ export default function CombinesPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function CombinesPage() {
+  return (
+    <Suspense fallback={<CombinesPageLoading />}>
+      <CombinesPageContent />
+    </Suspense>
   );
 } 

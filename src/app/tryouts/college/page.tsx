@@ -12,7 +12,7 @@
  * - Smart refetch on mount and reconnect for fresh data
  */
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useUser } from "@clerk/nextjs"
 import { useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
@@ -81,7 +81,7 @@ const transformToCardTryout = (apiTryout: Tryout): CardTryout => ({
   organizer: apiTryout.organizer ? `${apiTryout.organizer.first_name} ${apiTryout.organizer.last_name}` : "TBA",
 })
 
-export default function TryoutsPage() {
+function TryoutsPageContent() {
   const { user } = useUser()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -552,5 +552,13 @@ export default function TryoutsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function TryoutsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TryoutsPageContent />
+    </Suspense>
   )
 }
