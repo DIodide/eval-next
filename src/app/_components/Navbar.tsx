@@ -135,6 +135,11 @@ export default function Navbar() {
                   COMBINES TEST
                 </DropdownMenuItem>
               </Link>
+              <Link href="/test-messages">
+                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  MESSAGES TEST
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
