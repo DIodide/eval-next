@@ -21,7 +21,7 @@ const createPrismaClient = () =>
       // Configure for Supabase PgBouncer
       datasources: {
         db: {
-          url: env.DATABASE_URL + (env.DATABASE_URL.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1',
+          url: env.DATABASE_URL + (env.DATABASE_URL.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=15',
         },
       },
     }),
