@@ -83,6 +83,7 @@ model Player {
     performance_stats     PlayerPerformanceStats[]
     rankings              PlayerRanking[]
     Conversation          Conversation[]
+    favorited_by          CoachFavorite[] // Coaches who favorited this player
 
     // Performance indexes
     @@index([school_id])
@@ -115,6 +116,7 @@ model Coach {
     tryouts_created  Tryout[]
     combines_created Combine[]
     Conversation     Conversation[]
+    favorites        CoachFavorite[] // Coach's favorited players
 
     @@map("coaches")
 }
@@ -150,10 +152,20 @@ model PlayerGameProfile {
     player_id String @db.Uuid
     game_id   String @db.Uuid
 
-    username    String
-    rank        String?
-    rating      Float?
-    role        String? // "IGL", "Support", "DPS", etc.
+    username String
+    rank     String?
+    rating   Float?
+    role     String? // "IGL", "Support", "DPS", etc.
+
+    // Game-specific data
+    agents         String[] // For VALORANT: ["Jett", "Sova"], For Overwatch: ["Tracer", "Ana"], etc.
+    preferred_maps String[] // Maps they excel on
+    play_style     String? // "Aggressive", "Passive", "Tactical", etc.
+
+    // EVAL Composite Scores
+    combine_score Float? // EVAL Composite score for combines (0-100)
+    league_score  Float? // EVAL Composite score for leagues (0-100)
+
     tracker_url String?
     created_at  DateTime @default(now()) @db.Timestamp(6)
     updated_at  DateTime @updatedAt
@@ -633,4 +645,24 @@ model Message {
 enum SenderType {
     COACH
     PLAYER
+}
+
+/// Coach favorites/prospects system
+model CoachFavorite {
+    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    coach_id  String   @db.Uuid
+    player_id String   @db.Uuid
+    notes     String? // Private notes about the player
+    tags      String[] // Tags like "Priority", "Future recruit", etc.
+
+    created_at DateTime @default(now()) @db.Timestamp(6)
+    updated_at DateTime @updatedAt
+
+    coach  Coach  @relation(fields: [coach_id], references: [id], onDelete: Cascade)
+    player Player @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+    @@unique([coach_id, player_id])
+    @@index([coach_id])
+    @@index([player_id])
+    @@map("coach_favorites")
 }

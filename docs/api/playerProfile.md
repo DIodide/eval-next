@@ -1,6 +1,6 @@
 # Player Profile Router Documentation
 
-The Player Profile Router handles all player profile-related operations in the API. This router is protected and requires authentication for all endpoints, with database retry logic for improved reliability.
+The Player Profile Router handles all player profile-related operations in the API. This router primarily uses protected endpoints that require authentication, with database retry logic for improved reliability.
 
 ## Overview
 
@@ -9,17 +9,19 @@ The router provides functionality for:
 - Managing player profiles (get/update with optimized queries)
 - Managing platform connections (add/update/remove)
 - Managing social connections (add/update/remove)
-- Retrieving available games for main game selection
+- Retrieving available games for main game selection (public access)
 - Optimized data fetching for specific use cases
 
 ## Authentication & Authorization
 
-All endpoints in this router use `protectedProcedure` with additional player verification:
+Most endpoints in this router use `protectedProcedure` with additional player verification:
 
 - Users must be authenticated via Clerk
 - Users must have a valid player profile in the database
 - Access is restricted to player-type users only
 - Each request verifies the user is a player and retrieves their player ID
+
+**Exception**: `getAvailableGames` is a public endpoint that requires no authentication.
 
 ## Database Reliability
 
@@ -90,7 +92,6 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - `NOT_FOUND`: Player profile doesn't exist
   - `UNAUTHORIZED`: User not authenticated
   - `FORBIDDEN`: User is not a player
-  - `INTERNAL_SERVER_ERROR`: Database error
 
 #### `getBasicProfile` ✨ _New Optimized Endpoint_
 
@@ -128,16 +129,16 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - `UNAUTHORIZED`: User not authenticated
   - `FORBIDDEN`: User is not a player
 
-#### `getAvailableGames`
+#### `getAvailableGames` 🌐 _Public Endpoint_
 
 - **Method**: Query
+- **Authentication**: None required (public access)
 - **Description**: Retrieves all available games for main game selection
 - **Returns**: Array of game objects containing id, name, short_name, icon, and color
 - **Performance**: Sorted alphabetically by name
+- **Use Case**: Game selection during registration, public browsing, unauthenticated interfaces
 - **Error Codes**:
   - `INTERNAL_SERVER_ERROR`: Failed to fetch games
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
 
 ### Mutation Endpoints
 
@@ -266,7 +267,7 @@ await trpc.playerProfile.removeSocialConnection.mutate({
   platform: "x",
 });
 
-// Get available games for selection
+// Get available games for selection (no authentication required)
 const games = await trpc.playerProfile.getAvailableGames.query();
 ```
 
@@ -287,7 +288,8 @@ const games = await trpc.playerProfile.getAvailableGames.query();
 
 ### Security
 
-- Player verification happens on every request
+- Player verification happens on every request (except `getAvailableGames`)
 - User authorization checked against player database record
 - No access to other players' data
 - All mutations require valid player authentication
+- `getAvailableGames` is publicly accessible for game selection without authentication
