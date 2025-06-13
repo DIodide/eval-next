@@ -722,6 +722,8 @@ export const tryoutsRouter = createTRPCRouter({
                   first_name: true,
                   last_name: true,
                   email: true,
+                  image_url: true,
+                  location: true,
                 },
               },
             },
@@ -735,6 +737,314 @@ export const tryoutsRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update registration status',
+        });
+      }
+    }),
+
+  // Get coach's tryouts (coaches only)
+  getCoachTryouts: protectedProcedure
+    .input(z.object({
+      status: z.enum(["all", "active", "upcoming", "past"]).default("all"),
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { coachId } = await verifyCoachUser(ctx);
+
+      try {
+        const now = new Date();
+        let dateFilter = {};
+        
+        if (input.status === "upcoming") {
+          dateFilter = { date: { gte: now } };
+        } else if (input.status === "past") {
+          dateFilter = { date: { lt: now } };
+        } else if (input.status === "active") {
+          dateFilter = { 
+            date: { gte: now },
+            registration_deadline: { gte: now }
+          };
+        }
+
+        const [tryouts, total] = await Promise.all([
+          withRetry(() =>
+            ctx.db.tryout.findMany({
+              where: {
+                coach_id: coachId,
+                ...dateFilter,
+              },
+              include: {
+                game: {
+                  select: {
+                    id: true,
+                    name: true,
+                    short_name: true,
+                    icon: true,
+                    color: true,
+                  },
+                },
+                school: {
+                  select: {
+                    id: true,
+                    name: true,
+                    location: true,
+                    state: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    registrations: true,
+                  },
+                },
+                registrations: {
+                  select: {
+                    status: true,
+                  },
+                },
+              },
+              orderBy: [
+                { date: 'asc' },
+                { created_at: 'desc' },
+              ],
+              skip: input.offset,
+              take: input.limit,
+            })
+          ),
+          withRetry(() =>
+            ctx.db.tryout.count({
+              where: {
+                coach_id: coachId,
+                ...dateFilter,
+              },
+            })
+          ),
+        ]);
+
+        // Calculate status counts for each tryout
+        const tryoutsWithCounts = tryouts.map(tryout => {
+          const statusCounts = tryout.registrations.reduce((acc, reg) => {
+            acc[reg.status] = (acc[reg.status] ?? 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+
+          return {
+            ...tryout,
+            registrations: undefined, // Remove the registrations array
+            pendingCount: statusCounts.PENDING ?? 0,
+            acceptedCount: statusCounts.CONFIRMED ?? 0,
+            rejectedCount: statusCounts.DECLINED ?? 0,
+            waitlistedCount: statusCounts.WAITLISTED ?? 0,
+            registeredCount: tryout._count.registrations,
+          };
+        });
+
+        return {
+          tryouts: tryoutsWithCounts,
+          total,
+          hasMore: input.offset + input.limit < total,
+        };
+      } catch (error) {
+        console.error('Error fetching coach tryouts:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch coach tryouts',
+        });
+      }
+    }),
+
+  // Get detailed tryout applications for coaches
+  getTryoutApplications: protectedProcedure
+    .input(z.object({
+      tryout_id: z.string().uuid(),
+      status: z.enum(["all", "pending", "confirmed", "declined", "waitlisted"]).default("all"),
+    }))
+    .query(async ({ ctx, input }) => {
+      const { coachId } = await verifyCoachUser(ctx);
+
+      try {
+        // Verify coach owns this tryout
+        const tryout = await withRetry(() =>
+          ctx.db.tryout.findUnique({
+            where: { id: input.tryout_id },
+            select: {
+              id: true,
+              coach_id: true,
+              title: true,
+              game: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          })
+        );
+
+        if (!tryout) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Tryout not found',
+          });
+        }
+
+        if (tryout.coach_id !== coachId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot access applications for tryout you don\'t organize',
+          });
+        }
+
+        const statusFilter = input.status === "all" ? {} : { status: input.status.toUpperCase() as "PENDING" | "CONFIRMED" | "DECLINED" | "WAITLISTED" };
+
+        const applications = await withRetry(() =>
+          ctx.db.tryoutRegistration.findMany({
+            where: {
+              tryout_id: input.tryout_id,
+              ...statusFilter,
+            },
+            include: {
+              player: {
+                select: {
+                  id: true,
+                  first_name: true,
+                  last_name: true,
+                  email: true,
+                  image_url: true,
+                  location: true,
+                  bio: true,
+                  class_year: true,
+                  school: true,
+                  gpa: true,
+                  game_profiles: {
+                    where: {
+                      game_id: tryout.game.name === "VALORANT" ? undefined : undefined, // You might want to filter by game
+                    },
+                    select: {
+                      username: true,
+                      rank: true,
+                      rating: true,
+                      role: true,
+                      game: {
+                        select: {
+                          name: true,
+                        },
+                      },
+                    },
+                  },
+                  platform_connections: {
+                    select: {
+                      platform: true,
+                      username: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              registered_at: 'asc',
+            },
+          })
+        );
+
+        return {
+          tryout: {
+            id: tryout.id,
+            title: tryout.title,
+            game: tryout.game.name,
+          },
+          applications: applications.map(app => ({
+            id: app.id,
+            status: app.status,
+            notes: app.notes,
+            registered_at: app.registered_at,
+            player: {
+              id: app.player.id,
+              name: `${app.player.first_name} ${app.player.last_name}`,
+              email: app.player.email,
+              avatar: app.player.image_url,
+              location: app.player.location,
+              bio: app.player.bio,
+              class_year: app.player.class_year,
+              school: app.player.school,
+              gpa: app.player.gpa,
+              game_profiles: app.player.game_profiles,
+              platform_connections: app.player.platform_connections,
+            },
+          })),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('Error fetching tryout applications:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch tryout applications',
+        });
+      }
+    }),
+
+  // Remove/delete a registration (coaches only)
+  removeRegistration: protectedProcedure
+    .input(z.object({
+      registration_id: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { coachId } = await verifyCoachUser(ctx);
+
+      try {
+        // Verify coach owns this tryout
+        const registration = await withRetry(() =>
+          ctx.db.tryoutRegistration.findUnique({
+            where: { id: input.registration_id },
+            include: {
+              tryout: {
+                select: {
+                  id: true,
+                  coach_id: true,
+                },
+              },
+            },
+          })
+        );
+
+        if (!registration) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Registration not found',
+          });
+        }
+
+        if (registration.tryout.coach_id !== coachId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot remove registration for tryout you don\'t organize',
+          });
+        }
+
+        // Delete registration and update spot count
+        await withRetry(() =>
+          ctx.db.$transaction(async (tx) => {
+            await tx.tryoutRegistration.delete({
+              where: { id: input.registration_id },
+            });
+
+            // Decrement registered spots count
+            await tx.tryout.update({
+              where: { id: registration.tryout.id },
+              data: {
+                registered_spots: {
+                  decrement: 1,
+                },
+              },
+            });
+          })
+        );
+
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('Error removing registration:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to remove registration',
         });
       }
     }),
