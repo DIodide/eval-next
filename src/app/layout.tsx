@@ -7,6 +7,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/app/_components/Navbar";
 import Footer from "@/app/_components/Footer";
+import { Toaster } from "@/components/ui/toaster";
 import { dark, neobrutalism } from "@clerk/themes";
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            <Toaster />
           </TRPCReactProvider>
         </ClerkProvider>
         <Analytics />
