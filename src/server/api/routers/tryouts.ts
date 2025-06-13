@@ -111,7 +111,9 @@ export const tryoutsRouter = createTRPCRouter({
         } = input;
 
         // Build filter conditions
-        const where: Prisma.TryoutWhereInput = {};
+        const where: Prisma.TryoutWhereInput = {
+          status: 'PUBLISHED', // Only show published tryouts to public
+        };
 
         if (game_id) where.game_id = game_id;
         if (school_id) where.school_id = school_id;
@@ -626,6 +628,7 @@ export const tryoutsRouter = createTRPCRouter({
       time_end: z.string().optional(),
       location: z.string().min(5).max(200),
       type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]),
+      status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
       price: z.string().min(1).max(50),
       max_spots: z.number().min(1).max(1000),
       registration_deadline: z.date().optional(),
@@ -741,10 +744,37 @@ export const tryoutsRouter = createTRPCRouter({
       }
     }),
 
-  // Get coach's tryouts (coaches only)
+  // Get all games for form dropdowns
+  getGames: publicProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const games = await withRetry(() =>
+          ctx.db.game.findMany({
+            select: {
+              id: true,
+              name: true,
+              short_name: true,
+              icon: true,
+              color: true,
+            },
+            orderBy: { name: 'asc' },
+          })
+        );
+
+        return games;
+      } catch (error) {
+        console.error('Error fetching games:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch games',
+        });
+      }
+    }),
+
+  // Get coach's tryouts (coaches only) - includes draft tryouts
   getCoachTryouts: protectedProcedure
     .input(z.object({
-      status: z.enum(["all", "active", "upcoming", "past"]).default("all"),
+      status: z.enum(["all", "active", "upcoming", "past", "draft", "published"]).default("all"),
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
     }))
@@ -754,6 +784,7 @@ export const tryoutsRouter = createTRPCRouter({
       try {
         const now = new Date();
         let dateFilter = {};
+        let statusFilter = {};
         
         if (input.status === "upcoming") {
           dateFilter = { date: { gte: now } };
@@ -764,6 +795,10 @@ export const tryoutsRouter = createTRPCRouter({
             date: { gte: now },
             registration_deadline: { gte: now }
           };
+        } else if (input.status === "draft") {
+          statusFilter = { status: 'DRAFT' };
+        } else if (input.status === "published") {
+          statusFilter = { status: 'PUBLISHED' };
         }
 
         const [tryouts, total] = await Promise.all([
@@ -772,6 +807,7 @@ export const tryoutsRouter = createTRPCRouter({
               where: {
                 coach_id: coachId,
                 ...dateFilter,
+                ...statusFilter,
               },
               include: {
                 game: {
@@ -815,6 +851,7 @@ export const tryoutsRouter = createTRPCRouter({
               where: {
                 coach_id: coachId,
                 ...dateFilter,
+                ...statusFilter,
               },
             })
           ),
@@ -1045,6 +1082,101 @@ export const tryoutsRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to remove registration',
+        });
+      }
+    }),
+
+  // Update a tryout (coaches only) - only for draft tryouts
+  update: protectedProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+      title: z.string().min(5).max(200).optional(),
+      description: z.string().min(10).max(500).optional(),
+      long_description: z.string().optional(),
+      game_id: z.string().uuid().optional(),
+      date: z.date().optional(),
+      time_start: z.string().optional(),
+      time_end: z.string().optional(),
+      location: z.string().min(5).max(200).optional(),
+      type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]).optional(),
+      status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
+      price: z.string().min(1).max(50).optional(),
+      max_spots: z.number().min(1).max(1000).optional(),
+      registration_deadline: z.date().optional(),
+      min_gpa: z.number().min(0).max(4.0).optional(),
+      class_years: z.array(z.string()).optional(),
+      required_roles: z.array(z.string()).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { coachId } = await verifyCoachUser(ctx);
+
+      try {
+        // Verify coach owns this tryout and it's editable
+        const existingTryout = await withRetry(() =>
+          ctx.db.tryout.findUnique({
+            where: { id: input.id },
+            select: {
+              id: true,
+              coach_id: true,
+              status: true,
+              date: true,
+            },
+          })
+        );
+
+        if (!existingTryout) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Tryout not found',
+          });
+        }
+
+        if (existingTryout.coach_id !== coachId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot update tryout you don\'t organize',
+          });
+        }
+
+        // Only allow editing of draft tryouts or published tryouts that haven't occurred yet
+        const now = new Date();
+        if (existingTryout.status === 'PUBLISHED' && existingTryout.date < now) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Cannot edit tryouts that have already occurred',
+          });
+        }
+
+        const { id, ...updateData } = input;
+        
+        const updatedTryout = await withRetry(() =>
+          ctx.db.tryout.update({
+            where: { id: input.id },
+            data: {
+              ...updateData,
+              updated_at: new Date(),
+            },
+            include: {
+              game: true,
+              school: true,
+              organizer: {
+                select: {
+                  id: true,
+                  first_name: true,
+                  last_name: true,
+                },
+              },
+            },
+          })
+        );
+
+        return updatedTryout;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('Error updating tryout:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update tryout',
         });
       }
     }),

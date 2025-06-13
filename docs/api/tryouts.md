@@ -7,10 +7,31 @@ The Tryouts Router handles all tryout-related operations in the API. This router
 The router provides functionality for:
 
 - **Players**: Browse tryouts, register/cancel registrations, view registration status and history
-- **Coaches**: Create tryouts, manage registrations, update registration status
-- **Dashboard**: Optimized queries for player dashboard views
-- **Browse & Search**: Advanced filtering and search capabilities
-- **Event Management**: Complete tryout lifecycle from creation to completion
+- **Coaches**: Create tryouts with draft mode, manage registrations, update registration status
+- **Dashboard**: Optimized queries for player and coach dashboard views
+- **Browse & Search**: Advanced filtering and search capabilities with status-based visibility
+- **Event Management**: Complete tryout lifecycle from draft creation to completion
+
+## Key Features
+
+### Draft Mode Support
+
+- Coaches can create tryouts in DRAFT status for internal planning
+- Draft tryouts are not visible to players on public pages
+- Coaches can edit and refine tryouts before publishing
+- Two-action creation: "Save as Draft" and "Publish Tryout"
+
+### Status-Based Visibility
+
+- **PUBLISHED**: Visible to all users on public tryout pages
+- **DRAFT**: Only visible to the creating coach in their dashboard
+- **CANCELLED**: Marked as cancelled but retained for historical purposes
+
+### School Association Requirement
+
+- Coaches must be associated with a school to create tryouts
+- API returns clear error messages when school association is missing
+- Ensures proper institutional affiliation for all tryouts
 
 ## Authentication & Authorization
 
@@ -18,7 +39,7 @@ All endpoints in this router use `protectedProcedure` with role-specific verific
 
 - Users must be authenticated via Clerk
 - **Player endpoints** require valid player profile verification
-- **Coach endpoints** require valid coach profile verification
+- **Coach endpoints** require valid coach profile verification and school association
 - Access controls ensure users can only access appropriate resources
 - Registration ownership verification for mutations
 
@@ -66,6 +87,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   time_end?: string;                // End time (HH:MM format)
   location: string;                 // Min: 5, Max: 200 characters
   type: "ONLINE" | "IN_PERSON" | "HYBRID";
+  status?: "DRAFT" | "PUBLISHED";   // Default: "DRAFT"
   price: string;                    // Min: 1, Max: 50 characters
   max_spots: number;                // Min: 1, Max: 1000
   registration_deadline?: Date;     // Optional deadline
@@ -84,48 +106,69 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 }
 ```
 
+### Coach Tryouts Query Schema
+
+```typescript
+{
+  status?: "all" | "active" | "upcoming" | "past" | "draft" | "published"; // Default: "all"
+  limit?: number;                   // Min: 1, Max: 100, Default: 50
+  offset?: number;                  // Min: 0, Default: 0
+}
+```
+
 ## Endpoints
 
-### Player Query Endpoints
+### Public Query Endpoints
 
 #### `browse`
 
-- **Method**: Query
+- **Method**: Query (Public)
 - **Input**: Tryout Filters Schema
-- **Description**: Browse all available tryouts with advanced filtering and search capabilities
+- **Description**: Browse all available PUBLISHED tryouts with advanced filtering and search capabilities
 - **Returns**: Object with `tryouts` array, `total` count, and `hasMore` boolean
 - **Includes**: Game, school, organizer details, and registration count
+- **Visibility**: Only shows PUBLISHED tryouts to public users
 - **Performance**: Paginated results, optimized queries with proper indexing
 - **Error Codes**:
   - `INTERNAL_SERVER_ERROR`: Failed to fetch tryouts
-  - `UNAUTHORIZED`: User not authenticated
 
 #### `getByGame`
 
-- **Method**: Query
+- **Method**: Query (Public)
 - **Input**: `{ game_id: string (UUID), limit?: number (1-50, default: 20) }`
-- **Description**: Get upcoming tryouts for a specific game
+- **Description**: Get upcoming PUBLISHED tryouts for a specific game
 - **Returns**: Array of tryouts with game, school, and organizer details
+- **Visibility**: Only shows PUBLISHED tryouts
 - **Performance**: Only returns future tryouts, sorted by date
 - **Error Codes**:
   - `INTERNAL_SERVER_ERROR`: Failed to fetch tryouts by game
-  - `UNAUTHORIZED`: User not authenticated
 
 #### `getById`
 
-- **Method**: Query
+- **Method**: Query (Public)
 - **Input**: `{ id: string (UUID) }`
 - **Description**: Get detailed view of a single tryout including all registrations
 - **Returns**: Complete tryout object with game, school, organizer, and registrations
-- **Includes**: Registration details with player information
+- **Includes**: Registration details with player information (if authenticated)
 - **Error Codes**:
   - `NOT_FOUND`: Tryout not found
   - `INTERNAL_SERVER_ERROR`: Failed to fetch tryout details
-  - `UNAUTHORIZED`: User not authenticated
+
+#### `getGames`
+
+- **Method**: Query (Public)
+- **Input**: None
+- **Description**: Get all available games for form dropdowns and filtering
+- **Returns**: Array of games with id, name, short_name, icon, and color
+- **Performance**: Cached and optimized for frequent access
+- **Error Codes**:
+  - `INTERNAL_SERVER_ERROR`: Failed to fetch games
+
+### Player Query Endpoints
 
 #### `getPlayerRegistrations`
 
-- **Method**: Query
+- **Method**: Query (Protected - Players Only)
 - **Input**: `{ status?: "upcoming" | "past" | "all" (default: "all"), limit?: number (1-100, default: 50) }`
 - **Description**: Get player's tryout registrations for dashboard view
 - **Returns**: Array of registrations with complete tryout, game, school, and organizer details
@@ -138,7 +181,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 
 #### `getRegistrationStatus`
 
-- **Method**: Query
+- **Method**: Query (Protected - Players Only)
 - **Input**: `{ tryout_id: string (UUID) }`
 - **Description**: Check player's registration status for a specific tryout
 - **Returns**: Registration object with status, date, and notes, or null if not registered
@@ -152,12 +195,12 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 
 #### `register`
 
-- **Method**: Mutation
+- **Method**: Mutation (Protected - Players Only)
 - **Input**: Registration Schema
 - **Description**: Register for a tryout with comprehensive validation
 - **Returns**: Created registration with complete tryout details
 - **Validation**:
-  - Tryout exists and is open for registration
+  - Tryout exists and is PUBLISHED
   - Registration deadline not passed
   - Tryout date is in the future
   - Available spots remaining
@@ -173,7 +216,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 
 #### `cancelRegistration`
 
-- **Method**: Mutation
+- **Method**: Mutation (Protected - Players Only)
 - **Input**: `{ registration_id: string (UUID) }`
 - **Description**: Cancel a player's tryout registration
 - **Returns**: `{ success: true }`
@@ -191,196 +234,150 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 
 ### Coach Query Endpoints
 
-All player query endpoints are also available to coaches for managing their tryouts.
+#### `getCoachTryouts`
+
+- **Method**: Query (Protected - Coaches Only)
+- **Input**: Coach Tryouts Query Schema
+- **Description**: Get coach's tryouts with status filtering (includes DRAFT tryouts)
+- **Returns**: Object with `tryouts` array, `total` count, and `hasMore` boolean
+- **Includes**: Game, school details, registration counts, and status breakdowns
+- **Status Filtering**:
+  - `all`: All tryouts regardless of status or date
+  - `active`: Published tryouts with future dates and open registration
+  - `upcoming`: All tryouts with future dates
+  - `past`: All tryouts with past dates
+  - `draft`: Only DRAFT status tryouts
+  - `published`: Only PUBLISHED status tryouts
+- **Performance**: Optimized for coach dashboard, includes registration statistics
+- **Authorization**: Coach-only access, returns only own tryouts
+- **Error Codes**:
+  - `INTERNAL_SERVER_ERROR`: Failed to fetch coach tryouts
+  - `UNAUTHORIZED`: User not authenticated
+  - `FORBIDDEN`: User is not a coach
+
+#### `getTryoutApplications`
+
+- **Method**: Query (Protected - Coaches Only)
+- **Input**: `{ tryout_id: string (UUID), status?: "all" | "pending" | "confirmed" | "declined" | "waitlisted" (default: "all") }`
+- **Description**: Get detailed applications for a specific tryout
+- **Returns**: Object with tryout details and applications array
+- **Includes**: Complete player profiles, game profiles, platform connections
+- **Authorization**: Coach-only access, must own the tryout
+- **Error Codes**:
+  - `NOT_FOUND`: Tryout not found
+  - `FORBIDDEN`: Cannot access applications for tryout you don't organize or user is not a coach
+  - `INTERNAL_SERVER_ERROR`: Failed to fetch tryout applications
+  - `UNAUTHORIZED`: User not authenticated
 
 ### Coach Mutation Endpoints
 
 #### `create`
 
-- **Method**: Mutation
+- **Method**: Mutation (Protected - Coaches Only)
 - **Input**: Tryout Creation Schema
-- **Description**: Create a new tryout (coaches only)
-- **Returns**: Created tryout with game, school, and organizer details
+- **Description**: Create a new tryout with draft mode support
+- **Returns**: Created tryout with complete game, school, and organizer details
+- **Draft Mode**:
+  - Default status is DRAFT
+  - Can be created as PUBLISHED immediately
+  - DRAFT tryouts not visible to players
 - **Validation**:
   - Coach must be associated with a school
-  - All required fields validated
-- **Behavior**: Automatically sets `registered_spots` to 0 and assigns school/coach
-- **Authorization**: Coach-only access with automatic coach and school verification
+  - All required fields must be provided for PUBLISHED status
+  - Minimal validation for DRAFT status (title only)
+- **Behavior**: Automatically associates with coach's school
+- **Authorization**: Coach-only access with school association requirement
 - **Error Codes**:
-  - `BAD_REQUEST`: Coach must be associated with a school
+  - `BAD_REQUEST`: Coach must be associated with a school to create tryouts
   - `INTERNAL_SERVER_ERROR`: Failed to create tryout
   - `UNAUTHORIZED`: User not authenticated
   - `FORBIDDEN`: User is not a coach
 
 #### `updateRegistrationStatus`
 
-- **Method**: Mutation
+- **Method**: Mutation (Protected - Coaches Only)
 - **Input**: Registration Status Update Schema
-- **Description**: Update a player's registration status (coaches only)
+- **Description**: Update a player's registration status
 - **Returns**: Updated registration with player details
-- **Validation**:
-  - Registration exists
-  - Coach owns the tryout
-- **Authorization**: Coach-only access, can only update registrations for own tryouts
+- **Authorization**: Coach-only access, must own the tryout
 - **Error Codes**:
   - `NOT_FOUND`: Registration not found
   - `FORBIDDEN`: Cannot update registration for tryout you don't organize or user is not a coach
   - `INTERNAL_SERVER_ERROR`: Failed to update registration status
   - `UNAUTHORIZED`: User not authenticated
 
-## Performance Optimizations
+#### `removeRegistration`
 
-### Query Optimization Strategies
+- **Method**: Mutation (Protected - Coaches Only)
+- **Input**: `{ registration_id: string (UUID) }`
+- **Description**: Remove a player's registration completely
+- **Returns**: `{ success: true }`
+- **Behavior**: Deletes registration and decrements `registered_spots` count
+- **Authorization**: Coach-only access, must own the tryout
+- **Error Codes**:
+  - `NOT_FOUND`: Registration not found
+  - `FORBIDDEN`: Cannot remove registration for tryout you don't organize or user is not a coach
+  - `INTERNAL_SERVER_ERROR`: Failed to remove registration
+  - `UNAUTHORIZED`: User not authenticated
 
-1. **Efficient Filtering**: Optimized database queries with proper indexing
+## Status Workflow
 
-   - Game, school, and date filters use indexed columns
-   - Search functionality uses efficient text search
-   - Pagination reduces data transfer
+### Tryout Status Lifecycle
 
-2. **Selective Data Loading**: Each endpoint returns only necessary data
+1. **DRAFT**: Initial creation state
 
-   - Browse includes summary information
-   - GetById includes complete details when needed
-   - Player registrations optimized for dashboard display
+   - Visible only to creating coach
+   - Can be edited and refined
+   - Not visible to players
+   - Minimal validation requirements
 
-3. **Database Retry Logic**: All operations wrapped with `withRetry()` for reliability
+2. **PUBLISHED**: Active state
 
-4. **Proper Relationships**: Optimized joins reduce N+1 query problems
+   - Visible to all users on public pages
+   - Players can register
+   - Full validation requirements met
+   - Cannot be reverted to DRAFT
 
-5. **Smart Defaults**: Reasonable defaults for limits and filters
+3. **CANCELLED**: Terminated state
+   - Marked as cancelled
+   - Retained for historical purposes
+   - No new registrations accepted
 
-## Usage Examples
-
-### Player Operations
-
-```typescript
-// Browse tryouts with filters
-const tryouts = await trpc.tryouts.browse.query({
-  game_id: "valorant-game-uuid",
-  type: "ONLINE",
-  free_only: true,
-  upcoming_only: true,
-  search: "university",
-  limit: 20,
-  offset: 0,
-});
-
-// Get tryouts for specific game
-const valorantTryouts = await trpc.tryouts.getByGame.query({
-  game_id: "valorant-game-uuid",
-  limit: 10,
-});
-
-// Get detailed tryout information
-const tryoutDetails = await trpc.tryouts.getById.query({
-  id: "tryout-uuid",
-});
-
-// Get player's registrations for dashboard
-const myRegistrations = await trpc.tryouts.getPlayerRegistrations.query({
-  status: "upcoming",
-  limit: 20,
-});
-
-// Check registration status for specific tryout
-const registrationStatus = await trpc.tryouts.getRegistrationStatus.query({
-  tryout_id: "tryout-uuid",
-});
-
-// Register for a tryout
-const registration = await trpc.tryouts.register.mutate({
-  tryout_id: "tryout-uuid",
-  notes: "Excited to try out! Main role is Duelist.",
-});
-
-// Cancel registration
-const cancelResult = await trpc.tryouts.cancelRegistration.mutate({
-  registration_id: "registration-uuid",
-});
-```
-
-### Coach Operations
-
-```typescript
-// Create a new tryout
-const newTryout = await trpc.tryouts.create.mutate({
-  title: "VALORANT Spring Tryouts",
-  description: "Looking for skilled players to join our varsity team",
-  long_description:
-    "Comprehensive tryouts including aim tests, strategy sessions, and scrimmages",
-  game_id: "valorant-game-uuid",
-  date: new Date("2024-03-15T14:00:00Z"),
-  time_start: "14:00",
-  time_end: "17:00",
-  location: "Gaming Center Room A",
-  type: "IN_PERSON",
-  price: "Free",
-  max_spots: 24,
-  registration_deadline: new Date("2024-03-10T23:59:59Z"),
-  min_gpa: 3.0,
-  class_years: ["Freshman", "Sophomore", "Junior", "Senior"],
-  required_roles: ["Duelist", "Controller", "Initiator", "Sentinel"],
-});
-
-// Update registration status
-const updatedRegistration = await trpc.tryouts.updateRegistrationStatus.mutate({
-  registration_id: "registration-uuid",
-  status: "CONFIRMED",
-});
-
-// Browse all tryouts (same as players)
-const allTryouts = await trpc.tryouts.browse.query({
-  school_id: "my-school-uuid",
-});
-```
-
-## Implementation Notes
-
-### Database Constraints
-
-- Registrations use compound unique key: `(tryout_id, player_id)`
-- Registration status automatically updates `registered_spots` count
-- Tryout dates and registration deadlines are validated
-- All timestamps are automatically managed
-
-### Event Types
-
-- **ONLINE**: Virtual tryouts (Discord, etc.)
-- **IN_PERSON**: Physical location required
-- **HYBRID**: Combination of online and in-person components
-
-### Registration Status Flow
+### Registration Status Lifecycle
 
 1. **PENDING**: Initial registration state
-2. **CONFIRMED**: Coach approved the registration
-3. **WAITLISTED**: Tryout is full, player is on waiting list
-4. **DECLINED**: Coach declined the registration
-5. **CANCELLED**: Player or coach cancelled the registration
+2. **CONFIRMED**: Accepted by coach
+3. **WAITLISTED**: On waiting list
+4. **DECLINED**: Rejected by coach
+5. **CANCELLED**: Cancelled by player or coach
 
-### Error Handling
+## Error Handling
 
-- All database operations include comprehensive error handling
-- Errors are logged on the server side for debugging
-- Client receives appropriate HTTP status codes and messages
-- Uses `TRPCError` for consistent error responses
-- Business logic validation with helpful error messages
+The router implements comprehensive error handling with specific error codes and messages:
 
-### Security
+- **Authentication Errors**: `UNAUTHORIZED` for unauthenticated requests
+- **Authorization Errors**: `FORBIDDEN` for insufficient permissions
+- **Validation Errors**: `BAD_REQUEST` for invalid input or business logic violations
+- **Not Found Errors**: `NOT_FOUND` for missing resources
+- **Server Errors**: `INTERNAL_SERVER_ERROR` for unexpected failures
 
-- Player verification happens on every player endpoint
-- Coach verification happens on every coach endpoint
-- Registration ownership verified before mutations
-- No access to other users' private data
-- School association required for coach tryout creation
+All errors include descriptive messages to help with debugging and user feedback.
 
-### Business Logic
+## Performance Considerations
 
-- Automatic spot count management
-- Registration deadline enforcement
-- Past tryout protection (no new registrations)
-- Duplicate registration prevention
-- Coach-tryout ownership validation
+- Database queries use proper indexing for optimal performance
+- Pagination implemented for large result sets
+- Retry logic for database reliability
+- Optimized queries with selective field inclusion
+- Cached game data for frequent access
+
+## Security Features
+
+- Role-based access control
+- Resource ownership verification
+- Input validation and sanitization
+- SQL injection prevention through Prisma
+- Rate limiting through tRPC middleware
 
 ## Testing
 
