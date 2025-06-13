@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTable } from "@/components/ui/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Star, Filter, Bookmark, Eye, MessageCircle, Mail, School, Calendar, MapPin, GraduationCap, GamepadIcon, BookOpen } from "lucide-react";
+import { MoreHorizontal, Star, Filter, Bookmark, Eye, MessageCircle, Mail, School, Calendar, MapPin, GraduationCap, GamepadIcon, BookOpen, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,9 +102,9 @@ interface SearchFilters {
   search: string;
   location: string;
   class_year: string;
-  school_type: string;
   min_gpa: number | undefined;
   max_gpa: number | undefined;
+  rank: string;
   role: string;
   min_combine_score: number | undefined;
   max_combine_score: number | undefined;
@@ -122,9 +122,9 @@ export default function CoachPlayerSearchPage() {
     search: "",
     location: "",
     class_year: "",
-    school_type: "",
     min_gpa: undefined,
     max_gpa: undefined,
+    rank: "",
     role: "",
     min_combine_score: undefined,
     max_combine_score: undefined,
@@ -145,7 +145,6 @@ export default function CoachPlayerSearchPage() {
   const searchInput = {
     game_id: currentGameId || undefined,
     ...searchFilters,
-    school_type: searchFilters.school_type ? searchFilters.school_type as "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY" : undefined,
     limit: 50,
     offset: 0,
   };
@@ -210,6 +209,23 @@ export default function CoachPlayerSearchPage() {
     return icons[gameShortName] || "🎮";
   };
 
+  // Get unique ranks for current game
+  const getAvailableRanks = () => {
+    if (!currentGameId) return [];
+    const currentGame = games.find(g => g.id === currentGameId);
+    if (!currentGame) return [];
+    
+    const ranks = new Set<string>();
+    searchResults?.players?.forEach(player => {
+      const gameProfile = player.game_profiles.find(p => p.game.name === currentGame.name);
+      if (gameProfile?.rank) {
+        ranks.add(gameProfile.rank);
+      }
+    });
+    
+    return Array.from(ranks).sort();
+  };
+
   // Column definitions for the data table
   const columns: ColumnDef<SearchPlayer>[] = [
     {
@@ -233,7 +249,6 @@ export default function CoachPlayerSearchPage() {
       cell: ({ row }) => {
         const player = row.original;
         const gameProfile = getGameProfile(player);
-        const currentGame = games.find(g => g.id === currentGameId);
         
         return (
           <div className="space-y-1">
@@ -243,26 +258,6 @@ export default function CoachPlayerSearchPage() {
             <div className="text-sm text-gray-400">
               {gameProfile?.username || player.username || 'No username'}
             </div>
-            {currentGame && gameProfile && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm">{getGameIcon(currentGame.short_name)}</span>
-                <span className="text-xs text-gray-400">
-                  {gameProfile.rank || 'Unranked'}
-                </span>
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => {
-        const player = row.original;
-        return (
-          <div className="font-mono text-sm text-gray-300">
-            {player.email}
           </div>
         );
       },
@@ -273,13 +268,8 @@ export default function CoachPlayerSearchPage() {
       cell: ({ row }) => {
         const player = row.original;
         return (
-          <div className="space-y-1">
-            <div className="font-medium text-white">
-              {player.school_ref?.name || player.school || 'No school'}
-            </div>
-            <div className="text-sm text-gray-400">
-              {player.school_ref?.type.replace('_', ' ') || ''}
-            </div>
+          <div className="font-medium text-white">
+            {player.school_ref?.name || player.school || 'No school'}
           </div>
         );
       },
@@ -299,11 +289,20 @@ export default function CoachPlayerSearchPage() {
             <div className="text-sm text-gray-400">
               GPA: {gpaNumber?.toFixed(2) || 'N/A'}
             </div>
-            {player.intended_major && (
-              <div className="text-xs text-gray-500">
-                {player.intended_major}
-              </div>
-            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "rank",
+      header: "Rank",
+      cell: ({ row }) => {
+        const player = row.original;
+        const gameProfile = getGameProfile(player);
+        
+        return (
+          <div className="font-medium text-white">
+            {gameProfile?.rank || 'Unranked'}
           </div>
         );
       },
@@ -436,195 +435,59 @@ export default function CoachPlayerSearchPage() {
 
   const players = searchResults?.players || [];
   const currentGameName = games.find(g => g.id === currentGameId)?.name || "All Games";
+  const availableRanks = getAvailableRanks();
 
   return (
-    <div className="space-y-6 bg-gray-900 min-h-screen">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">Player Search</h1>
-          <p className="text-gray-400 font-rajdhani">
-            Search and recruit players across all supported games
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="gap-2 border-gray-600 text-gray-300 hover:text-white hover:border-gray-500"
-        >
-          <Filter className="h-4 w-4" />
-          {showFilters ? "Hide Filters" : "Show Filters"}
-        </Button>
-      </div>
-
-      {/* Search and Filters */}
-      <Card className={`bg-gray-900 border-gray-800 ${showFilters ? "" : "hidden"}`}>
-        <CardHeader>
-          <CardTitle className="text-white font-orbitron">Search Filters</CardTitle>
-          <CardDescription className="text-gray-400 font-rajdhani">
-            Use these filters to narrow down your player search
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="search" className="text-gray-300">Search</Label>
-              <Input
-                id="search"
-                placeholder="Name, username, or school..."
-                value={searchFilters.search}
-                onChange={(e) => setSearchFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location" className="text-gray-300">Location</Label>
-              <Input
-                id="location"
-                placeholder="State or city..."
-                value={searchFilters.location}
-                onChange={(e) => setSearchFilters(prev => ({ ...prev, location: e.target.value }))}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class_year" className="text-gray-300">Class Year</Label>
-              <Select value={searchFilters.class_year || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, class_year: value === "all" ? "" : value }))}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Select class year" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All Years</SelectItem>
-                  <SelectItem value="Freshman">Freshman</SelectItem>
-                  <SelectItem value="Sophomore">Sophomore</SelectItem>
-                  <SelectItem value="Junior">Junior</SelectItem>
-                  <SelectItem value="Senior">Senior</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="flex bg-gray-900 min-h-screen">
+      {/* Main Content */}
+      <div className={`flex-1 space-y-6 p-6 ${showFilters ? 'mr-80' : ''} transition-all duration-300`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-orbitron font-bold text-white">Player Search</h1>
+            <p className="text-gray-400 font-rajdhani">
+              Search and recruit players across all supported games
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="school_type" className="text-gray-300">School Type</Label>
-              <Select value={searchFilters.school_type || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, school_type: value === "all" ? "" : value }))}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Select school type" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="HIGH_SCHOOL">High School</SelectItem>
-                  <SelectItem value="COLLEGE">College</SelectItem>
-                  <SelectItem value="UNIVERSITY">University</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="min_gpa" className="text-gray-300">Min GPA</Label>
-              <Input
-                id="min_gpa"
-                type="number"
-                min="0"
-                max="4"
-                step="0.1"
-                placeholder="0.0"
-                value={searchFilters.min_gpa || ""}
-                onChange={(e) => setSearchFilters(prev => ({ ...prev, min_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="max_gpa" className="text-gray-300">Max GPA</Label>
-              <Input
-                id="max_gpa"
-                type="number"
-                min="0"
-                max="4"
-                step="0.1"
-                placeholder="4.0"
-                value={searchFilters.max_gpa || ""}
-                onChange={(e) => setSearchFilters(prev => ({ ...prev, max_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
+          <div className="flex gap-2">
             <Button
               variant={searchFilters.favorited_only ? "default" : "outline"}
               onClick={() => setSearchFilters(prev => ({ ...prev, favorited_only: !prev.favorited_only }))}
-              className={`gap-2 ${searchFilters.favorited_only ? 'bg-cyan-600 hover:bg-cyan-700' : 'border-gray-600 text-gray-300 hover:text-white'}`}
+              className={`gap-2 ${searchFilters.favorited_only ? 'bg-cyan-600 hover:bg-cyan-700' : 'border-gray-600 text-black hover:text-white'}`}
             >
               <Star className={`h-4 w-4 ${searchFilters.favorited_only ? 'fill-current' : ''}`} />
-              {searchFilters.favorited_only ? "Showing Bookmarks" : "Show Bookmarks Only"}
+              {searchFilters.favorited_only ? "Showing Bookmarks" : "Bookmarks Only"}
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSearchFilters({
-                search: "",
-                location: "",
-                class_year: "",
-                school_type: "",
-                min_gpa: undefined,
-                max_gpa: undefined,
-                role: "",
-                min_combine_score: undefined,
-                max_combine_score: undefined,
-                min_league_score: undefined,
-                max_league_score: undefined,
-                play_style: "",
-                agents: [],
-                favorited_only: false,
-              })}
-              className="border-gray-600 text-gray-300 hover:text-white"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-2 border-gray-600 text-black hover:text-white hover:border-gray-500"
             >
-              Clear Filters
+              <Filter className="h-4 w-4" />
+              {showFilters ? "Hide Filters" : "Filters"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Game Tabs */}
-      <Tabs value={currentGameId} onValueChange={setCurrentGameId} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-gray-800">
-          <TabsTrigger value="" className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">All Games</TabsTrigger>
-          {games.map((game) => (
-            <TabsTrigger key={game.id} value={game.id} className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">{getGameIcon(game.short_name)}</span>
-                {game.short_name}
-              </div>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Game Tabs */}
+        <Tabs value={currentGameId} onValueChange={setCurrentGameId} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+            <TabsTrigger value="" className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">All Games</TabsTrigger>
+            {games.map((game) => (
+              <TabsTrigger key={game.id} value={game.id} className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">{getGameIcon(game.short_name)}</span>
+                  {game.short_name}
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <TabsContent value="" className="space-y-4">
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white font-orbitron">All Players</CardTitle>
-              <CardDescription className="text-gray-400 font-rajdhani">
-                Search across all games and player profiles
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={columns}
-                data={players}
-                loading={isSearching}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {games.map((game) => (
-          <TabsContent key={game.id} value={game.id} className="space-y-4">
+          <TabsContent value="" className="space-y-4">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-orbitron">
-                  <span className="text-xl">{getGameIcon(game.short_name)}</span>
-                  {game.name} Players
-                </CardTitle>
+                <CardTitle className="text-white font-orbitron">All Players</CardTitle>
                 <CardDescription className="text-gray-400 font-rajdhani">
-                  Search for {game.name} players and view their game-specific profiles
+                  Search across all games and player profiles
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -636,8 +499,209 @@ export default function CoachPlayerSearchPage() {
               </CardContent>
             </Card>
           </TabsContent>
-        ))}
-      </Tabs>
+
+          {games.map((game) => (
+            <TabsContent key={game.id} value={game.id} className="space-y-4">
+              <Card className="bg-gray-900 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-white font-orbitron">
+                    <span className="text-xl">{getGameIcon(game.short_name)}</span>
+                    {game.name} Players
+                  </CardTitle>
+                  <CardDescription className="text-gray-400 font-rajdhani">
+                    Search for {game.name} players and view their game-specific profiles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DataTable
+                    columns={columns}
+                    data={players}
+                    loading={isSearching}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+
+      {/* Right Sidebar Filters */}
+      {showFilters && (
+        <div className="fixed right-0 top-0 h-full w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto z-50">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-orbitron font-bold text-white">Search Filters</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Search */}
+            <div className="space-y-2">
+              <Label htmlFor="search" className="text-gray-300">Search</Label>
+              <Input
+                id="search"
+                placeholder="Name, username, or school..."
+                value={searchFilters.search}
+                onChange={(e) => setSearchFilters(prev => ({ ...prev, search: e.target.value }))}
+                className="bg-gray-900 border-gray-600 text-white"
+              />
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-gray-300">Location</Label>
+              <Input
+                id="location"
+                placeholder="State or city..."
+                value={searchFilters.location}
+                onChange={(e) => setSearchFilters(prev => ({ ...prev, location: e.target.value }))}
+                className="bg-gray-900 border-gray-600 text-white"
+              />
+            </div>
+
+            {/* Class Year */}
+            <div className="space-y-2">
+              <Label htmlFor="class_year" className="text-gray-300">Class Year</Label>
+              <Select value={searchFilters.class_year || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, class_year: value === "all" ? "" : value }))}>
+                <SelectTrigger className="bg-gray-900 border-gray-600 text-white">
+                  <SelectValue placeholder="Select class year" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="all">All Years</SelectItem>
+                  <SelectItem value="Freshman">Freshman</SelectItem>
+                  <SelectItem value="Sophomore">Sophomore</SelectItem>
+                  <SelectItem value="Junior">Junior</SelectItem>
+                  <SelectItem value="Senior">Senior</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Rank Filter - Only show if a specific game is selected */}
+            {currentGameId && availableRanks.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="rank" className="text-gray-300">Rank</Label>
+                <Select value={searchFilters.rank || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, rank: value === "all" ? "" : value }))}>
+                  <SelectTrigger className="bg-gray-900 border-gray-600 text-white">
+                    <SelectValue placeholder="Select rank" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="all">All Ranks</SelectItem>
+                    {availableRanks.map((rank) => (
+                      <SelectItem key={rank} value={rank}>{rank}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* GPA Range */}
+            <div className="space-y-2">
+              <Label className="text-gray-300">GPA Range</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.1"
+                  placeholder="Min"
+                  value={searchFilters.min_gpa || ""}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, min_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.1"
+                  placeholder="Max"
+                  value={searchFilters.max_gpa || ""}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, max_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+              </div>
+            </div>
+
+            {/* EVAL Scores */}
+            <div className="space-y-2">
+              <Label className="text-gray-300">Combine Score Range</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Min"
+                  value={searchFilters.min_combine_score || ""}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, min_combine_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Max"
+                  value={searchFilters.max_combine_score || ""}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, max_combine_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">League Score Range</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Min"
+                  value={searchFilters.min_league_score || ""}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, min_league_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Max"
+                  value={searchFilters.max_league_score || ""}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, max_league_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            <Button
+              variant="outline"
+              onClick={() => setSearchFilters({
+                search: "",
+                location: "",
+                class_year: "",
+                min_gpa: undefined,
+                max_gpa: undefined,
+                rank: "",
+                role: "",
+                min_combine_score: undefined,
+                max_combine_score: undefined,
+                min_league_score: undefined,
+                max_league_score: undefined,
+                play_style: "",
+                agents: [],
+                favorited_only: false,
+              })}
+              className="w-full border-gray-600 text-black hover:text-white"
+            >
+              Reset Filters
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Player Profile Dialog */}
       <Dialog open={playerDialogOpen} onOpenChange={setPlayerDialogOpen}>

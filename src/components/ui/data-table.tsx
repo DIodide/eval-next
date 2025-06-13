@@ -123,7 +123,7 @@ export function DataTable<TData, TValue>({
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto border-gray-600 text-gray-300 hover:text-white hover:border-gray-500">
+            <Button variant="outline" className="ml-auto border-gray-600 text-black hover:text-white hover:border-gray-500">
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
