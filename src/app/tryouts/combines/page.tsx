@@ -37,7 +37,9 @@ import {
   ChevronLeft,
   LoaderIcon,
   AlertCircleIcon,
-  X
+  X,
+  ClockIcon,
+  Clock
 } from "lucide-react"
 import Link from "next/link"
 import { api } from "@/trpc/react"
@@ -112,6 +114,8 @@ interface CombineCardProps {
     _count: {
       registrations: number;
     };
+    time_start?: string | null;
+    time_end?: string | null;
   };
   isInvitational?: boolean;
 }
@@ -124,7 +128,7 @@ function InvitationalCard({ combine }: CombineCardProps) {
   return (
     <Link href={`/tryouts/combines/${combine.id}`} className="block h-full">
       <Card
-        className={`border-gray-700 hover:border-cyan-400/50 transition-all duration-300 h-full group ${bgColor}`}
+        className={`border-gray-700 p-2 hover:border-cyan-400/50 transition-all duration-300 h-full group ${bgColor}`}
       >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex items-start justify-between mb-3">
@@ -141,6 +145,10 @@ function InvitationalCard({ combine }: CombineCardProps) {
             <div className="flex items-center space-x-2 text-sm">
               <MapPin className="w-4 h-4 text-cyan-400" />
               <span className="text-gray-200 font-rajdhani">{combine.location}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <Clock className="w-4 h-4 text-green-400" />
+              <span className="text-gray-200 font-rajdhani">{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</span>
             </div>
 
             <div className="flex items-center space-x-2 text-sm">
@@ -196,6 +204,10 @@ function CombineCard({ combine }: CombineCardProps) {
             <div className="flex items-center space-x-2 text-sm">
               <MapPin className="w-4 h-4 text-cyan-400" />
               <span className="text-gray-200 font-rajdhani">{combine.location}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <Clock className="w-4 h-4 text-green-400" />
+              <span className="text-gray-200 font-rajdhani">{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</span>
             </div>
           </div>
 

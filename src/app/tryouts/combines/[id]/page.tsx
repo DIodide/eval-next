@@ -144,6 +144,8 @@ interface CombineCardProps {
       icon: string | null;
       color: string | null;
     };
+    time_start?: string | null;
+    time_end?: string | null;
   };
 }
 
@@ -189,6 +191,13 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
           <div className="flex items-center space-x-2 text-sm">
             <Calendar className="w-4 h-4 text-cyan-400" />
             <span className="text-gray-300 font-rajdhani">{formatDate(combine.date)}</span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Clock className="w-5 h-5 text-cyan-400" />
+            <div>
+              <p className="text-white font-medium">{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</p>
+              <p className="text-gray-400 text-sm">Event Time</p>
+            </div>
           </div>
         </div>
 
@@ -721,7 +730,7 @@ export default function CombineDetailPage() {
                         )}
                         
                         <div className="bg-gray-800 rounded-lg p-4">
-                          <p className="text-gray-300 text-sm mb-2">You're registering for:</p>
+                          <p className="text-gray-300 text-sm mb-2">You&apos;re registering for:</p>
                           <p className="text-white font-medium">{combine.title} {combine.year}</p>
                           <p className="text-gray-400 text-sm">{formatDate(combine.date)}</p>
                         </div>

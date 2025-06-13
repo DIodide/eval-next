@@ -342,12 +342,14 @@ model Combine {
     description      String
     long_description String?
 
-    game_id  String    @db.Uuid
-    coach_id String?   @db.Uuid
-    date     DateTime  @db.Timestamp(6)
-    location String
-    type     EventType
-    year     String
+    game_id    String    @db.Uuid
+    coach_id   String?   @db.Uuid
+    date       DateTime  @db.Timestamp(6)
+    time_start String? // Start time (e.g., "10:00 AM")
+    time_end   String? // End time (e.g., "4:00 PM")
+    location   String
+    type       EventType
+    year       String
 
     max_spots     Int
     claimed_spots Int           @default(0)

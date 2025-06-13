@@ -15,7 +15,8 @@ import {
   MenuIcon,
   XIcon,
   UsersIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  ZapIcon
 } from "lucide-react";
 
 const sidebarItems = [
@@ -33,6 +34,11 @@ const sidebarItems = [
     title: "My Tryouts",
     href: "/dashboard/player/tryouts",
     icon: TrophyIcon,
+  },
+  {
+    title: "My Combines",
+    href: "/dashboard/player/combines",
+    icon: ZapIcon,
   },
   {
     title: "My Highlights",
