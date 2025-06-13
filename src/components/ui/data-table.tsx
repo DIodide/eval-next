@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 "use client"
 
@@ -78,26 +79,26 @@ export function DataTable<TData, TValue>({
     return (
       <div className="space-y-4">
         <div className="flex items-center py-4">
-          <Skeleton className="h-10 w-[250px]" />
-          <Skeleton className="ml-auto h-10 w-[100px]" />
+          <Skeleton className="h-10 w-[250px] bg-gray-700" />
+          <Skeleton className="ml-auto h-10 w-[100px] bg-gray-700" />
         </div>
-        <div className="rounded-md border">
+        <div className="rounded-md border border-gray-800 bg-gray-900">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-gray-800 hover:bg-gray-800">
                 {columns.map((_, index) => (
-                  <TableHead key={index}>
-                    <Skeleton className="h-4 w-full" />
+                  <TableHead key={index} className="text-gray-300">
+                    <Skeleton className="h-4 w-full bg-gray-700" />
                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
               {Array.from({ length: 5 }).map((_, rowIndex) => (
-                <TableRow key={rowIndex}>
+                <TableRow key={rowIndex} className="border-gray-800 hover:bg-gray-800">
                   {columns.map((_, cellIndex) => (
-                    <TableCell key={cellIndex}>
-                      <Skeleton className="h-4 w-full" />
+                    <TableCell key={cellIndex} className="text-gray-300">
+                      <Skeleton className="h-4 w-full bg-gray-700" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -118,15 +119,15 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-sm bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="ml-auto border-gray-600 text-gray-300 hover:text-white hover:border-gray-500">
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
@@ -134,7 +135,7 @@ export function DataTable<TData, TValue>({
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
-                    className="capitalize"
+                    className="capitalize text-gray-300 focus:text-white focus:bg-gray-700"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
@@ -147,14 +148,14 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border border-gray-800 bg-gray-900">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="border-gray-800 hover:bg-gray-800">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-gray-300 font-orbitron">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -173,9 +174,10 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="border-gray-800 hover:bg-gray-800/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-gray-300">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -185,10 +187,10 @@ export function DataTable<TData, TValue>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
+              <TableRow className="border-gray-800">
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-gray-400"
                 >
                   No results.
                 </TableCell>
@@ -198,7 +200,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+        <div className="flex-1 text-sm text-gray-400 font-rajdhani">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
@@ -208,6 +210,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            className="border-gray-600 text-gray-300 hover:text-white disabled:opacity-50"
           >
             Previous
           </Button>
@@ -216,6 +219,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            className="border-gray-600 text-gray-300 hover:text-white disabled:opacity-50"
           >
             Next
           </Button>

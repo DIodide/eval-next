@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable react/no-unescaped-entities */
 
 import React, { useState } from "react";
 import { api } from "@/trpc/react";
@@ -20,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTable } from "@/components/ui/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Star, Filter, Heart } from "lucide-react";
+import { MoreHorizontal, Star, Filter, Bookmark, Eye, MessageCircle, Mail, School, Calendar, MapPin, GraduationCap, GamepadIcon, BookOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,11 +34,9 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
 // Player type based on the API response
@@ -137,8 +136,7 @@ export default function CoachPlayerSearchPage() {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<SearchPlayer | null>(null);
-  const [favoriteNotes, setFavoriteNotes] = useState("");
-  const [favoriteTags, setFavoriteTags] = useState<string[]>([]);
+  const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
 
   // Fetch available games
   const { data: games = [] } = api.playerProfile.getAvailableGames.useQuery();
@@ -157,7 +155,7 @@ export default function CoachPlayerSearchPage() {
   // Mutations
   const favoritePlayerMutation = api.playerSearch.favoritePlayer.useMutation({
     onSuccess: () => {
-      toast({ title: "Player added to favorites" });
+      toast({ title: "Player bookmarked successfully" });
       void refetchPlayers();
     },
     onError: (error) => {
@@ -167,7 +165,7 @@ export default function CoachPlayerSearchPage() {
 
   const unfavoritePlayerMutation = api.playerSearch.unfavoritePlayer.useMutation({
     onSuccess: () => {
-      toast({ title: "Player removed from favorites" });
+      toast({ title: "Player removed from bookmarks" });
       void refetchPlayers();
     },
     onError: (error) => {
@@ -175,26 +173,23 @@ export default function CoachPlayerSearchPage() {
     },
   });
 
-  // Handle favorite/unfavorite
+  // Handle favorite/unfavorite directly without dialog
   const handleToggleFavorite = (player: SearchPlayer) => {
     if (player.is_favorited) {
       unfavoritePlayerMutation.mutate({ player_id: player.id });
     } else {
-      setSelectedPlayer(player);
-      setFavoriteNotes("");
-      setFavoriteTags([]);
+      favoritePlayerMutation.mutate({
+        player_id: player.id,
+        notes: "",
+        tags: ["prospect"],
+      });
     }
   };
 
-  const handleSaveFavorite = () => {
-    if (!selectedPlayer) return;
-    
-    favoritePlayerMutation.mutate({
-      player_id: selectedPlayer.id,
-      notes: favoriteNotes,
-      tags: favoriteTags,
-    });
-    setSelectedPlayer(null);
+  // Handle view player profile
+  const handleViewPlayer = (player: SearchPlayer) => {
+    setSelectedPlayer(player);
+    setPlayerDialogOpen(true);
   };
 
   // Get current game profile for player
@@ -202,6 +197,17 @@ export default function CoachPlayerSearchPage() {
     return player.game_profiles.find(profile => 
       currentGameId ? profile.game.name === games.find(g => g.id === currentGameId)?.name : false
     );
+  };
+
+  // Helper function to get game icon emoji
+  const getGameIcon = (gameShortName: string) => {
+    const icons: Record<string, string> = {
+      "VAL": "🎯",
+      "OW2": "⚡",
+      "RL": "🚀",
+      "SSBU": "🥊",
+    };
+    return icons[gameShortName] || "🎮";
   };
 
   // Column definitions for the data table
@@ -214,7 +220,7 @@ export default function CoachPlayerSearchPage() {
         return (
           <Avatar className="h-10 w-10">
             <AvatarImage src={player.image_url ?? undefined} alt={`${player.first_name} ${player.last_name}`} />
-            <AvatarFallback>
+            <AvatarFallback className="bg-gray-700 text-white">
               {player.first_name.charAt(0)}{player.last_name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -231,24 +237,32 @@ export default function CoachPlayerSearchPage() {
         
         return (
           <div className="space-y-1">
-            <div className="font-medium">
+            <div className="font-medium text-white">
               {player.first_name} {player.last_name}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-400">
               {gameProfile?.username || player.username || 'No username'}
             </div>
             {currentGame && gameProfile && (
               <div className="flex items-center gap-2">
-                <img 
-                  src={currentGame.icon || ''} 
-                  alt={currentGame.name}
-                  className="w-4 h-4"
-                />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm">{getGameIcon(currentGame.short_name)}</span>
+                <span className="text-xs text-gray-400">
                   {gameProfile.rank || 'Unranked'}
                 </span>
               </div>
             )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => {
+        const player = row.original;
+        return (
+          <div className="font-mono text-sm text-gray-300">
+            {player.email}
           </div>
         );
       },
@@ -260,10 +274,10 @@ export default function CoachPlayerSearchPage() {
         const player = row.original;
         return (
           <div className="space-y-1">
-            <div className="font-medium">
+            <div className="font-medium text-white">
               {player.school_ref?.name || player.school || 'No school'}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-400">
               {player.school_ref?.type.replace('_', ' ') || ''}
             </div>
           </div>
@@ -279,14 +293,14 @@ export default function CoachPlayerSearchPage() {
         
         return (
           <div className="space-y-1">
-            <div className="font-medium">
+            <div className="font-medium text-white">
               {player.class_year || 'No class year'}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-400">
               GPA: {gpaNumber?.toFixed(2) || 'N/A'}
             </div>
             {player.intended_major && (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-gray-500">
                 {player.intended_major}
               </div>
             )}
@@ -303,7 +317,7 @@ export default function CoachPlayerSearchPage() {
         
         if (!gameProfile) {
           return (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-500">
               No profile for selected game
             </div>
           );
@@ -312,23 +326,23 @@ export default function CoachPlayerSearchPage() {
         return (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="font-medium">{gameProfile.role || 'No role'}</span>
+              <span className="font-medium text-white">{gameProfile.role || 'No role'}</span>
             </div>
             {gameProfile.agents.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {gameProfile.agents.slice(0, 2).map((agent, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
+                  <Badge key={index} variant="secondary" className="text-xs bg-gray-700 text-gray-300">
                     {agent}
                   </Badge>
                 ))}
                 {gameProfile.agents.length > 2 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-gray-500">
                     +{gameProfile.agents.length - 2} more
                   </span>
                 )}
               </div>
             )}
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-400">
               {gameProfile.play_style || ''}
             </div>
           </div>
@@ -345,14 +359,14 @@ export default function CoachPlayerSearchPage() {
         return (
           <div className="space-y-1">
             <div className="text-sm">
-              <span className="font-medium">Combine:</span>{' '}
-              <span className={gameProfile?.combine_score ? 'text-blue-400' : 'text-muted-foreground'}>
+              <span className="font-medium text-gray-300">Combine:</span>{' '}
+              <span className={gameProfile?.combine_score ? 'text-cyan-400' : 'text-gray-500'}>
                 {gameProfile?.combine_score?.toFixed(1) || 'N/A'}
               </span>
             </div>
             <div className="text-sm">
-              <span className="font-medium">League:</span>{' '}
-              <span className={gameProfile?.league_score ? 'text-green-400' : 'text-muted-foreground'}>
+              <span className="font-medium text-gray-300">League:</span>{' '}
+              <span className={gameProfile?.league_score ? 'text-green-400' : 'text-gray-500'}>
                 {gameProfile?.league_score?.toFixed(1) || 'N/A'}
               </span>
             </div>
@@ -363,6 +377,7 @@ export default function CoachPlayerSearchPage() {
     {
       accessorKey: "actions",
       header: "",
+      enableHiding: false, // Prevent this column from being hidden
       cell: ({ row }) => {
         const player = row.original;
         
@@ -372,29 +387,43 @@ export default function CoachPlayerSearchPage() {
               variant="ghost"
               size="sm"
               onClick={() => handleToggleFavorite(player)}
-              className={player.is_favorited ? 'text-red-400 hover:text-red-300' : 'text-muted-foreground hover:text-foreground'}
+              className={player.is_favorited ? 'text-cyan-400 hover:text-cyan-300' : 'text-gray-500 hover:text-gray-400'}
+              disabled={favoritePlayerMutation.isPending || unfavoritePlayerMutation.isPending}
             >
-              <Heart className={`h-4 w-4 ${player.is_favorited ? 'fill-current' : ''}`} />
+              <Bookmark className={`h-4 w-4 ${player.is_favorited ? 'fill-current' : ''}`} />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewPlayer(player)}
+              className="text-gray-400 hover:text-white"
+            >
+              <Eye className="h-4 w-4" />
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() => navigator.clipboard.writeText(player.email)}
+                  className="text-gray-300 focus:text-white focus:bg-gray-700"
                 >
                   Copy email
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleViewPlayer(player)}
+                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                >
                   View full profile
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem className="text-gray-300 focus:text-white focus:bg-gray-700">
                   Send message
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -409,18 +438,18 @@ export default function CoachPlayerSearchPage() {
   const currentGameName = games.find(g => g.id === currentGameId)?.name || "All Games";
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6 bg-gray-900 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Player Search</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-orbitron font-bold text-white">Player Search</h1>
+          <p className="text-gray-400 font-rajdhani">
             Search and recruit players across all supported games
           </p>
         </div>
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
-          className="gap-2"
+          className="gap-2 border-gray-600 text-gray-300 hover:text-white hover:border-gray-500"
         >
           <Filter className="h-4 w-4" />
           {showFilters ? "Hide Filters" : "Show Filters"}
@@ -428,40 +457,42 @@ export default function CoachPlayerSearchPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card className={showFilters ? "" : "hidden"}>
+      <Card className={`bg-gray-900 border-gray-800 ${showFilters ? "" : "hidden"}`}>
         <CardHeader>
-          <CardTitle>Search Filters</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-white font-orbitron">Search Filters</CardTitle>
+          <CardDescription className="text-gray-400 font-rajdhani">
             Use these filters to narrow down your player search
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="search">Search</Label>
+              <Label htmlFor="search" className="text-gray-300">Search</Label>
               <Input
                 id="search"
                 placeholder="Name, username, or school..."
                 value={searchFilters.search}
                 onChange={(e) => setSearchFilters(prev => ({ ...prev, search: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location" className="text-gray-300">Location</Label>
               <Input
                 id="location"
                 placeholder="State or city..."
                 value={searchFilters.location}
                 onChange={(e) => setSearchFilters(prev => ({ ...prev, location: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="class_year">Class Year</Label>
+              <Label htmlFor="class_year" className="text-gray-300">Class Year</Label>
               <Select value={searchFilters.class_year || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, class_year: value === "all" ? "" : value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="Select class year" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-800 border-gray-700">
                   <SelectItem value="all">All Years</SelectItem>
                   <SelectItem value="Freshman">Freshman</SelectItem>
                   <SelectItem value="Sophomore">Sophomore</SelectItem>
@@ -474,12 +505,12 @@ export default function CoachPlayerSearchPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="school_type">School Type</Label>
+              <Label htmlFor="school_type" className="text-gray-300">School Type</Label>
               <Select value={searchFilters.school_type || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, school_type: value === "all" ? "" : value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="Select school type" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-800 border-gray-700">
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="HIGH_SCHOOL">High School</SelectItem>
                   <SelectItem value="COLLEGE">College</SelectItem>
@@ -488,7 +519,7 @@ export default function CoachPlayerSearchPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="min_gpa">Min GPA</Label>
+              <Label htmlFor="min_gpa" className="text-gray-300">Min GPA</Label>
               <Input
                 id="min_gpa"
                 type="number"
@@ -498,10 +529,11 @@ export default function CoachPlayerSearchPage() {
                 placeholder="0.0"
                 value={searchFilters.min_gpa || ""}
                 onChange={(e) => setSearchFilters(prev => ({ ...prev, min_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max_gpa">Max GPA</Label>
+              <Label htmlFor="max_gpa" className="text-gray-300">Max GPA</Label>
               <Input
                 id="max_gpa"
                 type="number"
@@ -511,6 +543,7 @@ export default function CoachPlayerSearchPage() {
                 placeholder="4.0"
                 value={searchFilters.max_gpa || ""}
                 onChange={(e) => setSearchFilters(prev => ({ ...prev, max_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
           </div>
@@ -519,10 +552,10 @@ export default function CoachPlayerSearchPage() {
             <Button
               variant={searchFilters.favorited_only ? "default" : "outline"}
               onClick={() => setSearchFilters(prev => ({ ...prev, favorited_only: !prev.favorited_only }))}
-              className="gap-2"
+              className={`gap-2 ${searchFilters.favorited_only ? 'bg-cyan-600 hover:bg-cyan-700' : 'border-gray-600 text-gray-300 hover:text-white'}`}
             >
               <Star className={`h-4 w-4 ${searchFilters.favorited_only ? 'fill-current' : ''}`} />
-              {searchFilters.favorited_only ? "Showing Favorites" : "Show Favorites Only"}
+              {searchFilters.favorited_only ? "Showing Bookmarks" : "Show Bookmarks Only"}
             </Button>
             <Button
               variant="outline"
@@ -542,6 +575,7 @@ export default function CoachPlayerSearchPage() {
                 agents: [],
                 favorited_only: false,
               })}
+              className="border-gray-600 text-gray-300 hover:text-white"
             >
               Clear Filters
             </Button>
@@ -551,14 +585,12 @@ export default function CoachPlayerSearchPage() {
 
       {/* Game Tabs */}
       <Tabs value={currentGameId} onValueChange={setCurrentGameId} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="">All Games</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-gray-800">
+          <TabsTrigger value="" className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">All Games</TabsTrigger>
           {games.map((game) => (
-            <TabsTrigger key={game.id} value={game.id}>
+            <TabsTrigger key={game.id} value={game.id} className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">
               <div className="flex items-center gap-2">
-                {game.icon && (
-                  <img src={game.icon} alt={game.name} className="w-4 h-4" />
-                )}
+                <span className="text-sm">{getGameIcon(game.short_name)}</span>
                 {game.short_name}
               </div>
             </TabsTrigger>
@@ -566,10 +598,10 @@ export default function CoachPlayerSearchPage() {
         </TabsList>
 
         <TabsContent value="" className="space-y-4">
-          <Card>
+          <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle>All Players</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white font-orbitron">All Players</CardTitle>
+              <CardDescription className="text-gray-400 font-rajdhani">
                 Search across all games and player profiles
               </CardDescription>
             </CardHeader>
@@ -585,15 +617,13 @@ export default function CoachPlayerSearchPage() {
 
         {games.map((game) => (
           <TabsContent key={game.id} value={game.id} className="space-y-4">
-            <Card>
+            <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {game.icon && (
-                    <img src={game.icon} alt={game.name} className="w-6 h-6" />
-                  )}
+                <CardTitle className="flex items-center gap-2 text-white font-orbitron">
+                  <span className="text-xl">{getGameIcon(game.short_name)}</span>
                   {game.name} Players
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-gray-400 font-rajdhani">
                   Search for {game.name} players and view their game-specific profiles
                 </CardDescription>
               </CardHeader>
@@ -609,43 +639,184 @@ export default function CoachPlayerSearchPage() {
         ))}
       </Tabs>
 
-      {/* Favorite Player Dialog */}
-      <Dialog open={!!selectedPlayer} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
-        <DialogContent>
+      {/* Player Profile Dialog */}
+      <Dialog open={playerDialogOpen} onOpenChange={setPlayerDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-800">
           <DialogHeader>
-            <DialogTitle>Add Player to Favorites</DialogTitle>
-            <DialogDescription>
-              Add {selectedPlayer?.first_name} {selectedPlayer?.last_name} to your recruiting prospects
+            <DialogTitle className="text-2xl font-orbitron text-white">Player Profile</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Detailed information about {selectedPlayer?.first_name} {selectedPlayer?.last_name}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                placeholder="Add any notes about this player..."
-                value={favoriteNotes}
-                onChange={(e) => setFavoriteNotes(e.target.value)}
-              />
+          
+          {selectedPlayer && (
+            <div className="space-y-6">
+              {/* Player Header */}
+              <div className="flex items-start gap-6">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={selectedPlayer.image_url ?? undefined} />
+                  <AvatarFallback className="bg-gray-700 text-white text-xl">
+                    {selectedPlayer.first_name.charAt(0)}{selectedPlayer.last_name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1">
+                  <h3 className="text-2xl font-orbitron font-bold text-white">
+                    {selectedPlayer.first_name} {selectedPlayer.last_name}
+                  </h3>
+                  <p className="text-gray-400 font-rajdhani">@{selectedPlayer.username || "No username"}</p>
+                  
+                  <div className="flex items-center gap-4 mt-2">
+                    {selectedPlayer.main_game && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{getGameIcon(selectedPlayer.main_game.short_name)}</span>
+                        <span className="text-white">{selectedPlayer.main_game.name}</span>
+                      </div>
+                    )}
+                    
+                    {selectedPlayer.is_favorited && (
+                      <Badge variant="default" className="bg-cyan-600 text-white">
+                        Bookmarked
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => handleToggleFavorite(selectedPlayer)}
+                  className={selectedPlayer.is_favorited ? "bg-red-600 hover:bg-red-700" : "bg-cyan-600 hover:bg-cyan-700"}
+                  disabled={favoritePlayerMutation.isPending || unfavoritePlayerMutation.isPending}
+                >
+                  <Bookmark className="w-4 h-4 mr-2" />
+                  {selectedPlayer.is_favorited ? "Remove Bookmark" : "Add Bookmark"}
+                </Button>
+                <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Send Message
+                </Button>
+                <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white">
+                  <Mail className="w-4 h-4 mr-2" />
+                  Email Player
+                </Button>
+              </div>
+
+              {/* Player Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Academic Info */}
+                <div>
+                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-cyan-400" />
+                    Academic Information
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">School:</span>
+                      <span className="text-white">{selectedPlayer.school_ref?.name || selectedPlayer.school || "Not specified"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Class Year:</span>
+                      <span className="text-white">{selectedPlayer.class_year || "Not specified"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">GPA:</span>
+                      <span className="text-white">
+                        {selectedPlayer.gpa ? parseFloat(selectedPlayer.gpa.toString()).toFixed(2) : "Not specified"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Intended Major:</span>
+                      <span className="text-white">{selectedPlayer.intended_major || "Not specified"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Graduation:</span>
+                      <span className="text-white">{selectedPlayer.graduation_date || "Not specified"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact & Location */}
+                <div>
+                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-cyan-400" />
+                    Contact & Location
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Email:</span>
+                      <span className="text-white font-mono text-sm">{selectedPlayer.email}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Location:</span>
+                      <span className="text-white">{selectedPlayer.location || "Not specified"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Game Profiles */}
+              {selectedPlayer.game_profiles.length > 0 && (
+                <div>
+                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                    <GamepadIcon className="w-5 h-5 text-cyan-400" />
+                    Game Profiles
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedPlayer.game_profiles.map((profile, idx) => (
+                      <div key={idx} className="bg-gray-800 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xl">{getGameIcon(profile.game.short_name)}</span>
+                          <span className="font-orbitron font-bold text-white">{profile.game.name}</span>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Rank:</span>
+                            <span className="text-white">{profile.rank || "Unranked"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Role:</span>
+                            <span className="text-white">{profile.role || "Not specified"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Username:</span>
+                            <span className="text-white font-mono">{profile.username}</span>
+                          </div>
+                          {profile.combine_score && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Combine Score:</span>
+                              <span className="text-white">{profile.combine_score.toFixed(1)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Player Bio */}
+              {selectedPlayer.bio && (
+                <div>
+                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-cyan-400" />
+                    Player Bio
+                  </h4>
+                  <div className="bg-gray-800 p-4 rounded-lg">
+                    <p className="text-gray-300 font-rajdhani">{selectedPlayer.bio}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Created Date */}
+              <div className="text-center pt-4 border-t border-gray-700">
+                <p className="text-sm text-gray-400">
+                  Player profile created: {new Date(selectedPlayer.created_at).toLocaleDateString()}
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags (Optional)</Label>
-              <Input
-                id="tags"
-                placeholder="priority, quarterback, local, etc. (comma separated)"
-                value={favoriteTags.join(", ")}
-                onChange={(e) => setFavoriteTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedPlayer(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveFavorite} disabled={favoritePlayerMutation.isPending}>
-              Add to Favorites
-            </Button>
-          </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>
