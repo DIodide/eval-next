@@ -8,7 +8,7 @@
 
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
@@ -433,10 +433,7 @@ export const playerProfileRouter = createTRPCRouter({
     }),
 
   // Get all available games for main game selection
-  getAvailableGames: protectedProcedure.query(async ({ ctx }) => {
-    // Verify user is a player
-    await verifyPlayerUser(ctx);
-    
+  getAvailableGames: publicProcedure.query(async ({ ctx }) => {
     try {
       const games = await withRetry(() =>
         ctx.db.game.findMany({

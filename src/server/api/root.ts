@@ -5,6 +5,7 @@ import { tryoutsRouter } from "@/server/api/routers/tryouts";
 import { combinesRouter } from "@/server/api/routers/combines";
 import { messagesRouter } from "@/server/api/routers/messages";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 
 /**
  * This is the primary router for your server.
@@ -18,6 +19,7 @@ export const appRouter = createTRPCRouter({
   tryouts: tryoutsRouter,
   combines: combinesRouter,
   messages: messagesRouter,
+  playerSearch: playerSearchRouter,
 });
 
 // export type definition of API
