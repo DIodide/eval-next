@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -81,14 +85,6 @@ interface Player {
   }>;
 }
 
-interface Application {
-  id: string;
-  status: ApplicationStatus;
-  notes?: string | null;
-  registered_at: string;
-  player: Player;
-}
-
 interface Tryout {
   id: string;
   title: string;
@@ -119,8 +115,6 @@ interface Tryout {
   registration_deadline?: Date | null;
   min_gpa?: Prisma.Decimal | null;
 }
-
-type ApplicationStatus = "PENDING" | "CONFIRMED" | "DECLINED" | "WAITLISTED" | "CANCELLED";
 
 // Create Tryout Dialog Component
 function CreateTryoutDialog({ 
@@ -1285,6 +1279,23 @@ function EditTryoutDialog({
               </div>
 
               <div>
+                <Label htmlFor="edit-long-description" className="text-white font-rajdhani text-sm">
+                  Detailed Description
+                </Label>
+                <Textarea
+                  id="edit-long-description"
+                  value={formData.long_description}
+                  onChange={(e) => handleFieldChange('long_description', e.target.value)}
+                  placeholder="Detailed information about the tryout process, requirements, what to expect..."
+                  className="bg-gray-800 border-gray-700 text-white mt-1"
+                  rows={4}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional - Provide additional context for players
+                </p>
+              </div>
+
+              <div>
                 <Label htmlFor="edit-game" className="text-white font-rajdhani text-sm">
                   Game <span className="text-red-400">*</span>
                 </Label>
@@ -1408,6 +1419,29 @@ function EditTryoutDialog({
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-time-start" className="text-white font-rajdhani text-sm">Start Time</Label>
+                  <Input
+                    id="edit-time-start"
+                    type="time"
+                    value={formData.time_start}
+                    onChange={(e) => handleFieldChange('time_start', e.target.value)}
+                    className="bg-gray-800 border-gray-700 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-time-end" className="text-white font-rajdhani text-sm">End Time</Label>
+                  <Input
+                    id="edit-time-end"
+                    type="time"
+                    value={formData.time_end}
+                    onChange={(e) => handleFieldChange('time_end', e.target.value)}
+                    className="bg-gray-800 border-gray-700 text-white mt-1"
+                  />
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="edit-location" className="text-white font-rajdhani text-sm">
                   Location <span className="text-red-400">*</span>
@@ -1416,7 +1450,7 @@ function EditTryoutDialog({
                   id="edit-location"
                   value={formData.location}
                   onChange={(e) => handleFieldChange('location', e.target.value)}
-                  placeholder="e.g., Online - Discord Server"
+                  placeholder="e.g., Gaming Center Room A101 or Discord Server"
                   className={cn(
                     "bg-gray-800 border-gray-700 text-white mt-1",
                     validationErrors.location && "border-red-500 focus-visible:border-red-500"
@@ -1426,7 +1460,158 @@ function EditTryoutDialog({
                   <p className="text-xs text-red-400 mt-1">{validationErrors.location}</p>
                 )}
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white font-rajdhani text-sm">
+                    Event Type <span className="text-red-400">*</span>
+                  </Label>
+                  <Select value={formData.type} onValueChange={(value: "ONLINE" | "IN_PERSON" | "HYBRID") => handleFieldChange('type', value)}>
+                    <SelectTrigger className={cn(
+                      "bg-gray-800 border-gray-700 text-white mt-1",
+                      validationErrors.type && "border-red-500"
+                    )}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="ONLINE" className="text-white hover:bg-gray-700">🌐 Online</SelectItem>
+                      <SelectItem value="IN_PERSON" className="text-white hover:bg-gray-700">🏢 In Person</SelectItem>
+                      <SelectItem value="HYBRID" className="text-white hover:bg-gray-700">🔄 Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-price" className="text-white font-rajdhani text-sm">Price</Label>
+                  <Input
+                    id="edit-price"
+                    value={formData.price}
+                    onChange={(e) => handleFieldChange('price', e.target.value)}
+                    placeholder="e.g., Free, $25, $50"
+                    className={cn(
+                      "bg-gray-800 border-gray-700 text-white mt-1",
+                      validationErrors.price && "border-red-500 focus-visible:border-red-500"
+                    )}
+                  />
+                  {validationErrors.price && (
+                    <p className="text-xs text-red-400 mt-1">{validationErrors.price}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-max-spots" className="text-white font-rajdhani text-sm">
+                    Max Spots <span className="text-red-400">*</span>
+                  </Label>
+                  <Input
+                    id="edit-max-spots"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={formData.max_spots}
+                    onChange={(e) => handleFieldChange('max_spots', parseInt(e.target.value) || 20)}
+                    className={cn(
+                      "bg-gray-800 border-gray-700 text-white mt-1",
+                      validationErrors.max_spots && "border-red-500 focus-visible:border-red-500"
+                    )}
+                  />
+                  {validationErrors.max_spots && (
+                    <p className="text-xs text-red-400 mt-1">{validationErrors.max_spots}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="edit-min-gpa" className="text-white font-rajdhani text-sm">Minimum GPA</Label>
+                  <Input
+                    id="edit-min-gpa"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="4.0"
+                    value={formData.min_gpa}
+                    onChange={(e) => handleFieldChange('min_gpa', e.target.value)}
+                    placeholder="e.g., 3.0"
+                    className={cn(
+                      "bg-gray-800 border-gray-700 text-white mt-1",
+                      validationErrors.min_gpa && "border-red-500 focus-visible:border-red-500"
+                    )}
+                  />
+                  {validationErrors.min_gpa && (
+                    <p className="text-xs text-red-400 mt-1">{validationErrors.min_gpa}</p>
+                  )}
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Requirements Section - Full Width */}
+        <div className="space-y-6 mt-8 border-t border-gray-700 pt-6">
+          <h3 className="font-orbitron text-lg text-cyan-400">
+            Requirements & Preferences
+          </h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <Label className="text-white font-rajdhani text-sm">Eligible Class Years</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {classYearOptions.map((year) => (
+                  <Button
+                    key={year}
+                    type="button"
+                    variant={formData.class_years.includes(year) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      const newClassYears = formData.class_years.includes(year)
+                        ? formData.class_years.filter(y => y !== year)
+                        : [...formData.class_years, year];
+                      handleFieldChange('class_years', newClassYears);
+                    }}
+                    className={formData.class_years.includes(year) 
+                      ? "bg-cyan-600 hover:bg-cyan-700 text-white" 
+                      : "border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    }
+                  >
+                    {year}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty to allow all class years
+              </p>
+            </div>
+
+            {availableRoles.length > 0 && (
+              <div>
+                <Label className="text-white font-rajdhani text-sm">
+                  Required/Preferred Roles for {selectedGame?.name}
+                </Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {availableRoles.map((role) => (
+                    <Button
+                      key={role}
+                      type="button"
+                      variant={formData.required_roles.includes(role) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        const newRequiredRoles = formData.required_roles.includes(role)
+                          ? formData.required_roles.filter(r => r !== role)
+                          : [...formData.required_roles, role];
+                        handleFieldChange('required_roles', newRequiredRoles);
+                      }}
+                      className={formData.required_roles.includes(role) 
+                        ? "bg-cyan-600 hover:bg-cyan-700 text-white" 
+                        : "border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                      }
+                    >
+                      {role}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave empty if no specific roles are required
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1513,6 +1698,8 @@ export default function MyTryoutsPage() {
     onSuccess: () => {
       // Refetch applications after status update
       void api.useUtils().tryouts.getTryoutApplications.invalidate();
+      // Also refetch the main tryouts list to update counts
+      void api.useUtils().tryouts.getCoachTryouts.invalidate();
     },
   });
 
@@ -1520,6 +1707,8 @@ export default function MyTryoutsPage() {
     onSuccess: () => {
       // Refetch applications after removal
       void api.useUtils().tryouts.getTryoutApplications.invalidate();
+      // Also refetch the main tryouts list to update registeredCount
+      void api.useUtils().tryouts.getCoachTryouts.invalidate();
     },
   });
 
@@ -1775,8 +1964,8 @@ export default function MyTryoutsPage() {
                       <span className="text-xl">{getGameIcon(tryout.game.name)}</span>
                       {getStatusBadge(tryout.status)}
                     </div>
-                    {/* Edit button for draft tryouts */}
-                    {tryout.status === "DRAFT" && (
+                    {/* Edit button for editable tryouts */}
+                    {(tryout.status !== "CANCELLED" && new Date(tryout.date) >= new Date()) && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -1784,7 +1973,10 @@ export default function MyTryoutsPage() {
                           e.stopPropagation(); // Prevent selecting the tryout
                           handleEditTryout(tryout as Tryout);
                         }}
-                        className="border-yellow-600 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20"
+                        className={cn(
+                          "border-cyan-600 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20",
+                          tryout.status === "DRAFT" && "border-yellow-600 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20"
+                        )}
                       >
                         <EditIcon className="w-4 h-4 mr-1" />
                         Edit
