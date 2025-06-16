@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/ui/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import Link from "next/link";
 import {
   Heart,
@@ -109,7 +109,6 @@ interface Prospect {
 }
 
 export default function MyProspectsPage() {
-  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGame, setSelectedGame] = useState<string>("all");
   const [selectedTag, setSelectedTag] = useState<string>("all");
@@ -128,23 +127,27 @@ export default function MyProspectsPage() {
   // Mutations
   const updateFavoriteMutation = api.playerSearch.updateFavorite.useMutation({
     onSuccess: () => {
-      toast({ title: "Prospect updated successfully" });
+      toast.success("Prospect updated successfully");
       void refetch();
       setEditNotesOpen(false);
       setEditingProspect(null);
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Update failed", {
+        description: error.message,
+      });
     },
   });
 
   const unfavoriteMutation = api.playerSearch.unfavoritePlayer.useMutation({
     onSuccess: () => {
-      toast({ title: "Prospect removed from list" });
+      toast.info("Prospect removed from list");
       void refetch();
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Remove failed", {
+        description: error.message,
+      });
     },
   });
 
@@ -592,6 +595,7 @@ export default function MyProspectsPage() {
                     columns={columns}
                     data={filteredProspects}
                     loading={false}
+                    filterColumn="player"
                   />
                 )}
               </CardContent>
@@ -619,6 +623,7 @@ export default function MyProspectsPage() {
                     columns={columns}
                     data={priorityProspects}
                     loading={false}
+                    filterColumn="player"
                   />
                 )}
               </CardContent>
@@ -639,6 +644,7 @@ export default function MyProspectsPage() {
                   columns={columns}
                   data={recentProspects}
                   loading={false}
+                  filterColumn="player"
                 />
               </CardContent>
             </Card>

@@ -179,3 +179,56 @@
   width: 8rem !important;
   height: 8rem !important;
 }
+
+/* Custom Sonner Toast Styles */
+[data-sonner-toaster] {
+  --gray-900: 17 24 39;
+  --gray-800: 31 41 55;
+  --gray-700: 55 65 81;
+  --gray-600: 75 85 99;
+  --gray-500: 107 114 128;
+  --gray-400: 156 163 175;
+  --gray-300: 209 213 219;
+}
+
+[data-sonner-toaster][data-theme="dark"] {
+  --normal-bg: rgb(var(--gray-800));
+  --normal-border: rgb(var(--gray-700));
+  --normal-text: rgb(var(--gray-300));
+  
+  --success-bg: rgb(34 197 94 / 0.95);
+  --success-border: rgb(34 197 94 / 0.6);
+  --success-text: white;
+  
+  --error-bg: rgb(239 68 68 / 0.95);
+  --error-border: rgb(239 68 68 / 0.6);
+  --error-text: white;
+  
+  --warning-bg: rgb(245 158 11 / 0.95);
+  --warning-border: rgb(245 158 11 / 0.6);
+  --warning-text: white;
+  
+  --info-bg: rgb(59 130 246 / 0.95);
+  --info-border: rgb(59 130 246 / 0.6);
+  --info-text: white;
+}
+
+[data-sonner-toast] {
+  font-family: var(--font-rajdhani), sans-serif;
+  border-radius: 0.75rem;
+  border-width: 2px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+[data-sonner-toast][data-styled="true"] [data-title] {
+  font-family: var(--font-orbitron), sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+[data-sonner-toast][data-styled="true"] [data-description] {
+  font-family: var(--font-rajdhani), sans-serif;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}

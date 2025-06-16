@@ -36,7 +36,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import Link from "next/link";
 
 // Player type based on the API response
 type SearchPlayer = {
@@ -115,7 +116,6 @@ interface SearchFilters {
 }
 
 export default function CoachPlayerSearchPage() {
-  const { toast } = useToast();
   const [currentGameId, setCurrentGameId] = useState<string>("");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     search: "",
@@ -153,21 +153,29 @@ export default function CoachPlayerSearchPage() {
   // Mutations
   const favoritePlayerMutation = api.playerSearch.favoritePlayer.useMutation({
     onSuccess: () => {
-      toast({ title: "Player bookmarked successfully" });
+      toast.success("Player bookmarked successfully", {
+        description: "Added to your recruiting prospects",
+      });
       void refetchPlayers();
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Bookmark failed", {
+        description: error.message,
+      });
     },
   });
 
   const unfavoritePlayerMutation = api.playerSearch.unfavoritePlayer.useMutation({
     onSuccess: () => {
-      toast({ title: "Player removed from bookmarks" });
+      toast.info("Player removed from bookmarks", {
+        description: "Removed from your recruiting prospects",
+      });
       void refetchPlayers();
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Remove bookmark failed", {
+        description: error.message,
+      });
     },
   });
 
@@ -385,7 +393,7 @@ export default function CoachPlayerSearchPage() {
               variant="ghost"
               size="sm"
               onClick={() => handleToggleFavorite(player)}
-              className={player.is_favorited ? 'text-cyan-400 hover:text-cyan-300' : 'text-gray-500 hover:text-gray-400'}
+              className={player.is_favorited ? 'hover:bg-gray-700 text-cyan-400 hover:text-cyan-300' : 'hover:bg-gray-700 text-gray-500 hover:text-white'}
               disabled={favoritePlayerMutation.isPending || unfavoritePlayerMutation.isPending}
             >
               <Bookmark className={`h-4 w-4 ${player.is_favorited ? 'fill-current' : ''}`} />
@@ -395,14 +403,14 @@ export default function CoachPlayerSearchPage() {
               variant="ghost"
               size="sm"
               onClick={() => handleViewPlayer(player)}
-              className="text-gray-400 hover:text-white"
+              className="hover:bg-gray-700 hover:text-white"
             >
               <Eye className="h-4 w-4" />
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:bg-gray-700 hover:text-white">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -451,7 +459,7 @@ export default function CoachPlayerSearchPage() {
             <Button
               variant={searchFilters.favorited_only ? "default" : "outline"}
               onClick={() => setSearchFilters(prev => ({ ...prev, favorited_only: !prev.favorited_only }))}
-              className={`gap-2 ${searchFilters.favorited_only ? 'bg-cyan-600 hover:bg-cyan-700' : 'border-gray-600 text-black hover:text-white'}`}
+              className={`bg-white gap-2 ${searchFilters.favorited_only ? 'bg-cyan-600 hover:bg-cyan-700' : 'border-gray-600 text-black'}`}
             >
               <Star className={`h-4 w-4 ${searchFilters.favorited_only ? 'fill-current' : ''}`} />
               {searchFilters.favorited_only ? "Showing Bookmarks" : "Bookmarks Only"}
@@ -459,7 +467,7 @@ export default function CoachPlayerSearchPage() {
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="gap-2 border-gray-600 text-black hover:text-white hover:border-gray-500"
+              className="bg-white gap-2 border-gray-600 text-black hover:border-gray-500"
             >
               <Filter className="h-4 w-4" />
               {showFilters ? "Hide Filters" : "Filters"}
@@ -494,6 +502,7 @@ export default function CoachPlayerSearchPage() {
                   columns={columns}
                   data={players}
                   loading={isSearching}
+                  filterColumn="name"
                 />
               </CardContent>
             </Card>
@@ -516,6 +525,7 @@ export default function CoachPlayerSearchPage() {
                     columns={columns}
                     data={players}
                     loading={isSearching}
+                    filterColumn="name"
                   />
                 </CardContent>
               </Card>
@@ -694,7 +704,7 @@ export default function CoachPlayerSearchPage() {
                 agents: [],
                 favorited_only: false,
               })}
-              className="w-full border-gray-600 text-black hover:text-white"
+              className="bg-white w-full border-gray-600 text-black "
             >
               Reset Filters
             </Button>
@@ -756,14 +766,16 @@ export default function CoachPlayerSearchPage() {
                   <Bookmark className="w-4 h-4 mr-2" />
                   {selectedPlayer.is_favorited ? "Remove Bookmark" : "Add Bookmark"}
                 </Button>
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white">
+                <Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Send Message
                 </Button>
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Email Player
-                </Button>
+                <Link href={`mailto:${selectedPlayer.email}`}><Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
+                  
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email Player
+                  </Button>
+                </Link>
               </div>
 
               {/* Player Information Grid */}
