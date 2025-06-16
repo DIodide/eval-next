@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import UserTypeSelection from "./_components/UserTypeSelection";
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -17,18 +19,23 @@ export default function DashboardPage() {
       } else if (userType === "player") {
         router.push("/dashboard/player");
       } else {
-        // If userType is not set or unknown, redirect to a default page or profile setup
-          console.warn("Unknown userType or missing userType in unsafeMetadata:", userType);
-          // TODO: Reprompt the user to select their user type and update the userType in the unsafeMetadata
-          // TODO: check onboarding status and redirect to the appropriate page
-          // TODO: if onboarding is complete, redirect to the dashboard
-        // You might want to redirect to a profile setup page or default to player
-        router.push("/dashboard/player");
+        // If userType is not set or unknown, show the selection UI
+        console.warn("Unknown userType or missing userType in unsafeMetadata:", userType);
+        setShowUserTypeSelection(true);
       }
     }
   }, [isLoaded, user, router]);
 
-  // Show loading state while checking user authentication and redirecting
+  const handleUserTypeSelected = (userType: 'player' | 'coach') => {
+    // After userType is updated, redirect to the appropriate dashboard
+    if (userType === "coach") {
+      router.push("/dashboard/coaches");
+    } else {
+      router.push("/dashboard/player");
+    }
+  };
+
+  // Show loading state while checking user authentication
   if (!isLoaded) {
     return (
       <div className="flex h-screen bg-gray-900 items-center justify-center">
@@ -40,7 +47,12 @@ export default function DashboardPage() {
     );
   }
 
-  // This should rarely be seen since we redirect immediately after loading
+  // Show user type selection if needed
+  if (showUserTypeSelection) {
+    return <UserTypeSelection onUserTypeSelected={handleUserTypeSelected} />;
+  }
+
+  // Loading state while redirecting
   return (
     <div className="flex h-screen bg-gray-900 items-center justify-center">
       <div className="flex items-center gap-4">
