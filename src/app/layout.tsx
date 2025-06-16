@@ -51,7 +51,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
-            <Toaster />
+            <Toaster richColors position="bottom-left" />
           </TRPCReactProvider>
         </ClerkProvider>
         <Analytics />
