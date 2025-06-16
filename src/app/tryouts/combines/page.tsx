@@ -433,7 +433,7 @@ function CombinesPageContent() {
   // Loading state
   if (isLoadingCombines) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
         <div className="text-center">
           <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
           <p className="text-white font-rajdhani">Loading combines...</p>
@@ -445,7 +445,7 @@ function CombinesPageContent() {
   // Error state
   if (combinesError) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
         <div className="text-center">
           <AlertCircleIcon className="w-8 h-8 text-red-400 mx-auto mb-4" />
           <p className="text-white font-rajdhani mb-4">Failed to load combines. Please try again.</p>
@@ -458,7 +458,7 @@ function CombinesPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
       <div className="container mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <div className="mb-8">
