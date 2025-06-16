@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { redirect } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -64,6 +66,24 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const { user, isLoaded } = useUser();
+
+  // Check if user is a player
+  if (isLoaded && user) {
+    const userType = user.unsafeMetadata?.userType;
+    if (userType !== "player") {
+      redirect("/dashboard/coaches");
+    }
+  }
+
+  // Show loading state while checking user
+  if (!isLoaded) {
+    return (
+      <div className="flex h-screen bg-[#0f0f1a] items-center justify-center">
+        <div className="text-white font-rajdhani">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-[#0f0f1a]">
@@ -85,9 +105,14 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* Sidebar header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
-            <h2 className="text-xl font-orbitron font-bold text-white">
-              Dashboard
-            </h2>
+            <div>
+              <h2 className="text-xl font-orbitron font-bold text-white">
+                Player Dashboard
+              </h2>
+              <p className="text-xs text-gray-400 mt-1">
+                {user?.firstName} {user?.lastName}
+              </p>
+            </div>
             <Button
               variant="ghost"
               size="sm"

@@ -44,7 +44,7 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center space-x-8">
           <SignedIn>
-            <Link href="/dashboard/player" className="font-orbitron hover:text-cyan-400 transition-colors">
+            <Link href="/dashboard" className="font-orbitron hover:text-cyan-400 transition-colors">
               DASHBOARD
             </Link>
           </SignedIn>
