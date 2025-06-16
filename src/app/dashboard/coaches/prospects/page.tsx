@@ -122,32 +122,86 @@ export default function MyProspectsPage() {
   const [currentTab, setCurrentTab] = useState("all");
 
   // Fetch coach's favorited players
-  const { data: prospects = [], isLoading, refetch } = api.playerSearch.getFavorites.useQuery();
+  const utils = api.useUtils();
+  const { data: prospects = [], isLoading } = api.playerSearch.getFavorites.useQuery();
 
-  // Mutations
+  // Mutations with optimistic updates
   const updateFavoriteMutation = api.playerSearch.updateFavorite.useMutation({
+    onMutate: async ({ player_id, notes, tags }) => {
+      // Cancel outgoing refetches
+      await utils.playerSearch.getFavorites.cancel();
+      
+      // Snapshot the previous value
+      const previousData = utils.playerSearch.getFavorites.getData();
+      
+      // Optimistically update the cache
+      utils.playerSearch.getFavorites.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.map((prospect) =>
+          prospect.player.id === player_id
+            ? {
+                ...prospect,
+                notes: notes ?? null,
+                tags: tags ?? [],
+                updated_at: new Date(),
+              }
+            : prospect
+        );
+      });
+      
+      return { previousData };
+    },
     onSuccess: () => {
       toast.success("Prospect updated successfully");
-      void refetch();
       setEditNotesOpen(false);
       setEditingProspect(null);
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
+      // Revert optimistic update
+      if (context?.previousData) {
+        utils.playerSearch.getFavorites.setData(undefined, context.previousData);
+      }
       toast.error("Update failed", {
         description: error.message,
       });
     },
+    onSettled: () => {
+      // Always refetch after error or success to ensure consistency
+      void utils.playerSearch.getFavorites.invalidate();
+    },
   });
 
   const unfavoriteMutation = api.playerSearch.unfavoritePlayer.useMutation({
-    onSuccess: () => {
+    onMutate: async ({ player_id }) => {
+      // Cancel outgoing refetches
+      await utils.playerSearch.getFavorites.cancel();
+      
+      // Snapshot the previous value
+      const previousData = utils.playerSearch.getFavorites.getData();
+      
+      // Optimistically remove from the cache
+      utils.playerSearch.getFavorites.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.filter((prospect) => prospect.player.id !== player_id);
+      });
+      
+      // Show immediate success feedback
       toast.info("Prospect removed from list");
-      void refetch();
+      
+      return { previousData };
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
+      // Revert optimistic update
+      if (context?.previousData) {
+        utils.playerSearch.getFavorites.setData(undefined, context.previousData);
+      }
       toast.error("Remove failed", {
         description: error.message,
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure consistency
+      void utils.playerSearch.getFavorites.invalidate();
     },
   });
 

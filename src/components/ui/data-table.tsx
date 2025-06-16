@@ -39,36 +39,55 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   loading?: boolean
+  filterColumn?: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   loading = false,
+  filterColumn,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
 
   const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    autoResetPageIndex: false, // Prevent automatic page reset on data changes
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination,
     },
   })
+
+  const getFilterColumnId = () => {
+    if (filterColumn && table.getColumn(filterColumn)) {
+      return filterColumn
+    }
+    const filterableColumn = table.getAllColumns().find(col => col.getCanFilter())
+    return filterableColumn?.id
+  }
+
+  const filterColumnId = getFilterColumnId()
 
   if (loading) {
     return (
@@ -110,15 +129,16 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter players..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          value={(filterColumnId ? table.getColumn(filterColumnId)?.getFilterValue() as string : "") ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            filterColumnId && table.getColumn(filterColumnId)?.setFilterValue(event.target.value)
           }
           className="max-w-sm bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
+          disabled={!filterColumnId}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto border-gray-600 text-black hover:text-white hover:border-gray-500">
+            <Button variant="outline" className="bg-white ml-auto border-gray-600 text-black hover:border-gray-500">
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -205,7 +225,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="border-gray-600 text-gray-300 hover:text-white disabled:opacity-50"
+            className="border-gray-600 bg-white text-gray-800 hover:text-black disabled:opacity-50"
           >
             Previous
           </Button>
@@ -214,7 +234,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="border-gray-600 text-gray-300 hover:text-white disabled:opacity-50"
+            className="border-gray-600 bg-white text-gray-800 hover:text-black disabled:opacity-50"
           >
             Next
           </Button>

@@ -136,6 +136,11 @@ export default function CoachPlayerSearchPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<SearchPlayer | null>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
+  
+  // Track per-player pending states to prevent duplicate requests
+  const [pendingFavorites, setPendingFavorites] = useState<Set<string>>(new Set());
+  // Track if optimistic updates have been made
+  const [hasOptimisticUpdates, setHasOptimisticUpdates] = useState(false);
 
   // Fetch available games
   const { data: games = [] } = api.playerProfile.getAvailableGames.useQuery();
@@ -148,39 +153,166 @@ export default function CoachPlayerSearchPage() {
     offset: 0,
   };
 
-  const { data: searchResults, isLoading: isSearching, refetch: refetchPlayers } = api.playerSearch.searchPlayers.useQuery(searchInput);
+  const utils = api.useUtils();
+  const { data: searchResults, isLoading: isSearching } = api.playerSearch.searchPlayers.useQuery(searchInput);
 
-  // Mutations
+  // Mutations with optimistic updates for immediate UI feedback while preserving pagination
   const favoritePlayerMutation = api.playerSearch.favoritePlayer.useMutation({
-    onSuccess: () => {
+    onMutate: async ({ player_id }) => {
+      // Add to pending set to prevent duplicate requests
+      setPendingFavorites(prev => new Set(prev).add(player_id));
+      
+      // Cancel outgoing refetches to avoid overwriting optimistic update
+      await utils.playerSearch.searchPlayers.cancel();
+      
+      // Snapshot previous value
+      const previousData = utils.playerSearch.searchPlayers.getData();
+      
+      // Optimistically update the cache with stable object references
+      utils.playerSearch.searchPlayers.setData(searchInput, (old) => {
+        if (!old) return old;
+        
+        const updatedPlayers = old.players.map(player => {
+          if (player.id === player_id) {
+            return { 
+              ...player, 
+              is_favorited: true,
+              favorite_info: {
+                id: 'temp-' + player_id,
+                notes: '',
+                tags: ['prospect'],
+                created_at: new Date(),
+              }
+            };
+          }
+          return player; // Return the same object reference for unchanged players
+        });
+        
+        return {
+          ...old,
+          players: updatedPlayers
+        };
+      });
+      
+      // Show immediate success feedback
       toast.success("Player bookmarked successfully", {
         description: "Added to your recruiting prospects",
       });
-      void refetchPlayers();
+      
+      // Mark that we have optimistic updates
+      setHasOptimisticUpdates(true);
+      
+      return { previousData, player_id };
     },
-    onError: (error) => {
+    onSuccess: () => {
+      // Only invalidate the favorites query to update sidebar counts, not the search results
+      void utils.playerSearch.getFavorites.invalidate();
+    },
+    onError: (error, _, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        utils.playerSearch.searchPlayers.setData(searchInput, context.previousData);
+      }
+      
       toast.error("Bookmark failed", {
         description: error.message,
       });
     },
+    onSettled: (_, __, { player_id }) => {
+      // Remove from pending set
+      setPendingFavorites(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(player_id);
+        return newSet;
+      });
+      
+      // Schedule a delayed cache refresh (5 minutes) to eventually sync data
+      // setTimeout(() => {
+      //   void utils.playerSearch.searchPlayers.invalidate();
+      // }, 5 * 60 * 1000); // 5 minutes
+      // No invalidation here - keep the optimistic updates permanent unless there's an error
+    },
   });
 
   const unfavoritePlayerMutation = api.playerSearch.unfavoritePlayer.useMutation({
-    onSuccess: () => {
+    onMutate: async ({ player_id }) => {
+      // Add to pending set to prevent duplicate requests
+      setPendingFavorites(prev => new Set(prev).add(player_id));
+      
+      // Cancel outgoing refetches to avoid overwriting optimistic update
+      await utils.playerSearch.searchPlayers.cancel();
+      
+      // Snapshot previous value
+      const previousData = utils.playerSearch.searchPlayers.getData();
+      
+      // Optimistically update the cache with stable object references
+      utils.playerSearch.searchPlayers.setData(searchInput, (old) => {
+        if (!old) return old;
+        
+        const updatedPlayers = old.players.map(player => {
+          if (player.id === player_id) {
+            return { 
+              ...player, 
+              is_favorited: false,
+              favorite_info: null
+            };
+          }
+          return player; // Return the same object reference for unchanged players
+        });
+        
+        return {
+          ...old,
+          players: updatedPlayers
+        };
+      });
+      
+      // Show immediate success feedback
       toast.info("Player removed from bookmarks", {
         description: "Removed from your recruiting prospects",
       });
-      void refetchPlayers();
+      
+      // Mark that we have optimistic updates
+      setHasOptimisticUpdates(true);
+      
+      return { previousData, player_id };
     },
-    onError: (error) => {
+    onSuccess: () => {
+      // Only invalidate the favorites query to update sidebar counts, not the search results
+      void utils.playerSearch.getFavorites.invalidate();
+    },
+    onError: (error, _, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        utils.playerSearch.searchPlayers.setData(searchInput, context.previousData);
+      }
+      
       toast.error("Remove bookmark failed", {
         description: error.message,
       });
+    },
+    onSettled: (_, __, { player_id }) => {
+      // Remove from pending set
+      setPendingFavorites(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(player_id);
+        return newSet;
+      });
+      
+      // Schedule a delayed cache refresh (5 minutes) to eventually sync data
+      // setTimeout(() => {
+      //   void utils.playerSearch.searchPlayers.invalidate();
+      // }, 5 * 60 * 1000); // 5 minutes
+      // No invalidation here - keep the optimistic updates permanent unless there's an error
     },
   });
 
   // Handle favorite/unfavorite directly without dialog
   const handleToggleFavorite = (player: SearchPlayer) => {
+    // Prevent duplicate requests for the same player
+    if (pendingFavorites.has(player.id)) {
+      return;
+    }
+    
     if (player.is_favorited) {
       unfavoritePlayerMutation.mutate({ player_id: player.id });
     } else {
@@ -197,6 +329,8 @@ export default function CoachPlayerSearchPage() {
     setSelectedPlayer(player);
     setPlayerDialogOpen(true);
   };
+
+
 
   // Get current game profile for player
   const getGameProfile = (player: SearchPlayer) => {
@@ -233,8 +367,8 @@ export default function CoachPlayerSearchPage() {
     return Array.from(ranks).sort();
   };
 
-  // Column definitions for the data table
-  const columns: ColumnDef<SearchPlayer>[] = [
+  // Column definitions for the data table - memoized to prevent resets
+  const columns: ColumnDef<SearchPlayer>[] = React.useMemo(() => [
     {
       accessorKey: "avatar",
       header: "",
@@ -393,10 +527,9 @@ export default function CoachPlayerSearchPage() {
               variant="ghost"
               size="sm"
               onClick={() => handleToggleFavorite(player)}
-              className={player.is_favorited ? 'hover:bg-gray-700 text-cyan-400 hover:text-cyan-300' : 'hover:bg-gray-700 text-gray-500 hover:text-white'}
-              disabled={favoritePlayerMutation.isPending || unfavoritePlayerMutation.isPending}
+              className={`${player.is_favorited ? 'hover:bg-gray-700 text-cyan-400 hover:text-cyan-300' : 'hover:bg-gray-700 text-gray-500 hover:text-white'} ${pendingFavorites.has(player.id) ? 'opacity-70 cursor-wait' : ''}`}
             >
-              <Bookmark className={`h-4 w-4 ${player.is_favorited ? 'fill-current' : ''}`} />
+              <Bookmark className={`h-4 w-4 ${player.is_favorited ? 'fill-current' : ''} ${pendingFavorites.has(player.id) ? 'animate-pulse' : ''}`} />
             </Button>
             
             <Button
@@ -438,11 +571,19 @@ export default function CoachPlayerSearchPage() {
         );
       },
     },
-  ];
+  ], [pendingFavorites]);
 
   const players = searchResults?.players || [];
   const currentGameName = games.find(g => g.id === currentGameId)?.name || "All Games";
   const availableRanks = getAvailableRanks();
+  
+  // Get live player data for dialog to prevent staleness
+  const liveSelectedPlayer = selectedPlayer 
+    ? players.find(p => p.id === selectedPlayer.id) || selectedPlayer
+    : null;
+
+  // Use a stable reference for the players data to prevent unnecessary re-renders
+  const stablePlayers = React.useMemo(() => players, [players]);
 
   return (
     <div className="flex bg-gray-900 min-h-screen">
@@ -456,6 +597,18 @@ export default function CoachPlayerSearchPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                void utils.playerSearch.searchPlayers.invalidate();
+                setHasOptimisticUpdates(false);
+                toast.info("Refreshing player data...");
+              }}
+              className={`bg-white border-gray-600 text-black hover:border-gray-500 ${hasOptimisticUpdates ? 'ring-2 ring-cyan-400' : ''}`}
+              title={hasOptimisticUpdates ? 'Click to sync with server data' : 'Refresh player data'}
+            >
+              🔄 Refresh {hasOptimisticUpdates && <span className="ml-1 text-xs text-cyan-600">•</span>}
+            </Button>
             <Button
               variant={searchFilters.favorited_only ? "default" : "outline"}
               onClick={() => setSearchFilters(prev => ({ ...prev, favorited_only: !prev.favorited_only }))}
@@ -498,12 +651,12 @@ export default function CoachPlayerSearchPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <DataTable
-                  columns={columns}
-                  data={players}
-                  loading={isSearching}
-                  filterColumn="name"
-                />
+                                  <DataTable
+                    columns={columns}
+                    data={stablePlayers}
+                    loading={isSearching}
+                    filterColumn="name"
+                  />
               </CardContent>
             </Card>
           </TabsContent>
@@ -523,7 +676,7 @@ export default function CoachPlayerSearchPage() {
                 <CardContent>
                   <DataTable
                     columns={columns}
-                    data={players}
+                    data={stablePlayers}
                     loading={isSearching}
                     filterColumn="name"
                   />
@@ -718,179 +871,178 @@ export default function CoachPlayerSearchPage() {
           <DialogHeader>
             <DialogTitle className="text-2xl font-orbitron text-white">Player Profile</DialogTitle>
             <DialogDescription className="text-gray-400">
-              Detailed information about {selectedPlayer?.first_name} {selectedPlayer?.last_name}
+              Detailed information about {liveSelectedPlayer?.first_name} {liveSelectedPlayer?.last_name}
             </DialogDescription>
           </DialogHeader>
           
-          {selectedPlayer && (
-            <div className="space-y-6">
-              {/* Player Header */}
-              <div className="flex items-start gap-6">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={selectedPlayer.image_url ?? undefined} />
-                  <AvatarFallback className="bg-gray-700 text-white text-xl">
-                    {selectedPlayer.first_name.charAt(0)}{selectedPlayer.last_name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1">
-                  <h3 className="text-2xl font-orbitron font-bold text-white">
-                    {selectedPlayer.first_name} {selectedPlayer.last_name}
-                  </h3>
-                  <p className="text-gray-400 font-rajdhani">@{selectedPlayer.username || "No username"}</p>
+          {liveSelectedPlayer && (
+              <div className="space-y-6">
+                {/* Player Header */}
+                <div className="flex items-start gap-6">
+                  <Avatar className="w-20 h-20">
+                    <AvatarImage src={liveSelectedPlayer.image_url ?? undefined} />
+                    <AvatarFallback className="bg-gray-700 text-white text-xl">
+                      {liveSelectedPlayer.first_name.charAt(0)}{liveSelectedPlayer.last_name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
                   
-                  <div className="flex items-center gap-4 mt-2">
-                    {selectedPlayer.main_game && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{getGameIcon(selectedPlayer.main_game.short_name)}</span>
-                        <span className="text-white">{selectedPlayer.main_game.name}</span>
-                      </div>
-                    )}
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-orbitron font-bold text-white">
+                      {liveSelectedPlayer.first_name} {liveSelectedPlayer.last_name}
+                    </h3>
+                    <p className="text-gray-400 font-rajdhani">@{liveSelectedPlayer.username || "No username"}</p>
                     
-                    {selectedPlayer.is_favorited && (
-                      <Badge variant="default" className="bg-cyan-600 text-white">
-                        Bookmarked
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-4 mt-2">
+                      {liveSelectedPlayer.main_game && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{getGameIcon(liveSelectedPlayer.main_game.short_name)}</span>
+                          <span className="text-white">{liveSelectedPlayer.main_game.name}</span>
+                        </div>
+                      )}
+                      
+                      {liveSelectedPlayer.is_favorited && (
+                        <Badge variant="default" className="bg-cyan-600 text-white">
+                          Bookmarked
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Quick Actions */}
-              <div className="flex gap-4">
-                <Button
-                  onClick={() => handleToggleFavorite(selectedPlayer)}
-                  className={selectedPlayer.is_favorited ? "bg-red-600 hover:bg-red-700" : "bg-cyan-600 hover:bg-cyan-700"}
-                  disabled={favoritePlayerMutation.isPending || unfavoritePlayerMutation.isPending}
-                >
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  {selectedPlayer.is_favorited ? "Remove Bookmark" : "Add Bookmark"}
-                </Button>
-                <Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Send Message
-                </Button>
-                <Link href={`mailto:${selectedPlayer.email}`}><Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
-                  
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email Player
+                {/* Quick Actions */}
+                <div className="flex gap-4">
+                  <Button
+                    onClick={() => handleToggleFavorite(liveSelectedPlayer)}
+                    className={`${liveSelectedPlayer.is_favorited ? "bg-red-600 hover:bg-red-700" : "bg-cyan-600 hover:bg-cyan-700"} ${pendingFavorites.has(liveSelectedPlayer.id) ? 'opacity-70 cursor-wait' : ''}`}
+                  >
+                    <Bookmark className={`w-4 h-4 mr-2 ${pendingFavorites.has(liveSelectedPlayer.id) ? 'animate-pulse' : ''}`} />
+                    {liveSelectedPlayer.is_favorited ? "Remove Bookmark" : "Add Bookmark"}
                   </Button>
-                </Link>
-              </div>
-
-              {/* Player Information Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Academic Info */}
-                <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-cyan-400" />
-                    Academic Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">School:</span>
-                      <span className="text-white">{selectedPlayer.school_ref?.name || selectedPlayer.school || "Not specified"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Class Year:</span>
-                      <span className="text-white">{selectedPlayer.class_year || "Not specified"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">GPA:</span>
-                      <span className="text-white">
-                        {selectedPlayer.gpa ? parseFloat(selectedPlayer.gpa.toString()).toFixed(2) : "Not specified"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Intended Major:</span>
-                      <span className="text-white">{selectedPlayer.intended_major || "Not specified"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Graduation:</span>
-                      <span className="text-white">{selectedPlayer.graduation_date || "Not specified"}</span>
-                    </div>
-                  </div>
+                  <Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Send Message
+                  </Button>
+                  <Link href={`mailto:${liveSelectedPlayer.email}`}>
+                    <Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
+                      <Mail className="w-4 h-4 mr-2" />
+                      Email Player
+                    </Button>
+                  </Link>
                 </div>
 
-                {/* Contact & Location */}
-                <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-cyan-400" />
-                    Contact & Location
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Email:</span>
-                      <span className="text-white font-mono text-sm">{selectedPlayer.email}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Location:</span>
-                      <span className="text-white">{selectedPlayer.location || "Not specified"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Game Profiles */}
-              {selectedPlayer.game_profiles.length > 0 && (
-                <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <GamepadIcon className="w-5 h-5 text-cyan-400" />
-                    Game Profiles
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedPlayer.game_profiles.map((profile, idx) => (
-                      <div key={idx} className="bg-gray-800 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xl">{getGameIcon(profile.game.short_name)}</span>
-                          <span className="font-orbitron font-bold text-white">{profile.game.name}</span>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Rank:</span>
-                            <span className="text-white">{profile.rank || "Unranked"}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Role:</span>
-                            <span className="text-white">{profile.role || "Not specified"}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Username:</span>
-                            <span className="text-white font-mono">{profile.username}</span>
-                          </div>
-                          {profile.combine_score && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Combine Score:</span>
-                              <span className="text-white">{profile.combine_score.toFixed(1)}</span>
-                            </div>
-                          )}
-                        </div>
+                {/* Player Information Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Academic Info */}
+                  <div>
+                    <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-cyan-400" />
+                      Academic Information
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">School:</span>
+                        <span className="text-white">{liveSelectedPlayer.school_ref?.name || liveSelectedPlayer.school || "Not specified"}</span>
                       </div>
-                    ))}
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Class Year:</span>
+                        <span className="text-white">{liveSelectedPlayer.class_year || "Not specified"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">GPA:</span>
+                        <span className="text-white">
+                          {liveSelectedPlayer.gpa ? parseFloat(liveSelectedPlayer.gpa.toString()).toFixed(2) : "Not specified"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Intended Major:</span>
+                        <span className="text-white">{liveSelectedPlayer.intended_major || "Not specified"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Graduation:</span>
+                        <span className="text-white">{liveSelectedPlayer.graduation_date || "Not specified"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact & Location */}
+                  <div>
+                    <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-cyan-400" />
+                      Contact & Location
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Email:</span>
+                        <span className="text-white font-mono text-sm">{liveSelectedPlayer.email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Location:</span>
+                        <span className="text-white">{liveSelectedPlayer.location || "Not specified"}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {/* Player Bio */}
-              {selectedPlayer.bio && (
-                <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-cyan-400" />
-                    Player Bio
-                  </h4>
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <p className="text-gray-300 font-rajdhani">{selectedPlayer.bio}</p>
+                {/* Game Profiles */}
+                {liveSelectedPlayer.game_profiles.length > 0 && (
+                  <div>
+                    <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                      <GamepadIcon className="w-5 h-5 text-cyan-400" />
+                      Game Profiles
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {liveSelectedPlayer.game_profiles.map((profile, idx) => (
+                        <div key={idx} className="bg-gray-800 p-4 rounded-lg">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xl">{getGameIcon(profile.game.short_name)}</span>
+                            <span className="font-orbitron font-bold text-white">{profile.game.name}</span>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Rank:</span>
+                              <span className="text-white">{profile.rank || "Unranked"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Role:</span>
+                              <span className="text-white">{profile.role || "Not specified"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Username:</span>
+                              <span className="text-white font-mono">{profile.username}</span>
+                            </div>
+                            {profile.combine_score && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Combine Score:</span>
+                                <span className="text-white">{profile.combine_score.toFixed(1)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Created Date */}
-              <div className="text-center pt-4 border-t border-gray-700">
-                <p className="text-sm text-gray-400">
-                  Player profile created: {new Date(selectedPlayer.created_at).toLocaleDateString()}
-                </p>
+                {/* Player Bio */}
+                {liveSelectedPlayer.bio && (
+                  <div>
+                    <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-cyan-400" />
+                      Player Bio
+                    </h4>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <p className="text-gray-300 font-rajdhani">{liveSelectedPlayer.bio}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Created Date */}
+                <div className="text-center pt-4 border-t border-gray-700">
+                  <p className="text-sm text-gray-400">
+                    Player profile created: {new Date(liveSelectedPlayer.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
-            </div>
           )}
         </DialogContent>
       </Dialog>
