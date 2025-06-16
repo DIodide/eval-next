@@ -72,7 +72,7 @@ export default function DashboardLayout({
   if (isLoaded && user) {
     const userType = user.unsafeMetadata?.userType;
     if (userType !== "player") {
-      redirect("/dashboard/coaches");
+      redirect("/dashboard");
     }
   }
 
