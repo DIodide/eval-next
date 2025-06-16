@@ -5,10 +5,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Check, X, Zap } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Check, X, Zap, Calendar, BarChart3, Trophy, Users, GraduationCap, Target } from "lucide-react"
 
 export default function PricingPage() {
   const [requestDemoOpen, setRequestDemoOpen] = useState(false)
+
+  const handleScheduleDemo = () => {
+    window.open("https://calendly.com/evalgaming/eval-demo", "_blank")
+    setRequestDemoOpen(false)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
@@ -419,6 +425,134 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* Demo Request Modal */}
+      <Dialog open={requestDemoOpen} onOpenChange={setRequestDemoOpen}>
+        <DialogContent className="sm:max-w-4xl bg-slate-900 text-white border-none max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-2xl font-bold text-white mb-4 font-orbitron">
+              DISCOVER THE FUTURE OF COLLEGIATE ESPORTS RECRUITING
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Intro Section */}
+            <div className="bg-gradient-to-r from-purple-600/20 to-cyan-400/20 border border-purple-400/30 rounded-lg p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-cyan-400 rounded-full flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white font-orbitron">EVAL - Princeton-Backed Startup</h2>
+                  <p className="text-slate-300 text-sm font-rajdhani">
+                    The best recruiting platform offering analytics built specifically for collegiate esports programs
+                  </p>
+                </div>
+              </div>
+              <p className="text-slate-300 font-rajdhani leading-relaxed">
+                After successfully powering the Spring 2025 Garden State Esports (GSE) Valorant season with rankings, MVP recognition, 
+                and a full recruiting dashboard, EVAL is now excited to invite you to participate in our 2025 Summer Collegiate pilot.
+              </p>
+            </div>
+
+            {/* Features Grid */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 font-orbitron">Why coaches are choosing EVAL:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Recruiting Dashboard */}
+                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-cyan-400/50 transition-all">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-cyan-400" />
+                    </div>
+                    <h4 className="font-bold text-white font-orbitron">Recruiting Dashboard</h4>
+                  </div>
+                  <p className="text-slate-300 text-sm font-rajdhani">
+                    Browse ranked players across VALORANT, Rocket League, Overwatch, and Smash Ultimate. 
+                    Bookmark top prospects and manage your recruiting pipeline—all in one platform.
+                  </p>
+                </div>
+
+                {/* EVAL Rankings */}
+                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-orange-400/50 transition-all">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <h4 className="font-bold text-white font-orbitron">EVAL Rankings</h4>
+                  </div>
+                  <p className="text-slate-300 text-sm font-rajdhani">
+                    Weekly player rankings, preseason projections, and season-long awards like Match MVP, 
+                    Most Improved, and Most Clutch to give you a clear view of the most impactful players.
+                  </p>
+                </div>
+
+                {/* EVAL Analytics */}
+                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-purple-400/50 transition-all">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <h4 className="font-bold text-white font-orbitron">EVAL Analytics</h4>
+                  </div>
+                  <p className="text-slate-300 text-sm font-rajdhani">
+                    Our proprietary Composite Score blends verified in-game stats with league data to create 
+                    a single, trusted performance metric for evaluating player consistency and potential.
+                  </p>
+                </div>
+
+                {/* Tryouts Platform */}
+                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-green-400/50 transition-all">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <Target className="w-5 h-5 text-green-400" />
+                    </div>
+                    <h4 className="font-bold text-white font-orbitron">Tryouts Platform</h4>
+                  </div>
+                  <p className="text-slate-300 text-sm font-rajdhani">
+                    Post and manage tryouts to discover top talent nationwide. Tryouts can be hosted 
+                    for free or used to raise funds for your program or scholarships.
+                  </p>
+                </div>
+
+                {/* Academic Profiles */}
+                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-blue-400/50 transition-all md:col-span-2">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <h4 className="font-bold text-white font-orbitron">Academic & Extracurricular Profiles</h4>
+                  </div>
+                  <p className="text-slate-300 text-sm font-rajdhani">
+                    View player GPAs, academic interests, and extracurricular involvement to evaluate 
+                    holistic fit for your program. EVAL is free for students to sign up, helping your 
+                    program reach a wider talent pool while supporting equitable access to recruitment.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="bg-gradient-to-r from-purple-600/10 to-cyan-400/10 border border-cyan-400/30 rounded-lg p-12 text-center">
+              <div className="flex flex-col gap-8 justify-center items-center">
+                <Button
+                  onClick={handleScheduleDemo}
+                  className="bg-gradient-to-r from-purple-600 to-cyan-400 hover:from-purple-700 hover:to-cyan-500 text-white font-orbitron font-bold px-20 py-8 text-3xl tracking-wider flex items-center space-x-5 transform hover:scale-105 transition-all duration-200 shadow-xl shadow-purple-500/30"
+                >
+                  <Calendar className="w-10 h-10" />
+                  <span>SCHEDULE A DEMO</span>
+                </Button>
+                <div className="text-slate-400 text-sm font-rajdhani">
+                  or email{" "}
+                  <a href="mailto:info@evalgaming.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    info@evalgaming.com
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )
