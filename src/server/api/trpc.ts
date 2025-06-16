@@ -101,17 +101,27 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 
-// Check if the user is signed in
+
+
+// Check if the user is signed in and track timing
 // Otherwise, throw an UNAUTHORIZED code
-const isAuthed = t.middleware(({ next, ctx }) => {
+const isAuthed = t.middleware(async ({ next, ctx, path }) => {
+  const start = Date.now();
+
   if (!ctx.auth.userId) {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You must be signed in to do this' })
   }
-  return next({
+
+  const result = await next({
     ctx: {
       auth: ctx.auth,
     },
-  })
+  });
+
+  const end = Date.now();
+  console.log(`[TRPC Auth] ${path} took ${end - start}ms to execute`);
+
+  return result;
 })
 
 /**
