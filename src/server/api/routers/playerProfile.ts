@@ -151,6 +151,7 @@ export const playerProfileRouter = createTRPCRouter({
       
       return player;
     } catch (error) {
+      console.error('Error fetching basic profile:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch basic profile',
@@ -195,6 +196,7 @@ export const playerProfileRouter = createTRPCRouter({
         social_connections: socialConnections,
       };
     } catch (error) {
+      console.error('Error fetching connections:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch connections',
@@ -247,6 +249,7 @@ export const playerProfileRouter = createTRPCRouter({
       
       return player;
     } catch (error) {
+      console.error('Error fetching recruiting info:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch recruiting info',
