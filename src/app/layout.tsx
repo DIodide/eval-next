@@ -37,8 +37,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} bg-[#0f0f1a] text-white`}>
-      <body className="min-h-screen flex flex-col font-rajdhani">
+    <html lang="en" className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} bg-black text-white`}>
+      <body className="min-h-screen flex flex-col font-rajdhani global-background">
         <ClerkProvider appearance={{ 
           baseTheme: [dark, neobrutalism],
           variables: {

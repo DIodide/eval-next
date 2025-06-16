@@ -50,17 +50,17 @@ const testimonials = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center text-center text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/80 z-10" />
-        <Image
-          src="/placeholder.svg?height=1080&width=1920"
+        {/* <Image
+          src="/eval/hexagonwall.jpg?height=1080&width=1920"
           alt="Esports background"
           fill
           className="object-cover"
           priority
-        />
+        /> */}
         <div className="relative z-20 max-w-6xl mx-auto px-6">
           <div className="mb-8">
             <Image
