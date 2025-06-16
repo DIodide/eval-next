@@ -39,6 +39,7 @@ import { api } from "@/trpc/react"
 import { gameIcons } from "@/app/tryouts/_components/GameCarousel"
 import TryoutCard from "@/app/tryouts/_components/TryoutCard"
 import type { CardTryout } from "@/app/tryouts/_components/TryoutCard"
+import { toast } from "sonner"
 
 // Map database game names to UI game names
 const gameNameMap: Record<string, keyof typeof gameIcons> = {
@@ -177,8 +178,14 @@ export default function TryoutDetailPage() {
       setRegistrationDialogOpen(false)
       setRegistrationNotes("")
       setRegistrationError("")
+      toast.success("Registration successful", {
+        description: "You are now registered for this tryout",
+      });
     },
     onError: (error) => {
+      toast.error("Registration failed", {
+        description: error.message,
+      });
       console.error('Registration failed:', error)
       setRegistrationError(error.message)
     }
@@ -437,7 +444,7 @@ export default function TryoutDetailPage() {
                                     setCancelDialogOpen(false)
                                     setRegistrationError("")
                                   }}
-                                  className="border-gray-600 text-black hover:bg-gray-700"
+                                  className="bg-white border-gray-600 text-black hover:bg-gray-300"
                                 >
                                   Keep Registration
                                 </Button>
