@@ -447,9 +447,9 @@ export const playerProfileRouter = createTRPCRouter({
             icon: true,
             color: true,
           },
-          orderBy: {
-            name: 'asc',
-          },
+          // orderBy: {
+          //   name: 'asc',
+          // },
         })
       );
       
