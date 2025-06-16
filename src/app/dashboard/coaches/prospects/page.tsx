@@ -1,12 +1,10 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable react/no-unescaped-entities */
 
 import { useState } from "react";
@@ -20,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DataTable } from "@/components/ui/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import {
@@ -46,6 +46,10 @@ import {
   BookOpen,
   Award,
   GamepadIcon,
+  X,
+  Clock,
+  Bookmark,
+  MoreHorizontal,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -115,6 +119,8 @@ export default function MyProspectsPage() {
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
   const [editNotes, setEditNotes] = useState("");
   const [editTags, setEditTags] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [currentTab, setCurrentTab] = useState("all");
 
   // Fetch coach's favorited players
   const { data: prospects = [], isLoading, refetch } = api.playerSearch.getFavorites.useQuery();
@@ -195,6 +201,11 @@ export default function MyProspectsPage() {
     }
   };
 
+  const handleViewPlayer = (prospect: Prospect) => {
+    setSelectedPlayer(prospect);
+    setPlayerDialogOpen(true);
+  };
+
   const getGameIcon = (gameShortName: string) => {
     const icons: Record<string, string> = {
       "VAL": "🎯",
@@ -219,6 +230,260 @@ export default function MyProspectsPage() {
         return "outline";
     }
   };
+
+  // Get current data based on tab
+  const getCurrentProspects = () => {
+    switch (currentTab) {
+      case "priority":
+        return priorityProspects;
+      case "recent":
+        return recentProspects;
+      default:
+        return filteredProspects;
+    }
+  };
+
+  // Column definitions for the data table
+  const columns: ColumnDef<Prospect>[] = [
+    {
+      accessorKey: "avatar",
+      header: "",
+      cell: ({ row }) => {
+        const prospect = row.original;
+        const player = prospect.player;
+        return (
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={player.image_url ?? undefined} alt={`${player.first_name} ${player.last_name}`} />
+            <AvatarFallback className="bg-gray-700 text-white">
+              {player.first_name.charAt(0)}{player.last_name.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        );
+      },
+    },
+    {
+      accessorKey: "player",
+      header: "Player",
+      cell: ({ row }) => {
+        const prospect = row.original;
+        const player = prospect.player;
+        
+        return (
+          <div className="space-y-2">
+            <div className="font-medium text-white text-lg">
+              {player.first_name} {player.last_name}
+            </div>
+            <div className="text-sm text-gray-400">
+              @{player.username || 'No username'}
+            </div>
+            {player.main_game && (
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{getGameIcon(player.main_game.short_name)}</span>
+                <span className="text-sm text-gray-300">{player.main_game.name}</span>
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "school",
+      header: "School & Academics",
+      cell: ({ row }) => {
+        const prospect = row.original;
+        const player = prospect.player;
+        const gpaNumber = player.gpa ? parseFloat(String(player.gpa)) : null;
+        
+        return (
+          <div className="space-y-2">
+            <div className="font-medium text-white">
+              {player.school_ref?.name || player.school || 'No school'}
+            </div>
+            <div className="text-sm text-gray-400">
+              {player.class_year || 'No class year'} • GPA: {gpaNumber?.toFixed(2) || 'N/A'}
+            </div>
+            {player.location && (
+              <div className="text-xs text-gray-500 flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {player.location}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "game_profile",
+      header: "Game Profile",
+      cell: ({ row }) => {
+        const prospect = row.original;
+        const player = prospect.player;
+        const mainGameProfile = player.game_profiles.find(p => p.game.name === player.main_game?.name);
+        
+        if (!mainGameProfile) {
+          return (
+            <div className="text-sm text-gray-500">
+              No game profile
+            </div>
+          );
+        }
+        
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-white">{mainGameProfile.rank || 'Unranked'}</span>
+            </div>
+            <div className="text-sm text-gray-400">
+              {mainGameProfile.role || 'No role'}
+            </div>
+            {mainGameProfile.agents.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {mainGameProfile.agents.slice(0, 2).map((agent, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs bg-gray-700 text-gray-300">
+                    {agent}
+                  </Badge>
+                ))}
+                {mainGameProfile.agents.length > 2 && (
+                  <span className="text-xs text-gray-500">
+                    +{mainGameProfile.agents.length - 2} more
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "eval_scores",
+      header: "EVAL Scores",
+      cell: ({ row }) => {
+        const prospect = row.original;
+        const player = prospect.player;
+        const mainGameProfile = player.game_profiles.find(p => p.game.name === player.main_game?.name);
+        
+        return (
+          <div className="space-y-2">
+            <div className="text-sm">
+              <span className="font-medium text-gray-300">Combine:</span>{' '}
+              <span className={mainGameProfile?.combine_score ? 'text-cyan-400 font-medium' : 'text-gray-500'}>
+                {mainGameProfile?.combine_score?.toFixed(1) || 'N/A'}
+              </span>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium text-gray-300">League:</span>{' '}
+              <span className={mainGameProfile?.league_score ? 'text-green-400 font-medium' : 'text-gray-500'}>
+                {mainGameProfile?.league_score?.toFixed(1) || 'N/A'}
+              </span>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "prospect_info",
+      header: "Prospect Info",
+      cell: ({ row }) => {
+        const prospect = row.original;
+        
+        return (
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {prospect.tags.map((tag, index) => (
+                <Badge key={index} variant={getTagBadgeVariant(tag)} className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            <div className="text-xs text-gray-400 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Added {new Date(prospect.created_at).toLocaleDateString()}
+            </div>
+            {prospect.notes && (
+              <div className="text-xs text-gray-300 bg-gray-800 p-2 rounded max-w-xs">
+                {prospect.notes.length > 50 ? `${prospect.notes.substring(0, 50)}...` : prospect.notes}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "actions",
+      header: "",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const prospect = row.original;
+        
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewPlayer(prospect)}
+              className="text-gray-400 hover:text-white"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEditProspect(prospect)}
+              className="text-gray-400 hover:text-cyan-400"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => navigator.clipboard.writeText(prospect.player.email)}
+                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Copy email
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleViewPlayer(prospect)}
+                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View full profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleEditProspect(prospect)}
+                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit notes & tags
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem className="text-gray-300 focus:text-white focus:bg-gray-700">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Send message
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem
+                  onClick={() => handleRemoveProspect(prospect)}
+                  className="text-red-400 focus:text-red-300 focus:bg-gray-700"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove prospect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
 
   // Show loading state
   if (isLoading) {
@@ -267,46 +532,156 @@ export default function MyProspectsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">My Prospects</h1>
-          <p className="text-gray-400 font-rajdhani">
-            Track and manage your favorited players ({prospects.length} total)
-          </p>
+    <div className="flex bg-gray-900 min-h-screen">
+      {/* Main Content */}
+      <div className={`flex-1 space-y-6 p-6 ${showFilters ? 'mr-80' : ''} transition-all duration-300`}>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-orbitron font-bold text-white">My Prospects</h1>
+            <p className="text-gray-400 font-rajdhani">
+              Track and manage your favorited players ({prospects.length} total)
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
+              <Link href="/dashboard/coaches/player-search">
+                <Plus className="w-4 h-4 mr-2" />
+                Add More Players
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-2 border-gray-600 text-black hover:text-white hover:border-gray-500"
+            >
+              <Filter className="h-4 w-4" />
+              {showFilters ? "Hide Filters" : "Filters"}
+            </Button>
+          </div>
         </div>
-        <Button asChild className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
-          <Link href="/dashboard/coaches/player-search">
-            <Plus className="w-4 h-4 mr-2" />
-            Add More Players
-          </Link>
-        </Button>
+
+        {/* Prospects Organization Tabs */}
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+            <TabsTrigger value="all" className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">
+              All Prospects ({filteredProspects.length})
+            </TabsTrigger>
+            <TabsTrigger value="priority" className="data-[state=active]:bg-red-600 text-gray-300 data-[state=active]:text-white">
+              Priority ({priorityProspects.length})
+            </TabsTrigger>
+            <TabsTrigger value="recent" className="data-[state=active]:bg-green-600 text-gray-300 data-[state=active]:text-white">
+              Recent Activity
+            </TabsTrigger>
+          </TabsList>
+
+          {/* All Prospects */}
+          <TabsContent value="all" className="space-y-4">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white font-orbitron">All Prospects</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filteredProspects.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-400 font-rajdhani">No prospects match your current filters</p>
+                  </div>
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={filteredProspects}
+                    loading={false}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Priority Prospects */}
+          <TabsContent value="priority" className="space-y-4">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white font-orbitron flex items-center gap-2">
+                  <Target className="w-5 h-5 text-red-400" />
+                  Priority Prospects
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {priorityProspects.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-400 font-rajdhani">No priority prospects yet</p>
+                    <p className="text-sm text-gray-500 mt-2">Tag your most important prospects with "priority"</p>
+                  </div>
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={priorityProspects}
+                    loading={false}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Recent Activity */}
+          <TabsContent value="recent" className="space-y-4">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white font-orbitron flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-green-400" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  columns={columns}
+                  data={recentProspects}
+                  loading={false}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Filters and Search */}
-      <Card className="bg-gray-900 border-gray-800">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+      {/* Right Sidebar Filters */}
+      {showFilters && (
+        <div className="fixed right-0 top-0 h-full w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto z-50">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-orbitron font-bold text-white">Prospect Filters</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="space-y-6">
             {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search prospects by name, school, or location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-gray-800 border-gray-700 text-white"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="search" className="text-gray-300">Search</Label>
+              <Input
+                id="search"
+                placeholder="Name, username, school, location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-gray-900 border-gray-600 text-white"
+              />
             </div>
 
             {/* Game Filter */}
-            <div className="w-48">
+            <div className="space-y-2">
+              <Label htmlFor="game" className="text-gray-300">Game</Label>
               <select
+                id="game"
                 value={selectedGame}
                 onChange={(e) => setSelectedGame(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
+                className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-white"
               >
                 <option value="all">All Games</option>
                 {availableGames.map((game) => (
@@ -318,11 +693,13 @@ export default function MyProspectsPage() {
             </div>
 
             {/* Tag Filter */}
-            <div className="w-48">
+            <div className="space-y-2">
+              <Label htmlFor="tag" className="text-gray-300">Tag</Label>
               <select
+                id="tag"
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
+                className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-white"
               >
                 <option value="all">All Tags</option>
                 {availableTags.map((tag) => (
@@ -332,106 +709,82 @@ export default function MyProspectsPage() {
                 ))}
               </select>
             </div>
+
+            {/* Clear Filters Button */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedGame("all");
+                setSelectedTag("all");
+              }}
+              className="w-full border-gray-600 text-black hover:text-white"
+            >
+              Reset Filters
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* Prospects Organization */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-800">
-          <TabsTrigger value="all" className="data-[state=active]:bg-cyan-600">
-            All Prospects ({filteredProspects.length})
-          </TabsTrigger>
-          <TabsTrigger value="priority" className="data-[state=active]:bg-red-600">
-            Priority ({priorityProspects.length})
-          </TabsTrigger>
-          <TabsTrigger value="recent" className="data-[state=active]:bg-green-600">
-            Recent Activity
-          </TabsTrigger>
-        </TabsList>
-
-        {/* All Prospects */}
-        <TabsContent value="all" className="space-y-4">
-          {filteredProspects.length === 0 ? (
-            <div className="text-center py-8">
-              <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-400 font-rajdhani">No prospects match your current filters</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProspects.map((prospect) => (
-                <ProspectCard
-                  key={prospect.id}
-                  prospect={prospect}
-                  onView={() => {
-                    setSelectedPlayer(prospect);
-                    setPlayerDialogOpen(true);
-                  }}
-                  onEdit={() => handleEditProspect(prospect)}
-                  onRemove={() => handleRemoveProspect(prospect)}
-                  getGameIcon={getGameIcon}
-                  getTagBadgeVariant={getTagBadgeVariant}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Priority Prospects */}
-        <TabsContent value="priority" className="space-y-4">
-          {priorityProspects.length === 0 ? (
-            <div className="text-center py-8">
-              <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-400 font-rajdhani">No priority prospects yet</p>
-              <p className="text-sm text-gray-500 mt-2">Tag your most important prospects with "priority"</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {priorityProspects.map((prospect) => (
-                <ProspectCard
-                  key={prospect.id}
-                  prospect={prospect}
-                  onView={() => {
-                    setSelectedPlayer(prospect);
-                    setPlayerDialogOpen(true);
-                  }}
-                  onEdit={() => handleEditProspect(prospect)}
-                  onRemove={() => handleRemoveProspect(prospect)}
-                  getGameIcon={getGameIcon}
-                  getTagBadgeVariant={getTagBadgeVariant}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Recent Activity */}
-        <TabsContent value="recent" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentProspects.map((prospect) => (
-              <ProspectCard
-                key={prospect.id}
-                prospect={prospect}
-                onView={() => {
-                  setSelectedPlayer(prospect);
-                  setPlayerDialogOpen(true);
-                }}
-                onEdit={() => handleEditProspect(prospect)}
-                onRemove={() => handleRemoveProspect(prospect)}
-                getGameIcon={getGameIcon}
-                getTagBadgeVariant={getTagBadgeVariant}
+      {/* Edit Notes Dialog */}
+      <Dialog open={editNotesOpen} onOpenChange={setEditNotesOpen}>
+        <DialogContent className="max-w-2xl bg-gray-900 border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-orbitron text-white">Edit Prospect</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Update notes and tags for {editingProspect?.player.first_name} {editingProspect?.player.last_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-gray-300">Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add your notes about this prospect..."
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                className="bg-gray-800 border-gray-700 text-white min-h-[100px]"
               />
-            ))}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tags" className="text-gray-300">Tags (comma-separated)</Label>
+              <Input
+                id="tags"
+                placeholder="priority, local, top_talent, etc."
+                value={editTags.join(", ")}
+                onChange={(e) => setEditTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
+                className="bg-gray-800 border-gray-700 text-white"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditNotesOpen(false)}
+                className="border-gray-600 text-gray-300 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={updateFavoriteMutation.isPending}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+              >
+                {updateFavoriteMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </DialogContent>
+      </Dialog>
 
       {/* Player Details Dialog */}
       <Dialog open={playerDialogOpen} onOpenChange={setPlayerDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-800">
           <DialogHeader>
             <DialogTitle className="text-2xl font-orbitron text-white">Player Profile</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-400">
               Detailed information about {selectedPlayer?.player.first_name} {selectedPlayer?.player.last_name}
             </DialogDescription>
           </DialogHeader>
@@ -461,13 +814,10 @@ export default function MyProspectsPage() {
                       </div>
                     )}
                     
-                    <div className="flex gap-2">
-                      {selectedPlayer.tags.map((tag) => (
-                        <Badge key={tag} variant={getTagBadgeVariant(tag)} className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
+                    <Badge variant="default" className="bg-cyan-600 text-white">
+                      <Bookmark className="w-3 h-3 mr-1" />
+                      Prospect
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -476,7 +826,7 @@ export default function MyProspectsPage() {
               <div className="flex gap-4">
                 <Button
                   onClick={() => handleEditProspect(selectedPlayer)}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-cyan-600 hover:bg-cyan-700"
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Notes & Tags
@@ -489,10 +839,54 @@ export default function MyProspectsPage() {
                   <Mail className="w-4 h-4 mr-2" />
                   Email Player
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleRemoveProspect(selectedPlayer)}
+                  className="border-red-600 text-red-400 hover:text-red-300 hover:border-red-500"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove Prospect
+                </Button>
               </div>
 
-              {/* Player Information Grid */}
+              {/* Prospect Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Prospect Details */}
+                <div>
+                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                    <Bookmark className="w-5 h-5 text-cyan-400" />
+                    Prospect Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-gray-400">Tags:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedPlayer.tags.map((tag, index) => (
+                          <Badge key={index} variant={getTagBadgeVariant(tag)} className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Added:</span>
+                      <span className="text-white ml-2">{new Date(selectedPlayer.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Last Updated:</span>
+                      <span className="text-white ml-2">{new Date(selectedPlayer.updated_at).toLocaleDateString()}</span>
+                    </div>
+                    {selectedPlayer.notes && (
+                      <div>
+                        <span className="text-gray-400">Notes:</span>
+                        <div className="bg-gray-800 p-3 rounded-lg mt-1">
+                          <p className="text-gray-300 text-sm">{selectedPlayer.notes}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Academic Info */}
                 <div>
                   <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
@@ -524,22 +918,22 @@ export default function MyProspectsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Contact & Location */}
-                <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-cyan-400" />
-                    Contact & Location
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Email:</span>
-                      <span className="text-white font-mono text-sm">{selectedPlayer.player.email}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Location:</span>
-                      <span className="text-white">{selectedPlayer.player.location || "Not specified"}</span>
-                    </div>
+              {/* Contact & Location */}
+              <div>
+                <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-cyan-400" />
+                  Contact & Location
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Email:</span>
+                    <span className="text-white font-mono text-sm">{selectedPlayer.player.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Location:</span>
+                    <span className="text-white">{selectedPlayer.player.location || "Not specified"}</span>
                   </div>
                 </div>
               </div>
@@ -584,242 +978,23 @@ export default function MyProspectsPage() {
                 </div>
               )}
 
-              {/* Prospect Notes */}
-              {selectedPlayer.notes && (
-                <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-cyan-400" />
-                    Your Notes
-                  </h4>
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <p className="text-gray-300 font-rajdhani whitespace-pre-wrap">{selectedPlayer.notes}</p>
-                  </div>
-                </div>
-              )}
-
               {/* Player Bio */}
               {selectedPlayer.player.bio && (
                 <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3">Player Bio</h4>
+                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-cyan-400" />
+                    Player Bio
+                  </h4>
                   <div className="bg-gray-800 p-4 rounded-lg">
                     <p className="text-gray-300 font-rajdhani">{selectedPlayer.player.bio}</p>
                   </div>
                 </div>
               )}
-
-              {/* Added Date */}
-              <div className="text-center pt-4 border-t border-gray-700">
-                <p className="text-sm text-gray-400">
-                  Added to prospects: {new Date(selectedPlayer.created_at).toLocaleDateString()}
-                  {selectedPlayer.updated_at !== selectedPlayer.created_at && (
-                    <span> • Last updated: {new Date(selectedPlayer.updated_at).toLocaleDateString()}</span>
-                  )}
-                </p>
-              </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Notes Dialog */}
-      <Dialog open={editNotesOpen} onOpenChange={setEditNotesOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Prospect Notes & Tags</DialogTitle>
-            <DialogDescription>
-              Update your notes and tags for {editingProspect?.player.first_name} {editingProspect?.player.last_name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-notes">Notes</Label>
-              <Textarea
-                id="edit-notes"
-                placeholder="Add your private notes about this player..."
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-tags">Tags</Label>
-              <Input
-                id="edit-tags"
-                placeholder="priority, prospect, local, etc. (comma separated)"
-                value={editTags.join(", ")}
-                onChange={(e) => setEditTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
-              />
-              <p className="text-xs text-gray-500">
-                Common tags: priority, prospect, local, top_talent, needs_work, interested
-              </p>
-            </div>
-          </div>
-          <div className="flex justify-end gap-4 mt-6">
-            <Button variant="outline" onClick={() => setEditNotesOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit} disabled={updateFavoriteMutation.isPending}>
-              {updateFavoriteMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>
   );
-}
-
-// Prospect Card Component
-interface ProspectCardProps {
-  prospect: Prospect;
-  onView: () => void;
-  onEdit: () => void;
-  onRemove: () => void;
-  getGameIcon: (gameShortName: string) => string;
-  getTagBadgeVariant: (tag: string) => "default" | "destructive" | "secondary" | "outline";
-}
-
-function ProspectCard({ prospect, onView, onEdit, onRemove, getGameIcon, getTagBadgeVariant }: ProspectCardProps) {
-  const player = prospect.player;
-  const mainProfile = player.game_profiles.find(p => p.game.short_name === player.main_game?.short_name);
-  
-  return (
-    <Card className="bg-gray-900 border-gray-800 hover:border-gray-700 transition-colors">
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={player.image_url ?? undefined} />
-              <AvatarFallback className="bg-gray-700 text-white">
-                {player.first_name.charAt(0)}{player.last_name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-orbitron font-bold text-white">{player.first_name} {player.last_name}</h3>
-              <p className="text-sm text-gray-400">{player.username || "No username"}</p>
-            </div>
-          </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={onView}>
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onEdit}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Notes & Tags
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Send Message
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Mail className="w-4 h-4 mr-2" />
-                Email Player
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onRemove} className="text-red-400 focus:text-red-300">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Remove from Prospects
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Game and School Info */}
-        <div className="space-y-2">
-          {player.main_game && (
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{getGameIcon(player.main_game.short_name)}</span>
-              <span className="text-white text-sm">{player.main_game.name}</span>
-              {mainProfile?.rank && (
-                <Badge variant="outline" className="text-xs">{mainProfile.rank}</Badge>
-              )}
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <School className="w-4 h-4" />
-            <span>{player.school_ref?.name || player.school || "No school"}</span>
-          </div>
-          
-          {player.class_year && (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Calendar className="w-4 h-4" />
-              <span>{player.class_year}</span>
-              {player.gpa && (
-                <span>• GPA: {parseFloat(player.gpa.toString()).toFixed(2)}</span>
-              )}
-            </div>
-          )}
-          
-          {player.location && (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <MapPin className="w-4 h-4" />
-              <span>{player.location}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Tags */}
-        {prospect.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {prospect.tags.map((tag) => (
-              <Badge key={tag} variant={getTagBadgeVariant(tag)} className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {/* Notes Preview */}
-        {prospect.notes && (
-          <div className="bg-gray-800 p-3 rounded text-sm">
-            <p className="text-gray-300 line-clamp-2">{prospect.notes}</p>
-          </div>
-        )}
-
-        {/* Game Profile Preview */}
-        {mainProfile && (
-          <div className="bg-gray-800 p-3 rounded text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">Role:</span>
-              <span className="text-white">{mainProfile.role || "Not specified"}</span>
-            </div>
-            {mainProfile.combine_score && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Combine Score:</span>
-                <span className="text-white">{mainProfile.combine_score.toFixed(1)}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button size="sm" onClick={onView} className="flex-1 bg-cyan-600 hover:bg-cyan-700">
-            <Eye className="w-4 h-4 mr-1" />
-            View
-          </Button>
-          <Button size="sm" variant="outline" onClick={onEdit} className="border-gray-600 text-gray-300 hover:text-white">
-            <Edit className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Added Date */}
-        <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-800">
-          Added {new Date(prospect.created_at).toLocaleDateString()}
-        </div>
-      </CardContent>
-    </Card>
-  );
 } 
+
