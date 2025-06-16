@@ -1,4 +1,3 @@
-import { greetingRouter } from "@/server/api/routers/greeting";
 import { playerProfileRouter } from "@/server/api/routers/playerProfile";
 import { coachProfileRouter } from "@/server/api/routers/coachProfile";
 import { tryoutsRouter } from "@/server/api/routers/tryouts";
@@ -13,7 +12,6 @@ import { playerSearchRouter } from "@/server/api/routers/playerSearch";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  greeting: greetingRouter,
   playerProfile: playerProfileRouter,
   coachProfile: coachProfileRouter,
   tryouts: tryoutsRouter,
