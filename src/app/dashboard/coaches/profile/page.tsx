@@ -363,7 +363,18 @@ export default function CoachProfilePage() {
                     </div>
                   </div>
                   
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="border-cyan-600 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20"
+                    >
+                      <a href={`/profiles/school/${profile.school_ref.id}`} target="_blank" rel="noopener noreferrer">
+                        <ExternalLinkIcon className="w-4 h-4 mr-1" />
+                        View Public Profile
+                      </a>
+                    </Button>
                     <Dialog open={schoolDialogOpen} onOpenChange={setSchoolDialogOpen}>
                       <DialogTrigger asChild>
                         <Button 
