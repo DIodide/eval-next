@@ -9,15 +9,15 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center text-center text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/70 z-10" />
-        <Image
+        {/* <Image
           src="/placeholder.svg?height=1080&width=1920"
           alt="Esports gaming background"
           fill
           className="object-cover"
           priority
-        />
+        /> */}
         <div className="relative z-20 max-w-6xl mx-auto px-6">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+          <h1 className="font-orbitron text-4xl md:text-6xl font-bold mb-6">
             THE BRIDGE BETWEEN
             <br />
             <span className="text-cyan-400">TALENT</span> AND <span className="text-cyan-400">OPPORTUNITY</span>
@@ -32,7 +32,7 @@ export default function HomePage() {
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-cyan-400/30">
               <div className="mb-6">
                 <GraduationCap className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-2">FOR PLAYERS & FAMILIES</h3>
+                <h3 className="font-orbitron text-2xl font-bold mb-2">FOR PLAYERS & FAMILIES</h3>
                 <p className="text-gray-300">Get discovered, improve your game, and earn scholarships</p>
               </div>
               <ul className="text-left space-y-2 mb-6 text-sm">
@@ -58,7 +58,7 @@ export default function HomePage() {
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-orange-400/30">
               <div className="mb-6">
                 <UserCheck className="w-16 h-16 text-orange-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-2">FOR COACHES & SCOUTS</h3>
+                <h3 className="text-2xl font-orbitron font-bold mb-2">FOR COACHES & SCOUTS</h3>
                 <p className="text-gray-300">Discover talent, analyze performance, and build your roster</p>
               </div>
               <ul className="text-left space-y-2 mb-6 text-sm">
