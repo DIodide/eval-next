@@ -217,14 +217,14 @@ export default function AboutContactPage() {
                     <Mail className="w-5 h-5 text-cyan-400 mt-1 flex-shrink-0" />
                     <div>
                       <p className="text-white font-orbitron text-sm">Email</p>
-                      <p className="text-gray-300 font-rajdhani">contact@evalgaming.com</p>
+                      <p className="text-gray-300 font-rajdhani">support@evalgaming.com</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
                     <Phone className="w-5 h-5 text-cyan-400 mt-1 flex-shrink-0" />
                     <div>
                       <p className="text-white font-orbitron text-sm">Phone</p>
-                      <p className="text-gray-300 font-rajdhani">+1 (555) 123-4567</p>
+                      <p className="text-gray-300 font-rajdhani">+1 (215) 678-1829</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
