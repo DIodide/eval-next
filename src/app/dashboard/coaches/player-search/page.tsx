@@ -120,14 +120,14 @@ interface SearchFilters {
   search: string;
   location: string;
   class_year: string;
-  min_gpa: number | undefined;
-  max_gpa: number | undefined;
+  min_gpa: number;
+  max_gpa: number;
   rank: string;
   role: string;
-  min_combine_score: number | undefined;
-  max_combine_score: number | undefined;
-  min_league_score: number | undefined;
-  max_league_score: number | undefined;
+  min_combine_score: number;
+  max_combine_score: number;
+  min_league_score: number;
+  max_league_score: number;
   play_style: string;
   agents: string[];
   favorited_only: boolean;
@@ -139,14 +139,14 @@ export default function CoachPlayerSearchPage() {
     search: "",
     location: "",
     class_year: "",
-    min_gpa: undefined,
-    max_gpa: undefined,
+    min_gpa: 0,
+    max_gpa: 4,
     rank: "",
     role: "",
-    min_combine_score: undefined,
-    max_combine_score: undefined,
-    min_league_score: undefined,
-    max_league_score: undefined,
+    min_combine_score: 0,
+    max_combine_score: 100,
+    min_league_score: 0,
+    max_league_score: 100,
     play_style: "",
     agents: [],
     favorited_only: false,
@@ -798,12 +798,13 @@ export default function CoachPlayerSearchPage() {
               </div>
             )}
 
-            {/* Min GPA Slider */}
+            {/* GPA Range Slider */}
             <div className="space-y-2">
-              <Label className="text-gray-300">Min GPA: {searchFilters.min_gpa?.toFixed(1) || '0.0'}</Label>
+              <Label className="text-gray-300">GPA Range: {searchFilters.min_gpa.toFixed(1)} - {searchFilters.max_gpa.toFixed(1)}</Label>
               <Slider
-                value={searchFilters.min_gpa || 0}
-                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_gpa: value }))}
+                range
+                value={[searchFilters.min_gpa, searchFilters.max_gpa]}
+                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_gpa: value[0], max_gpa: value[1] }))}
                 min={0}
                 max={4}
                 step={0.1}
@@ -811,12 +812,13 @@ export default function CoachPlayerSearchPage() {
               />
             </div>
 
-            {/* Combine Score Slider */}
+            {/* Combine Score Range Slider */}
             <div className="space-y-2">
-              <Label className="text-gray-300">Min Combine Score: {searchFilters.min_combine_score || 0}</Label>
+              <Label className="text-gray-300">Combine Score Range: {searchFilters.min_combine_score} - {searchFilters.max_combine_score}</Label>
               <Slider
-                value={searchFilters.min_combine_score || 0}
-                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_combine_score: value }))}
+                range
+                value={[searchFilters.min_combine_score, searchFilters.max_combine_score]}
+                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_combine_score: value[0], max_combine_score: value[1] }))}
                 min={0}
                 max={100}
                 step={1}
@@ -824,12 +826,13 @@ export default function CoachPlayerSearchPage() {
               />
             </div>
 
-            {/* League Score Slider */}
+            {/* League Score Range Slider */}
             <div className="space-y-2">
-              <Label className="text-gray-300">Min League Score: {searchFilters.min_league_score || 0}</Label>
+              <Label className="text-gray-300">League Score Range: {searchFilters.min_league_score} - {searchFilters.max_league_score}</Label>
               <Slider
-                value={searchFilters.min_league_score || 0}
-                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_league_score: value }))}
+                range
+                value={[searchFilters.min_league_score, searchFilters.max_league_score]}
+                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_league_score: value[0], max_league_score: value[1] }))}
                 min={0}
                 max={100}
                 step={1}
@@ -845,13 +848,13 @@ export default function CoachPlayerSearchPage() {
                 location: "",
                 class_year: "",
                 min_gpa: 0,
-                max_gpa: undefined,
+                max_gpa: 4,
                 rank: "",
                 role: "",
                 min_combine_score: 0,
-                max_combine_score: undefined,
+                max_combine_score: 100,
                 min_league_score: 0,
-                max_league_score: undefined,
+                max_league_score: 100,
                 play_style: "",
                 agents: [],
                 favorited_only: false,
