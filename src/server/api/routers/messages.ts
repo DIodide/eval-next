@@ -227,7 +227,7 @@ export const messagesRouter = createTRPCRouter({
       playerId: z.string().uuid().optional(),
       content: z.string().min(1).max(2000).trim(),
     }))
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx, input }) => {
       const userId = ctx.auth.userId;
       
       if (!userId) {
@@ -249,12 +249,101 @@ export const messagesRouter = createTRPCRouter({
         });
       }
 
-      // Mock response for now
+             // Either conversationId or playerId must be provided
+      if (!input.conversationId && !input.playerId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Either conversationId or playerId must be provided",
+        });
+      }
+
+      let conversation: { id: string } | null = null;
+
+      if (input.conversationId) {
+        // Use existing conversation
+        conversation = await ctx.db.conversation.findFirst({
+          where: {
+            id: input.conversationId,
+            coach_id: coach.id,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!conversation) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Conversation not found",
+          });
+        }
+      } else if (input.playerId) {
+        // Create new conversation or find existing one
+        const player = await ctx.db.player.findUnique({
+          where: { id: input.playerId },
+        });
+
+        if (!player) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Player not found",
+          });
+        }
+
+        // Check if conversation already exists
+        conversation = await ctx.db.conversation.findFirst({
+          where: {
+            coach_id: coach.id,
+            player_id: player.id,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        // Create new conversation if none exists
+        conversation ??= await ctx.db.conversation.create({
+          data: {
+            coach_id: coach.id,
+            player_id: player.id,
+            is_starred: false,
+            is_archived: false,
+          },
+          select: {
+            id: true,
+          },
+        });
+      }
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create or find conversation",
+        });
+      }
+
+      // Create the message
+      const message = await ctx.db.message.create({
+        data: {
+          conversation_id: conversation.id,
+          sender_id: coach.id,
+          sender_type: "COACH",
+          content: input.content,
+          is_read: false,
+        },
+      });
+
+      // Update conversation timestamp
+      await ctx.db.conversation.update({
+        where: { id: conversation.id },
+        data: { updated_at: new Date() },
+      });
+
       return {
-        id: "mock-message",
-        conversationId: "mock-conversation",
-        content: "Message sent successfully",
-        timestamp: new Date(),
+        id: message.id,
+        conversationId: conversation.id,
+        content: message.content,
+        timestamp: message.created_at,
       };
     }),
 
@@ -622,7 +711,7 @@ export const messagesRouter = createTRPCRouter({
       coachId: z.string().uuid().optional(),
       content: z.string().min(1).max(2000).trim(),
     }))
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx, input }) => {
       const userId = ctx.auth.userId;
       
       if (!userId) {
@@ -644,12 +733,107 @@ export const messagesRouter = createTRPCRouter({
         });
       }
 
-      // Mock response for now
+      // Either conversationId or coachId must be provided
+      if (!input.conversationId && !input.coachId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Either conversationId or coachId must be provided",
+        });
+      }
+
+      let conversation: { id: string; coach_id: string; player_id: string } | null = null;
+
+      if (input.conversationId) {
+        // Use existing conversation
+        conversation = await ctx.db.conversation.findFirst({
+          where: {
+            id: input.conversationId,
+            player_id: player.id,
+          },
+          select: {
+            id: true,
+            coach_id: true,
+            player_id: true,
+          },
+        });
+
+        if (!conversation) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Conversation not found",
+          });
+        }
+      } else if (input.coachId) {
+        // Create new conversation or find existing one
+        const coach = await ctx.db.coach.findUnique({
+          where: { id: input.coachId },
+        });
+
+        if (!coach) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Coach not found",
+          });
+        }
+
+        // Check if conversation already exists
+        conversation = await ctx.db.conversation.findFirst({
+          where: {
+            coach_id: coach.id,
+            player_id: player.id,
+          },
+          select: {
+            id: true,
+            coach_id: true,
+            player_id: true,
+          },
+        });
+
+        // Create new conversation if none exists
+        conversation ??= await ctx.db.conversation.create({
+          data: {
+            coach_id: coach.id,
+            player_id: player.id,
+            is_starred: false,
+            is_archived: false,
+          },
+          select: {
+            id: true,
+            coach_id: true,
+            player_id: true,
+          },
+        });
+      }
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create or find conversation",
+        });
+      }
+
+      // Create the message
+      const message = await ctx.db.message.create({
+        data: {
+          conversation_id: conversation.id,
+          sender_id: player.id,
+          sender_type: "PLAYER",
+          content: input.content,
+          is_read: false,
+        },
+      });
+
+      // Update conversation timestamp
+      await ctx.db.conversation.update({
+        where: { id: conversation.id },
+        data: { updated_at: new Date() },
+      });
+
       return {
-        id: "mock-message",
-        conversationId: "mock-conversation",
-        content: "Message sent successfully",
-        timestamp: new Date(),
+        id: message.id,
+        conversationId: conversation.id,
+        content: message.content,
+        timestamp: message.created_at,
       };
     }),
 
