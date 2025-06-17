@@ -15,7 +15,7 @@ const playerSearchSchema = z.object({
   game_id: z.string().uuid().optional(),
   search: z.string().optional(), // Name, username, or school
   location: z.string().optional(), // State or city
-  class_year: z.string().optional(),
+  class_year: z.array(z.string()).optional(),
   school_type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]).optional(),
   min_gpa: z.number().min(0).max(4.0).optional(),
   max_gpa: z.number().min(0).max(4.0).optional(),
@@ -104,8 +104,8 @@ export const playerSearchRouter = createTRPCRouter({
         }
 
         // Academic filters
-        if (input.class_year) {
-          whereClause.class_year = input.class_year;
+        if (input.class_year && input.class_year.length > 0) {
+          whereClause.class_year = { in: input.class_year };
         }
 
         if (input.min_gpa !== undefined || input.max_gpa !== undefined) {
