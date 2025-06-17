@@ -18,6 +18,18 @@
   width: 100%;
 }
 
+.tryouts-combine-background {
+  background-image: url('/eval/combine_tryout_bg.png') !important;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  min-height: 100vh;
+  width: 100%;
+}
+
+
+
 
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
