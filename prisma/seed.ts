@@ -257,6 +257,192 @@ async function main() {
       state: 'CO',
       region: 'West',
       website: 'https://pioneergaming.edu'
+    },
+    
+    // Garden State Esports League Schools
+    {
+      name: 'West Essex Regional High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'North Caldwell',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://wesex.org'
+    },
+    {
+      name: 'Haddon Heights High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Haddon Heights',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://haddonheights.k12.nj.us'
+    },
+    {
+      name: 'Bronx River High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Bronx',
+      state: 'NY',
+      region: 'Northeast',
+      website: 'https://bronxriver.nyc.doe.gov'
+    },
+    {
+      name: 'Mercer County Tech',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Trenton',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://mcvts.net'
+    },
+    {
+      name: 'Cherokee High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Marlton',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://cherokee.lenape.k12.nj.us'
+    },
+    {
+      name: 'East Side High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Newark',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://eastside.newark.k12.nj.us'
+    },
+    {
+      name: 'Plainfield High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Plainfield',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://plainfieldnjk12.org'
+    },
+    {
+      name: 'Saint Peter\'s Prep',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Jersey City',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://stpeters.org'
+    },
+    {
+      name: 'East Brunswick High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'East Brunswick',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://ebnet.org'
+    },
+    {
+      name: 'Livingston High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Livingston',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://livingston.org'
+    },
+    {
+      name: 'Technology High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Newark',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://technology.newark.k12.nj.us'
+    },
+    {
+      name: 'Middlesex High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Middlesex',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://middlesexboro.net'
+    },
+    {
+      name: 'Old Bridge High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Old Bridge',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://obschools.org'
+    },
+    {
+      name: 'Cherry Hill High School East',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Cherry Hill',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://chclc.org'
+    },
+    {
+      name: 'NVRHS Demarest',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Demarest',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://nvnet.org'
+    },
+    {
+      name: 'Ocean Township High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Oakhurst',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://oceanschools.org'
+    },
+    {
+      name: 'McNair Academic High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Jersey City',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://mcnair.jcboe.org'
+    },
+    {
+      name: 'David Brearley High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Kenilworth',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://brearley.org'
+    },
+    {
+      name: 'Barnegat High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Barnegat',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://barnegatschools.com'
+    },
+    {
+      name: 'High Tech High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Lincroft',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://hths.mcvts.net'
+    },
+    {
+      name: 'Scotch Plains-Fanwood High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Scotch Plains',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://spfk12.org'
+    },
+    {
+      name: 'Holmdel High School',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Holmdel',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://holmdelschools.org'
+    },
+    {
+      name: 'Community Health Academy of the Heights',
+      type: 'HIGH_SCHOOL' as const,
+      location: 'Jersey City',
+      state: 'NJ',
+      region: 'Northeast',
+      website: 'https://jcboe.org'
     }
   ]
 
@@ -1180,6 +1366,270 @@ async function main() {
 
   const platformsPool = ['Steam', 'Epic Games', 'Battle.net', 'Xbox Live', 'PlayStation Network', 'Nintendo Online']
   const socialPlatformsPool = ['Discord', 'Twitch', 'YouTube', 'Twitter', 'Instagram', 'TikTok']
+
+  // Create Garden State Esports League
+  console.log('🏆 Creating Garden State Esports League...')
+  let gseLeague = null
+  try {
+    const existingLeague = await prisma.league.findFirst({
+      where: { name: 'Garden State Esports League' }
+    })
+    
+    if (existingLeague) {
+      console.log('⏭️  Garden State Esports League already exists')
+      gseLeague = existingLeague
+    } else {
+      gseLeague = await prisma.league.create({
+        data: {
+          name: 'Garden State Esports League',
+          short_name: 'GSE',
+          description: 'New Jersey\'s premier high school esports league, fostering competitive gaming excellence across the Garden State.',
+                     game_id: valorantGame?.id ?? createdGames.find(g => g.short_name === 'VAL')?.id!,
+          region: 'Northeast',
+          state: 'NJ',
+          tier: 'COMPETITIVE',
+          season: '2024-2025',
+          status: 'ACTIVE',
+          format: 'Round Robin + Playoffs',
+          prize_pool: '$25,000',
+          founded_year: 2019
+        }
+      })
+      console.log('✅ Created Garden State Esports League')
+    }
+  } catch (error) {
+    console.log('⚠️  Could not create Garden State Esports League:', error)
+  }
+
+  // Garden State Esports League Players Data
+  const gsePlayersData = [
+    {username: 'Santicio', team: 'West Essex Regional High School', mainAgent: 'Brimstone', role: 'Controller', eval: 86.72903306},
+    {username: 'Daydreaming', team: 'West Essex Regional High School', mainAgent: 'Vyse', role: 'Sentinel', eval: 82.71489702},
+    {username: 'spoty', team: 'West Essex Regional High School', mainAgent: 'Breach', role: 'Initiator', eval: 86.06275828},
+    {username: 'Ashiwashi', team: 'West Essex Regional High School', mainAgent: 'Viper, Tejo', role: 'Controller', eval: 92.90625673},
+    {username: 'buppa', team: 'West Essex Regional High School', mainAgent: 'Waylay', role: 'Duelist', eval: 81.75213639},
+    {username: 'Him', team: 'Haddon Heights High School', mainAgent: 'Iso, Harbor', role: 'Duelist, Controller', eval: 64.96402326},
+    {username: 'CURDS#5435', team: 'Haddon Heights High School', mainAgent: 'Sage, Brimstone', role: 'Sentinel, Controller', eval: 65.14666511},
+    {username: 'ezzz', team: 'Haddon Heights High School', mainAgent: 'Skye, Sage', role: 'Initiator, Sentinel', eval: 67.67587935},
+    {username: 'CURDS#5608', team: 'Haddon Heights High School', mainAgent: 'KAY/O, Fade', role: 'Initiator', eval: 67.32456227},
+    {username: 'gunit', team: 'Haddon Heights High School', mainAgent: 'Omen, Yoru', role: 'Controller, Duelist', eval: 69.27919372},
+    {username: 'RADICAL RUBEN', team: 'Bronx River High School', mainAgent: 'Jett', role: 'Duelist', eval: 83.10281981},
+    {username: 'MasonTroyAdams', team: 'Bronx River High School', mainAgent: 'Sova', role: 'Initiator', eval: 85.70892395},
+    {username: 'gohan', team: 'Bronx River High School', mainAgent: 'Breach, KAY/O', role: 'Initiator', eval: 85.15909853},
+    {username: 'chula', team: 'Bronx River High School', mainAgent: 'Omen', role: 'Controller', eval: 86.56649492},
+    {username: 'Omega', team: 'Bronx River High School', mainAgent: 'Sova, Killjoy', role: 'Initiator, Sentinel', eval: 82.20629882},
+    {username: 'Fish', team: 'Mercer County Tech', mainAgent: 'Waylay, Killjoy', role: 'Duelist, Sentinel', eval: 73.85581025},
+    {username: 'grub', team: 'Mercer County Tech', mainAgent: 'Tejo', role: 'Initiator', eval: 83.85426711},
+    {username: 'ducks', team: 'Mercer County Tech', mainAgent: 'Cypher, Omen', role: 'Sentinel, Controller', eval: 80.90983964},
+    {username: 'Hermit', team: 'Mercer County Tech', mainAgent: 'Omen, KAY/O', role: 'Controller, Initiator', eval: 82.81143954},
+    {username: 'Beanman', team: 'Mercer County Tech', mainAgent: 'Breach, Iso', role: 'Initiator, Duelist', eval: 76.22474174},
+    {username: 'soy milk', team: 'Cherokee High School', mainAgent: 'Omen', role: 'Controller', eval: 87.02147167},
+    {username: 'Nic', team: 'Cherokee High School', mainAgent: 'Gekko', role: 'Initiator', eval: 78.74047576},
+    {username: 'AsianPanda', team: 'Cherokee High School', mainAgent: 'Sova, Jett', role: 'Initiator, Duelist', eval: 85.98967003},
+    {username: 'JTorando', team: 'Cherokee High School', mainAgent: 'Jett, Tejo', role: 'Duelist, Initiator', eval: 79.06429884},
+    {username: 'HeinousHyena493', team: 'Cherokee High School', mainAgent: 'Cypher, Vyse', role: 'Sentinel', eval: 83.98943963},
+    {username: 'D4ark Knight', team: 'East Side High School', mainAgent: 'Reyna', role: 'Duelist', eval: 65.53331477},
+    {username: 'jxzkq', team: 'East Side High School', mainAgent: 'Waylay, Jett', role: 'Duelist', eval: 78.51205351},
+    {username: 'bird', team: 'East Side High School', mainAgent: 'Omen, Cypher', role: 'Controller, Sentinel', eval: 69.7667885},
+    {username: 'Akashi', team: 'East Side High School', mainAgent: 'Cypher, Omen', role: 'Sentinel, Controller', eval: 73.52496924},
+    {username: 'ElColdestAlfredo', team: 'East Side High School', mainAgent: 'Gekko, Tejo', role: 'Initiator', eval: 69.07962584},
+    {username: 'Aggretsuko', team: 'Plainfield High School', mainAgent: 'Vyse, Breach', role: 'Sentinel, Initiator', eval: 72.11217168},
+    {username: 'spydr', team: 'Plainfield High School', mainAgent: 'Iso, Deadlock', role: 'Duelist, Sentinel', eval: 73.57796584},
+    {username: 'PocketSage', team: 'Plainfield High School', mainAgent: 'Reyna, Raze', role: 'Duelist', eval: 66.96280766},
+    {username: 'tomato bisque', team: 'Plainfield High School', mainAgent: 'Clove', role: 'Controller', eval: 76.69101626},
+    {username: 'astr0', team: 'Plainfield High School', mainAgent: 'Gekko, Jett', role: 'Initiator, Duelist', eval: 72.06526897},
+    {username: 'kizu', team: 'Saint Peter\'s Prep', mainAgent: 'Raze', role: 'Duelist', eval: 86.80057739},
+    {username: 'goetta', team: 'Saint Peter\'s Prep', mainAgent: 'Vyse, Clove', role: 'Sentinel', eval: 86.21518019},
+    {username: 'ItzCrazy', team: 'Saint Peter\'s Prep', mainAgent: 'Breach', role: 'Initiator', eval: 94.5179452},
+    {username: 'Goob', team: 'Saint Peter\'s Prep', mainAgent: 'Omen', role: 'Controller', eval: 93.4273239},
+    {username: 'ElmoThePooh', team: 'Saint Peter\'s Prep', mainAgent: 'Omen', role: 'Initiator, Controller', eval: 90.67492178},
+    {username: 'Only', team: 'Saint Peter\'s Prep', mainAgent: 'Fade', role: 'Initiator', eval: 83.92431287},
+    {username: 'xnaffled', team: 'East Brunswick High School', mainAgent: 'Viper, Astra', role: 'Controller', eval: 87.28541825},
+    {username: 'caffeinated', team: 'East Brunswick High School', mainAgent: 'Sova', role: 'Initiator', eval: 73.79010715},
+    {username: 'PIGU', team: 'East Brunswick High School', mainAgent: 'Reyna, Jett', role: 'Duelist', eval: 80.12229278},
+    {username: 'spiderzayzooky', team: 'East Brunswick High School', mainAgent: 'Killjoy, Cypher', role: 'Sentinel', eval: 81.69212425},
+    {username: 'dgs', team: 'East Brunswick High School', mainAgent: 'Jett, Phoenix', role: 'Duelist', eval: 77.53210694},
+    {username: 'Seijuro Akashi', team: 'Livingston High School', mainAgent: 'Breach', role: 'Initiator', eval: 86.59720836},
+    {username: 'kou', team: 'Livingston High School', mainAgent: 'Jett', role: 'Duelist', eval: 85.06315237},
+    {username: 'i luv abgs', team: 'Livingston High School', mainAgent: 'Killjoy', role: 'Sentinel', eval: 83.96096885},
+    {username: 'ryo', team: 'Livingston High School', mainAgent: 'Sova, Raze', role: 'Initiator', eval: 83.85209054},
+    {username: 'rest', team: 'Livingston High School', mainAgent: 'Omen', role: 'Controller', eval: 91.89517342},
+    {username: 'pedro', team: 'Technology High School', mainAgent: 'Chamber', role: 'Sentinel', eval: 68.26308839},
+    {username: 'dan', team: 'Technology High School', mainAgent: 'Phoenix', role: 'Duelist', eval: 75.24611653},
+    {username: 'Hydro', team: 'Technology High School', mainAgent: 'Astra, Omen', role: 'Controller', eval: 78.84845899},
+    {username: 'hyein', team: 'Technology High School', mainAgent: 'Jett, Raze', role: 'Duelist', eval: 75.6216766},
+    {username: 'Franciscocze', team: 'Technology High School', mainAgent: 'Tejo', role: 'Initiator', eval: 70.45602644},
+    {username: 'MHS Pyroxy', team: 'Middlesex High School', mainAgent: 'Breach', role: 'Initiator', eval: 82.73161049},
+    {username: 'MHS Soy Milk', team: 'Middlesex High School', mainAgent: 'Jett, Phoenix', role: 'Duelist', eval: 80.16837109},
+    {username: 'MHS zhen', team: 'Middlesex High School', mainAgent: 'Sova, Tejo', role: 'Initiator', eval: 92.31627781},
+    {username: 'MHS zinny', team: 'Middlesex High School', mainAgent: 'Omen', role: 'Controller', eval: 83.15657968},
+    {username: 'MHS pr1sm', team: 'Middlesex High School', mainAgent: 'Cypher', role: 'Sentinel', eval: 85.5033857},
+    {username: 'Nebula1dust', team: 'Technology High School', mainAgent: 'Cypher', role: 'Sentinel', eval: 72.44415682},
+    {username: 'Beets', team: 'Old Bridge High School', mainAgent: 'Sova, Tejo', role: 'Initiator', eval: 83.63034781},
+    {username: 'LFT Dandojo', team: 'Old Bridge High School', mainAgent: 'Yoru', role: 'Duelist', eval: 92.7764068},
+    {username: 'EDowg315', team: 'Old Bridge High School', mainAgent: 'Clove', role: 'Controller', eval: 79.68743046},
+    {username: 'rhonda', team: 'Old Bridge High School', mainAgent: 'Jett, Raze', role: 'Duelist', eval: 80.73328311},
+    {username: 'Kim Chaewon', team: 'Old Bridge High School', mainAgent: 'Cypher', role: 'Sentinel', eval: 70.9871905},
+    {username: 'TTVCyclone', team: 'Cherry Hill High School East', mainAgent: 'Jett', role: 'Duelist', eval: 88.68274921},
+    {username: 'Mluck', team: 'Cherry Hill High School East', mainAgent: 'Sova, Skye', role: 'Initiator', eval: 81.42877924},
+    {username: 'Sempie ichinese', team: 'Cherry Hill High School East', mainAgent: 'Omen', role: 'Controller', eval: 93.85965647},
+    {username: 'kumkum', team: 'Cherry Hill High School East', mainAgent: 'Reyna', role: 'Duelist', eval: 82.54840755},
+    {username: 'Pwnda', team: 'Cherry Hill High School East', mainAgent: 'Cypher, Vyse, Skye, Breach', role: 'Sentinel, Initiator', eval: 85.20318191},
+    {username: 'That Barney Guy', team: 'NVRHS Demarest', mainAgent: 'Clove, Omen', role: 'Controller', eval: 85.84581105},
+    {username: 'FUBAR', team: 'NVRHS Demarest', mainAgent: 'Jett, Chamber', role: 'Duelist, Sentinel', eval: 82.89954905},
+    {username: 'nephis', team: 'NVRHS Demarest', mainAgent: 'Neon, Reyna, Gekko, Jett', role: 'Duelist', eval: 77.92643957},
+    {username: 'yun', team: 'NVRHS Demarest', mainAgent: 'Raze, Sova', role: 'Duelist, Initiator', eval: 76.759805},
+    {username: 'Mini C9 Oxy', team: 'NVRHS Demarest', mainAgent: 'Reyna, Jett', role: 'Duelist', eval: 82.92068175},
+    {username: 'AIya', team: 'Ocean Township High School', mainAgent: 'Sage, Killjoy', role: 'Sentinel', eval: 80.08998203},
+    {username: 'crepe', team: 'Ocean Township High School', mainAgent: 'Gekko, Breach', role: 'Initiator', eval: 75.93239896},
+    {username: 'Fz1nnWoW', team: 'Ocean Township High School', mainAgent: 'Jett, Tejo', role: 'Duelist, Initiator', eval: 79.05248152},
+    {username: 'i like bananasss', team: 'Ocean Township High School', mainAgent: 'Iso, Neon', role: 'Duelist', eval: 70.57617819},
+    {username: 'bum', team: 'Ocean Township High School', mainAgent: 'Clove, Omen', role: 'Controller', eval: 75.67112564},
+    {username: 'PiggyPlague303', team: 'McNair Academic High School', mainAgent: 'Vyse, Cypher', role: 'Sentinel', eval: 91.81014646},
+    {username: 'Iconic', team: 'McNair Academic High School', mainAgent: 'Jett', role: 'Duelist', eval: 82.95606142},
+    {username: 'Axstro', team: 'McNair Academic High School', mainAgent: 'Iso', role: 'Duelist', eval: 86.43218599},
+    {username: 'anika', team: 'McNair Academic High School', mainAgent: 'Breach, Sova', role: 'Initiator', eval: 81.66789187},
+    {username: 'Kiso', team: 'McNair Academic High School', mainAgent: 'Omen', role: 'Controller', eval: 86.84245342},
+    {username: 'CrazyBuddy', team: 'David Brearley High School', mainAgent: 'Omen', role: 'Controller', eval: 74.12618073},
+    {username: 'FLAWLESS LIKE ME', team: 'David Brearley High School', mainAgent: 'Yoru', role: 'Duelist', eval: 84.20719284},
+    {username: 'WooperEnthusiast', team: 'David Brearley High School', mainAgent: 'Cypher', role: 'Sentinel', eval: 78.35309387},
+    {username: 'lullu', team: 'David Brearley High School', mainAgent: 'Killjoy', role: 'Sentinel', eval: 78.78687061},
+    {username: 'ziptrix', team: 'David Brearley High School', mainAgent: 'Sova', role: 'Initiator', eval: 82.15013491},
+    {username: 'GreenDragoon', team: 'Barnegat High School', mainAgent: 'Cypher, Killjoy', role: 'Sentinel', eval: 81.14431801},
+    {username: 'Funny Valentine', team: 'Barnegat High School', mainAgent: 'Jett, Iso', role: 'Duelist', eval: 87.56104926},
+    {username: 'ILoveTheStrokes', team: 'Barnegat High School', mainAgent: 'Fade', role: 'Initiator', eval: 78.61812306},
+    {username: 'Burrito', team: 'Barnegat High School', mainAgent: 'Brimstone', role: 'Controller', eval: 93.56603185},
+    {username: 'EthalexG', team: 'Barnegat High School', mainAgent: 'Deadlock', role: 'Sentinel', eval: 84.88519659},
+    {username: 'znex', team: 'High Tech High School', mainAgent: 'Tejo', role: 'Initiator', eval: 84.5555506},
+    {username: 'dasiggster', team: 'High Tech High School', mainAgent: 'Tejo, Omen, Viper', role: 'Controller', eval: 77.88705936},
+    {username: 'Tengarra', team: 'High Tech High School', mainAgent: 'Yoru, Jett, Reyna', role: 'Duelist', eval: 80.6331709},
+    {username: 'LilRino', team: 'High Tech High School', mainAgent: 'Iso', role: 'Duelist', eval: 86.26516508},
+    {username: 'Japoc', team: 'High Tech High School', mainAgent: 'Killjoy', role: 'Sentinel', eval: 75.65732878},
+    {username: 'Winnypoo', team: 'Scotch Plains-Fanwood High School', mainAgent: 'Omen', role: 'Controller', eval: 90.63805246},
+    {username: 'Titan', team: 'Scotch Plains-Fanwood High School', mainAgent: 'Jett', role: 'Duelist', eval: 77.02458573},
+    {username: 'ANStykes', team: 'Scotch Plains-Fanwood High School', mainAgent: 'Cypher, Chamber', role: 'Sentinel', eval: 78.83894164},
+    {username: 'BoopNoodleOnFire', team: 'Scotch Plains-Fanwood High School', mainAgent: 'Tejo', role: 'Initiator', eval: 80.09760131},
+    {username: 'Malex', team: 'Scotch Plains-Fanwood High School', mainAgent: 'Reyna', role: 'Duelist', eval: 80.25853192},
+    {username: 'OcEaN', team: 'Holmdel High School', mainAgent: 'Breach, Viper, Tejo', role: 'Initiator', eval: 89.68333295},
+    {username: 'obbi', team: 'Holmdel High School', mainAgent: 'Cypher, Sova', role: 'Sentinel, Initiator', eval: 85.01221974},
+    {username: 'foam', team: 'Holmdel High School', mainAgent: 'Raze', role: 'Duelist', eval: 86.74471101},
+    {username: 'pwayer', team: 'Holmdel High School', mainAgent: 'Tejo', role: 'Initiator', eval: 76.24880697},
+    {username: 'awsumkin', team: 'Holmdel High School', mainAgent: 'Clove', role: 'Controller', eval: 88.88493923},
+    {username: 'poop', team: 'Holmdel High School', mainAgent: 'Killjoy', role: 'Sentinel', eval: 85.2403609},
+    {username: 'citrusturtle', team: 'West Essex Regional High School', mainAgent: 'Cypher', role: 'Sentinel', eval: 80.55212695},
+    {username: 'Banditvean', team: 'NVRHS Demarest', mainAgent: 'Killjoy', role: 'Sentinel', eval: 74.29721475},
+    {username: 'ebisu', team: 'Community Health Academy of the Heights', mainAgent: 'Yoru, Breach', role: 'Duelist, Initiator', eval: 74.83142861},
+    {username: 'Charzy', team: 'Community Health Academy of the Heights', mainAgent: 'Iso, Raze', role: 'Duelist', eval: 81.06664905},
+    {username: 'neno', team: 'Community Health Academy of the Heights', mainAgent: 'Breach, Tejo', role: 'Initiator', eval: 83.57556873},
+    {username: 'The Professor', team: 'Community Health Academy of the Heights', mainAgent: 'Cypher, Vyse', role: 'Sentinel', eval: 89.08572014},
+    {username: 'sensei wu', team: 'Community Health Academy of the Heights', mainAgent: 'Omen', role: 'Controller', eval: 90.04111055}
+  ]
+
+  // Create GSE players
+  console.log('🎮 Creating Garden State Esports League players...')
+  const createdGSEPlayers = []
+  
+  for (const gsePlayerData of gsePlayersData) {
+    // Find the school
+    const school = createdSchools.find(s => s.name === gsePlayerData.team)
+    if (!school) {
+      console.log(`⚠️  School not found for ${gsePlayerData.username}: ${gsePlayerData.team}`)
+      continue
+    }
+
+    // Generate random graduation year between 2025-2029
+    const graduationYear = 2025 + Math.floor(Math.random() * 5) // 2025-2029
+    const currentYear = new Date().getFullYear()
+    let classYear = 'Senior'
+    if (graduationYear === currentYear + 1) classYear = 'Senior'
+    else if (graduationYear === currentYear + 2) classYear = 'Junior'
+    else if (graduationYear === currentYear + 3) classYear = 'Sophomore'
+    else if (graduationYear === currentYear + 4) classYear = 'Freshman'
+
+    const player = {
+      clerk_id: `gse_player_${gsePlayerData.username}_mock_id`,
+      email: `${gsePlayerData.username.toLowerCase().replace(/[^a-z0-9]/g, '')}@${school.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.edu`,
+      first_name: 'Unknown',
+      last_name: 'Unknown',
+      username: gsePlayerData.username,
+      image_url: null,
+      location: `${school.location}, ${school.state}`,
+      bio: `Garden State Esports League competitor representing ${school.name}`,
+      school: school.name,
+      school_id: school.id,
+      gpa: parseFloat((3.0 + Math.random() * 1.0).toFixed(2)), // 3.0-4.0 GPA
+      class_year: classYear,
+      graduation_date: graduationYear.toString(),
+      intended_major: getRandomElement(['Computer Science', 'Information Technology', 'Game Design', 'Digital Media', 'Business Administration', 'Broadcasting', 'English']),
+      main_game_id: valorantGame?.id || createdGames.find(g => g.short_name === 'VAL')?.id,
+      guardian_email: `parent.${gsePlayerData.username.toLowerCase().replace(/[^a-z0-9]/g, '')}@email.com`,
+      scholastic_contact: `${getRandomElement(['Ms.', 'Mr.', 'Dr.'])} ${getRandomElement(['Johnson', 'Smith', 'Williams', 'Brown', 'Davis'])}`,
+      scholastic_contact_email: `contact.${gsePlayerData.username.toLowerCase().replace(/[^a-z0-9]/g, '')}@${school.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')}.edu`,
+      extra_curriculars: 'Garden State Esports League, Gaming Club, Academic Honor Society',
+      academic_bio: 'Competitive esports athlete with strong academic performance and leadership skills.'
+    }
+
+    try {
+      const existingPlayer = await prisma.player.findUnique({
+        where: { clerk_id: player.clerk_id }
+      })
+      
+      if (existingPlayer) {
+        console.log(`⏭️  GSE Player already exists: ${gsePlayerData.username}`)
+        createdGSEPlayers.push(existingPlayer)
+      } else {
+        const newPlayer = await prisma.player.create({ data: player })
+        console.log(`✅ Created GSE player: ${gsePlayerData.username} (${school.name})`)
+        createdGSEPlayers.push(newPlayer)
+
+        // Create VALORANT game profile for GSE player
+        if (valorantGame) {
+          const agents = gsePlayerData.mainAgent.split(', ').map(agent => agent.trim())
+          const roles = gsePlayerData.role.split(', ').map(role => role.trim())
+          
+          const gameProfile = {
+            player_id: newPlayer.id,
+            game_id: valorantGame.id,
+            username: gsePlayerData.username,
+            rating: Math.floor(1000 + (gsePlayerData.eval / 100) * 2000), // Scale EVAL to 1000-3000 rating
+            combine_score: gsePlayerData.eval,
+            league_score: gsePlayerData.eval,
+            play_style: getRandomElement(playStylesPool),
+            tracker_url: `https://tracker.gg/valorant/profile/riot/${gsePlayerData.username}`,
+            rank: getRandomElement(valorantRanksPool.slice(-15)), // Higher ranks for these competitive players
+            role: roles[0] || 'Flex',
+            agents: agents,
+            preferred_maps: getRandomElements(['Bind', 'Haven', 'Split', 'Ascent', 'Dust2', 'Inferno', 'Mirage', 'Cache'], 3)
+          }
+
+          await prisma.playerGameProfile.create({ data: gameProfile })
+          console.log(`✅ Created VALORANT profile for GSE player: ${gsePlayerData.username}`)
+
+          // Create PlayerLeague record
+          if (gseLeague) {
+            const playerLeague = {
+              player_id: newPlayer.id,
+              league_id: gseLeague.id,
+              season: '2024-2025',
+              eval_score: gsePlayerData.eval,
+              main_agent: gsePlayerData.mainAgent,
+              role: gsePlayerData.role,
+              rank: 'Active',
+              wins: Math.floor(Math.random() * 15) + 5, // 5-19 wins
+              losses: Math.floor(Math.random() * 10) + 2, // 2-11 losses
+              games_played: 0 // Will be calculated
+            }
+            playerLeague.games_played = playerLeague.wins + playerLeague.losses
+
+            await prisma.playerLeague.create({ data: playerLeague })
+            console.log(`✅ Created league participation for GSE player: ${gsePlayerData.username}`)
+          }
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️  Could not create GSE player ${gsePlayerData.username}:`, error)
+    }
+  }
 
   // Create 120 players (30 per game)
   const players = []
