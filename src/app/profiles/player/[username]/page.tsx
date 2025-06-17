@@ -282,7 +282,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 py-8">
       <div className="container mx-auto px-4 max-w-6xl space-y-8">
         {/* Header Section */}
         <Card className="bg-gray-800 border-gray-700">
