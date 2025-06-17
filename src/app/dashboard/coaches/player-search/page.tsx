@@ -8,12 +8,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +39,23 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Link from "next/link";
+
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // Player type based on the API response
 type SearchPlayer = {
@@ -133,7 +151,7 @@ export default function CoachPlayerSearchPage() {
     agents: [],
     favorited_only: false,
   });
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState<SearchPlayer | null>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   
@@ -145,13 +163,23 @@ export default function CoachPlayerSearchPage() {
   // Fetch available games
   const { data: games = [] } = api.playerProfile.getAvailableGames.useQuery();
 
-  // Search players query with proper type conversion
-  const searchInput = {
-    game_id: currentGameId || undefined,
-    ...searchFilters,
+  // Debounce the search filters to prevent spam requests
+  const debouncedSearchFilters = useDebounce(searchFilters, 300);
+  const debouncedGameId = useDebounce(currentGameId, 300);
+
+  // Track if filters are being applied (when immediate filters don't match debounced ones)
+  const isFiltering = useMemo(() => {
+    return JSON.stringify(searchFilters) !== JSON.stringify(debouncedSearchFilters) || 
+           currentGameId !== debouncedGameId;
+  }, [searchFilters, debouncedSearchFilters, currentGameId, debouncedGameId]);
+
+  // Search players query with proper type conversion using debounced values
+  const searchInput = useMemo(() => ({
+    game_id: debouncedGameId || undefined,
+    ...debouncedSearchFilters,
     limit: 50,
     offset: 0,
-  };
+  }), [debouncedGameId, debouncedSearchFilters]);
 
   const utils = api.useUtils();
   const { data: searchResults, isLoading: isSearching } = api.playerSearch.searchPlayers.useQuery(searchInput);
@@ -654,7 +682,7 @@ export default function CoachPlayerSearchPage() {
                                   <DataTable
                     columns={columns}
                     data={stablePlayers}
-                    loading={isSearching}
+                    loading={isSearching || isFiltering}
                     filterColumn="name"
                   />
               </CardContent>
@@ -677,7 +705,7 @@ export default function CoachPlayerSearchPage() {
                   <DataTable
                     columns={columns}
                     data={stablePlayers}
-                    loading={isSearching}
+                    loading={isSearching || isFiltering}
                     filterColumn="name"
                   />
                 </CardContent>
@@ -691,7 +719,15 @@ export default function CoachPlayerSearchPage() {
       {showFilters && (
         <div className="fixed right-0 top-0 h-full w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto z-50">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-orbitron font-bold text-white">Search Filters</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-orbitron font-bold text-white">Search Filters</h3>
+              {isFiltering && (
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-cyan-400">Applying...</span>
+                </div>
+              )}
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -762,80 +798,43 @@ export default function CoachPlayerSearchPage() {
               </div>
             )}
 
-            {/* GPA Range */}
+            {/* Min GPA Slider */}
             <div className="space-y-2">
-              <Label className="text-gray-300">GPA Range</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  max="4"
-                  step="0.1"
-                  placeholder="Min"
-                  value={searchFilters.min_gpa || ""}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, min_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  className="bg-gray-900 border-gray-600 text-white"
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  max="4"
-                  step="0.1"
-                  placeholder="Max"
-                  value={searchFilters.max_gpa || ""}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, max_gpa: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  className="bg-gray-900 border-gray-600 text-white"
-                />
-              </div>
+              <Label className="text-gray-300">Min GPA: {searchFilters.min_gpa?.toFixed(1) || '0.0'}</Label>
+              <Slider
+                value={searchFilters.min_gpa || 0}
+                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_gpa: value }))}
+                min={0}
+                max={4}
+                step={0.1}
+                className="w-full"
+              />
             </div>
 
-            {/* EVAL Scores */}
+            {/* Combine Score Slider */}
             <div className="space-y-2">
-              <Label className="text-gray-300">Combine Score Range</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="Min"
-                  value={searchFilters.min_combine_score || ""}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, min_combine_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  className="bg-gray-900 border-gray-600 text-white"
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="Max"
-                  value={searchFilters.max_combine_score || ""}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, max_combine_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  className="bg-gray-900 border-gray-600 text-white"
-                />
-              </div>
+              <Label className="text-gray-300">Min Combine Score: {searchFilters.min_combine_score || 0}</Label>
+              <Slider
+                value={searchFilters.min_combine_score || 0}
+                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_combine_score: value }))}
+                min={0}
+                max={100}
+                step={1}
+                className="w-full"
+              />
             </div>
 
+            {/* League Score Slider */}
             <div className="space-y-2">
-              <Label className="text-gray-300">League Score Range</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="Min"
-                  value={searchFilters.min_league_score || ""}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, min_league_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  className="bg-gray-900 border-gray-600 text-white"
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="Max"
-                  value={searchFilters.max_league_score || ""}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, max_league_score: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  className="bg-gray-900 border-gray-600 text-white"
-                />
-              </div>
+              <Label className="text-gray-300">Min League Score: {searchFilters.min_league_score || 0}</Label>
+              <Slider
+                value={searchFilters.min_league_score || 0}
+                onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_league_score: value }))}
+                min={0}
+                max={100}
+                step={1}
+                className="w-full"
+              />
             </div>
 
             {/* Clear Filters Button */}
@@ -845,13 +844,13 @@ export default function CoachPlayerSearchPage() {
                 search: "",
                 location: "",
                 class_year: "",
-                min_gpa: undefined,
+                min_gpa: 0,
                 max_gpa: undefined,
                 rank: "",
                 role: "",
-                min_combine_score: undefined,
+                min_combine_score: 0,
                 max_combine_score: undefined,
-                min_league_score: undefined,
+                min_league_score: 0,
                 max_league_score: undefined,
                 play_style: "",
                 agents: [],
