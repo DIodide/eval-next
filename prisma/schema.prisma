@@ -118,8 +118,38 @@ model Coach {
     combines_created Combine[]
     Conversation     Conversation[]
     favorites        CoachFavorite[] // Coach's favorited players
+    school_requests  SchoolAssociationRequest[] // School association requests
 
     @@map("coaches")
+}
+
+/// School association requests for coach onboarding
+model SchoolAssociationRequest {
+    id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    coach_id        String                  @db.Uuid
+    school_id       String                  @db.Uuid
+    status          SchoolAssociationStatus @default(PENDING)
+    request_message String? // Optional message from coach
+    admin_notes     String? // Admin notes for review
+    requested_at    DateTime                @default(now()) @db.Timestamp(6)
+    reviewed_at     DateTime?               @db.Timestamp(6)
+    reviewed_by     String? // Admin user ID who reviewed
+    created_at      DateTime                @default(now()) @db.Timestamp(6)
+    updated_at      DateTime                @updatedAt
+
+    coach  Coach  @relation(fields: [coach_id], references: [id])
+    school School @relation(fields: [school_id], references: [id])
+
+    @@unique([coach_id, school_id])
+    @@index([status])
+    @@index([requested_at])
+    @@map("school_association_requests")
+}
+
+enum SchoolAssociationStatus {
+    PENDING
+    APPROVED
+    REJECTED
 }
 
 // =================================================================
@@ -224,13 +254,19 @@ model School {
     state      String
     region     String?
     website    String?
+    logo_url   String? // School logo URL
+    bio        String? // School esports program description
+    email      String? // Primary contact email
+    phone      String? // Contact phone number
     created_at DateTime   @default(now()) @db.Timestamp(6)
+    updated_at DateTime   @updatedAt
 
-    players            Player[]
-    coaches            Coach[]
-    teams              Team[]
-    tryouts            Tryout[]
-    league_memberships LeagueSchool[]
+    players                  Player[]
+    coaches                  Coach[]
+    teams                    Team[]
+    tryouts                  Tryout[]
+    league_memberships       LeagueSchool[]
+    SchoolAssociationRequest SchoolAssociationRequest[]
 
     @@unique([name, type, state])
     @@map("schools")
