@@ -119,10 +119,11 @@ type SearchPlayer = {
 interface SearchFilters {
   search: string;
   location: string;
-  class_year: string;
+  class_year: string[];
   min_gpa: number;
   max_gpa: number;
-  rank: string;
+  min_rank: string;
+  max_rank: string;
   role: string;
   min_combine_score: number;
   max_combine_score: number;
@@ -138,10 +139,11 @@ export default function CoachPlayerSearchPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     search: "",
     location: "",
-    class_year: "",
+    class_year: [],
     min_gpa: 0,
     max_gpa: 4,
-    rank: "",
+    min_rank: "",
+    max_rank: "",
     role: "",
     min_combine_score: 0,
     max_combine_score: 100,
@@ -166,6 +168,9 @@ export default function CoachPlayerSearchPage() {
   // Debounce the search filters to prevent spam requests
   const debouncedSearchFilters = useDebounce(searchFilters, 300);
   const debouncedGameId = useDebounce(currentGameId, 300);
+  
+  // Keep track of available ranks separately to prevent UI flickering
+  const [stableAvailableRanks, setStableAvailableRanks] = useState<string[]>([]);
 
   // Track if filters are being applied (when immediate filters don't match debounced ones)
   const isFiltering = useMemo(() => {
@@ -378,22 +383,68 @@ export default function CoachPlayerSearchPage() {
     return icons[gameShortName] || "🎮";
   };
 
-  // Get unique ranks for current game
+  // Define proper rank orders for different games
+  const getGameRankOrder = (gameName: string): string[] => {
+    switch (gameName) {
+      case 'VALORANT':
+        return ['Iron 1', 'Iron 2', 'Iron 3', 'Bronze 1', 'Bronze 2', 'Bronze 3', 'Silver 1', 'Silver 2', 'Silver 3', 'Gold 1', 'Gold 2', 'Gold 3', 'Platinum 1', 'Platinum 2', 'Platinum 3', 'Diamond 1', 'Diamond 2', 'Diamond 3', 'Ascendant 1', 'Ascendant 2', 'Ascendant 3', 'Immortal 1', 'Immortal 2', 'Immortal 3', 'Radiant'];
+      case 'Overwatch 2':
+        return ['Bronze 5', 'Bronze 4', 'Bronze 3', 'Bronze 2', 'Bronze 1', 'Silver 5', 'Silver 4', 'Silver 3', 'Silver 2', 'Silver 1', 'Gold 5', 'Gold 4', 'Gold 3', 'Gold 2', 'Gold 1', 'Platinum 5', 'Platinum 4', 'Platinum 3', 'Platinum 2', 'Platinum 1', 'Diamond 5', 'Diamond 4', 'Diamond 3', 'Diamond 2', 'Diamond 1', 'Master 5', 'Master 4', 'Master 3', 'Master 2', 'Master 1', 'Grandmaster 5', 'Grandmaster 4', 'Grandmaster 3', 'Grandmaster 2', 'Grandmaster 1', 'Champion', 'Top 500'];
+      case 'Rocket League':
+        return ['Bronze I', 'Bronze II', 'Bronze III', 'Silver I', 'Silver II', 'Silver III', 'Gold I', 'Gold II', 'Gold III', 'Platinum I', 'Platinum II', 'Platinum III', 'Diamond I', 'Diamond II', 'Diamond III', 'Champion I', 'Champion II', 'Champion III', 'Grand Champion I', 'Grand Champion II', 'Grand Champion III', 'Supersonic Legend'];
+      default:
+        return [];
+    }
+  };
+
+  // Get unique ranks for current game in proper competitive order
   const getAvailableRanks = () => {
     if (!currentGameId) return [];
     const currentGame = games.find(g => g.id === currentGameId);
     if (!currentGame) return [];
     
-    const ranks = new Set<string>();
+    // Skip rank filtering for Smash Ultimate
+    if (currentGame.name === 'Super Smash Bros. Ultimate') return [];
+    
+    const rankOrder = getGameRankOrder(currentGame.name);
+    if (rankOrder.length === 0) {
+      // Fallback to alphabetical sort for games without defined order
+      const ranks = new Set<string>();
+      searchResults?.players?.forEach(player => {
+        const gameProfile = player.game_profiles.find(p => p.game.name === currentGame.name);
+        if (gameProfile?.rank) {
+          ranks.add(gameProfile.rank);
+        }
+      });
+      return Array.from(ranks).sort();
+    }
+    
+    // Filter rank order to only include ranks that exist in the data
+    const availableRanks = new Set<string>();
     searchResults?.players?.forEach(player => {
       const gameProfile = player.game_profiles.find(p => p.game.name === currentGame.name);
       if (gameProfile?.rank) {
-        ranks.add(gameProfile.rank);
+        availableRanks.add(gameProfile.rank);
       }
     });
     
-    return Array.from(ranks).sort();
+    return rankOrder.filter(rank => availableRanks.has(rank));
   };
+
+  const players = searchResults?.players || [];
+  const currentGameName = games.find(g => g.id === currentGameId)?.name || "All Games";
+  
+  // Memoize available ranks to prevent infinite loops
+  const availableRanks = React.useMemo(() => {
+    return getAvailableRanks();
+  }, [currentGameId, searchResults?.players, games]);
+  
+  // Update stable available ranks when new data comes in, but keep them stable during loading
+  React.useEffect(() => {
+    if (availableRanks.length > 0) {
+      setStableAvailableRanks(availableRanks);
+    }
+  }, [availableRanks]);
 
   // Column definitions for the data table - memoized to prevent resets
   const columns: ColumnDef<SearchPlayer>[] = React.useMemo(() => [
@@ -462,10 +513,11 @@ export default function CoachPlayerSearchPage() {
         );
       },
     },
-    {
-      accessorKey: "rank",
+    // Only show rank column for games that have meaningful ranks (not Smash Ultimate)
+    ...(currentGameName !== 'Super Smash Bros. Ultimate' ? [{
+      accessorKey: "rank" as keyof SearchPlayer,
       header: "Rank",
-      cell: ({ row }) => {
+      cell: ({ row }: { row: { original: SearchPlayer } }) => {
         const player = row.original;
         const gameProfile = getGameProfile(player);
         
@@ -475,7 +527,7 @@ export default function CoachPlayerSearchPage() {
           </div>
         );
       },
-    },
+    }] : []),
     {
       accessorKey: "game_profile",
       header: "Game Profile",
@@ -599,12 +651,8 @@ export default function CoachPlayerSearchPage() {
         );
       },
     },
-  ], [pendingFavorites]);
+  ], [pendingFavorites, currentGameName]);
 
-  const players = searchResults?.players || [];
-  const currentGameName = games.find(g => g.id === currentGameId)?.name || "All Games";
-  const availableRanks = getAvailableRanks();
-  
   // Get live player data for dialog to prevent staleness
   const liveSelectedPlayer = selectedPlayer 
     ? players.find(p => p.id === selectedPlayer.id) || selectedPlayer
@@ -765,36 +813,64 @@ export default function CoachPlayerSearchPage() {
 
             {/* Class Year */}
             <div className="space-y-2">
-              <Label htmlFor="class_year" className="text-gray-300">Class Year</Label>
-              <Select value={searchFilters.class_year || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, class_year: value === "all" ? "" : value }))}>
-                <SelectTrigger className="bg-gray-900 border-gray-600 text-white">
-                  <SelectValue placeholder="Select class year" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="all">All Years</SelectItem>
-                  <SelectItem value="Freshman">Freshman</SelectItem>
-                  <SelectItem value="Sophomore">Sophomore</SelectItem>
-                  <SelectItem value="Junior">Junior</SelectItem>
-                  <SelectItem value="Senior">Senior</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-gray-300">Class Year {searchFilters.class_year.length > 0 && `(${searchFilters.class_year.length} selected)`}</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {["Freshman", "Sophomore", "Junior", "Senior"].map((year) => (
+                  <Button
+                    key={year}
+                    variant={searchFilters.class_year.includes(year) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      const newClassYears = searchFilters.class_year.includes(year)
+                        ? searchFilters.class_year.filter(y => y !== year)
+                        : [...searchFilters.class_year, year];
+                      setSearchFilters(prev => ({ ...prev, class_year: newClassYears }));
+                    }}
+                    className={searchFilters.class_year.includes(year)
+                      ? "bg-cyan-600 text-white border-cyan-600 hover:bg-cyan-700"
+                      : "bg-gray-900 text-white border-gray-600 hover:bg-gray-800"
+                    }
+                  >
+                    {year}
+                  </Button>
+                ))}
+              </div>
             </div>
 
-            {/* Rank Filter - Only show if a specific game is selected */}
-            {currentGameId && availableRanks.length > 0 && (
+            {/* Rank Filter - Only show for games with meaningful ranks (not Smash Ultimate) */}
+            {currentGameId && stableAvailableRanks.length > 0 && currentGameName !== 'Super Smash Bros. Ultimate' && (
               <div className="space-y-2">
-                <Label htmlFor="rank" className="text-gray-300">Rank</Label>
-                <Select value={searchFilters.rank || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, rank: value === "all" ? "" : value }))}>
-                  <SelectTrigger className="bg-gray-900 border-gray-600 text-white">
-                    <SelectValue placeholder="Select rank" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="all">All Ranks</SelectItem>
-                    {availableRanks.map((rank) => (
-                      <SelectItem key={rank} value={rank}>{rank}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-gray-300">Rank Range</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-gray-300 text-xs">Min Rank</Label>
+                    <Select value={searchFilters.min_rank || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_rank: value === "all" ? "" : value }))}>
+                      <SelectTrigger className="bg-gray-900 border-gray-600 text-white text-xs">
+                        <SelectValue placeholder="Min" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-600">
+                        <SelectItem value="all" className="text-white">No Min</SelectItem>
+                        {stableAvailableRanks.map((rank) => (
+                          <SelectItem key={rank} value={rank} className="text-white">{rank}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-gray-300 text-xs">Max Rank</Label>
+                    <Select value={searchFilters.max_rank || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, max_rank: value === "all" ? "" : value }))}>
+                      <SelectTrigger className="bg-gray-900 border-gray-600 text-white text-xs">
+                        <SelectValue placeholder="Max" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-600">
+                        <SelectItem value="all" className="text-white">No Max</SelectItem>
+                        {stableAvailableRanks.map((rank) => (
+                          <SelectItem key={rank} value={rank} className="text-white">{rank}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -846,10 +922,11 @@ export default function CoachPlayerSearchPage() {
               onClick={() => setSearchFilters({
                 search: "",
                 location: "",
-                class_year: "",
+                class_year: [],
                 min_gpa: 0,
                 max_gpa: 4,
-                rank: "",
+                min_rank: "",
+                max_rank: "",
                 role: "",
                 min_combine_score: 0,
                 max_combine_score: 100,
