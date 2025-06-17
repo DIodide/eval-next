@@ -7,15 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   GamepadIcon,
   LinkIcon,
@@ -28,10 +21,14 @@ import {
   PlusIcon,
   MessageCircleIcon,
   GithubIcon,
-  LoaderIcon
+  LoaderIcon,
+  SaveIcon,
+  CheckIcon,
+  UserIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { neobrutalism } from "@clerk/themes";
+import { cn } from "@/lib/utils";
 
 // Types for connections
 interface GameConnection {
@@ -92,10 +89,12 @@ export default function ProfilePage() {
   const updateProfileMutation = api.playerProfile.updateProfile.useMutation({
     onSuccess: () => {
       void refetchProfile();
-      setEditProfileOpen(false);
-      setEditRecruitingOpen(false);
+      setIsEditingProfile(false);
+      setIsEditingRecruiting(false);
       setProfileErrors({});
       setRecruitingErrors({});
+      setHasUnsavedProfileChanges(false);
+      setHasUnsavedRecruitingChanges(false);
     },
     onError: (error) => {
       setProfileErrors({ general: error.message });
@@ -110,7 +109,7 @@ export default function ProfilePage() {
       setConnectionUsername("");
       setSelectedPlatform("");
       setConnectionError("");
-      setEditGameConnectionOpen(false);
+      setIsEditingGameConnections(false);
     },
     onError: (error) => {
       setConnectionError(error.message);
@@ -123,7 +122,7 @@ export default function ProfilePage() {
       setConnectionUsername("");
       setSelectedPlatform("");
       setConnectionError("");
-      setEditSocialConnectionOpen(false);
+      setIsEditingSocialConnections(false);
     },
     onError: (error) => {
       setConnectionError(error.message);
@@ -148,12 +147,19 @@ export default function ProfilePage() {
     }
   });
   
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
-  const [editRecruitingOpen, setEditRecruitingOpen] = useState(false);
-  const [editGameConnectionOpen, setEditGameConnectionOpen] = useState(false);
-  const [editSocialConnectionOpen, setEditSocialConnectionOpen] = useState(false);
+  // Editing states for each panel
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isEditingRecruiting, setIsEditingRecruiting] = useState(false);
+  const [isEditingGameConnections, setIsEditingGameConnections] = useState(false);
+  const [isEditingSocialConnections, setIsEditingSocialConnections] = useState(false);
+  
+  // Connection state
   const [selectedPlatform, setSelectedPlatform] = useState<string>("");
   const [connectionUsername, setConnectionUsername] = useState("");
+
+  // Unsaved changes tracking
+  const [hasUnsavedProfileChanges, setHasUnsavedProfileChanges] = useState(false);
+  const [hasUnsavedRecruitingChanges, setHasUnsavedRecruitingChanges] = useState(false);
 
   // Validation state
   const [profileErrors, setProfileErrors] = useState<ValidationErrors>({});
@@ -164,6 +170,21 @@ export default function ProfilePage() {
   const [editableProfileData, setEditableProfileData] = useState<ProfileData>({
     location: "",
     bio: ""
+  });
+
+  // Recruiting data state
+  const [recruitingData, setRecruitingData] = useState<RecruitingData>({
+    school: "",
+    class_year: "",
+    main_game_id: "",
+    scholastic_contact: "",
+    scholastic_contact_email: "",
+    guardian_email: "",
+    gpa: "",
+    graduation_date: "",
+    intended_major: "",
+    extra_curriculars: "",
+    academic_bio: ""
   });
 
   // Update editable data when profile data loads
@@ -191,20 +212,34 @@ export default function ProfilePage() {
     }
   }, [profileData]);
 
-  // Recruiting data state
-  const [recruitingData, setRecruitingData] = useState<RecruitingData>({
-    school: "",
-    class_year: "",
-    main_game_id: "",
-    scholastic_contact: "",
-    scholastic_contact_email: "",
-    guardian_email: "",
-    gpa: "",
-    graduation_date: "",
-    intended_major: "",
-    extra_curriculars: "",
-    academic_bio: ""
-  });
+  // Track form changes for profile
+  useEffect(() => {
+    if (profileData) {
+      const hasChanges = 
+        editableProfileData.location !== (profileData.location ?? "") ||
+        editableProfileData.bio !== (profileData.bio ?? "");
+      setHasUnsavedProfileChanges(hasChanges);
+    }
+  }, [editableProfileData, profileData]);
+
+  // Track form changes for recruiting
+  useEffect(() => {
+    if (profileData) {
+      const hasChanges = 
+        recruitingData.school !== (profileData.school ?? "") ||
+        recruitingData.class_year !== (profileData.class_year ?? "") ||
+        recruitingData.main_game_id !== (profileData.main_game_id ?? "") ||
+        recruitingData.scholastic_contact !== (profileData.scholastic_contact ?? "") ||
+        recruitingData.scholastic_contact_email !== (profileData.scholastic_contact_email ?? "") ||
+        recruitingData.guardian_email !== (profileData.guardian_email ?? "") ||
+        recruitingData.gpa !== (profileData.gpa?.toString() ?? "") ||
+        recruitingData.graduation_date !== (profileData.graduation_date ?? "") ||
+        recruitingData.intended_major !== (profileData.intended_major ?? "") ||
+        recruitingData.extra_curriculars !== (profileData.extra_curriculars ?? "") ||
+        recruitingData.academic_bio !== (profileData.academic_bio ?? "");
+      setHasUnsavedRecruitingChanges(hasChanges);
+    }
+  }, [recruitingData, profileData]);
 
   // Game connections configurations
   const gameConnectionsConfig: GameConnection[] = [
@@ -448,6 +483,39 @@ export default function ProfilePage() {
     });
   };
 
+  const handleProfileCancel = () => {
+    if (profileData) {
+      setEditableProfileData({
+        location: profileData.location ?? "",
+        bio: profileData.bio ?? ""
+      });
+    }
+    setIsEditingProfile(false);
+    setHasUnsavedProfileChanges(false);
+    setProfileErrors({});
+  };
+
+  const handleRecruitingCancel = () => {
+    if (profileData) {
+      setRecruitingData({
+        school: profileData.school ?? "",
+        class_year: profileData.class_year ?? "",
+        main_game_id: profileData.main_game_id ?? "",
+        scholastic_contact: profileData.scholastic_contact ?? "",
+        scholastic_contact_email: profileData.scholastic_contact_email ?? "",
+        guardian_email: profileData.guardian_email ?? "",
+        gpa: profileData.gpa?.toString() ?? "",
+        graduation_date: profileData.graduation_date ?? "",
+        intended_major: profileData.intended_major ?? "",
+        extra_curriculars: profileData.extra_curriculars ?? "",
+        academic_bio: profileData.academic_bio ?? ""
+      });
+    }
+    setIsEditingRecruiting(false);
+    setHasUnsavedRecruitingChanges(false);
+    setRecruitingErrors({});
+  };
+
   const connectedGameAccounts = gameConnections.filter(conn => conn.connected).length;
   const connectedSocialAccounts = socialConnections.filter(conn => conn.connected).length;
   const hasBasicInfo = !!(editableProfileData.location || editableProfileData.bio);
@@ -487,79 +555,25 @@ export default function ProfilePage() {
           {/* Basic Information */}
           <Card className="bg-[#1a1a2e] border-gray-800 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-white">Basic Information</h3>
-              <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={isLoadingProfile || updateProfileMutation.isPending}
-                  >
-                    {updateProfileMutation.isPending ? (
-                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <EditIcon className="h-4 w-4 mr-2" />
-                    )}
-                    Edit Profile
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                      Update your profile information (Real name, username, and email are managed by your account settings)
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    {profileErrors.general && (
-                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                        <p className="text-red-400 text-sm">{profileErrors.general}</p>
-                      </div>
-                    )}
-                    <div>
-                      <Label htmlFor="location" className="font-rajdhani pb-2">Location</Label>
-                      <Input
-                        id="location"
-                        value={editableProfileData.location}
-                        onChange={(e) => setEditableProfileData(prev => ({ ...prev, location: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="City, State"
-                      />
-                      {profileErrors.location && (
-                        <p className="text-red-400 text-sm mt-1">{profileErrors.location}</p>
-                      )}
-                    </div>
-                    <div>
-                      <Label htmlFor="bio" className="font-rajdhani pb-2">Bio</Label>
-                      <Input
-                        id="bio"
-                        value={editableProfileData.bio}
-                        onChange={(e) => setEditableProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="Tell us about yourself..."
-                      />
-                      {profileErrors.bio && (
-                        <p className="text-red-400 text-sm mt-1">{profileErrors.bio}</p>
-                      )}
-                    </div>
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="text-black border-gray-600" onClick={() => setEditProfileOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        className="bg-blue-600 hover:bg-blue-700" 
-                        onClick={handleProfileSave}
-                        disabled={updateProfileMutation.isPending}
-                      >
-                        {updateProfileMutation.isPending ? (
-                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                        ) : null}
-                        Save Changes
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+                {hasUnsavedProfileChanges && (
+                  <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-400">
+                    Unsaved Changes
+                  </Badge>
+                )}
+              </div>
+              {!isEditingProfile && (
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsEditingProfile(true)}
+                  disabled={isLoadingProfile || updateProfileMutation.isPending}
+                >
+                  <EditIcon className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
             </div>
             
             {/* Loading State */}
@@ -631,25 +645,97 @@ export default function ProfilePage() {
                         </div>
                       )}
                       
-                      {/* Editable fields */}
-                      {editableProfileData.location && (
-                        <div>
-                          <Label className="text-gray-400 font-rajdhani">Location</Label>
-                          <p className="text-white">{editableProfileData.location}</p>
-                        </div>
-                      )}
-                      {editableProfileData.bio && (
-                        <div className="md:col-span-2">
-                          <Label className="text-gray-400 font-rajdhani">Bio</Label>
-                          <p className="text-white">{editableProfileData.bio}</p>
-                        </div>
+                      {                      /* Editable fields */}
+                      {isEditingProfile ? (
+                        <>
+                          <div>
+                            <Label htmlFor="location" className="text-white font-rajdhani">Location</Label>
+                            <Input
+                              id="location"
+                              value={editableProfileData.location}
+                              onChange={(e) => setEditableProfileData(prev => ({ ...prev, location: e.target.value }))}
+                              className="bg-gray-800 border-gray-700 text-white mt-1"
+                              placeholder="City, State"
+                            />
+                            {profileErrors.location && (
+                              <p className="text-red-400 text-sm mt-1">{profileErrors.location}</p>
+                            )}
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label htmlFor="bio" className="text-white font-rajdhani">Bio</Label>
+                            <Input
+                              id="bio"
+                              value={editableProfileData.bio}
+                              onChange={(e) => setEditableProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                              className="bg-gray-800 border-gray-700 text-white mt-1"
+                              placeholder="Tell us about yourself..."
+                            />
+                            {profileErrors.bio && (
+                              <p className="text-red-400 text-sm mt-1">{profileErrors.bio}</p>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {editableProfileData.location && (
+                            <div>
+                              <Label className="text-gray-400 font-rajdhani">Location</Label>
+                              <p className="text-white">{editableProfileData.location}</p>
+                            </div>
+                          )}
+                          {editableProfileData.bio && (
+                            <div className="md:col-span-2">
+                              <Label className="text-gray-400 font-rajdhani">Bio</Label>
+                              <p className="text-white">{editableProfileData.bio}</p>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
+
+                    {/* Action Buttons */}
+                    {isEditingProfile && (
+                      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                        <Button
+                          variant="outline"
+                          onClick={handleProfileCancel}
+                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          <XIcon className="w-4 h-4 mr-2" />
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleProfileSave}
+                          disabled={updateProfileMutation.isPending || !hasUnsavedProfileChanges}
+                          className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                        >
+                          {updateProfileMutation.isPending ? (
+                            <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <SaveIcon className="w-4 h-4 mr-2" />
+                          )}
+                          Save Changes
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <p className="text-gray-400">
-                    Complete your basic profile information to get started.
-                  </p>
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 mb-4">Complete your basic profile information to get started.</p>
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setIsEditingProfile(true)}
+                    >
+                      Complete Profile
+                    </Button>
+                  </div>
+                )}
+
+                {/* Profile Errors */}
+                {profileErrors.general && (
+                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                    <p className="text-red-400 text-sm">{profileErrors.general}</p>
+                  </div>
                 )}
               </div>
             )}
@@ -658,260 +744,207 @@ export default function ProfilePage() {
           {/* Recruiting Information */}
           <Card className="bg-[#1a1a2e] border-gray-800 p-6">
             <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-white">Recruiting Information</h3>
-                <p className="text-sm text-gray-400 mt-1">Private information for college recruiters only</p>
+              <div className="flex items-center gap-2">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Recruiting Information</h3>
+                  <p className="text-sm text-gray-400 mt-1">Private information for college recruiters only</p>
+                </div>
+                {hasUnsavedRecruitingChanges && (
+                  <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-400">
+                    Unsaved Changes
+                  </Badge>
+                )}
               </div>
-              <Dialog open={editRecruitingOpen} onOpenChange={setEditRecruitingOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="border-gray-600 text-black hover:bg-gray-200"
-                    disabled={isLoadingProfile || updateProfileMutation.isPending}
-                  >
-                    {updateProfileMutation.isPending ? (
-                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <EditIcon className="h-4 w-4 mr-2" />
-                    )}
-                    Edit
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>Edit Recruiting Information</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                      Private information for college recruiters - not visible on public profile
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 max-h-96 overflow-y-auto pr-4">
-                    {recruitingErrors.general && (
-                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                        <p className="text-red-400 text-sm">{recruitingErrors.general}</p>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="school" className="font-rajdhani pb-2">School</Label>
-                        <Input
-                          id="school"
-                          value={recruitingData.school}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, school: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="University Name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="class" className="font-rajdhani pb-2">Graduation Year</Label>
-                        <Input
-                          id="class"
-                          value={recruitingData.class_year}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, class_year: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="2025"
-                        />
-                        {recruitingErrors.class_year && (
-                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.class_year}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="mainGame" className="font-rajdhani pb-2">Main Game</Label>
-                        <Select 
-                          value={recruitingData.main_game_id} 
-                          onValueChange={(value) => setRecruitingData(prev => ({ ...prev, main_game_id: value }))}
-                          disabled={isLoadingGames}
-                        >
-                          <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                            <SelectValue placeholder={isLoadingGames ? "Loading games..." : "Select your main game"} />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-800 border-gray-700">
-                            {availableGames?.map((game) => (
-                              <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
-                                {game.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="gpa" className="font-rajdhani pb-2">GPA</Label>
-                        <Input
-                          id="gpa"
-                          value={recruitingData.gpa}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, gpa: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="3.5"
-                        />
-                        {recruitingErrors.gpa && (
-                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.gpa}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="intended_major" className="font-rajdhani pb-2">Intended Major</Label>
-                      <Input
-                        id="intended_major"
-                        value={recruitingData.intended_major}
-                        onChange={(e) => setRecruitingData(prev => ({ ...prev, intended_major: e.target.value }))}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="Computer Science, Business, etc."
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="text-md font-semibold text-white">Contact Information</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="scholastic_contact" className="font-rajdhani pb-2">Scholastic Contact</Label>
-                          <Input
-                            id="scholastic_contact"
-                            value={recruitingData.scholastic_contact}
-                            onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact: e.target.value }))}
-                            className="bg-gray-800 border-gray-700 text-white"
-                            placeholder="Guidance Counselor or Teacher Name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="scholastic_contact_email" className="font-rajdhani pb-2">Scholastic Contact Email</Label>
-                          <Input
-                            id="scholastic_contact_email"
-                            type="email"
-                            value={recruitingData.scholastic_contact_email}
-                            onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact_email: e.target.value }))}
-                            className="bg-gray-800 border-gray-700 text-white"
-                            placeholder="counselor@school.edu"
-                          />
-                          {recruitingErrors.scholastic_contact_email && (
-                            <p className="text-red-400 text-sm mt-1">{recruitingErrors.scholastic_contact_email}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="guardian_email" className="font-rajdhani pb-2">Parent/Guardian Email</Label>
-                        <Input
-                          id="guardian_email"
-                          type="email"
-                          value={recruitingData.guardian_email}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, guardian_email: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="parent@email.com"
-                        />
-                        {recruitingErrors.guardian_email && (
-                          <p className="text-red-400 text-sm mt-1">{recruitingErrors.guardian_email}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="text-md font-semibold text-white">Additional Information</h4>
-                      <div>
-                        <Label htmlFor="extra_curriculars" className="font-rajdhani pb-2">Extra Curriculars</Label>
-                        <Input
-                          id="extra_curriculars"
-                          value={recruitingData.extra_curriculars}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, extra_curriculars: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="Sports, clubs, leadership roles, etc."
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="academic_bio" className="font-rajdhani pb-2">Academic Bio</Label>
-                        <Input
-                          id="academic_bio"
-                          value={recruitingData.academic_bio}
-                          onChange={(e) => setRecruitingData(prev => ({ ...prev, academic_bio: e.target.value }))}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="Academic achievements, honors, awards..."
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button variant="outline" className="text-black border-gray-600" onClick={() => setEditRecruitingOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        className="bg-blue-600 hover:bg-blue-700" 
-                        onClick={handleRecruitingSave}
-                        disabled={updateProfileMutation.isPending}
-                      >
-                        {updateProfileMutation.isPending ? (
-                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                        ) : null}
-                        Save Changes
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              {!isEditingRecruiting && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="border-gray-600 text-black hover:bg-gray-200"
+                  onClick={() => setIsEditingRecruiting(true)}
+                  disabled={isLoadingProfile || updateProfileMutation.isPending}
+                >
+                  <EditIcon className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
             </div>
             <div className="space-y-4">
-              {recruitingData.school || recruitingData.class_year || recruitingData.main_game_id || recruitingData.gpa || recruitingData.intended_major || recruitingData.scholastic_contact || recruitingData.extra_curriculars || recruitingData.academic_bio ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {recruitingData.school && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">School</Label>
-                      <p className="text-white">{recruitingData.school}</p>
-                    </div>
-                  )}
-                  {recruitingData.class_year && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Graduation Year</Label>
-                      <p className="text-white">{recruitingData.class_year}</p>
-                    </div>
-                  )}
-                  {recruitingData.main_game_id && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Main Game</Label>
-                      <p className="text-white">{availableGames?.find(game => game.id === recruitingData.main_game_id)?.name ?? recruitingData.main_game_id}</p>
-                    </div>
-                  )}
-                  {recruitingData.gpa && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">GPA</Label>
-                      <p className="text-white">{recruitingData.gpa}</p>
-                    </div>
-                  )}
-                  {recruitingData.intended_major && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Intended Major</Label>
-                      <p className="text-white">{recruitingData.intended_major}</p>
-                    </div>
-                  )}
-                  {recruitingData.scholastic_contact && (
-                    <div>
-                      <Label className="text-gray-400 font-rajdhani">Scholastic Contact</Label>
-                      <p className="text-white">{recruitingData.scholastic_contact}</p>
-                    </div>
-                  )}
-                  {recruitingData.extra_curriculars && (
-                    <div className="md:col-span-2">
-                      <Label className="text-gray-400 font-rajdhani">Extra Curriculars</Label>
-                      <p className="text-white">{recruitingData.extra_curriculars}</p>
-                    </div>
-                  )}
-                  {recruitingData.academic_bio && (
-                    <div className="md:col-span-2">
-                      <Label className="text-gray-400 font-rajdhani">Academic Bio</Label>
-                      <p className="text-white">{recruitingData.academic_bio}</p>
-                    </div>
+              {recruitingErrors.general && (
+                <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{recruitingErrors.general}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="school" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>School</Label>
+                  <Input
+                    id="school"
+                    value={recruitingData.school}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, school: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    placeholder="University Name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="class" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Graduation Year</Label>
+                  <Input
+                    id="class"
+                    value={recruitingData.class_year}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, class_year: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    placeholder="2025"
+                  />
+                  {recruitingErrors.class_year && (
+                    <p className="text-red-400 text-sm mt-1">{recruitingErrors.class_year}</p>
                   )}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">
-                    Add your recruiting information to help college scouts find and evaluate you.
-                  </p>
-                  <Button 
-                    className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => setEditRecruitingOpen(true)}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="mainGame" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Main Game</Label>
+                  <Select 
+                    value={recruitingData.main_game_id} 
+                    onValueChange={(value) => setRecruitingData(prev => ({ ...prev, main_game_id: value }))}
+                    disabled={isLoadingGames || !isEditingRecruiting}
                   >
-                    Add Recruiting Info
+                    <SelectTrigger className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}>
+                      <SelectValue placeholder={isLoadingGames ? "Loading games..." : "Select your main game"} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      {availableGames?.map((game) => (
+                        <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
+                          {game.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="gpa" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>GPA</Label>
+                  <Input
+                    id="gpa"
+                    value={recruitingData.gpa}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, gpa: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    placeholder="3.5"
+                  />
+                  {recruitingErrors.gpa && (
+                    <p className="text-red-400 text-sm mt-1">{recruitingErrors.gpa}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="intended_major" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Intended Major</Label>
+                <Input
+                  id="intended_major"
+                  value={recruitingData.intended_major}
+                  onChange={(e) => setRecruitingData(prev => ({ ...prev, intended_major: e.target.value }))}
+                  disabled={!isEditingRecruiting}
+                  className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                  placeholder="Computer Science, Business, etc."
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-md font-semibold text-white">Contact Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="scholastic_contact" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Scholastic Contact</Label>
+                    <Input
+                      id="scholastic_contact"
+                      value={recruitingData.scholastic_contact}
+                      onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                      placeholder="Guidance Counselor or Teacher Name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="scholastic_contact_email" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Scholastic Contact Email</Label>
+                    <Input
+                      id="scholastic_contact_email"
+                      type="email"
+                      value={recruitingData.scholastic_contact_email}
+                      onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact_email: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                      placeholder="counselor@school.edu"
+                    />
+                    {recruitingErrors.scholastic_contact_email && (
+                      <p className="text-red-400 text-sm mt-1">{recruitingErrors.scholastic_contact_email}</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="guardian_email" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Parent/Guardian Email</Label>
+                  <Input
+                    id="guardian_email"
+                    type="email"
+                    value={recruitingData.guardian_email}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, guardian_email: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    placeholder="parent@email.com"
+                  />
+                  {recruitingErrors.guardian_email && (
+                    <p className="text-red-400 text-sm mt-1">{recruitingErrors.guardian_email}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-md font-semibold text-white">Additional Information</h4>
+                <div>
+                  <Label htmlFor="extra_curriculars" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Extra Curriculars</Label>
+                  <Input
+                    id="extra_curriculars"
+                    value={recruitingData.extra_curriculars}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, extra_curriculars: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    placeholder="Sports, clubs, leadership roles, etc."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="academic_bio" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Academic Bio</Label>
+                  <Input
+                    id="academic_bio"
+                    value={recruitingData.academic_bio}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, academic_bio: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    placeholder="Academic achievements, honors, awards..."
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              {isEditingRecruiting && (
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                  <Button
+                    variant="outline"
+                    onClick={handleRecruitingCancel}
+                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                  >
+                    <XIcon className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleRecruitingSave}
+                    disabled={updateProfileMutation.isPending || !hasUnsavedRecruitingChanges}
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                  >
+                    {updateProfileMutation.isPending ? (
+                      <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <SaveIcon className="w-4 h-4 mr-2" />
+                    )}
+                    Save Changes
                   </Button>
                 </div>
               )}
@@ -922,96 +955,91 @@ export default function ProfilePage() {
           <Card className="bg-[#1a1a2e] border-gray-800 p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">Game Connections</h3>
-              <Dialog open={editGameConnectionOpen} onOpenChange={setEditGameConnectionOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={updatePlatformMutation.isPending || removePlatformMutation.isPending}
+              {!isEditingGameConnections && (
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsEditingGameConnections(true)}
+                  disabled={updatePlatformMutation.isPending || removePlatformMutation.isPending}
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Connect Account
+                </Button>
+              )}
+            </div>
+
+            {/* Connection Form - shown when editing */}
+            {isEditingGameConnections && (
+              <div className="space-y-4 mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <h4 className="text-md font-semibold text-white">Connect Game Account</h4>
+                {connectionError && (
+                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                    <p className="text-red-400 text-sm">{connectionError}</p>
+                  </div>
+                )}
+                <div>
+                  <Label className="text-white font-rajdhani mb-2 block">Select Platform</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {gameConnectionsConfig.filter(config => {
+                      const isConnected = gameConnections.find(conn => conn.platform === config.platform)?.connected;
+                      return !isConnected;
+                    }).map((platform) => (
+                      <Button
+                        key={platform.platform}
+                        variant={selectedPlatform === platform.platform ? "default" : "outline"}
+                        className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                        onClick={() => setSelectedPlatform(platform.platform)}
+                        disabled={updatePlatformMutation.isPending}
+                      >
+                        <platform.icon className="h-4 w-4 mr-2" />
+                        {platform.displayName}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                {selectedPlatform && (
+                  <div>
+                    <Label htmlFor="gameUsername" className="text-white font-rajdhani">Username</Label>
+                    <Input
+                      id="gameUsername"
+                      value={connectionUsername}
+                      onChange={(e) => setConnectionUsername(e.target.value)}
+                      className="bg-gray-800 border-gray-700 text-white mt-1"
+                      placeholder="Enter your username"
+                      disabled={updatePlatformMutation.isPending}
+                    />
+                  </div>
+                )}
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditingGameConnections(false);
+                      setSelectedPlatform("");
+                      setConnectionUsername("");
+                      setConnectionError("");
+                    }}
+                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    disabled={updatePlatformMutation.isPending}
+                  >
+                    <XIcon className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleGameConnectionSave}
+                    disabled={updatePlatformMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
                   >
                     {updatePlatformMutation.isPending ? (
-                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                      <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                      <PlusIcon className="h-4 w-4 mr-2" />
+                      <SaveIcon className="w-4 h-4 mr-2" />
                     )}
                     Connect Account
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Connect Game Account</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                      Link your gaming accounts to showcase your achievements
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    {connectionError && (
-                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                        <p className="text-red-400 text-sm">{connectionError}</p>
-                      </div>
-                    )}
-                    <div>
-                      <Label className="p-2">Select Platform</Label>
-                      <div className="grid grid-cols-2 gap-4 mt-2">
-                        {gameConnectionsConfig.filter(config => {
-                          const isConnected = gameConnections.find(conn => conn.platform === config.platform)?.connected;
-                          return !isConnected;
-                        }).map((platform) => (
-                          <Button
-                            key={platform.platform}
-                            variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                            className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
-                            onClick={() => setSelectedPlatform(platform.platform)}
-                            disabled={updatePlatformMutation.isPending}
-                          >
-                            <platform.icon className="h-4 w-4 mr-2" />
-                            {platform.displayName}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {selectedPlatform && (
-                      <div>
-                        <Label htmlFor="gameUsername">Username</Label>
-                        <Input
-                          id="gameUsername"
-                          value={connectionUsername}
-                          onChange={(e) => setConnectionUsername(e.target.value)}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="Enter your username"
-                          disabled={updatePlatformMutation.isPending}
-                        />
-                      </div>
-                    )}
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button 
-                        variant="outline" 
-                        className="text-black border-gray-600" 
-                        onClick={() => {
-                          setEditGameConnectionOpen(false);
-                          setSelectedPlatform("");
-                          setConnectionUsername("");
-                          setConnectionError("");
-                        }}
-                        disabled={updatePlatformMutation.isPending}
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        className="bg-blue-600 hover:bg-blue-700" 
-                        onClick={handleGameConnectionSave}
-                        disabled={updatePlatformMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
-                      >
-                        {updatePlatformMutation.isPending ? (
-                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                        ) : null}
-                        Connect Account
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-3">
               {gameConnections.some(conn => conn.connected) ? (
@@ -1056,7 +1084,7 @@ export default function ProfilePage() {
                   ) : (
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700"
-                      onClick={() => setEditGameConnectionOpen(true)}
+                      onClick={() => setIsEditingGameConnections(true)}
                     >
                       Connect Your First Account
                     </Button>
@@ -1070,96 +1098,91 @@ export default function ProfilePage() {
           <Card className="bg-[#1a1a2e] border-gray-800 p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">Social Connections</h3>
-              <Dialog open={editSocialConnectionOpen} onOpenChange={setEditSocialConnectionOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={updateSocialMutation.isPending || removeSocialMutation.isPending}
-                  >
-                    {updateSocialMutation.isPending ? (
-                      <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <PlusIcon className="h-4 w-4 mr-2" />
-                    )}
-                    Connect Social
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Connect Social Account</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                      Link your social media accounts to build your personal brand
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    {connectionError && (
-                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                        <p className="text-red-400 text-sm">{connectionError}</p>
-                      </div>
-                    )}
-                    <div>
-                      <Label>Select Platform</Label>
-                      <div className="grid grid-cols-1 gap-2 mt-2">
-                        {socialConnectionsConfig.filter(config => {
-                          const isConnected = socialConnections.find(conn => conn.platform === config.platform)?.connected;
-                          return !isConnected;
-                        }).map((platform) => (
-                          <Button
-                            key={platform.platform}
-                            variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                            className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
-                            onClick={() => setSelectedPlatform(platform.platform)}
-                            disabled={updateSocialMutation.isPending}
-                          >
-                            <platform.icon className="h-4 w-4 mr-2" />
-                            {platform.displayName}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    {selectedPlatform && (
-                      <div>
-                        <Label htmlFor="socialUsername">Username</Label>
-                        <Input
-                          id="socialUsername"
-                          value={connectionUsername}
-                          onChange={(e) => setConnectionUsername(e.target.value)}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          placeholder="Enter your username"
-                          disabled={updateSocialMutation.isPending}
-                        />
-                      </div>
-                    )}
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button 
-                        variant="outline" 
-                        className="border-gray-600" 
-                        onClick={() => {
-                          setEditSocialConnectionOpen(false);
-                          setSelectedPlatform("");
-                          setConnectionUsername("");
-                          setConnectionError("");
-                        }}
+              {!isEditingSocialConnections && (
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => setIsEditingSocialConnections(true)}
+                  disabled={updateSocialMutation.isPending || removeSocialMutation.isPending}
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Connect Social
+                </Button>
+              )}
+            </div>
+
+            {/* Connection Form - shown when editing */}
+            {isEditingSocialConnections && (
+              <div className="space-y-4 mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <h4 className="text-md font-semibold text-white">Connect Social Account</h4>
+                {connectionError && (
+                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                    <p className="text-red-400 text-sm">{connectionError}</p>
+                  </div>
+                )}
+                <div>
+                  <Label className="text-white font-rajdhani mb-2 block">Select Platform</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {socialConnectionsConfig.filter(config => {
+                      const isConnected = socialConnections.find(conn => conn.platform === config.platform)?.connected;
+                      return !isConnected;
+                    }).map((platform) => (
+                      <Button
+                        key={platform.platform}
+                        variant={selectedPlatform === platform.platform ? "default" : "outline"}
+                        className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                        onClick={() => setSelectedPlatform(platform.platform)}
                         disabled={updateSocialMutation.isPending}
                       >
-                        Cancel
+                        <platform.icon className="h-4 w-4 mr-2" />
+                        {platform.displayName}
                       </Button>
-                      <Button 
-                        className="bg-blue-600 hover:bg-blue-700" 
-                        onClick={handleSocialConnectionSave}
-                        disabled={updateSocialMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
-                      >
-                        {updateSocialMutation.isPending ? (
-                          <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-                        ) : null}
-                        Connect Account
-                      </Button>
-                    </div>
+                    ))}
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+                </div>
+                {selectedPlatform && (
+                  <div>
+                    <Label htmlFor="socialUsername" className="text-white font-rajdhani">Username</Label>
+                    <Input
+                      id="socialUsername"
+                      value={connectionUsername}
+                      onChange={(e) => setConnectionUsername(e.target.value)}
+                      className="bg-gray-800 border-gray-700 text-white mt-1"
+                      placeholder="Enter your username"
+                      disabled={updateSocialMutation.isPending}
+                    />
+                  </div>
+                )}
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditingSocialConnections(false);
+                      setSelectedPlatform("");
+                      setConnectionUsername("");
+                      setConnectionError("");
+                    }}
+                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    disabled={updateSocialMutation.isPending}
+                  >
+                    <XIcon className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSocialConnectionSave}
+                    disabled={updateSocialMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                  >
+                    {updateSocialMutation.isPending ? (
+                      <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <SaveIcon className="w-4 h-4 mr-2" />
+                    )}
+                    Connect Account
+                  </Button>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-3">
               {socialConnections.some(conn => conn.connected) ? (
@@ -1204,7 +1227,7 @@ export default function ProfilePage() {
                   ) : (
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700"
-                      onClick={() => setEditSocialConnectionOpen(true)}
+                      onClick={() => setIsEditingSocialConnections(true)}
                     >
                       Connect Your First Account
                     </Button>
@@ -1310,7 +1333,7 @@ export default function ProfilePage() {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-gray-300 hover:bg-gray-800"
-                onClick={() => setEditProfileOpen(true)}
+                onClick={() => setIsEditingProfile(true)}
               >
                 <EditIcon className="h-4 w-4 mr-2" />
                 Edit Basic Info
@@ -1318,7 +1341,7 @@ export default function ProfilePage() {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-gray-300 hover:bg-gray-800"
-                onClick={() => setEditGameConnectionOpen(true)}
+                onClick={() => setIsEditingGameConnections(true)}
               >
                 <GamepadIcon className="h-4 w-4 mr-2" />
                 Connect Game Account
@@ -1326,7 +1349,7 @@ export default function ProfilePage() {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-gray-300 hover:bg-gray-800"
-                onClick={() => setEditSocialConnectionOpen(true)}
+                onClick={() => setIsEditingSocialConnections(true)}
               >
                 <LinkIcon className="h-4 w-4 mr-2" />
                 Connect Social Media
