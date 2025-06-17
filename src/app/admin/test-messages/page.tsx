@@ -306,13 +306,13 @@ export default function MessagesTestPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center space-x-2">
-          <MessageSquareIcon className="w-8 h-8" />
+        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center space-x-2 text-white">
+          <MessageSquareIcon className="w-8 h-8 text-blue-500" />
           <span>Messages tRPC Test Page</span>
         </h1>
-        <p className="text-muted-foreground">Test all messages router endpoints for both coaches and players</p>
+        <p className="text-gray-400">Test all messages router endpoints for both coaches and players</p>
         {user && (
           <div className="mt-2 space-y-1">
             <p className="text-sm text-blue-600">
@@ -348,13 +348,13 @@ export default function MessagesTestPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Coach Endpoints */}
-        <Card>
+        <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <UserIcon className="w-5 h-5" />
+            <CardTitle className="flex items-center space-x-2 text-white">
+              <UserIcon className="w-5 h-5 text-green-500" />
               <span>Coach Endpoints</span>
             </CardTitle>
-            <CardDescription>Test coach-specific messaging functionality</CardDescription>
+            <CardDescription className="text-gray-400">Test coach-specific messaging functionality</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Get Conversations */}

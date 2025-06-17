@@ -1,4 +1,5 @@
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
+import { clerkClient } from '@clerk/nextjs/server'
 import type { NextRequest } from 'next/server'
 import { db } from '@/server/db'
 import { Prisma } from '@prisma/client'
@@ -49,6 +50,22 @@ export async function POST(req: NextRequest) {
       }
       
       console.log('User created - data for sync:', userDataForSync)
+      
+      // Update publicMetadata with userType for secure access
+      if (unsafeMetadata.userType) {
+        try {
+          const client = await clerkClient()
+          await client.users.updateUser(userData.id, {
+            publicMetadata: {
+              ...userData.public_metadata,
+              userType: unsafeMetadata.userType
+            }
+          })
+          console.log(`Updated publicMetadata with userType: ${unsafeMetadata.userType}`)
+        } catch (error) {
+          console.error('Error updating publicMetadata:', error)
+        }
+      }
       
       // TODO: Add database sync logic here based on user type
       if (unsafeMetadata.userType === 'player') {

@@ -1,16 +1,41 @@
 "use client"
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Search, User, GraduationCap, X } from "lucide-react"
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { ChevronDown, Search, User, GraduationCap, X, Shield } from "lucide-react"
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export default function Navbar() {
+  const { user } = useUser()
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState(false)
+
+  // Check admin status when user is signed in
+  useEffect(() => {
+    if (user) {
+      setIsCheckingAdmin(true)
+      fetch('/api/check-admin-status')
+        .then(res => res.json())
+        .then((data: { isAdmin: boolean }) => {
+          setIsAdmin(data.isAdmin ?? false)
+        })
+        .catch(error => {
+          console.error('Error checking admin status:', error)
+          setIsAdmin(false)
+        })
+        .finally(() => {
+          setIsCheckingAdmin(false)
+        })
+    } else {
+      setIsAdmin(false)
+      setIsCheckingAdmin(false)
+    }
+  }, [user])
 
   const handleUserTypeSelect = (userType: 'player' | 'coach') => {
     setSelectedUserType(userType)
@@ -115,38 +140,51 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
-              DEV <ChevronDown className="ml-1 h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-700">
-              <Link href="/test-playerprofile">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                  PLAYER PROFILE TEST
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/test-tryouts">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                  TRYOUTS TEST
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/test-combines">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                  COMBINES TEST
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/test-messages">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                  MESSAGES TEST
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/test-player-search">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
-                  PLAYER SEARCH TEST
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isAdmin && !isCheckingAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="font-orbitron hover:text-red-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+                <Shield className="w-4 h-4 mr-1" />
+                ADMIN <ChevronDown className="ml-1 h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-900 border-gray-700">
+                <Link href="/admin">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    ADMIN DASHBOARD
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/admin/test-player-profile">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    PLAYER PROFILE TEST
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/admin/test-tryouts">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    TRYOUTS TEST
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/admin/test-combines">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    COMBINES TEST
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/admin/test-messages">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    MESSAGES TEST
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/admin/test-player-search">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    PLAYER SEARCH TEST
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/admin/settings">
+                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                    ADMIN SETTINGS
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         <div className="flex items-center space-x-4">
