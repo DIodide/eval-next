@@ -62,7 +62,7 @@ export default function HomePage() {
           priority
         /> */}
         <div className="relative z-20 max-w-6xl mx-auto px-6">
-          <div className="mb-8">
+          {/* <div className="mb-8">
             <Image
               src="/eval/logos/eLOGO_white.png"
               alt="EVAL Logo"
@@ -70,7 +70,7 @@ export default function HomePage() {
               height={100}
               className="mx-auto mb-6"
             />
-          </div>
+          </div> */}
             <h2 className="text-5xl md:text-7xl font-black leading-tight text-white mb-6 font-orbitron">
               CONNECTING <span className="text-cyan-400">GAMERS</span>
               <br />
