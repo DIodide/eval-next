@@ -435,6 +435,113 @@ export const playerProfileRouter = createTRPCRouter({
       }
     }),
 
+  // Get public player profile by username (for public profile pages)
+  getPublicProfile: publicProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        // Do not retry for this query - if player not found, return immediately
+        const player = await ctx.db.player.findUnique({
+          where: { username: input.username },
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            username: true,
+            image_url: true,
+            location: true,
+            bio: true,
+            class_year: true,
+            school: true,
+            created_at: true,
+            main_game_id: true,
+            school_ref: {
+              select: {
+                id: true,
+                name: true,
+                type: true,
+                location: true,
+                state: true,
+              },
+            },
+            main_game: {
+              select: {
+                id: true,
+                name: true,
+                short_name: true,
+                icon: true,
+                color: true,
+              },
+            },
+            game_profiles: {
+              select: {
+                id: true,
+                game_id: true,
+                username: true,
+                rank: true,
+                role: true,
+                play_style: true,
+                agents: true,
+                combine_score: true,
+                league_score: true,
+                updated_at: true,
+                game: {
+                  select: {
+                    id: true,
+                    name: true,
+                    short_name: true,
+                    icon: true,
+                    color: true,
+                  },
+                },
+              },
+              orderBy: {
+                updated_at: 'desc',
+              },
+            },
+            platform_connections: {
+              select: {
+                platform: true,
+                username: true,
+                connected: true,
+              },
+              where: {
+                connected: true,
+              },
+            },
+            social_connections: {
+              select: {
+                platform: true,
+                username: true,
+                connected: true,
+              },
+              where: {
+                connected: true,
+              },
+            },
+          },
+        });
+        
+        if (!player) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Player profile not found',
+          });
+        }
+        
+        return player;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error fetching public player profile:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch player profile',
+        });
+      }
+    }),
+
   // Get all available games for main game selection
   getAvailableGames: publicProcedure.query(async ({ ctx }) => {
     try {
