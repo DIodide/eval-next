@@ -199,143 +199,11 @@ export default function PlayerMessagesPage() {
           <h1 className="text-3xl font-orbitron font-bold text-white">Messages</h1>
           <p className="text-gray-400 font-rajdhani">Communication with coaches and recruiters</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="border-cyan-400 text-cyan-400">
-            {conversations.filter(c => c.unreadCount > 0).length} Unread
-          </Badge>
-          <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
-                <PlusIcon className="w-4 h-4 mr-2" />
-                New Message
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="font-orbitron text-xl">Start New Conversation</DialogTitle>
-                <DialogDescription className="text-gray-400">
-                  Select a coach to message and introduce yourself
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-6">
-                {/* Coach Selection */}
-                <div>
-                  <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Select Coach</h3>
-                  
-                  {/* Search Coaches */}
-                  <div className="relative mb-4">
-                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input 
-                      value={coachSearchQuery}
-                      onChange={(e) => setCoachSearchQuery(e.target.value)}
-                      placeholder="Search coaches or schools..." 
-                      className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 pl-10"
-                    />
-                  </div>
-
-                  {coachesLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <LoaderIcon className="w-6 h-6 animate-spin text-cyan-400" />
-                    </div>
-                  ) : (
-                    <div className="grid gap-3 max-h-60 overflow-y-auto">
-                      {coaches.map((coach) => (
-                        <div
-                          key={coach.id}
-                          className={cn(
-                            "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors",
-                            selectedCoach?.id === coach.id
-                              ? "border-cyan-400 bg-cyan-900/20"
-                              : "border-gray-700 hover:border-gray-600"
-                          )}
-                          onClick={() => setSelectedCoach(coach)}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={coach.avatar ?? undefined} />
-                              <AvatarFallback className="bg-gray-700 text-white">
-                                {coach.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h4 className="font-orbitron font-bold text-white text-sm">{coach.name}</h4>
-                              <div className="flex items-center space-x-2 text-xs text-gray-400">
-                                {coach.schoolName && (
-                                  <>
-                                    <SchoolIcon className="w-3 h-3" />
-                                    <span>{coach.schoolName}</span>
-                                  </>
-                                )}
-                                {coach.username && (
-                                  <>
-                                    <span>•</span>
-                                    <span>@{coach.username}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          {selectedCoach?.id === coach.id && (
-                            <CheckIcon className="w-5 h-5 text-cyan-400" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {selectedCoach && (
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-400 mb-2">Selected coach:</p>
-                      <Badge variant="outline" className="border-cyan-400 text-cyan-400">
-                        {selectedCoach.name} - {selectedCoach.schoolName}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-
-                {/* Message Template */}
-                <div>
-                  <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Compose Message</h3>
-                  <Textarea
-                    value={messageTemplate}
-                    onChange={(e) => setMessageTemplate(e.target.value)}
-                    placeholder="Introduce yourself and express your interest in their program..."
-                    className="bg-gray-800 border-gray-700 text-white min-h-32"
-                    rows={6}
-                  />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Be professional and specific about your interest in their program
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setNewConversationOpen(false)}
-                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleStartNewConversation}
-                    disabled={!selectedCoach || !messageTemplate.trim() || sendNewMessageMutation.isPending}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
-                  >
-                    {sendNewMessageMutation.isPending ? (
-                      <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <SendIcon className="w-4 h-4 mr-2" />
-                    )}
-                    Send Message
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Badge variant="outline" className="border-cyan-400 text-cyan-400">
+          {conversations.filter(c => c.unreadCount > 0).length} Unread
+        </Badge>
       </div>
+
 
       {/* Messages Layout */}
       <div className="grid gap-6 lg:grid-cols-3 h-[700px]">
@@ -361,18 +229,152 @@ export default function PlayerMessagesPage() {
                 />
               </div>
               
-              <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "starred" | "archived") => setFilterStatus(value)}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <FilterIcon className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all" className="text-white hover:bg-gray-700">All Messages</SelectItem>
-                  <SelectItem value="unread" className="text-white hover:bg-gray-700">Unread</SelectItem>
-                  <SelectItem value="starred" className="text-white hover:bg-gray-700">Starred</SelectItem>
-                  <SelectItem value="archived" className="text-white hover:bg-gray-700">Archived</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex space-x-2">
+                <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "starred" | "archived") => setFilterStatus(value)}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white flex-1">
+                    <FilterIcon className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="all" className="text-white hover:bg-gray-700">All Messages</SelectItem>
+                    <SelectItem value="unread" className="text-white hover:bg-gray-700">Unread</SelectItem>
+                    <SelectItem value="starred" className="text-white hover:bg-gray-700">Starred</SelectItem>
+                    <SelectItem value="archived" className="text-white hover:bg-gray-700">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron whitespace-nowrap">
+                      <PlusIcon className="w-4 h-4 mr-1" />
+                      New Message
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="font-orbitron text-xl">Start New Conversation</DialogTitle>
+                      <DialogDescription className="text-gray-400">
+                        Select a coach to message and introduce yourself
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6">
+                      {/* Coach Selection */}
+                      <div>
+                        <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Select Coach</h3>
+                        
+                        {/* Search Coaches */}
+                        <div className="relative mb-4">
+                          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={coachSearchQuery}
+                            onChange={(e) => setCoachSearchQuery(e.target.value)}
+                            placeholder="Search coaches or schools..." 
+                            className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 pl-10"
+                          />
+                        </div>
+
+                        {coachesLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <LoaderIcon className="w-6 h-6 animate-spin text-cyan-400" />
+                          </div>
+                        ) : (
+                          <div className="grid gap-3 max-h-60 overflow-y-auto">
+                            {coaches.map((coach) => (
+                              <div
+                                key={coach.id}
+                                className={cn(
+                                  "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors",
+                                  selectedCoach?.id === coach.id
+                                    ? "border-cyan-400 bg-cyan-900/20"
+                                    : "border-gray-700 hover:border-gray-600"
+                                )}
+                                onClick={() => setSelectedCoach(coach)}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarImage src={coach.avatar ?? undefined} />
+                                    <AvatarFallback className="bg-gray-700 text-white">
+                                      {coach.name.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <h4 className="font-orbitron font-bold text-white text-sm">{coach.name}</h4>
+                                    <div className="flex items-center space-x-2 text-xs text-gray-400">
+                                      {coach.schoolName && (
+                                        <>
+                                          <SchoolIcon className="w-3 h-3" />
+                                          <span>{coach.schoolName}</span>
+                                        </>
+                                      )}
+                                      {coach.username && (
+                                        <>
+                                          <span>•</span>
+                                          <span>@{coach.username}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                {selectedCoach?.id === coach.id && (
+                                  <CheckIcon className="w-5 h-5 text-cyan-400" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {selectedCoach && (
+                          <div className="mt-3">
+                            <p className="text-sm text-gray-400 mb-2">Selected coach:</p>
+                            <Badge variant="outline" className="border-cyan-400 text-cyan-400">
+                              {selectedCoach.name} - {selectedCoach.schoolName}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Message Template */}
+                      <div>
+                        <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Compose Message</h3>
+                        <Textarea
+                          value={messageTemplate}
+                          onChange={(e) => setMessageTemplate(e.target.value)}
+                          placeholder="Introduce yourself and express your interest in their program..."
+                          className="bg-gray-800 border-gray-700 text-white min-h-32"
+                          rows={6}
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Be professional and specific about your interest in their program
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-end space-x-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => setNewConversationOpen(false)}
+                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleStartNewConversation}
+                          disabled={!selectedCoach || !messageTemplate.trim() || sendNewMessageMutation.isPending}
+                          className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                        >
+                          {sendNewMessageMutation.isPending ? (
+                            <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <SendIcon className="w-4 h-4 mr-2" />
+                          )}
+                          Send Message
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </CardHeader>
           
@@ -513,14 +515,15 @@ export default function PlayerMessagesPage() {
                 </CardHeader>
 
                 {/* Messages */}
-                <CardContent className="flex-1 p-4 overflow-y-auto">
-                  {conversationLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400" />
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {(selectedConversation?.messages ?? []).map((message: Message) => (
+                <CardContent className="flex-1 p-4 overflow-hidden">
+                  <div className="h-full overflow-y-auto">
+                    {conversationLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400" />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {(selectedConversation?.messages ?? []).map((message: Message) => (
                         <div
                           key={message.id}
                           className={cn(
@@ -554,9 +557,10 @@ export default function PlayerMessagesPage() {
                           <p className="text-gray-400 text-sm">No messages yet</p>
                           <p className="text-gray-500 text-xs mt-2">Start the conversation by sending a message!</p>
                         </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
 
                 {/* Message Input */}
@@ -618,45 +622,6 @@ export default function PlayerMessagesPage() {
           </Card>
         </div>
       </div>
-
-      {/* Recruiting Tips */}
-      <Card className="bg-gray-900 border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white font-orbitron">Recruiting Communication Tips</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white flex items-center">
-                <TrophyIcon className="w-4 h-4 mr-2 text-cyan-400" />
-                Be Authentic
-              </h4>
-              <p className="text-sm text-gray-400">Show your genuine personality and passion for esports</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white flex items-center">
-                <CheckIcon className="w-4 h-4 mr-2 text-cyan-400" />
-                Respond Promptly
-              </h4>
-              <p className="text-sm text-gray-400">Quick responses show interest and professionalism</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white flex items-center">
-                <MessageSquareIcon className="w-4 h-4 mr-2 text-cyan-400" />
-                Ask Questions
-              </h4>
-              <p className="text-sm text-gray-400">Show interest in their program, team culture, and opportunities</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white flex items-center">
-                <MapPinIcon className="w-4 h-4 mr-2 text-cyan-400" />
-                Share Your Goals
-              </h4>
-              <p className="text-sm text-gray-400">Communicate your academic and esports aspirations clearly</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 } 

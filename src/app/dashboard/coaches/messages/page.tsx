@@ -208,140 +208,12 @@ export default function CoachMessagesPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">Messages</h1>
-          <p className="text-gray-400 font-rajdhani">Communicate with prospective players</p>
-        </div>
-        <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
-              <PlusIcon className="w-4 h-4 mr-2" />
-              New Message
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-orbitron text-xl">Start New Conversation</DialogTitle>
-              <DialogDescription className="text-gray-400">
-                Select players to message and compose your message
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              {/* Player Selection */}
-              <div>
-                <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Select Players</h3>
-                {playersLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <LoaderIcon className="w-6 h-6 animate-spin text-cyan-400" />
-                  </div>
-                ) : (
-                  <div className="grid gap-3 max-h-60 overflow-y-auto">
-                    {players.map((player) => (
-                      <div
-                        key={player.id}
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors",
-                          selectedPlayers.includes(player)
-                            ? "border-cyan-400 bg-cyan-900/20"
-                            : "border-gray-700 hover:border-gray-600"
-                        )}
-                        onClick={() => {
-                          setSelectedPlayers(prev =>
-                            prev.includes(player)
-                              ? prev.filter(p => p.id !== player.id)
-                              : [...prev, player]
-                          );
-                        }}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={player.avatar ?? undefined} />
-                            <AvatarFallback className="bg-gray-700 text-white">
-                              {player.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h4 className="font-orbitron font-bold text-white text-sm">{player.name}</h4>
-                            <div className="flex items-center space-x-2 text-xs text-gray-400">
-                              {player.mainGame && (
-                                <>
-                                  <span>{getGameIcon(player.mainGame)}</span>
-                                  <span>{player.mainGame}</span>
-                                </>
-                              )}
-                              {player.school && (
-                                <>
-                                  <span>•</span>
-                                  <span>{player.school}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        {selectedPlayers.includes(player) && (
-                          <CheckIcon className="w-5 h-5 text-cyan-400" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {selectedPlayers.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-400 mb-2">Selected players ({selectedPlayers.length}):</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedPlayers.map((player) => (
-                        <Badge key={player.id} variant="outline" className="border-cyan-400 text-cyan-400">
-                          {player.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Message Template */}
-              <div>
-                <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Compose Message</h3>
-                <Textarea
-                  value={messageTemplate}
-                  onChange={(e) => setMessageTemplate(e.target.value)}
-                  placeholder="Write your message here..."
-                  className="bg-gray-800 border-gray-700 text-white min-h-32"
-                  rows={6}
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  This message will be sent to all selected players
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setNewConversationOpen(false)}
-                  className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleStartNewConversation}
-                  disabled={selectedPlayers.length === 0 || !messageTemplate.trim() || sendBulkMessageMutation.isPending}
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
-                >
-                  {sendBulkMessageMutation.isPending ? (
-                    <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <SendIcon className="w-4 h-4 mr-2" />
-                  )}
-                  Send Messages ({selectedPlayers.length})
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div>
+        <h1 className="text-3xl font-orbitron font-bold text-white">Messages</h1>
+        <p className="text-gray-400 font-rajdhani">Communicate with prospective players</p>
       </div>
+
+
 
       {/* Messages Layout */}
       <div className="grid gap-6 lg:grid-cols-3 h-[700px]">
@@ -367,18 +239,149 @@ export default function CoachMessagesPage() {
                 />
               </div>
               
-              <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "starred" | "archived") => setFilterStatus(value)}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <FilterIcon className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all" className="text-white hover:bg-gray-700">All Messages</SelectItem>
-                  <SelectItem value="unread" className="text-white hover:bg-gray-700">Unread</SelectItem>
-                  <SelectItem value="starred" className="text-white hover:bg-gray-700">Starred</SelectItem>
-                  <SelectItem value="archived" className="text-white hover:bg-gray-700">Archived</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex space-x-2">
+                <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "starred" | "archived") => setFilterStatus(value)}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white flex-1">
+                    <FilterIcon className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="all" className="text-white hover:bg-gray-700">All Messages</SelectItem>
+                    <SelectItem value="unread" className="text-white hover:bg-gray-700">Unread</SelectItem>
+                    <SelectItem value="starred" className="text-white hover:bg-gray-700">Starred</SelectItem>
+                    <SelectItem value="archived" className="text-white hover:bg-gray-700">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron whitespace-nowrap">
+                      <PlusIcon className="w-4 h-4 mr-1" />
+                      New Message
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="font-orbitron text-xl">Start New Conversation</DialogTitle>
+                      <DialogDescription className="text-gray-400">
+                        Select players to message and compose your message
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6">
+                      {/* Player Selection */}
+                      <div>
+                        <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Select Players</h3>
+                        {playersLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <LoaderIcon className="w-6 h-6 animate-spin text-cyan-400" />
+                          </div>
+                        ) : (
+                          <div className="grid gap-3 max-h-60 overflow-y-auto">
+                            {players.map((player) => (
+                              <div
+                                key={player.id}
+                                className={cn(
+                                  "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors",
+                                  selectedPlayers.includes(player)
+                                    ? "border-cyan-400 bg-cyan-900/20"
+                                    : "border-gray-700 hover:border-gray-600"
+                                )}
+                                onClick={() => {
+                                  setSelectedPlayers(prev =>
+                                    prev.includes(player)
+                                      ? prev.filter(p => p.id !== player.id)
+                                      : [...prev, player]
+                                  );
+                                }}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarImage src={player.avatar ?? undefined} />
+                                    <AvatarFallback className="bg-gray-700 text-white">
+                                      {player.name.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <h4 className="font-orbitron font-bold text-white text-sm">{player.name}</h4>
+                                    <div className="flex items-center space-x-2 text-xs text-gray-400">
+                                      {player.mainGame && (
+                                        <>
+                                          <span>{getGameIcon(player.mainGame)}</span>
+                                          <span>{player.mainGame}</span>
+                                        </>
+                                      )}
+                                      {player.school && (
+                                        <>
+                                          <span>•</span>
+                                          <span>{player.school}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                {selectedPlayers.includes(player) && (
+                                  <CheckIcon className="w-5 h-5 text-cyan-400" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {selectedPlayers.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-sm text-gray-400 mb-2">Selected players ({selectedPlayers.length}):</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedPlayers.map((player) => (
+                                <Badge key={player.id} variant="outline" className="border-cyan-400 text-cyan-400">
+                                  {player.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Message Template */}
+                      <div>
+                        <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Compose Message</h3>
+                        <Textarea
+                          value={messageTemplate}
+                          onChange={(e) => setMessageTemplate(e.target.value)}
+                          placeholder="Write your message here..."
+                          className="bg-gray-800 border-gray-700 text-white min-h-32"
+                          rows={6}
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          This message will be sent to all selected players
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex justify-end space-x-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => setNewConversationOpen(false)}
+                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleStartNewConversation}
+                          disabled={selectedPlayers.length === 0 || !messageTemplate.trim() || sendBulkMessageMutation.isPending}
+                          className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                        >
+                          {sendBulkMessageMutation.isPending ? (
+                            <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <SendIcon className="w-4 h-4 mr-2" />
+                          )}
+                          Send Messages ({selectedPlayers.length})
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </CardHeader>
           
@@ -531,14 +534,15 @@ export default function CoachMessagesPage() {
                 </CardHeader>
 
                 {/* Messages */}
-                <CardContent className="flex-1 p-4 overflow-y-auto">
-                  {conversationLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400" />
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {(selectedConversation?.messages ?? []).map((message: Message) => (
+                <CardContent className="flex-1 p-4 overflow-hidden">
+                  <div className="h-full overflow-y-auto">
+                    {conversationLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400" />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {(selectedConversation?.messages ?? []).map((message: Message) => (
                         <div
                           key={message.id}
                           className={cn(
@@ -572,9 +576,10 @@ export default function CoachMessagesPage() {
                           <p className="text-gray-400 text-sm">No messages yet</p>
                           <p className="text-gray-500 text-xs mt-2">Start the conversation by sending a message</p>
                         </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
 
                 {/* Message Input */}
@@ -636,33 +641,6 @@ export default function CoachMessagesPage() {
           </Card>
         </div>
       </div>
-
-      {/* Messaging Guidelines */}
-      <Card className="bg-gray-900 border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white font-orbitron">Recruiting Communication Guidelines</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white">Be Professional</h4>
-              <p className="text-sm text-gray-400">Maintain a respectful and professional tone in all communications</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white">Be Specific</h4>
-              <p className="text-sm text-gray-400">Clearly outline opportunities, expectations, and next steps</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white">Be Timely</h4>
-              <p className="text-sm text-gray-400">Respond promptly to maintain engagement and show interest</p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-orbitron font-semibold text-white">Be Transparent</h4>
-              <p className="text-sm text-gray-400">Provide honest information about your program and requirements</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 } 
