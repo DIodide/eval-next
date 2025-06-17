@@ -1,11 +1,13 @@
 import { playerProfileRouter } from "@/server/api/routers/playerProfile";
 import { coachProfileRouter } from "@/server/api/routers/coachProfile";
+import { schoolProfileRouter } from "@/server/api/routers/schoolProfile";
 import { tryoutsRouter } from "@/server/api/routers/tryouts";
 import { combinesRouter } from "@/server/api/routers/combines";
 import { messagesRouter } from "@/server/api/routers/messages";
 import { leaguesRouter } from "@/server/api/routers/leagues";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { playerSearchRouter } from "@/server/api/routers/playerSearch";
+import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAssociationRequests";
 
 /**
  * This is the primary router for your server.
@@ -15,11 +17,13 @@ import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 export const appRouter = createTRPCRouter({
   playerProfile: playerProfileRouter,
   coachProfile: coachProfileRouter,
+  schoolProfile: schoolProfileRouter,
   tryouts: tryoutsRouter,
   combines: combinesRouter,
   messages: messagesRouter,
   playerSearch: playerSearchRouter,
   leagues: leaguesRouter,
+  schoolAssociationRequests: schoolAssociationRequestsRouter,
 });
 
 // export type definition of API

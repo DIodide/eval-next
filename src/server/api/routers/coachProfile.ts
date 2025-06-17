@@ -1,12 +1,13 @@
 // src/server/api/routers/coachProfile.ts
 // This file contains the coach profile router for the API.
-// It provides endpoints for managing coach profiles, school associations, and basic information.
+// It provides endpoints for managing coach profiles, school associations, and onboarding.
 
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
+import type { CoachOnboardingStatus } from "@/lib/permissions";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
@@ -21,6 +22,11 @@ const profileUpdateSchema = z.object({
   // School association
   school: z.string().optional(),
   school_id: z.string().uuid().optional(),
+});
+
+const schoolAssociationRequestSchema = z.object({
+  school_id: z.string().uuid(),
+  request_message: z.string().min(10).max(500).optional(),
 });
 
 // Helper function to verify user is a coach using the auth context
@@ -52,7 +58,51 @@ async function verifyCoachUser(ctx: Context) {
   return { userId, coachId: coach.id };
 }
 
+// Helper function to get coach onboarding status
+async function getCoachOnboardingStatus(ctx: Context, coachId: string): Promise<CoachOnboardingStatus> {
+  const coach = await withRetry(() =>
+    ctx.db.coach.findUnique({
+      where: { id: coachId },
+      select: {
+        school_id: true,
+        school_requests: {
+          where: {
+            status: 'PENDING'
+          },
+          select: { id: true }
+        }
+      },
+    })
+  );
+
+  if (!coach) {
+    return {
+      isOnboarded: false,
+      hasSchoolAssociation: false,
+      hasPendingRequest: false,
+      canRequestAssociation: false,
+    };
+  }
+
+  const hasSchoolAssociation = !!coach.school_id;
+  const hasPendingRequest = coach.school_requests.length > 0;
+  const canRequestAssociation = !hasSchoolAssociation && !hasPendingRequest;
+
+  return {
+    isOnboarded: hasSchoolAssociation,
+    hasSchoolAssociation,
+    hasPendingRequest,
+    canRequestAssociation,
+  };
+}
+
 export const coachProfileRouter = createTRPCRouter({
+  // Get coach onboarding status
+  getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
+    const { coachId } = await verifyCoachUser(ctx);
+    return await getCoachOnboardingStatus(ctx, coachId);
+  }),
+
   // Get coach profile
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     // Verify user is a coach and get user info
@@ -64,6 +114,10 @@ export const coachProfileRouter = createTRPCRouter({
           where: { clerk_id: userId },
           include: {
             school_ref: true,
+            school_requests: {
+              orderBy: { requested_at: 'desc' },
+              take: 1,
+            },
           },
         })
       );
@@ -141,6 +195,19 @@ export const coachProfileRouter = createTRPCRouter({
                 website: true,
               },
             },
+            school_requests: {
+              orderBy: { requested_at: 'desc' },
+              include: {
+                school: {
+                  select: {
+                    name: true,
+                    type: true,
+                    location: true,
+                    state: true,
+                  },
+                },
+              },
+            },
           },
         })
       );
@@ -153,6 +220,96 @@ export const coachProfileRouter = createTRPCRouter({
       });
     }
   }),
+
+  // Submit school association request
+  submitSchoolAssociationRequest: protectedProcedure
+    .input(schoolAssociationRequestSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { coachId } = await verifyCoachUser(ctx);
+      
+      try {
+        // Check if coach already has school association
+        const coach = await withRetry(() =>
+          ctx.db.coach.findUnique({
+            where: { id: coachId },
+            select: { school_id: true },
+          })
+        );
+
+        if (coach?.school_id) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Coach already has a school association',
+          });
+        }
+
+        // Check if there's already a pending request for this school
+        const existingRequest = await withRetry(() =>
+          ctx.db.schoolAssociationRequest.findUnique({
+            where: {
+              coach_id_school_id: {
+                coach_id: coachId,
+                school_id: input.school_id,
+              },
+            },
+          })
+        );
+
+        if (existingRequest) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'A request for this school is already pending',
+          });
+        }
+
+        // Verify the school exists
+        const school = await withRetry(() =>
+          ctx.db.school.findUnique({
+            where: { id: input.school_id },
+            select: { id: true, name: true },
+          })
+        );
+
+        if (!school) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'School not found',
+          });
+        }
+
+        // Create the association request
+        const request = await withRetry(() =>
+          ctx.db.schoolAssociationRequest.create({
+            data: {
+              coach_id: coachId,
+              school_id: input.school_id,
+              request_message: input.request_message,
+            },
+            include: {
+              school: {
+                select: {
+                  name: true,
+                  type: true,
+                  location: true,
+                  state: true,
+                },
+              },
+            },
+          })
+        );
+
+        return request;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error submitting school association request:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to submit school association request',
+        });
+      }
+    }),
 
   // Update coach profile
   updateProfile: protectedProcedure
@@ -214,7 +371,7 @@ export const coachProfileRouter = createTRPCRouter({
     }
   }),
 
-  // Associate coach with a school
+  // Associate coach with a school (deprecated - use submitSchoolAssociationRequest)
   associateWithSchool: protectedProcedure
     .input(z.object({
       school_id: z.string().uuid(),

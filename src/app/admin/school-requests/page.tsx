@@ -156,14 +156,14 @@ export default function SchoolRequestsPage() {
             <div className="space-y-2">
               <Label htmlFor="status" className="text-gray-300">Status</Label>
               <Select 
-                value={statusFilter ?? ""} 
-                onValueChange={(value) => setStatusFilter(value === "" ? undefined : value as "PENDING" | "APPROVED" | "REJECTED")}
+                value={statusFilter ?? "all"} 
+                onValueChange={(value) => setStatusFilter(value === "all" ? undefined : value as "PENDING" | "APPROVED" | "REJECTED")}
               >
                 <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="APPROVED">Approved</SelectItem>
                   <SelectItem value="REJECTED">Rejected</SelectItem>
