@@ -759,7 +759,7 @@ export default function ProfilePage() {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="border-gray-600 bg-white text-black hover:bg-gray-200"
+                  className="border-gray-600 text-black hover:bg-gray-200"
                   onClick={() => setIsEditingRecruiting(true)}
                   disabled={isLoadingProfile || updateProfileMutation.isPending}
                 >
