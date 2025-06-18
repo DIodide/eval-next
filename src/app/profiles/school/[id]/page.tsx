@@ -24,7 +24,7 @@ const mockTryoutsData = {
       date: new Date("2024-02-15T18:00:00Z"),
       time_start: "18:00",
       time_end: "20:00",
-      location: "Berkeley Esports Arena",
+      location: "Frist Multipurpose Room",
       type: "IN_PERSON" as const,
       status: "PUBLISHED" as const,
       price: "Free",
@@ -38,10 +38,10 @@ const mockTryoutsData = {
         color: null
       },
       school: {
-        id: "uc-berkeley",
-        name: "UC Berkeley",
-        location: "Berkeley, CA",
-        state: "CA",
+        id: "princeton",
+        name: "Princeton University",
+        location: "Princeton, NJ",
+        state: "NJ",
         type: "University"
       },
       organizer: {
@@ -71,10 +71,10 @@ const mockTryoutsData = {
         color: null
       },
       school: {
-        id: "uc-berkeley",
-        name: "UC Berkeley", 
-        location: "Berkeley, CA",
-        state: "CA",
+        id: "princeton",
+        name: "Princeton University", 
+        location: "Princeton, NJ",
+        state: "NJ",
         type: "University"
       },
       organizer: {
@@ -90,7 +90,7 @@ const mockTryoutsData = {
       date: new Date("2024-01-10T17:00:00Z"), // Past date
       time_start: "17:00", 
       time_end: "19:00",
-      location: "Berkeley Gaming Lab",
+      location: "Fine Hall",
       type: "HYBRID" as const,
       status: "PUBLISHED" as const,
       price: "Free",
@@ -104,10 +104,10 @@ const mockTryoutsData = {
         color: null
       },
       school: {
-        id: "uc-berkeley",
-        name: "UC Berkeley",
-        location: "Berkeley, CA", 
-        state: "CA",
+        id: "princeton",
+        name: "Princeton University",
+        location: "Princeton, NJ", 
+        state: "NJ",
         type: "University"
       },
       organizer: {
@@ -122,14 +122,14 @@ const mockTryoutsData = {
 };
 
 const mockSchoolData = {
-  id: "uc-berkeley",
-  name: "University of California, Berkeley",
-  location: "Berkeley, CA",
-  logo: "/partners/keller/keller.png",
-  bio: "UC Berkeley's esports program is one of the most competitive and well-established programs in collegiate esports. We compete across multiple titles including Valorant, League of Legends, Overwatch, and more. Our teams have consistently placed in top tournaments and our alumni have gone on to professional careers in esports.",
-  website: "https://esports.berkeley.edu",
-  email: "esports@berkeley.edu",
-  phone: "(510) 642-6000",
+  id: "princeton",
+  name: "Princeton University",
+  location: "Princeton, NJ",
+  logo: "/eval/logos/PU_mark.svg",
+  bio: "Princeton University's esports program represents the pinnacle of competitive gaming excellence in the Ivy League. We field teams across multiple premier titles including Valorant, League of Legends, Overwatch, and Rocket League. Our student-athletes balance academic rigor with competitive gaming, consistently achieving top placements in collegiate tournaments while maintaining Princeton's academic standards.",
+  website: "https://esports.princeton.edu",
+  email: "esports@princeton.edu",
+  phone: "(609) 258-3000",
   coaches: [
     {
       id: "coach-1",
@@ -139,7 +139,7 @@ const mockSchoolData = {
       games: ["Valorant", "Overwatch"],
       achievements: ["National Champion 2023", "Regional Winner 2022", "Coach of the Year 2023"],
       isPrimary: true,
-      email: "s.johnson@berkeley.edu"
+      email: "s.johnson@princeton.edu"
     },
     {
       id: "coach-2", 
@@ -147,9 +147,9 @@ const mockSchoolData = {
       title: "Assistant Coach",
       image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZd", // Example Clerk image URL
       games: ["Rocket League", "Smash Bros"],
-      achievements: ["Regional Champion 2023", "Tournament Winner 2022"],
+      achievements: ["Ivy League Champion 2023", "NACE Tournament Winner 2022"],
       isPrimary: false,
-      email: "m.chen@berkeley.edu"
+      email: "m.chen@princeton.edu"
     },
     {
       id: "coach-3",
@@ -157,9 +157,9 @@ const mockSchoolData = {
       title: "Strategy Coach",
       image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZe", // Example Clerk image URL
       games: ["League of Legends", "Valorant"],
-      achievements: ["World Championship 2022", "Regional Winner 2023"],
+      achievements: ["Collegiate World Championship 2022", "Ivy League Winner 2023"],
       isPrimary: false,
-      email: "a.rodriguez@berkeley.edu"
+      email: "a.rodriguez@princeton.edu"
     },
     {
       id: "coach-4",
@@ -167,9 +167,9 @@ const mockSchoolData = {
       title: "Performance Coach",
       image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZf", // Example Clerk image URL
       games: ["Overwatch", "Apex Legends"],
-      achievements: ["Championship Winner 2023", "Best Coach Award 2022"],
+      achievements: ["NACE Championship 2023", "Princeton Excellence Award 2022"],
       isPrimary: false,
-      email: "j.kim@berkeley.edu"
+      email: "j.kim@princeton.edu"
     },
     {
       id: "coach-5",
@@ -177,9 +177,9 @@ const mockSchoolData = {
       title: "Analyst Coach",
       image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZg", // Example Clerk image URL
       games: ["Valorant", "CS2"],
-      achievements: ["Analytics Excellence 2023", "Innovation Award 2022"],
+      achievements: ["Data Analytics Excellence 2023", "Ivy Innovation Award 2022"],
       isPrimary: false,
-      email: "d.park@berkeley.edu"
+      email: "d.park@princeton.edu"
     }
   ]
 };
@@ -505,9 +505,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
             <div className="flex flex-col md:flex-row items-start gap-8">
               {/* School Logo and Basic Info */}
               <div className="flex flex-col items-center md:items-start">
-                <div className="w-32 h-32 bg-gray-700 rounded-lg mb-4 flex items-center justify-center border border-gray-600">
-                  <span className="text-gray-400 text-sm font-rajdhani">School Logo</span>
-                </div>
+                <img src={school.logo} alt={school.name} className="w-32 h-32 rounded-lg mb-4" />
                 <div className="text-center md:text-left">
                   <h1 className="text-3xl font-orbitron font-bold mb-2 text-white">{school.name}</h1>
                   <div className="flex items-center gap-2 text-gray-400 mb-4">
@@ -633,7 +631,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     </div>
                     <h4 className="font-orbitron font-semibold text-sm text-white mb-1">New Training Facility</h4>
                     <p className="text-gray-400 text-sm font-rajdhani">
-                      Our new esports training facility is now open with 20 high-end gaming stations.
+                      Our new Princeton Esports Center is now open with 25 high-end gaming stations in Frist Campus Center.
                     </p>
                   </div>
 
@@ -642,9 +640,9 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                       <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                       <span className="text-xs text-gray-400 font-rajdhani">1 week ago</span>
                     </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Scholarship Program Launch</h4>
+                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Princeton Esports Scholarship</h4>
                     <p className="text-gray-400 text-sm font-rajdhani">
-                      Announcing our new esports scholarship program for outstanding players.
+                      Announcing our new Princeton Esports Excellence Scholarship for outstanding student-athletes.
                     </p>
                   </div>
 
@@ -655,7 +653,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     </div>
                     <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Alumni Spotlight</h4>
                     <p className="text-gray-400 text-sm font-rajdhani">
-                      Former player Jake Martinez signs with a professional Rocket League team.
+                      Princeton graduate Emma Thompson &apos;23 signs with Cloud9 professional Valorant team.
                     </p>
                   </div>
 
