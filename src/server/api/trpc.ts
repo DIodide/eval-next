@@ -140,3 +140,47 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  * This is a procedure that requires the user to be signed in.
  */
 export const protectedProcedure = t.procedure.use(isAuthed);
+
+/**
+ * Middleware to verify user is an onboarded coach
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
+  // Get user from Clerk to check publicMetadata
+  const publicMetadata = ctx.auth.sessionClaims?.metadata as Record<string, unknown> | undefined;
+  
+  if (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach") {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Access denied. Only onboarded coaches can access this resource.',
+    });
+  }
+
+  // Verify coach exists in database
+  const coach = await ctx.db.coach.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true },
+  });
+
+  if (!coach) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Coach profile not found.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      coachId: coach.id, // Add coach-specific context
+    },
+  });
+});
+
+/**
+ * Onboarded coach procedure
+ *
+ * This is a procedure that requires the user to be signed in and be an onboarded coach.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ */
+export const onboardedCoachProcedure = protectedProcedure.use(isOnboardedCoach);

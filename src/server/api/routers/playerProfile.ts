@@ -8,7 +8,7 @@
 
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
@@ -251,6 +251,8 @@ async function verifyPlayerUser(ctx: Context) {
 
   return { userId, playerId: player.id };
 }
+
+
 
 export const playerProfileRouter = createTRPCRouter({
   // Get player profile
@@ -767,4 +769,44 @@ export const playerProfileRouter = createTRPCRouter({
       });
     }
   }),
+
+  // Get recruiting information for a player (secure - onboarded coaches only)
+  getPublicRecruitingInfo: onboardedCoachProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const player = await ctx.db.player.findUnique({
+          where: { username: input.username },
+          select: {
+            id: true,
+            username: true,
+            first_name: true,
+            last_name: true,
+            graduation_date: true,
+            intended_major: true,
+            gpa: true,
+            extra_curriculars: true,
+            academic_bio: true,
+          },
+        });
+        
+        if (!player) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Player profile not found',
+          });
+        }
+        
+        return player;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error fetching player recruiting info:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch player recruiting information',
+        });
+      }
+    }),
 }); 

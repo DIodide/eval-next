@@ -252,6 +252,9 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
   const { user } = useUser();
   const canMessage = user ? hasPermission(user, "message_player") : false;
   
+  // Check if user is an onboarded coach
+  const isOnboardedCoach = user?.publicMetadata?.onboarded === true && user?.publicMetadata?.userType === "coach";
+  
   // Unwrap params Promise for Next.js 15
   const unwrappedParams = use(params);
 
@@ -264,6 +267,17 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
     retry: 1, // Only retry once for public profiles
     retryDelay: 1000, // Wait 1 second before retry
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
+  });
+
+  // Fetch recruiting info for onboarded coaches only
+  const { data: recruitingInfo } = api.playerProfile.getPublicRecruitingInfo.useQuery({
+    username: unwrappedParams.username
+  }, {
+    enabled: isOnboardedCoach, // Only fetch if user is an onboarded coach
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    retryDelay: 1000,
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {
@@ -392,6 +406,59 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
             </CardHeader>
             <CardContent>
               <p className="text-gray-300 font-rajdhani leading-relaxed">{player.bio}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Academic & Recruiting Information */}
+        {recruitingInfo && (recruitingInfo.academic_bio ?? recruitingInfo.extra_curriculars ?? recruitingInfo.intended_major ?? recruitingInfo.gpa ?? recruitingInfo.graduation_date) && (
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white font-orbitron">Academic & Recruiting Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Academic Information */}
+                <div>
+                  <h3 className="font-orbitron font-semibold text-gray-300 mb-4">Academic Information</h3>
+                  <div className="space-y-3">
+                    {recruitingInfo.intended_major && (
+                      <div>
+                        <span className="text-gray-400 font-rajdhani text-sm">Intended Major:</span>
+                        <p className="text-gray-300 font-rajdhani">{recruitingInfo.intended_major}</p>
+                      </div>
+                    )}
+                    {recruitingInfo.graduation_date && (
+                      <div>
+                        <span className="text-gray-400 font-rajdhani text-sm">Expected Graduation:</span>
+                        <p className="text-gray-300 font-rajdhani">{recruitingInfo.graduation_date}</p>
+                      </div>
+                    )}
+                    {recruitingInfo.gpa && (
+                      <div>
+                        <span className="text-gray-400 font-rajdhani text-sm">GPA:</span>
+                        <p className="text-gray-300 font-rajdhani">{Number(recruitingInfo.gpa).toFixed(2)}</p>
+                      </div>
+                    )}
+                    {recruitingInfo.academic_bio && (
+                      <div>
+                        <span className="text-gray-400 font-rajdhani text-sm">Academic Achievements:</span>
+                        <p className="text-gray-300 font-rajdhani leading-relaxed mt-1">{recruitingInfo.academic_bio}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Extracurricular Activities */}
+                {recruitingInfo.extra_curriculars && (
+                  <div>
+                    <h3 className="font-orbitron font-semibold text-gray-300 mb-4">Extracurricular Activities</h3>
+                    <div className="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                      <p className="text-gray-300 font-rajdhani leading-relaxed">{recruitingInfo.extra_curriculars}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
