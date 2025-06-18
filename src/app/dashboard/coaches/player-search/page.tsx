@@ -999,6 +999,14 @@ export default function CoachPlayerSearchPage() {
                     <Bookmark className={`w-4 h-4 mr-2 ${pendingFavorites.has(liveSelectedPlayer.id) ? 'animate-pulse' : ''}`} />
                     {liveSelectedPlayer.is_favorited ? "Remove Bookmark" : "Add Bookmark"}
                   </Button>
+                  {liveSelectedPlayer.username && (
+                    <Link href={`/profiles/player/${liveSelectedPlayer.username}`} target="_blank">
+                      <Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Public Profile
+                      </Button>
+                    </Link>
+                  )}
                   <Button variant="outline" className="bg-white border-gray-600 hover:text-gray-800 text-black">
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Send Message
