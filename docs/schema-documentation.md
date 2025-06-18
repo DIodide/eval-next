@@ -5,12 +5,13 @@ This document provides comprehensive documentation for the EVAL Gaming Platform 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Database Configuration](#database-configuration)
-3. [Core Models](#core-models)
-4. [Model Relationships](#model-relationships)
-5. [Enums](#enums)
-6. [Indexes and Performance](#indexes-and-performance)
-7. [Data Flow Examples](#data-flow-examples)
+2. [API Architecture](#api-architecture)
+3. [Database Configuration](#database-configuration)
+4. [Core Models](#core-models)
+5. [Model Relationships](#model-relationships)
+6. [Enums](#enums)
+7. [Indexes and Performance](#indexes-and-performance)
+8. [Data Flow Examples](#data-flow-examples)
 
 ## Overview
 
@@ -23,6 +24,108 @@ The EVAL Gaming Platform database is organized into several key functional areas
 - **Events**: Tryouts and combines for recruitment
 - **Communication**: Messaging system between coaches and players
 - **Performance**: Statistics and ranking systems
+
+## API Architecture
+
+The EVAL Gaming Platform uses a structured tRPC-based API with role-based access control through custom procedures.
+
+### Procedure Types
+
+#### `publicProcedure`
+
+- **Access**: No authentication required
+- **Use Cases**: Browsing public content, viewing tryouts/combines, general information
+- **Context**: Basic request context only
+
+#### `protectedProcedure`
+
+- **Access**: Authenticated users only
+- **Verification**: Clerk authentication
+- **Context**: Includes `auth` object with user information
+
+#### `playerProcedure`
+
+- **Access**: Authenticated players only
+- **Verification**:
+  - Clerk authentication
+  - Valid player profile in database
+- **Context**: Includes `playerId` automatically
+- **Use Cases**: Player registrations, dashboard views, profile management
+
+```typescript
+// Example usage
+getPlayerRegistrations: playerProcedure
+  .input(z.object({ status: z.enum(["upcoming", "past", "all"]) }))
+  .query(async ({ ctx, input }) => {
+    const { playerId } = ctx; // Automatically available
+    // Query player's data
+  });
+```
+
+#### `onboardedCoachProcedure`
+
+- **Access**: Fully onboarded coaches only
+- **Verification**:
+  - Clerk authentication
+  - `publicMetadata.onboarded === true`
+  - `publicMetadata.userType === "coach"`
+  - Valid coach profile in database
+- **Context**: Includes `coachId` and `schoolId` automatically
+- **Use Cases**: Managing tryouts/combines, player applications, administrative functions
+
+```typescript
+// Example usage
+createTryout: onboardedCoachProcedure
+  .input(tryoutCreationSchema)
+  .mutation(async ({ ctx, input }) => {
+    const { coachId, schoolId } = ctx; // Automatically available
+    // Create tryout with proper associations
+  });
+```
+
+#### `coachProcedure` (Available but Limited Use)
+
+- **Access**: Any authenticated coach
+- **Verification**: Clerk authentication + coach profile
+- **Context**: Includes `coachId` and `schoolId`
+- **Use Cases**: Basic coach operations that don't require full onboarding
+
+### Authorization Levels
+
+1. **Public Access**: General browsing, viewing published content
+2. **Player Access**: Registration management, personal dashboard
+3. **Regular Coach Access**: Basic profile management only
+4. **Onboarded Coach Access**: Full administrative capabilities
+   - Creating and managing events
+   - Player recruitment and communication
+   - Application review and status updates
+   - School-associated operations
+
+### Middleware Architecture
+
+```typescript
+// Authentication flow
+protectedProcedure // Base authentication
+  .use(isPlayer) // Player verification middleware
+  // OR
+  .use(isOnboardedCoach); // Onboarded coach verification middleware
+```
+
+The middleware system provides:
+
+- **Automatic context enhancement**: Role-specific data available in context
+- **Database verification**: Ensures profiles exist and are valid
+- **Error handling**: Consistent error responses for authorization failures
+- **Type safety**: TypeScript ensures correct context usage
+
+### Security Features
+
+- **Role-based Access Control**: Strict separation of player and coach capabilities
+- **Resource Ownership**: Automatic verification of resource ownership
+- **Onboarding Requirements**: Critical operations require completed onboarding
+- **Input Validation**: Zod schemas for all inputs
+- **SQL Injection Prevention**: Prisma ORM with parameterized queries
+- **Rate Limiting**: Built-in tRPC middleware support
 
 ## Database Configuration
 

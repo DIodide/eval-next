@@ -4,14 +4,10 @@
 // It uses the protectedProcedure from the trpc router to ensure that the user is authenticated.
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure, playerProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";
-
-// Type for the tRPC context
-type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 // Input validation schemas
 const tryoutFiltersSchema = z.object({
@@ -35,62 +31,6 @@ const registrationStatusSchema = z.object({
   registration_id: z.string().uuid(),
   status: z.enum(["PENDING", "CONFIRMED", "WAITLISTED", "DECLINED", "CANCELLED"]),
 });
-
-// Helper function to verify user is a player
-async function verifyPlayerUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  const player = await withRetry(() => 
-    ctx.db.player.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true },
-    })
-  );
-
-  if (!player) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Player profile not found. Only players can access this resource.',
-    });
-  }
-
-  return { userId, playerId: player.id };
-}
-
-// Helper function to verify user is a coach
-async function verifyCoachUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  const coach = await withRetry(() => 
-    ctx.db.coach.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true, school_id: true },
-    })
-  );
-
-  if (!coach) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Coach profile not found. Only coaches can access this resource.',
-    });
-  }
-
-  return { userId, coachId: coach.id, schoolId: coach.school_id };
-}
 
 export const tryoutsRouter = createTRPCRouter({
   // Browse all available tryouts with filtering
@@ -315,13 +255,13 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Get player's tryout registrations (for dashboard)
-  getPlayerRegistrations: protectedProcedure
+  getPlayerRegistrations: playerProcedure
     .input(z.object({
       status: z.enum(["upcoming", "past", "all"]).default("all"),
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         const now = new Date();
@@ -387,10 +327,10 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Register for a tryout
-  register: protectedProcedure
+  register: playerProcedure
     .input(registrationSchema)
     .mutation(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         // Check if tryout exists and is still open
@@ -505,10 +445,10 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Cancel registration
-  cancelRegistration: protectedProcedure
+  cancelRegistration: playerProcedure
     .input(z.object({ registration_id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         // Get registration with tryout info
@@ -581,10 +521,10 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Get player's registration status for a specific tryout
-  getRegistrationStatus: protectedProcedure
+  getRegistrationStatus: playerProcedure
     .input(z.object({ tryout_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         const registration = await withRetry(() =>
@@ -617,7 +557,7 @@ export const tryoutsRouter = createTRPCRouter({
   // Coach-only endpoints for managing tryouts
 
   // Create a new tryout (coaches only)
-  create: protectedProcedure
+  create: onboardedCoachProcedure
     .input(z.object({
       title: z.string().min(5).max(200),
       description: z.string().min(10).max(500),
@@ -637,7 +577,7 @@ export const tryoutsRouter = createTRPCRouter({
       required_roles: z.array(z.string()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { coachId, schoolId } = await verifyCoachUser(ctx);
+      const { coachId, schoolId } = ctx;
 
       if (!schoolId) {
         throw new TRPCError({
@@ -680,10 +620,10 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Update registration status (coaches only)
-  updateRegistrationStatus: protectedProcedure
+  updateRegistrationStatus: onboardedCoachProcedure
     .input(registrationStatusSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         // Verify coach owns this tryout
@@ -772,14 +712,14 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Get coach's tryouts (coaches only) - includes draft tryouts
-  getCoachTryouts: protectedProcedure
+  getCoachTryouts: onboardedCoachProcedure
     .input(z.object({
       status: z.enum(["all", "active", "upcoming", "past", "draft", "published"]).default("all"),
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
     }))
     .query(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         const now = new Date();
@@ -890,13 +830,13 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Get detailed tryout applications for coaches
-  getTryoutApplications: protectedProcedure
+  getTryoutApplications: onboardedCoachProcedure
     .input(z.object({
       tryout_id: z.string().uuid(),
       status: z.enum(["all", "pending", "confirmed", "declined", "waitlisted"]).default("all"),
     }))
     .query(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         // Verify coach owns this tryout
@@ -1019,12 +959,12 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Remove/delete a registration (coaches only)
-  removeRegistration: protectedProcedure
+  removeRegistration: onboardedCoachProcedure
     .input(z.object({
       registration_id: z.string().uuid(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         // Verify coach owns this tryout
@@ -1087,7 +1027,7 @@ export const tryoutsRouter = createTRPCRouter({
     }),
 
   // Update a tryout (coaches only) - only for draft tryouts
-  update: protectedProcedure
+  update: onboardedCoachProcedure
     .input(z.object({
       id: z.string().uuid(),
       title: z.string().min(5).max(200).optional(),
@@ -1108,7 +1048,7 @@ export const tryoutsRouter = createTRPCRouter({
       required_roles: z.array(z.string()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         // Verify coach owns this tryout and it's editable

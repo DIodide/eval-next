@@ -159,7 +159,7 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
   // Verify coach exists in database
   const coach = await ctx.db.coach.findUnique({
     where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
-    select: { id: true },
+    select: { id: true, school_id: true },
   });
 
   if (!coach) {
@@ -173,6 +173,59 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
     ctx: {
       ...ctx, // Preserve existing context
       coachId: coach.id, // Add coach-specific context
+      schoolId: coach.school_id, // Add school context for onboarded coaches
+    },
+  });
+});
+
+/**
+ * Middleware to verify user is a coach (including school_id)
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const isCoach = t.middleware(async ({ next, ctx }) => {
+  const coach = await ctx.db.coach.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true, school_id: true },
+  });
+
+  if (!coach) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Coach profile not found. Only coaches can access this resource.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      coachId: coach.id, // Add coach-specific context
+      schoolId: coach.school_id, // Add school context for coaches
+    },
+  });
+});
+
+/**
+ * Middleware to verify user is a player
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isPlayer = t.middleware(async ({ next, ctx }) => {
+  const player = await ctx.db.player.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true },
+  });
+
+  if (!player) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Player profile not found. Only players can access this resource.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      playerId: player.id, // Add player-specific context
     },
   });
 });
@@ -184,3 +237,21 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
  * It builds upon protectedProcedure, so authentication is handled automatically.
  */
 export const onboardedCoachProcedure = protectedProcedure.use(isOnboardedCoach);
+
+/**
+ * Coach procedure
+ *
+ * This is a procedure that requires the user to be signed in and be a coach.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ * Provides coachId and schoolId in the context.
+ */
+// export const coachProcedure = protectedProcedure.use(isCoach);
+
+/**
+ * Player procedure
+ *
+ * This is a procedure that requires the user to be signed in and be a player.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ * Provides playerId in the context.
+ */
+export const playerProcedure = protectedProcedure.use(isPlayer);

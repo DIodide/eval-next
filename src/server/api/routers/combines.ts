@@ -4,14 +4,10 @@
 // Similar to tryouts but adapted for combine-specific features like qualification status and invite-only events.
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure, playerProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";
-
-// Type for the tRPC context
-type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 // Input validation schemas
 const combineFiltersSchema = z.object({
@@ -35,62 +31,6 @@ const combineRegistrationStatusSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "WAITLISTED", "DECLINED", "CANCELLED"]),
   qualified: z.boolean().optional(),
 });
-
-// Helper function to verify user is a player
-async function verifyPlayerUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  const player = await withRetry(() => 
-    ctx.db.player.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true },
-    })
-  );
-
-  if (!player) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Player profile not found. Only players can access this resource.',
-    });
-  }
-
-  return { userId, playerId: player.id };
-}
-
-// Helper function to verify user is a coach
-async function verifyCoachUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  const coach = await withRetry(() => 
-    ctx.db.coach.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true, school_id: true },
-    })
-  );
-
-  if (!coach) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Coach profile not found. Only coaches can access this resource.',
-    });
-  }
-
-  return { userId, coachId: coach.id, schoolId: coach.school_id };
-}
 
 export const combinesRouter = createTRPCRouter({
   // Browse all available combines with filtering
@@ -294,13 +234,13 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Get player's combine registrations (for dashboard)
-  getPlayerRegistrations: protectedProcedure
+  getPlayerRegistrations: playerProcedure
     .input(z.object({
       status: z.enum(["upcoming", "past", "all"]).default("all"),
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         const now = new Date();
@@ -358,10 +298,10 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Register for a combine
-  register: protectedProcedure
+  register: playerProcedure
     .input(combineRegistrationSchema)
     .mutation(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         // Check if combine exists and is open for registration
@@ -484,10 +424,10 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Cancel registration
-  cancelRegistration: protectedProcedure
+  cancelRegistration: playerProcedure
     .input(z.object({ registration_id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         // Get registration with combine info
@@ -569,10 +509,10 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Get player's registration status for a specific combine
-  getRegistrationStatus: protectedProcedure
+  getRegistrationStatus: playerProcedure
     .input(z.object({ combine_id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { playerId } = await verifyPlayerUser(ctx);
+      const { playerId } = ctx;
 
       try {
         const registration = await withRetry(() =>
@@ -605,7 +545,7 @@ export const combinesRouter = createTRPCRouter({
   // Coach-only endpoints for managing combines
 
   // Create a new combine (coaches only)
-  create: protectedProcedure
+  create: onboardedCoachProcedure
     .input(z.object({
       title: z.string().min(5).max(200),
       description: z.string().min(10).max(500),
@@ -623,7 +563,7 @@ export const combinesRouter = createTRPCRouter({
       status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED"]).default("UPCOMING"),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         const combine = await withRetry(() =>
@@ -657,13 +597,13 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Update combine status (coaches only)
-  updateStatus: protectedProcedure
+  updateStatus: onboardedCoachProcedure
     .input(z.object({
       combine_id: z.string().uuid(),
       status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         // Verify coach owns this combine
@@ -717,10 +657,10 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Update registration status and qualification (coaches only)
-  updateRegistrationStatus: protectedProcedure
+  updateRegistrationStatus: onboardedCoachProcedure
     .input(combineRegistrationStatusSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const { coachId } = ctx;
 
       try {
         // Verify coach owns this combine

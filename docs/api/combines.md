@@ -14,11 +14,16 @@ The router provides functionality for:
 
 ## Authentication & Authorization
 
-The router uses a hybrid authentication model:
+The router uses a structured procedure-based authorization system:
 
-- **Public Endpoints**: `browse`, `getByGame`, `getById` (viewable without authentication)
-- **Player Protected**: Registration operations require player authentication and verification
-- **Coach Protected**: Administrative operations require coach authentication and verification
+- **Public Procedures**: No authentication required (`publicProcedure`)
+- **Player Procedures**: Authenticated player access (`playerProcedure`)
+  - Automatic authentication and player profile verification
+  - Context automatically includes `playerId`
+- **Onboarded Coach Procedures**: Advanced coach access (`onboardedCoachProcedure`)
+  - Requires authentication + onboarded coach verification
+  - Checks Clerk `publicMetadata.onboarded === true` and `userType === "coach"`
+  - Context automatically includes `coachId` and `schoolId`
 - **Ownership Verification**: Coaches can only manage combines they organize
 
 ## Database Reliability
@@ -218,7 +223,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - `UNAUTHORIZED`: User not authenticated
   - `INTERNAL_SERVER_ERROR`: Failed to cancel registration
 
-## Coach Protected Endpoints
+## Onboarded Coach Endpoints
 
 ### Mutation Endpoints
 
@@ -227,7 +232,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 - **Method**: Mutation
 - **Input**: Combine Creation Schema
 - **Description**: Create a new combine event
-- **Authentication**: Coach required
+- **Authentication**: Onboarded coach required
 - **Returns**: Created combine with game and organizer details
 - **Features**:
   - Automatic assignment of organizing coach
@@ -235,7 +240,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - Comprehensive input validation
 - **Error Codes**:
   - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a coach
+  - `FORBIDDEN`: User is not an onboarded coach
   - `INTERNAL_SERVER_ERROR`: Failed to create combine
 
 #### `updateStatus`
@@ -243,7 +248,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 - **Method**: Mutation
 - **Input**: `{ combine_id: string; status: CombineStatus }`
 - **Description**: Update combine status (lifecycle management)
-- **Authentication**: Coach required (must own combine)
+- **Authentication**: Onboarded coach required (must own combine)
 - **Returns**: Updated combine with relations
 - **Status Transitions**:
   - `UPCOMING` → `REGISTRATION_OPEN`
@@ -264,7 +269,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 - **Method**: Mutation
 - **Input**: Registration Status Update Schema
 - **Description**: Manage player registration status and qualification
-- **Authentication**: Coach required (must own combine)
+- **Authentication**: Onboarded coach required (must own combine)
 - **Returns**: Updated registration with player details
 - **Features**:
   - Update registration status (PENDING → CONFIRMED, etc.)

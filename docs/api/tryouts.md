@@ -35,13 +35,18 @@ The router provides functionality for:
 
 ## Authentication & Authorization
 
-All endpoints in this router use `protectedProcedure` with role-specific verification:
+The router uses a structured procedure-based authorization system:
 
-- Users must be authenticated via Clerk
-- **Player endpoints** require valid player profile verification
-- **Coach endpoints** require valid coach profile verification and school association
-- Access controls ensure users can only access appropriate resources
-- Registration ownership verification for mutations
+- **Public Procedures**: No authentication required (`publicProcedure`)
+- **Player Procedures**: Authenticated player access (`playerProcedure`)
+  - Automatic authentication and player profile verification
+  - Context automatically includes `playerId`
+- **Onboarded Coach Procedures**: Advanced coach access (`onboardedCoachProcedure`)
+  - Requires authentication + onboarded coach verification
+  - Checks Clerk `publicMetadata.onboarded === true` and `userType === "coach"`
+  - Context automatically includes `coachId` and `schoolId`
+- **Access Controls**: Users can only access appropriate resources
+- **Ownership Verification**: Automatic verification for resource access
 
 ## Database Reliability
 
@@ -232,11 +237,11 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - `INTERNAL_SERVER_ERROR`: Failed to cancel registration
   - `UNAUTHORIZED`: User not authenticated
 
-### Coach Query Endpoints
+### Onboarded Coach Query Endpoints
 
 #### `getCoachTryouts`
 
-- **Method**: Query (Protected - Coaches Only)
+- **Method**: Query (Onboarded Coaches Only)
 - **Input**: Coach Tryouts Query Schema
 - **Description**: Get coach's tryouts with status filtering (includes DRAFT tryouts)
 - **Returns**: Object with `tryouts` array, `total` count, and `hasMore` boolean
@@ -249,31 +254,31 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - `draft`: Only DRAFT status tryouts
   - `published`: Only PUBLISHED status tryouts
 - **Performance**: Optimized for coach dashboard, includes registration statistics
-- **Authorization**: Coach-only access, returns only own tryouts
+- **Authorization**: Onboarded coach only access, returns only own tryouts
 - **Error Codes**:
   - `INTERNAL_SERVER_ERROR`: Failed to fetch coach tryouts
   - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a coach
+  - `FORBIDDEN`: User is not an onboarded coach
 
 #### `getTryoutApplications`
 
-- **Method**: Query (Protected - Coaches Only)
+- **Method**: Query (Onboarded Coaches Only)
 - **Input**: `{ tryout_id: string (UUID), status?: "all" | "pending" | "confirmed" | "declined" | "waitlisted" (default: "all") }`
 - **Description**: Get detailed applications for a specific tryout
 - **Returns**: Object with tryout details and applications array
 - **Includes**: Complete player profiles, game profiles, platform connections
-- **Authorization**: Coach-only access, must own the tryout
+- **Authorization**: Onboarded coach only access, must own the tryout
 - **Error Codes**:
   - `NOT_FOUND`: Tryout not found
-  - `FORBIDDEN`: Cannot access applications for tryout you don't organize or user is not a coach
+  - `FORBIDDEN`: Cannot access applications for tryout you don't organize or user is not an onboarded coach
   - `INTERNAL_SERVER_ERROR`: Failed to fetch tryout applications
   - `UNAUTHORIZED`: User not authenticated
 
-### Coach Mutation Endpoints
+### Onboarded Coach Mutation Endpoints
 
 #### `create`
 
-- **Method**: Mutation (Protected - Coaches Only)
+- **Method**: Mutation (Onboarded Coaches Only)
 - **Input**: Tryout Creation Schema
 - **Description**: Create a new tryout with draft mode support
 - **Returns**: Created tryout with complete game, school, and organizer details
@@ -286,37 +291,37 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - All required fields must be provided for PUBLISHED status
   - Minimal validation for DRAFT status (title only)
 - **Behavior**: Automatically associates with coach's school
-- **Authorization**: Coach-only access with school association requirement
+- **Authorization**: Onboarded coach only access with automatic school association
 - **Error Codes**:
   - `BAD_REQUEST`: Coach must be associated with a school to create tryouts
   - `INTERNAL_SERVER_ERROR`: Failed to create tryout
   - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a coach
+  - `FORBIDDEN`: User is not an onboarded coach
 
 #### `updateRegistrationStatus`
 
-- **Method**: Mutation (Protected - Coaches Only)
+- **Method**: Mutation (Onboarded Coaches Only)
 - **Input**: Registration Status Update Schema
 - **Description**: Update a player's registration status
 - **Returns**: Updated registration with player details
-- **Authorization**: Coach-only access, must own the tryout
+- **Authorization**: Onboarded coach only access, must own the tryout
 - **Error Codes**:
   - `NOT_FOUND`: Registration not found
-  - `FORBIDDEN`: Cannot update registration for tryout you don't organize or user is not a coach
+  - `FORBIDDEN`: Cannot update registration for tryout you don't organize or user is not an onboarded coach
   - `INTERNAL_SERVER_ERROR`: Failed to update registration status
   - `UNAUTHORIZED`: User not authenticated
 
 #### `removeRegistration`
 
-- **Method**: Mutation (Protected - Coaches Only)
+- **Method**: Mutation (Onboarded Coaches Only)
 - **Input**: `{ registration_id: string (UUID) }`
 - **Description**: Remove a player's registration completely
 - **Returns**: `{ success: true }`
 - **Behavior**: Deletes registration and decrements `registered_spots` count
-- **Authorization**: Coach-only access, must own the tryout
+- **Authorization**: Onboarded coach only access, must own the tryout
 - **Error Codes**:
   - `NOT_FOUND`: Registration not found
-  - `FORBIDDEN`: Cannot remove registration for tryout you don't organize or user is not a coach
+  - `FORBIDDEN`: Cannot remove registration for tryout you don't organize or user is not an onboarded coach
   - `INTERNAL_SERVER_ERROR`: Failed to remove registration
   - `UNAUTHORIZED`: User not authenticated
 
