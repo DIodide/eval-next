@@ -257,11 +257,17 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
   // Fetch player data from database
   const { data: player, isLoading, error } = api.playerProfile.getPublicProfile.useQuery({
     username: unwrappedParams.username
+  }, {
+    // Client-side caching configuration
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    retry: 1, // Only retry once for public profiles
+    retryDelay: 1000, // Wait 1 second before retry
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
           <p className="text-gray-400 mt-4 font-rajdhani">Loading player profile...</p>

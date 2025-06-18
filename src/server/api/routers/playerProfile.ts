@@ -16,11 +16,179 @@ import { withRetry } from "@/lib/db-utils";
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
+// Cache configuration
+const CACHE_CONFIG = {
+  PUBLIC_PROFILE_TTL: 5 * 60 * 1000, // 5 minutes in milliseconds
+  MAX_CACHE_SIZE: 1000, // Maximum number of cached profiles
+  CLEANUP_INTERVAL: 10 * 60 * 1000, // Cleanup interval: 10 minutes
+};
+
+// Cache entry type
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+// Generic in-memory cache implementation
+class MemoryCache<T> {
+  private cache = new Map<string, CacheEntry<T>>();
+  private maxSize: number;
+  private cleanupInterval: NodeJS.Timeout;
+
+  constructor(maxSize = 1000, cleanupIntervalMs = 600000) {
+    this.maxSize = maxSize;
+    
+    // Set up periodic cleanup
+    this.cleanupInterval = setInterval(() => {
+      this.cleanup();
+    }, cleanupIntervalMs);
+  }
+
+  set(key: string, data: T, ttlMs: number): void {
+    // If cache is at max size, remove oldest entry
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
+    }
+
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl: ttlMs,
+    });
+  }
+
+  get(key: string): T | null {
+    const entry = this.cache.get(key);
+    
+    if (!entry) {
+      return null;
+    }
+
+    // Check if entry has expired
+    if (Date.now() - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  // Remove expired entries
+  private cleanup(): void {
+    const now = Date.now();
+    const toDelete: string[] = [];
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        toDelete.push(key);
+      }
+    }
+
+    toDelete.forEach(key => this.cache.delete(key));
+  }
+
+  // Get cache statistics
+  getStats() {
+    return {
+      size: this.cache.size,
+      maxSize: this.maxSize,
+    };
+  }
+
+  // Cleanup resources
+  destroy(): void {
+    clearInterval(this.cleanupInterval);
+    this.clear();
+  }
+}
+
+// Define the public profile data type
+type PublicProfileData = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  username: string | null;
+  image_url: string | null;
+  location: string | null;
+  bio: string | null;
+  class_year: string | null;
+  school: string | null;
+  created_at: Date;
+  main_game_id: string | null;
+  school_ref: {
+    id: string;
+    name: string;
+    type: string;
+    location: string;
+    state: string;
+  } | null;
+  main_game: {
+    id: string;
+    name: string;
+    short_name: string;
+    icon: string | null;
+    color: string | null;
+  } | null;
+  game_profiles: Array<{
+    id: string;
+    game_id: string;
+    username: string;
+    rank: string | null;
+    role: string | null;
+    play_style: string | null;
+    agents: string[];
+    combine_score: number | null;
+    league_score: number | null;
+    updated_at: Date;
+    game: {
+      id: string;
+      name: string;
+      short_name: string;
+      icon: string | null;
+      color: string | null;
+    };
+  }>;
+  platform_connections: Array<{
+    platform: string;
+    username: string;
+    connected: boolean;
+  }>;
+  social_connections: Array<{
+    platform: string;
+    username: string;
+    connected: boolean;
+  }>;
+};
+
+// Create cache instance for public profiles
+const publicProfileCache = new MemoryCache<PublicProfileData>(
+  CACHE_CONFIG.MAX_CACHE_SIZE,
+  CACHE_CONFIG.CLEANUP_INTERVAL
+);
+
+// Cache invalidation helpers
+const invalidateProfileCache = (username: string) => {
+  publicProfileCache.delete(`profile:${username}`);
+};
+
 // Input validation schemas
 const profileUpdateSchema = z.object({
   // Basic profile information
   first_name: z.string().min(1).optional(),
   last_name: z.string().min(1).optional(),
+  username: z.string().min(1).optional(),
   location: z.string().optional(),
   bio: z.string().optional(),
   
@@ -257,7 +425,7 @@ export const playerProfileRouter = createTRPCRouter({
     }
   }),
 
-  // Update player profile
+  // Update player profile - with cache invalidation
   updateProfile: protectedProcedure
     .input(profileUpdateSchema)
     .mutation(async ({ ctx, input }) => {
@@ -265,6 +433,14 @@ export const playerProfileRouter = createTRPCRouter({
       const { userId } = await verifyPlayerUser(ctx);
       
       try {
+        // Get current player data to access username before update
+        const currentPlayer = await withRetry(() =>
+          ctx.db.player.findUnique({
+            where: { clerk_id: userId },
+            select: { username: true },
+          })
+        );
+
         const updatedPlayer = await withRetry(() =>
           ctx.db.player.update({
             where: { clerk_id: userId },
@@ -280,6 +456,16 @@ export const playerProfileRouter = createTRPCRouter({
             },
           })
         );
+        
+        // Invalidate cache for the player's public profile
+        if (currentPlayer?.username) {
+          invalidateProfileCache(currentPlayer.username);
+        }
+        
+        // If username was updated, also invalidate new username
+        if (input.username && input.username !== currentPlayer?.username) {
+          invalidateProfileCache(input.username);
+        }
         
         return updatedPlayer;
       } catch (error) {
@@ -435,11 +621,20 @@ export const playerProfileRouter = createTRPCRouter({
       }
     }),
 
-  // Get public player profile by username (for public profile pages)
+  // Get public player profile by username (for public profile pages) - with caching
   getPublicProfile: publicProcedure
     .input(z.object({ username: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
+      const cacheKey = `profile:${input.username}`;
+      
       try {
+        // Check cache first
+        const cachedProfile = publicProfileCache.get(cacheKey);
+        if (cachedProfile) {
+          return cachedProfile;
+        }
+
+        // Cache miss - fetch from database
         // Do not retry for this query - if player not found, return immediately
         const player = await ctx.db.player.findUnique({
           where: { username: input.username },
@@ -528,6 +723,9 @@ export const playerProfileRouter = createTRPCRouter({
             message: 'Player profile not found',
           });
         }
+        
+        // Cache the result before returning
+        publicProfileCache.set(cacheKey, player, CACHE_CONFIG.PUBLIC_PROFILE_TTL);
         
         return player;
       } catch (error) {
