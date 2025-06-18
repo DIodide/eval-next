@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, use } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -186,9 +186,9 @@ const mockSchoolData = {
 };
 
 interface SchoolProfilePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 function MessageCoachDialog({ coachId, coachName }: { coachId: string; coachName: string }) {
@@ -441,10 +441,11 @@ const formatTime = (timeStart?: string, timeEnd?: string) => {
 
 export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   const { user } = useUser();
+  const unwrappedParams = use(params);
   const school = mockSchoolData;
   const primaryCoach = school.coaches.find(coach => coach.isPrimary);
   const primaryContact = primaryCoach?.email ?? school.email;
-  const canMessage = hasPermission(user, "message_coach");
+  const canMessage = user ? hasPermission(user, "message_coach") : false;
   const [tryoutFilter, setTryoutFilter] = useState<"all" | "upcoming" | "past">("all")
   const [tryoutGameFilter, setTryoutGameFilter] = useState<string>("all")
 
