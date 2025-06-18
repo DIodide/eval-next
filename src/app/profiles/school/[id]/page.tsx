@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
 import { api } from "@/trpc/react";

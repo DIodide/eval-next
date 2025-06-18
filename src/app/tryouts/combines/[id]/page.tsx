@@ -401,7 +401,7 @@ export default function CombineDetailPage() {
 
   if (isLoadingCombine) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
         <div className="container mx-auto px-6 py-12">
           <div className="flex items-center justify-center py-32">
             <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400" />
@@ -414,7 +414,7 @@ export default function CombineDetailPage() {
 
   if (combineError || !combine) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
         <div className="container mx-auto px-6 py-12">
           <div className="text-center py-32">
             <h1 className="text-2xl font-orbitron font-bold text-white mb-4">
@@ -443,7 +443,7 @@ export default function CombineDetailPage() {
   const canRegister = !isPastCombine && spotsLeft > 0 && !existingRegistration && user && !combine.invite_only
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
       <div className="container mx-auto px-6 py-12">
         {/* Back Button */}
         <div className="mb-8">
