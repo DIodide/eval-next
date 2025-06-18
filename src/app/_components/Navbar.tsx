@@ -230,12 +230,12 @@ export default function Navbar() {
       <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
         <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
           <DialogHeader className="relative">
-            <button
+            {/* <button
               onClick={resetAndCloseModal}
               className="absolute right-0 top-0 p-1 hover:bg-slate-800 rounded-full transition-colors"
             >
               <X className="w-5 h-5 text-slate-400" />
-            </button>
+            </button> */}
             <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
           </DialogHeader>
           
