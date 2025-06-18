@@ -2,7 +2,7 @@ import { verifyWebhook } from '@clerk/nextjs/webhooks'
 import { clerkClient } from '@clerk/nextjs/server'
 import type { NextRequest } from 'next/server'
 import { db } from '@/server/db'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 // Schema for Clerk unsafe_metadata
 interface ClerkUnsafeMetadata {
