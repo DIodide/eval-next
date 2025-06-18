@@ -208,7 +208,7 @@ export default async function PlayersManagementPage({ searchParams }: { searchPa
                 </div>
                 
                 {/* Additional Info */}
-                {(player.guardian_email || player.transcript) && (
+                {(player.guardian_email ?? player.transcript) && (
                   <div className="mt-4 pt-4 border-t border-gray-700">
                     <div className="grid gap-2 text-sm">
                       {player.guardian_email && (
