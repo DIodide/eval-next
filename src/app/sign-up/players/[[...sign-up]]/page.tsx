@@ -2,7 +2,7 @@ import { SignUp } from '@clerk/nextjs'
 
 export default function Page() {
   return (
-    <div className="flex justify-center items-center h-screen bg-black">
+    <div className="flex justify-center items-center h-screen">
       <SignUp unsafeMetadata={{userType: "player"}}/>
     </div>
   )
