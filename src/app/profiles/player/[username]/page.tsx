@@ -166,21 +166,22 @@ const mockGameStats = {
 };
 
 // Mock data - replace with actual API calls later
-const mockPlayerData = {
-  id: "player-123",
-  avatar: null, // Will use Clerk's imageUrl
-  firstName: "John",
-  lastName: "Doe",
-  username: "johndoe_pro",
-  class: "2025",
-  teamSchool: "University of California, Berkeley",
-  location: "Los Angeles, CA",
-  mainGame: "Valorant",
-  role: "Duelist",
-  evalScore: 4.2,
-  leagueScore: 3.8,
-  games: ["valorant", "overwatch", "rocket-league"]
-};
+// Note: mockPlayerData is currently unused but kept for future reference
+// const mockPlayerData = {
+//   id: "player-123",
+//   avatar: null, // Will use Clerk's imageUrl
+//   firstName: "John",
+//   lastName: "Doe",
+//   username: "johndoe_pro",
+//   class: "2025",
+//   teamSchool: "University of California, Berkeley",
+//   location: "Los Angeles, CA",
+//   mainGame: "Valorant",
+//   role: "Duelist",
+//   evalScore: 4.2,
+//   leagueScore: 3.8,
+//   games: ["valorant", "overwatch", "rocket-league"]
+// };
 
 
 
@@ -249,7 +250,7 @@ function MessagePlayerDialog({ playerId, playerName }: { playerId: string; playe
 export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
   const [activeGame, setActiveGame] = useState("valorant");
   const { user } = useUser();
-  const canMessage = hasPermission(user, "message_player");
+  const canMessage = user ? hasPermission(user, "message_player") : false;
   
   // Unwrap params Promise for Next.js 15
   const unwrappedParams = use(params);
@@ -281,7 +282,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-orbitron font-bold text-white mb-4">Player Not Found</h1>
-          <p className="text-gray-400 font-rajdhani">The player profile you're looking for doesn't exist.</p>
+          <p className="text-gray-400 font-rajdhani">The player profile you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -299,7 +300,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                 <Avatar className="w-32 h-32 mb-4">
                   <AvatarImage src={player.image_url ?? undefined} alt={`${player.first_name} ${player.last_name}`} />
                   <AvatarFallback className="text-2xl bg-gray-700 text-white">
-                    {player.first_name[0]}{player.last_name[0]}
+                    {player.first_name?.[0] ?? ''}{player.last_name?.[0] ?? ''}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center md:text-left">
@@ -328,10 +329,10 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                       <span className="text-gray-400 font-rajdhani">Main Game:</span>
                       <Badge className="bg-cyan-600 text-white">{player.main_game?.name ?? "N/A"}</Badge>
                     </div>
-                    {player.game_profiles.length > 0 && player.game_profiles[0].role && (
+                    {player.game_profiles.length > 0 && player.game_profiles[0]?.role && (
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 font-rajdhani">Role:</span>
-                        <span className="text-gray-300 font-rajdhani">{player.game_profiles[0].role}</span>
+                        <span className="text-gray-300 font-rajdhani">{player.game_profiles[0]?.role}</span>
                       </div>
                     )}
                   </div>
@@ -341,13 +342,13 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   <h3 className="font-orbitron font-semibold text-gray-300 mb-3">Performance</h3>
                   <div className="space-y-4">
                     {/* EVAL Score */}
-                    {player.game_profiles.length > 0 && player.game_profiles[0].combine_score && (
+                    {player.game_profiles.length > 0 && player.game_profiles[0]?.combine_score && (
                       <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-4 rounded-lg border border-purple-700/30">
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-purple-300 font-rajdhani text-sm">EVAL Score</p>
                             <p className="text-white font-orbitron text-2xl font-bold">
-                              {Number(player.game_profiles[0].combine_score).toFixed(1)}
+                              {Number(player.game_profiles[0]?.combine_score).toFixed(1)}
                             </p>
                           </div>
                           <StarIcon className="w-8 h-8 text-purple-300" />
@@ -356,13 +357,13 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                     )}
 
                     {/* League Score */}
-                    {player.game_profiles.length > 0 && player.game_profiles[0].league_score && (
+                    {player.game_profiles.length > 0 && player.game_profiles[0]?.league_score && (
                       <div className="bg-gradient-to-r from-cyan-900/50 to-cyan-800/50 p-4 rounded-lg border border-cyan-700/30">
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-cyan-300 font-rajdhani text-sm">League Score</p>
                             <p className="text-white font-orbitron text-2xl font-bold">
-                              {Number(player.game_profiles[0].league_score).toFixed(1)}
+                              {Number(player.game_profiles[0]?.league_score).toFixed(1)}
                             </p>
                           </div>
                           <StarIcon className="w-8 h-8 text-cyan-300" />
