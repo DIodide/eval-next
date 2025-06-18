@@ -63,8 +63,9 @@ function getClassYearBadge(classYear: number | null) {
   );
 }
 
-export default async function PlayersManagementPage({ searchParams }: { searchParams: { search?: string } }) {
-  const searchTerm = searchParams.search;
+export default async function PlayersManagementPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const searchTerm = resolvedSearchParams.search;
   const { players, totalCount, error } = await getPlayers(searchTerm);
 
   return (

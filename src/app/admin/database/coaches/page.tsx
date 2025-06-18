@@ -49,8 +49,9 @@ async function getCoaches(searchTerm?: string) {
   }
 }
 
-export default async function CoachesManagementPage({ searchParams }: { searchParams: { search?: string } }) {
-  const searchTerm = searchParams.search;
+export default async function CoachesManagementPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const searchTerm = resolvedSearchParams.search;
   const { coaches, totalCount, error } = await getCoaches(searchTerm);
 
   return (
