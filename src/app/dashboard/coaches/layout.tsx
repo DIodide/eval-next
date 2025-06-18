@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -17,24 +17,37 @@ import {
   MenuIcon,
   XIcon,
   UsersIcon,
-  EyeIcon
+  EyeIcon,
+  LockIcon
 } from "lucide-react";
+import { isCoachOnboarded } from "@/lib/permissions";
+
+// Define protected routes that require onboarding
+const protectedRoutes = [
+  "/dashboard/coaches/player-search",
+  "/dashboard/coaches/prospects", 
+  "/dashboard/coaches/tryouts",
+  "/dashboard/coaches/messages"
+];
 
 const sidebarItems = [
   {
     title: "EVAL Home",
     href: "/dashboard/coaches",
     icon: HomeIcon,
+    requiresOnboarding: false,
   },
   {
     title: "Profile",
     href: "/dashboard/coaches/profile",
     icon: UserIcon,
+    requiresOnboarding: false,
     subItems: [
       {
         title: "Public Profile",
         href: "/dashboard/coaches/public-profile",
         icon: EyeIcon,
+        requiresOnboarding: false,
       }
     ]
   },
@@ -42,21 +55,25 @@ const sidebarItems = [
     title: "Player Search",
     href: "/dashboard/coaches/player-search",
     icon: SearchIcon,
+    requiresOnboarding: true,
   },
   {
     title: "My Prospects",
     href: "/dashboard/coaches/prospects",
     icon: UsersIcon,
+    requiresOnboarding: true,
   },
   {
     title: "My Tryouts",
     href: "/dashboard/coaches/tryouts",
     icon: TrophyIcon,
+    requiresOnboarding: true,
   },
   {
     title: "Messages",
     href: "/dashboard/coaches/messages",
     icon: MessageSquareIcon,
+    requiresOnboarding: true,
   },
 ];
 
@@ -67,6 +84,7 @@ export default function CoachesDashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isLoaded } = useUser();
 
   // Check if user is a coach
@@ -77,6 +95,18 @@ export default function CoachesDashboardLayout({
     }
   }
 
+  // Check onboarding status and redirect if necessary
+  useEffect(() => {
+    if (isLoaded && user) {
+      const isOnboarded = isCoachOnboarded(user);
+      const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+      
+      if (!isOnboarded && isProtectedRoute) {
+        router.push("/dashboard/coaches");
+      }
+    }
+  }, [isLoaded, user, pathname, router]);
+
   // Show loading state while checking user
   if (!isLoaded) {
     return (
@@ -85,6 +115,8 @@ export default function CoachesDashboardLayout({
       </div>
     );
   }
+
+  const isOnboarded = user ? isCoachOnboarded(user) : false;
 
   return (
     <div className="flex h-screen bg-[#0f0f1a]">
@@ -113,6 +145,12 @@ export default function CoachesDashboardLayout({
               <p className="text-xs text-gray-400 mt-1">
                 {user?.firstName} {user?.lastName}
               </p>
+              {!isOnboarded && (
+                <p className="text-xs text-yellow-400 mt-1 flex items-center gap-1">
+                  <LockIcon className="h-3 w-3" />
+                  Pending Onboarding
+                </p>
+              )}
             </div>
             <Button
               variant="ghost"
@@ -130,23 +168,36 @@ export default function CoachesDashboardLayout({
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
+                const isDisabled = item.requiresOnboarding && !isOnboarded;
                 
                 return (
                   <li key={item.href}>
                     {/* Main navigation item */}
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-cyan-600 text-white"
-                          : "text-gray-300 hover:text-white hover:bg-gray-800"
-                      )}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <Icon className="h-5 w-5" />
-                      {item.title}
-                    </Link>
+                    {isDisabled ? (
+                      <div
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium cursor-not-allowed opacity-50",
+                          "text-gray-500"
+                        )}
+                      >
+                        <LockIcon className="h-4 w-4" />
+                        {item.title}
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-cyan-600 text-white"
+                            : "text-gray-300 hover:text-white hover:bg-gray-800"
+                        )}
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.title}
+                      </Link>
+                    )}
 
                     {/* Sub-items (always visible for Profile) */}
                     {item.subItems && (
@@ -154,22 +205,35 @@ export default function CoachesDashboardLayout({
                         {item.subItems.map((subItem) => {
                           const SubIcon = subItem.icon;
                           const isSubActive = pathname === subItem.href;
+                          const isSubDisabled = subItem.requiresOnboarding && !isOnboarded;
                           
                           return (
                             <li key={subItem.href}>
-                              <Link
-                                href={subItem.href}
-                                className={cn(
-                                  "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                  isSubActive
-                                    ? "bg-cyan-600 text-white"
-                                    : "text-gray-400 hover:text-white hover:bg-gray-800"
-                                )}
-                                onClick={() => setSidebarOpen(false)}
-                              >
-                                <SubIcon className="h-4 w-4" />
-                                {subItem.title}
-                              </Link>
+                              {isSubDisabled ? (
+                                <div
+                                  className={cn(
+                                    "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed opacity-50",
+                                    "text-gray-500"
+                                  )}
+                                >
+                                  <LockIcon className="h-3 w-3" />
+                                  {subItem.title}
+                                </div>
+                              ) : (
+                                <Link
+                                  href={subItem.href}
+                                  className={cn(
+                                    "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                                    isSubActive
+                                      ? "bg-cyan-600 text-white"
+                                      : "text-gray-400 hover:text-white hover:bg-gray-800"
+                                  )}
+                                  onClick={() => setSidebarOpen(false)}
+                                >
+                                  <SubIcon className="h-4 w-4" />
+                                  {subItem.title}
+                                </Link>
+                              )}
                             </li>
                           );
                         })}

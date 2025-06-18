@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Link from "next/link";
+import { OnboardingGuard } from "@/components/ui/OnboardingGuard";
 
 // Custom debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -662,7 +663,8 @@ export default function CoachPlayerSearchPage() {
   const stablePlayers = React.useMemo(() => players, [players]);
 
   return (
-    <div className="flex bg-gray-900 min-h-screen">
+    <OnboardingGuard>
+      <div className="flex bg-gray-900 min-h-screen">
       {/* Main Content */}
       <div className={`flex-1 space-y-6 p-6 ${showFilters ? 'mr-80' : ''} transition-all duration-300`}>
         <div className="flex items-center justify-between">
@@ -1126,5 +1128,6 @@ export default function CoachPlayerSearchPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </OnboardingGuard>
   );
 } 

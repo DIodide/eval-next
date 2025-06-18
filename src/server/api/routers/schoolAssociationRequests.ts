@@ -6,6 +6,8 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { isCurrentUserAdmin } from "@/lib/admin-utils";
+import { clerkClient } from "@clerk/nextjs/server";
+import { type Prisma } from "@prisma/client";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
@@ -39,7 +41,7 @@ async function verifyAdminAccess(ctx: Context) {
     });
   }
 
-  const isAdmin = await isCurrentUserAdmin(userId);
+  const isAdmin = await isCurrentUserAdmin();
   if (!isAdmin) {
     throw new TRPCError({
       code: 'FORBIDDEN',
@@ -62,7 +64,7 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
         const skip = (page - 1) * limit;
 
         // Build where clause
-        const where: any = {};
+        const where: Prisma.SchoolAssociationRequestWhereInput = {};
         
         if (status) {
           where.status = status;
@@ -227,6 +229,23 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
 
           return { request: updatedRequest, coach: updatedCoach };
         });
+
+        // Update Clerk publicMetadata to mark coach as onboarded
+        try {
+          const client = await clerkClient();
+          await client.users.updateUser(request.coach.clerk_id, {
+            publicMetadata: {
+              onboarded: true,
+              userType: 'coach',
+              schoolId: request.school.id,
+              schoolName: request.school.name,
+            },
+          });
+        } catch (clerkError) {
+          console.error('Failed to update Clerk metadata:', clerkError);
+          // Don't throw error here as the database transaction was successful
+          // The coach can still function, they just might need to refresh
+        }
 
         return result;
       } catch (error) {

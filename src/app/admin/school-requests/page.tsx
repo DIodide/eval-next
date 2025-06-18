@@ -21,6 +21,34 @@ import {
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
+// Type definitions for requests data
+interface RequestData {
+  requests: Array<{
+    id: string;
+    status: string;
+    requested_at: string;
+    request_message?: string;
+    admin_notes?: string;
+    coach: {
+      first_name: string;
+      last_name: string;
+      email: string;
+      username: string;
+      created_at: string;
+    };
+    school: {
+      name: string;
+      type: string;
+      location: string;
+      state: string;
+      region?: string;
+    };
+  }>;
+  pagination: {
+    total: number;
+  };
+}
+
 export default function SchoolRequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"PENDING" | "APPROVED" | "REJECTED" | undefined>();
@@ -29,6 +57,7 @@ export default function SchoolRequestsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch requests with pagination
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { data: requestsData, isLoading, refetch } = api.schoolAssociationRequests.getRequests.useQuery({
     search: searchTerm || undefined,
     status: statusFilter,
@@ -37,7 +66,10 @@ export default function SchoolRequestsPage() {
   });
 
   // Get pending count for the header
-  const { data: pendingCount } = api.schoolAssociationRequests.getPendingCount.useQuery();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const pendingCountQuery = api.schoolAssociationRequests.getPendingCount.useQuery();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const pendingCount = pendingCountQuery.data;
 
   // Approve request mutation
   const approveRequest = api.schoolAssociationRequests.approveRequest.useMutation({

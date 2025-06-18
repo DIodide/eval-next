@@ -17,20 +17,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/trpc/react";
-import { getOnboardingMessage, canAccessCoachFeatures } from "@/lib/permissions";
+import { isCoachOnboarded } from "@/lib/permissions";
 import { SchoolAssociationRequestForm } from "./_components/SchoolAssociationRequestForm";
 
 export default function CoachesDashboard() {
   const { user } = useUser();
   
-  // Get coach onboarding status
-  const { data: onboardingStatus, isLoading: isLoadingStatus } = api.coachProfile.getOnboardingStatus.useQuery();
-  
-  // Get school info to show current requests
+  // Get school info to show current requests (only for display purposes)
   const { data: schoolInfo, isLoading: isLoadingSchool } = api.coachProfile.getSchoolInfo.useQuery();
   
-  const isLoading = isLoadingStatus || isLoadingSchool;
-  const canAccess = onboardingStatus ? canAccessCoachFeatures(onboardingStatus) : false;
+  const canAccess = user ? isCoachOnboarded(user) : false;
 
   const quickActions = [
     {
@@ -80,7 +76,7 @@ export default function CoachesDashboard() {
     },
   ];
 
-  if (isLoading) {
+  if (isLoadingSchool) {
     return (
       <div className="space-y-8">
         <div className="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg p-8 text-white">
@@ -91,6 +87,11 @@ export default function CoachesDashboard() {
       </div>
     );
   }
+
+  // Determine onboarding status based on Clerk metadata
+  const hasPendingRequest = schoolInfo?.school_requests && schoolInfo.school_requests.length > 0 && 
+                            schoolInfo.school_requests[0]!.status === 'PENDING';
+  const canRequestAssociation = !canAccess && !hasPendingRequest;
 
   return (
     <div className="space-y-8">
@@ -108,16 +109,16 @@ export default function CoachesDashboard() {
       </div>
 
       {/* Onboarding Status Card */}
-      {!canAccess && onboardingStatus && (
+      {!canAccess && (
         <Card className="bg-gray-900 border-yellow-500">
           <CardHeader className="pb-4">
             <CardTitle className="text-yellow-400 font-orbitron flex items-center gap-2">
-              {onboardingStatus.hasPendingRequest ? (
+              {hasPendingRequest ? (
                 <>
                   <ClockIcon className="h-5 w-5" />
                   School Association Pending
                 </>
-              ) : onboardingStatus.canRequestAssociation ? (
+              ) : canRequestAssociation ? (
                 <>
                   <AlertCircleIcon className="h-5 w-5" />
                   Onboarding Required
@@ -132,10 +133,17 @@ export default function CoachesDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-300 font-rajdhani mb-4">
-              {getOnboardingMessage(onboardingStatus)}
+              {canAccess 
+                ? "Your coach account is fully activated and ready to use."
+                : hasPendingRequest 
+                  ? "Your school association request is pending review by our administrators. You'll receive access once approved."
+                  : canRequestAssociation
+                    ? "To access coach features, you need to associate with a school. Please submit a school association request."
+                    : "Please contact support for assistance with your coach account."
+              }
             </p>
             
-                         {onboardingStatus.hasPendingRequest && schoolInfo?.school_requests && schoolInfo.school_requests.length > 0 && (
+            {hasPendingRequest && schoolInfo?.school_requests && schoolInfo.school_requests.length > 0 && (
                <div className="bg-gray-800 rounded-lg p-4 mb-4">
                  <h4 className="text-white font-orbitron font-semibold mb-2 flex items-center gap-2">
                    <BuildingIcon className="h-4 w-4" />
@@ -158,7 +166,7 @@ export default function CoachesDashboard() {
                </div>
              )}
             
-            {onboardingStatus.canRequestAssociation && (
+            {canRequestAssociation && (
               <SchoolAssociationRequestForm />
             )}
           </CardContent>

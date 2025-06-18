@@ -1,22 +1,55 @@
 import { type User } from "@clerk/nextjs/server";
+import { type UserResource } from "@clerk/types";
 
 export type UserRole = "player" | "coach" | null;
+
+// Union type to handle both server and client Clerk user types
+type ClerkUser = User | UserResource | null;
 
 /**
  * Permissions utility functions for role-based access control.
  * Uses publicMetadata (server-controlled) when available, with fallback to unsafeMetadata for compatibility.
  */
 
-export function getUserRole(user: User | null): UserRole {
+export function getUserRole(user: ClerkUser): UserRole {
   if (!user) return null;
   
-  // Fallback to public metadata for backward compatibility
-  const publicRole = user.publicMetadata?.role as string | undefined;
-  if (publicRole === "player" || publicRole === "coach") {
-    return publicRole;
+  // Check publicMetadata for userType (primary field used throughout the system)
+  const publicUserType = user.publicMetadata?.userType as string | undefined;
+  if (publicUserType === "player" || publicUserType === "coach") {
+    return publicUserType;
+  }
+  
+  // Fallback to unsafeMetadata for backward compatibility
+  const unsafeUserType = user.unsafeMetadata?.userType as string | undefined;
+  if (unsafeUserType === "player" || unsafeUserType === "coach") {
+    return unsafeUserType;
   }
   
   return null;
+}
+
+/**
+ * Check if a coach is onboarded using Clerk's publicMetadata.
+ * This function does not make any Prisma calls to avoid client context issues.
+ */
+export function isCoachOnboarded(user: ClerkUser): boolean {
+  if (!user) return false;
+  
+  const userRole = getUserRole(user);
+  if (userRole !== "coach") return false;
+  
+  // Check if onboarded flag is set in publicMetadata
+  const onboarded = user.publicMetadata?.onboarded as boolean | undefined;
+  return onboarded === true;
+}
+
+/**
+ * Check if user can access coach-only features.
+ * This combines role check and onboarding status.
+ */
+export function canAccessCoachFeatures(user: ClerkUser): boolean {
+  return isCoachOnboarded(user);
 }
 
 export function canMessageCoach(currentUserRole: UserRole): boolean {
@@ -50,15 +83,15 @@ export function canPerformAction(
 }
 
 // Coach onboarding status type
-export type CoachOnboardingStatus = {
+export interface CoachOnboardingStatus {
   isOnboarded: boolean;
   hasSchoolAssociation: boolean;
   hasPendingRequest: boolean;
   canRequestAssociation: boolean;
-};
+}
 
 // Function to determine if coach functionality should be enabled
-export function canAccessCoachFeatures(onboardingStatus: CoachOnboardingStatus): boolean {
+export function canAccessCoachFeaturesFromStatus(onboardingStatus: CoachOnboardingStatus): boolean {
   return onboardingStatus.isOnboarded && onboardingStatus.hasSchoolAssociation;
 }
 
@@ -79,12 +112,12 @@ export function getOnboardingMessage(onboardingStatus: CoachOnboardingStatus): s
   return "Please contact support for assistance with your coach account.";
 }
 
-export function isSignedIn(user: User | null): boolean {
+export function isSignedIn(user: ClerkUser): boolean {
   return !!user;
 }
 
 export function hasPermission(
-  currentUser: User | null,
+  currentUser: ClerkUser,
   action: "message_coach" | "message_player" | "view_profile"
 ): boolean {
   if (!currentUser) return false;
@@ -101,4 +134,5 @@ export function hasPermission(
     default:
       return false;
   }
-} 
+}
+
