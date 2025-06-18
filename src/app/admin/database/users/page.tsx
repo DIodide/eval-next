@@ -59,8 +59,9 @@ function getUserTypeBadge(userType: string) {
   }
 }
 
-export default async function UsersManagementPage({ searchParams }: { searchParams: { search?: string } }) {
-  const searchTerm = searchParams.search;
+export default async function UsersManagementPage({ searchParams }: { searchParams: Promise<{ search?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const searchTerm = resolvedSearchParams.search;
   const { users, totalCount, error } = await getUsers(searchTerm);
 
   return (
