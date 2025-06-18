@@ -91,19 +91,19 @@ export default function HomePage() {
           </p> */}
 
           {/* Key Stats */}
-          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-12">
-            <div className="text-center">
+          <div className="grid grid-cols-1 gap-8 max-w-2xl mx-auto mb-12">
+            {/* <div className="text-center">
               <div className="text-3xl font-orbitron font-black text-cyan-400 mb-1">$50M+</div>
               <div className="text-sm font-rajdhani text-gray-300">Available Scholarships</div>
-            </div>
-            <div className="text-center">
+            </div> */}
+            {/* <div className="text-center">
               <div className="text-3xl font-orbitron font-black text-purple-400 mb-1">500+</div>
               <div className="text-sm font-rajdhani text-gray-300">Partner Colleges</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-orbitron font-black text-orange-400 mb-1">10K+</div>
               <div className="text-sm font-rajdhani text-gray-300">Active Players</div>
-            </div>
+            </div> */}
           </div>
 
           {/* Dual CTA Buttons */}
