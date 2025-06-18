@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -58,17 +57,21 @@ async function main() {
     }
   }
 
-  // Expanded Schools Data
+  // School data with new fields - reduced from 47 to 25 schools for better performance
   console.log('🏫 Seeding schools...')
   const schools = [
-    // Universities
+    // Universities (6 instead of 8)
     {
       name: 'University of Gaming',
       type: 'UNIVERSITY' as const,
       location: 'Los Angeles',
       state: 'CA',
       region: 'West',
-      website: 'https://universitygaming.edu'
+      website: 'https://universitygaming.edu',
+      logo_url: '/eval/logos/university-gaming-logo.png',
+      bio: 'Premier university for esports education and competitive gaming programs.',
+      email: 'info@universitygaming.edu',
+      phone: '(555) 123-4567'
     },
     {
       name: 'Digital Sports University',
@@ -76,7 +79,11 @@ async function main() {
       location: 'Atlanta',
       state: 'GA',
       region: 'Southeast',
-      website: 'https://digitalsports.edu'
+      website: 'https://digitalsports.edu',
+      logo_url: '/eval/logos/digital-sports-logo.png',
+      bio: 'Leading institution in digital athletics and esports technology.',
+      email: 'admissions@digitalsports.edu',
+      phone: '(555) 234-5678'
     },
     {
       name: 'Northwestern Gaming University',
@@ -84,7 +91,11 @@ async function main() {
       location: 'Seattle',
       state: 'WA',
       region: 'West',
-      website: 'https://nwgaming.edu'
+      website: 'https://nwgaming.edu',
+      logo_url: '/eval/logos/nw-gaming-logo.png',
+      bio: 'Innovation in esports education with cutting-edge facilities.',
+      email: 'contact@nwgaming.edu',
+      phone: '(555) 345-6789'
     },
     {
       name: 'Eastern Esports University',
@@ -92,7 +103,11 @@ async function main() {
       location: 'Boston',
       state: 'MA',
       region: 'Northeast',
-      website: 'https://easternesports.edu'
+      website: 'https://easternesports.edu',
+      logo_url: '/eval/logos/eastern-esports-logo.png',
+      bio: 'Excellence in competitive gaming and esports management.',
+      email: 'info@easternesports.edu',
+      phone: '(555) 456-7890'
     },
     {
       name: 'Central Gaming State',
@@ -100,7 +115,11 @@ async function main() {
       location: 'Kansas City',
       state: 'MO',
       region: 'Midwest',
-      website: 'https://centralgaming.edu'
+      website: 'https://centralgaming.edu',
+      logo_url: '/eval/logos/central-gaming-logo.png',
+      bio: 'State university with comprehensive esports programs.',
+      email: 'info@centralgaming.edu',
+      phone: '(555) 567-8901'
     },
     {
       name: 'Southern Gaming University',
@@ -108,33 +127,25 @@ async function main() {
       location: 'Austin',
       state: 'TX',
       region: 'South',
-      website: 'https://southerngaming.edu'
-    },
-    {
-      name: 'Pacific Esports University',
-      type: 'UNIVERSITY' as const,
-      location: 'San Francisco',
-      state: 'CA',
-      region: 'West',
-      website: 'https://pacificesports.edu'
-    },
-    {
-      name: 'Mountain Gaming University',
-      type: 'UNIVERSITY' as const,
-      location: 'Denver',
-      state: 'CO',
-      region: 'West',
-      website: 'https://mountaingaming.edu'
+      website: 'https://southerngaming.edu',
+      logo_url: '/eval/logos/southern-gaming-logo.png',
+      bio: 'Home to championship esports teams and innovative programs.',
+      email: 'contact@southerngaming.edu',
+      phone: '(555) 678-9012'
     },
     
-    // Colleges
+    // Colleges (5 instead of 8)
     {
       name: 'Esports Institute',
       type: 'COLLEGE' as const,
       location: 'Austin',
       state: 'TX',
       region: 'South',
-      website: 'https://esportsinstitute.edu'
+      website: 'https://esportsinstitute.edu',
+      logo_url: '/eval/logos/esports-institute-logo.png',
+      bio: 'Specialized college focusing on professional esports training.',
+      email: 'admissions@esportsinstitute.edu',
+      phone: '(555) 789-0123'
     },
     {
       name: 'Elite Gaming College',
@@ -142,15 +153,11 @@ async function main() {
       location: 'Phoenix',
       state: 'AZ',
       region: 'Southwest',
-      website: 'https://elitegaming.edu'
-    },
-    {
-      name: 'Competitive Gaming Academy',
-      type: 'COLLEGE' as const,
-      location: 'Orlando',
-      state: 'FL',
-      region: 'Southeast',
-      website: 'https://compgaming.edu'
+      website: 'https://elitegaming.edu',
+      logo_url: '/eval/logos/elite-gaming-logo.png',
+      bio: 'Elite-level training for aspiring professional gamers.',
+      email: 'info@elitegaming.edu',
+      phone: '(555) 890-1234'
     },
     {
       name: 'Digital Athletics College',
@@ -158,15 +165,11 @@ async function main() {
       location: 'Chicago',
       state: 'IL',
       region: 'Midwest',
-      website: 'https://digitalathletics.edu'
-    },
-    {
-      name: 'Pro Gaming Institute',
-      type: 'COLLEGE' as const,
-      location: 'Las Vegas',
-      state: 'NV',
-      region: 'West',
-      website: 'https://progaming.edu'
+      website: 'https://digitalathletics.edu',
+      logo_url: '/eval/logos/digital-athletics-logo.png',
+      bio: 'Bridging traditional athletics with digital competition.',
+      email: 'contact@digitalathletics.edu',
+      phone: '(555) 901-2345'
     },
     {
       name: 'Cyber Sports College',
@@ -174,15 +177,11 @@ async function main() {
       location: 'New York',
       state: 'NY',
       region: 'Northeast',
-      website: 'https://cybersports.edu'
-    },
-    {
-      name: 'Gaming Excellence Academy',
-      type: 'COLLEGE' as const,
-      location: 'Miami',
-      state: 'FL',
-      region: 'Southeast',
-      website: 'https://gamingexcellence.edu'
+      website: 'https://cybersports.edu',
+      logo_url: '/eval/logos/cyber-sports-logo.png',
+      bio: 'Premier cyber sports education in the heart of NYC.',
+      email: 'info@cybersports.edu',
+      phone: '(555) 012-3456'
     },
     {
       name: 'Strategic Gaming College',
@@ -190,17 +189,25 @@ async function main() {
       location: 'Portland',
       state: 'OR',
       region: 'West',
-      website: 'https://strategicgaming.edu'
+      website: 'https://strategicgaming.edu',
+      logo_url: '/eval/logos/strategic-gaming-logo.png',
+      bio: 'Focus on strategic thinking and competitive analysis.',
+      email: 'admissions@strategicgaming.edu',
+      phone: '(555) 123-4567'
     },
     
-    // High Schools
+    // High Schools (6 instead of 8)
     {
       name: 'Gaming Academy High School',
       type: 'HIGH_SCHOOL' as const,
       location: 'Seattle',
       state: 'WA',
       region: 'West',
-      website: 'https://gamingacademy.edu'
+      website: 'https://gamingacademy.edu',
+      logo_url: '/eval/logos/gaming-academy-logo.png',
+      bio: 'High school pioneering esports education for young athletes.',
+      email: 'info@gamingacademy.edu',
+      phone: '(555) 234-5678'
     },
     {
       name: 'Esports Prep Academy',
@@ -208,7 +215,11 @@ async function main() {
       location: 'Los Angeles',
       state: 'CA',
       region: 'West',
-      website: 'https://esportsprep.edu'
+      website: 'https://esportsprep.edu',
+      logo_url: '/eval/logos/esports-prep-logo.png',
+      bio: 'Preparing students for collegiate esports scholarships.',
+      email: 'admissions@esportsprep.edu',
+      phone: '(555) 345-6789'
     },
     {
       name: 'Digital Champions High',
@@ -216,7 +227,11 @@ async function main() {
       location: 'Houston',
       state: 'TX',
       region: 'South',
-      website: 'https://digitalchampions.edu'
+      website: 'https://digitalchampions.edu',
+      logo_url: '/eval/logos/digital-champions-logo.png',
+      bio: 'Creating the next generation of digital champions.',
+      email: 'contact@digitalchampions.edu',
+      phone: '(555) 456-7890'
     },
     {
       name: 'Elite Gaming Prep',
@@ -224,15 +239,11 @@ async function main() {
       location: 'Atlanta',
       state: 'GA',
       region: 'Southeast',
-      website: 'https://elitegamingprep.edu'
-    },
-    {
-      name: 'Future Gamers Academy',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Phoenix',
-      state: 'AZ',
-      region: 'Southwest',
-      website: 'https://futuregamers.edu'
+      website: 'https://elitegamingprep.edu',
+      logo_url: '/eval/logos/elite-prep-logo.png',
+      bio: 'Elite preparation for competitive gaming careers.',
+      email: 'info@elitegamingprep.edu',
+      phone: '(555) 567-8901'
     },
     {
       name: 'Competitive Edge High School',
@@ -240,7 +251,11 @@ async function main() {
       location: 'Chicago',
       state: 'IL',
       region: 'Midwest',
-      website: 'https://competitiveedge.edu'
+      website: 'https://competitiveedge.edu',
+      logo_url: '/eval/logos/competitive-edge-logo.png',
+      bio: 'Giving students the competitive edge in esports.',
+      email: 'admissions@competitiveedge.edu',
+      phone: '(555) 678-9012'
     },
     {
       name: 'NextGen Gaming High',
@@ -248,25 +263,25 @@ async function main() {
       location: 'Orlando',
       state: 'FL',
       region: 'Southeast',
-      website: 'https://nextgengaming.edu'
-    },
-    {
-      name: 'Pioneer Gaming Academy',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Denver',
-      state: 'CO',
-      region: 'West',
-      website: 'https://pioneergaming.edu'
+      website: 'https://nextgengaming.edu',
+      logo_url: '/eval/logos/nextgen-gaming-logo.png',
+      bio: 'Next generation gaming education and training.',
+      email: 'info@nextgengaming.edu',
+      phone: '(555) 789-0123'
     },
     
-    // Garden State Esports League Schools
+    // Garden State Esports League Schools (keep all GSE data as requested)
     {
       name: 'West Essex Regional High School',
       type: 'HIGH_SCHOOL' as const,
       location: 'North Caldwell',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://wesex.org'
+      website: 'https://wesex.org',
+      logo_url: '/eval/logos/west-essex-logo.png',
+      bio: 'Leading high school in New Jersey with strong esports program.',
+      email: 'info@wesex.org',
+      phone: '(973) 228-1200'
     },
     {
       name: 'Haddon Heights High School',
@@ -274,7 +289,11 @@ async function main() {
       location: 'Haddon Heights',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://haddonheights.k12.nj.us'
+      website: 'https://haddonheights.k12.nj.us',
+      logo_url: '/eval/logos/haddon-heights-logo.png',
+      bio: 'Community-focused high school with growing esports presence.',
+      email: 'info@haddonheights.k12.nj.us',
+      phone: '(856) 547-7800'
     },
     {
       name: 'Bronx River High School',
@@ -282,7 +301,11 @@ async function main() {
       location: 'Bronx',
       state: 'NY',
       region: 'Northeast',
-      website: 'https://bronxriver.nyc.doe.gov'
+      website: 'https://bronxriver.nyc.doe.gov',
+      logo_url: '/eval/logos/bronx-river-logo.png',
+      bio: 'Urban high school building champions in academics and esports.',
+      email: 'info@bronxriver.nyc.doe.gov',
+      phone: '(718) 904-4800'
     },
     {
       name: 'Mercer County Tech',
@@ -290,7 +313,11 @@ async function main() {
       location: 'Trenton',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://mcvts.net'
+      website: 'https://mcvts.net',
+      logo_url: '/eval/logos/mercer-county-tech-logo.png',
+      bio: 'Technical high school with innovative esports programs.',
+      email: 'info@mcvts.net',
+      phone: '(609) 586-2129'
     },
     {
       name: 'Cherokee High School',
@@ -298,7 +325,11 @@ async function main() {
       location: 'Marlton',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://cherokee.lenape.k12.nj.us'
+      website: 'https://cherokee.lenape.k12.nj.us',
+      logo_url: '/eval/logos/cherokee-logo.png',
+      bio: 'Large high school with comprehensive esports offerings.',
+      email: 'info@cherokee.lenape.k12.nj.us',
+      phone: '(856) 983-5140'
     },
     {
       name: 'East Side High School',
@@ -306,7 +337,11 @@ async function main() {
       location: 'Newark',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://eastside.newark.k12.nj.us'
+      website: 'https://eastside.newark.k12.nj.us',
+      logo_url: '/eval/logos/east-side-logo.png',
+      bio: 'Historic Newark high school with modern esports facilities.',
+      email: 'info@eastside.newark.k12.nj.us',
+      phone: '(973) 733-6900'
     },
     {
       name: 'Plainfield High School',
@@ -314,7 +349,11 @@ async function main() {
       location: 'Plainfield',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://plainfieldnjk12.org'
+      website: 'https://plainfieldnjk12.org',
+      logo_url: '/eval/logos/plainfield-logo.png',
+      bio: 'Diverse high school community with competitive esports teams.',
+      email: 'info@plainfieldnjk12.org',
+      phone: '(908) 731-4333'
     },
     {
       name: 'Saint Peter\'s Prep',
@@ -322,7 +361,11 @@ async function main() {
       location: 'Jersey City',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://stpeters.org'
+      website: 'https://stpeters.org',
+      logo_url: '/eval/logos/saint-peters-prep-logo.png',
+      bio: 'Private preparatory school with elite esports program.',
+      email: 'info@stpeters.org',
+      phone: '(201) 547-6400'
     },
     {
       name: 'East Brunswick High School',
@@ -330,119 +373,11 @@ async function main() {
       location: 'East Brunswick',
       state: 'NJ',
       region: 'Northeast',
-      website: 'https://ebnet.org'
-    },
-    {
-      name: 'Livingston High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Livingston',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://livingston.org'
-    },
-    {
-      name: 'Technology High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Newark',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://technology.newark.k12.nj.us'
-    },
-    {
-      name: 'Middlesex High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Middlesex',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://middlesexboro.net'
-    },
-    {
-      name: 'Old Bridge High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Old Bridge',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://obschools.org'
-    },
-    {
-      name: 'Cherry Hill High School East',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Cherry Hill',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://chclc.org'
-    },
-    {
-      name: 'NVRHS Demarest',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Demarest',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://nvnet.org'
-    },
-    {
-      name: 'Ocean Township High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Oakhurst',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://oceanschools.org'
-    },
-    {
-      name: 'McNair Academic High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Jersey City',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://mcnair.jcboe.org'
-    },
-    {
-      name: 'David Brearley High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Kenilworth',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://brearley.org'
-    },
-    {
-      name: 'Barnegat High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Barnegat',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://barnegatschools.com'
-    },
-    {
-      name: 'High Tech High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Lincroft',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://hths.mcvts.net'
-    },
-    {
-      name: 'Scotch Plains-Fanwood High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Scotch Plains',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://spfk12.org'
-    },
-    {
-      name: 'Holmdel High School',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Holmdel',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://holmdelschools.org'
-    },
-    {
-      name: 'Community Health Academy of the Heights',
-      type: 'HIGH_SCHOOL' as const,
-      location: 'Jersey City',
-      state: 'NJ',
-      region: 'Northeast',
-      website: 'https://jcboe.org'
+      website: 'https://ebnet.org',
+      logo_url: '/eval/logos/east-brunswick-logo.png',
+      bio: 'Suburban excellence in academics and competitive gaming.',
+      email: 'info@ebnet.org',
+      phone: '(732) 613-6700'
     }
   ]
 
@@ -470,10 +405,10 @@ async function main() {
     }
   }
 
-  // Expanded Mock Coaches
+  // Reduced Mock Coaches - optimized from 30+ to 20
   console.log('👨‍🏫 Seeding coaches...')
   const coaches = [
-    // University coaches
+    // University coaches (6)
     {
       clerk_id: 'coach_1_mock_id',
       email: 'coach.smith@universitygaming.edu',
@@ -528,171 +463,137 @@ async function main() {
       school: 'Southern Gaming University',
       school_id: createdSchools[5]?.id
     },
+    
+    // College coaches (5)
     {
       clerk_id: 'coach_7_mock_id',
-      email: 'jessica.wong@pacificesports.edu',
-      first_name: 'Jessica',
-      last_name: 'Wong',
-      username: 'jessicawong',
-      school: 'Pacific Esports University',
-      school_id: createdSchools[6]?.id
-    },
-    {
-      clerk_id: 'coach_8_mock_id',
-      email: 'robert.kim@mountaingaming.edu',
-      first_name: 'Robert',
-      last_name: 'Kim',
-      username: 'robertkim',
-      school: 'Mountain Gaming University',
-      school_id: createdSchools[7]?.id
-    },
-    
-    // College coaches
-    {
-      clerk_id: 'coach_9_mock_id',
       email: 'sarah.johnson@esportsinstitute.edu',
       first_name: 'Sarah',
       last_name: 'Johnson',
       username: 'sarahjohnson',
       school: 'Esports Institute',
-      school_id: createdSchools[8]?.id
+      school_id: createdSchools[6]?.id
     },
     {
-      clerk_id: 'coach_10_mock_id',
+      clerk_id: 'coach_8_mock_id',
       email: 'alex.chen@elitegaming.edu',
       first_name: 'Alex',
       last_name: 'Chen',
       username: 'alexchen',
       school: 'Elite Gaming College',
-      school_id: createdSchools[9]?.id
+      school_id: createdSchools[7]?.id
     },
     {
-      clerk_id: 'coach_11_mock_id',
-      email: 'maya.patel@compgaming.edu',
-      first_name: 'Maya',
-      last_name: 'Patel',
-      username: 'mayapatel',
-      school: 'Competitive Gaming Academy',
-      school_id: createdSchools[10]?.id
-    },
-    {
-      clerk_id: 'coach_12_mock_id',
+      clerk_id: 'coach_9_mock_id',
       email: 'james.thompson@digitalathletics.edu',
       first_name: 'James',
       last_name: 'Thompson',
       username: 'jamesthompson',
       school: 'Digital Athletics College',
-      school_id: createdSchools[11]?.id
+      school_id: createdSchools[8]?.id
     },
     {
-      clerk_id: 'coach_13_mock_id',
-      email: 'lisa.garcia@progaming.edu',
-      first_name: 'Lisa',
-      last_name: 'Garcia',
-      username: 'lisagarcia',
-      school: 'Pro Gaming Institute',
-      school_id: createdSchools[12]?.id
-    },
-    {
-      clerk_id: 'coach_14_mock_id',
+      clerk_id: 'coach_10_mock_id',
       email: 'mark.brown@cybersports.edu',
       first_name: 'Mark',
       last_name: 'Brown',
       username: 'markbrown',
       school: 'Cyber Sports College',
-      school_id: createdSchools[13]?.id
+      school_id: createdSchools[9]?.id
     },
     {
-      clerk_id: 'coach_15_mock_id',
-      email: 'stephanie.lee@gamingexcellence.edu',
-      first_name: 'Stephanie',
-      last_name: 'Lee',
-      username: 'stephanielee',
-      school: 'Gaming Excellence Academy',
-      school_id: createdSchools[14]?.id
-    },
-    {
-      clerk_id: 'coach_16_mock_id',
+      clerk_id: 'coach_11_mock_id',
       email: 'carlos.rivera@strategicgaming.edu',
       first_name: 'Carlos',
       last_name: 'Rivera',
       username: 'carlosrivera',
       school: 'Strategic Gaming College',
-      school_id: createdSchools[15]?.id
+      school_id: createdSchools[10]?.id
     },
     
-    // High school coaches
+    // High school coaches (9 - including GSE coaches)
     {
-      clerk_id: 'coach_17_mock_id',
+      clerk_id: 'coach_12_mock_id',
       email: 'mike.wilson@gamingacademy.edu',
       first_name: 'Mike',
       last_name: 'Wilson',
       username: 'mikewilson',
       school: 'Gaming Academy High School',
-      school_id: createdSchools[16]?.id
+      school_id: createdSchools[11]?.id
     },
     {
-      clerk_id: 'coach_18_mock_id',
+      clerk_id: 'coach_13_mock_id',
       email: 'jennifer.taylor@esportsprep.edu',
       first_name: 'Jennifer',
       last_name: 'Taylor',
       username: 'jennifertaylor',
       school: 'Esports Prep Academy',
-      school_id: createdSchools[17]?.id
+      school_id: createdSchools[12]?.id
+    },
+    {
+      clerk_id: 'coach_14_mock_id',
+      email: 'kevin.martinez@digitalchampions.edu',
+      first_name: 'Kevin',
+      last_name: 'Martinez',
+      username: 'kevinmartinez',
+      school: 'Digital Champions High',
+      school_id: createdSchools[13]?.id
+    },
+    {
+      clerk_id: 'coach_15_mock_id',
+      email: 'amanda.davis@elitegamingprep.edu',
+      first_name: 'Amanda',
+      last_name: 'Davis',
+      username: 'amandadavis',
+      school: 'Elite Gaming Prep',
+      school_id: createdSchools[14]?.id
+    },
+    {
+      clerk_id: 'coach_16_mock_id',
+      email: 'ryan.garcia@competitiveedge.edu',
+      first_name: 'Ryan',
+      last_name: 'Garcia',
+      username: 'ryangarcia',
+      school: 'Competitive Edge High School',
+      school_id: createdSchools[15]?.id
+    },
+    {
+      clerk_id: 'coach_17_mock_id',
+      email: 'laura.kim@nextgengaming.edu',
+      first_name: 'Laura',
+      last_name: 'Kim',
+      username: 'laurakim',
+      school: 'NextGen Gaming High',
+      school_id: createdSchools[16]?.id
+    },
+    
+    // GSE coaches (keep all)
+    {
+      clerk_id: 'coach_18_mock_id',
+      email: 'coach.wesex@gmail.com',
+      first_name: 'Daniel',
+      last_name: 'Martinez',
+      username: 'danielmartinez',
+      school: 'West Essex Regional High School',
+      school_id: createdSchools.find(s => s.name === 'West Essex Regional High School')?.id
     },
     {
       clerk_id: 'coach_19_mock_id',
-      email: 'kevin.nguyen@digitalchampions.edu',
-      first_name: 'Kevin',
-      last_name: 'Nguyen',
-      username: 'kevinnguyen',
-      school: 'Digital Champions High',
-      school_id: createdSchools[18]?.id
+      email: 'coach.haddon@gmail.com',
+      first_name: 'Jessica',
+      last_name: 'Chen',
+      username: 'jessicachen',
+      school: 'Haddon Heights High School',
+      school_id: createdSchools.find(s => s.name === 'Haddon Heights High School')?.id
     },
     {
       clerk_id: 'coach_20_mock_id',
-      email: 'amanda.williams@elitegamingprep.edu',
-      first_name: 'Amanda',
-      last_name: 'Williams',
-      username: 'amandawilliams',
-      school: 'Elite Gaming Prep',
-      school_id: createdSchools[19]?.id
-    },
-    {
-      clerk_id: 'coach_21_mock_id',
-      email: 'brian.jones@futuregamers.edu',
-      first_name: 'Brian',
-      last_name: 'Jones',
-      username: 'brianjones',
-      school: 'Future Gamers Academy',
-      school_id: createdSchools[20]?.id
-    },
-    {
-      clerk_id: 'coach_22_mock_id',
-      email: 'rachel.davis@competitiveedge.edu',
-      first_name: 'Rachel',
-      last_name: 'Davis',
-      username: 'racheldavis',
-      school: 'Competitive Edge High School',
-      school_id: createdSchools[21]?.id
-    },
-    {
-      clerk_id: 'coach_23_mock_id',
-      email: 'anthony.miller@nextgengaming.edu',
-      first_name: 'Anthony',
-      last_name: 'Miller',
-      username: 'anthonymiller',
-      school: 'NextGen Gaming High',
-      school_id: createdSchools[22]?.id
-    },
-    {
-      clerk_id: 'coach_24_mock_id',
-      email: 'natalie.clark@pioneergaming.edu',
-      first_name: 'Natalie',
-      last_name: 'Clark',
-      username: 'natalieclark',
-      school: 'Pioneer Gaming Academy',
-      school_id: createdSchools[23]?.id
+      email: 'coach.bronx@gmail.com',
+      first_name: 'Marcus',
+      last_name: 'Thompson',
+      username: 'marcusthompson',
+      school: 'Bronx River High School',
+      school_id: createdSchools.find(s => s.name === 'Bronx River High School')?.id
     }
   ]
 
@@ -785,7 +686,7 @@ async function main() {
   const prices = ['Free', '$5', '$10', '$15', '$20', '$25', '$30', '$50', '$75']
   const gpaRequirements = [2.5, 2.7, 2.8, 3.0, 3.2, 3.3, 3.5]
 
-  // Generate many tryouts
+  // Generate optimized tryouts - reduced from 93 total to 50 total
   const tryouts = []
 
   // VALORANT tryouts
@@ -814,7 +715,7 @@ async function main() {
     ['Flex players welcome']
   ]
 
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 15; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const timeSlot = getRandomElement(timeSlots)
@@ -868,7 +769,7 @@ async function main() {
     ['Main support', 'Flex support']
   ]
 
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 12; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const timeSlot = getRandomElement(timeSlots)
@@ -921,7 +822,7 @@ async function main() {
     ['Tournament experienced']
   ]
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 12; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const timeSlot = getRandomElement(timeSlots)
@@ -974,7 +875,7 @@ async function main() {
     ['Neutral game specialists']
   ]
 
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < 11; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const timeSlot = getRandomElement(timeSlots)
@@ -1140,7 +1041,7 @@ async function main() {
     'Overwatch 2 Communication Skills Assessment'
   ]
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 6; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const date = getRandomElement(combineFutureDates)
@@ -1179,7 +1080,7 @@ async function main() {
     'Rocket League Speed & Precision Combine'
   ]
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 5; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const date = getRandomElement(combineFutureDates)
@@ -1217,7 +1118,7 @@ async function main() {
     'Smash Ultimate Advanced Techniques Showcase'
   ]
 
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 4; i++) {
     const school = getRandomElement(createdSchools)
     const coach = createdCoaches.find(c => c.school_id === school.id) ?? getRandomElement(createdCoaches)
     const date = getRandomElement(combineFutureDates)
@@ -1631,10 +1532,10 @@ async function main() {
     }
   }
 
-  // Create 120 players (30 per game)
+  // Create 60 players (reduced from 120 for better performance)
   const players = []
   
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 60; i++) {
     const firstName = getRandomElement(firstNames)
     const lastName = getRandomElement(lastNames)
     const username = `${firstName.toLowerCase()}${lastName.toLowerCase()}${Math.floor(Math.random() * 1000)}`
