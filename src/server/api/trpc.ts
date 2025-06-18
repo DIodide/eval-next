@@ -10,8 +10,9 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { db } from "@/server/db";
 import { createClerkContext } from "../context";
+import { db } from "../db";
+
 
 /**
  * 1. CONTEXT
@@ -29,7 +30,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   // CLERK Auth Guide: https://clerk.com/docs/references/nextjs/trpc
   const clerkContext = await createClerkContext();
   return {
-    db, // can't have a ...db here, it's not a valid object (ctx.db)
+    db,
     ...clerkContext,
     ...opts,
   };
