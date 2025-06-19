@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import UserTypeSelection from "./_components/UserTypeSelection";
 
 export default function DashboardPage() {
