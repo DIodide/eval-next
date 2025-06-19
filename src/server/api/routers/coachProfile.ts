@@ -3,14 +3,10 @@
 // It provides endpoints for managing coach profiles, school associations, and onboarding.
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, coachProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
-import type { CoachOnboardingStatus } from "@/lib/permissions";
-
-// Type for the tRPC context
-type Context = Awaited<ReturnType<typeof createTRPCContext>>;
+import { clerkClient } from "@clerk/nextjs/server";
 
 // Input validation schemas
 const profileUpdateSchema = z.object({
@@ -29,84 +25,65 @@ const schoolAssociationRequestSchema = z.object({
   request_message: z.string().min(10).max(500).optional(),
 });
 
-// Helper function to verify user is a coach using the auth context
-async function verifyCoachUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  // Check if the coach exists in our database using retry wrapper
-  const coach = await withRetry(() => 
-    ctx.db.coach.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true },
-    })
-  );
-
-  if (!coach) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Coach profile not found. Only coaches can access this resource.',
-    });
-  }
-
-  return { userId, coachId: coach.id };
-}
-
-// Helper function to get coach onboarding status
-async function getCoachOnboardingStatus(ctx: Context, coachId: string): Promise<CoachOnboardingStatus> {
-  const coach = await withRetry(() =>
-    ctx.db.coach.findUnique({
-      where: { id: coachId },
-      select: {
-        school_id: true,
-        school_requests: {
-          where: {
-            status: 'PENDING'
-          },
-          select: { id: true }
-        }
-      },
-    })
-  );
-
-  if (!coach) {
-    return {
-      isOnboarded: false,
-      hasSchoolAssociation: false,
-      hasPendingRequest: false,
-      canRequestAssociation: false,
-    };
-  }
-
-  const hasSchoolAssociation = !!coach.school_id;
-  const hasPendingRequest = coach.school_requests.length > 0;
-  const canRequestAssociation = !hasSchoolAssociation && !hasPendingRequest;
-
-  return {
-    isOnboarded: hasSchoolAssociation,
-    hasSchoolAssociation,
-    hasPendingRequest,
-    canRequestAssociation,
-  };
-}
-
 export const coachProfileRouter = createTRPCRouter({
   // Get coach onboarding status
-  getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
-    const { coachId } = await verifyCoachUser(ctx);
-    return await getCoachOnboardingStatus(ctx, coachId);
+  getOnboardingStatus: coachProcedure
+    .query(async ({ ctx }) => {
+    const coachId = ctx.coachId; // Available from coachProcedure context
+    
+    // Get onboarding status from Clerk publicMetadata
+    const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+    const isOnboarded = publicMetadata?.onboarded === true && publicMetadata?.userType === "coach";
+    
+    // Get coach's current school association and pending requests from database
+    try {
+      const coach = await withRetry(() =>
+        ctx.db.coach.findUnique({
+          where: { id: coachId },
+          select: {
+            school_id: true,
+            school_requests: {
+              where: {
+                status: 'PENDING'
+              },
+              select: { id: true }
+            }
+          },
+        })
+      );
+
+      if (!coach) {
+        return {
+          isOnboarded: false,
+          hasSchoolAssociation: false,
+          hasPendingRequest: false,
+          canRequestAssociation: false,
+        };
+      }
+
+      const hasSchoolAssociation = !!coach.school_id;
+      const hasPendingRequest = coach.school_requests.length > 0;
+      const canRequestAssociation = !hasSchoolAssociation && !hasPendingRequest;
+
+      return {
+        isOnboarded,
+        hasSchoolAssociation,
+        hasPendingRequest,
+        canRequestAssociation,
+      };
+    } catch (error) {
+      console.error('Error fetching coach onboarding status:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch onboarding status',
+      });
+    }
   }),
 
   // Get coach profile
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
-    // Verify user is a coach and get user info
-    const { userId } = await verifyCoachUser(ctx);
+  getProfile: coachProcedure
+    .query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
     
     try {
       const coach = await withRetry(() =>
@@ -142,8 +119,9 @@ export const coachProfileRouter = createTRPCRouter({
   }),
 
   // Optimized: Get basic profile info only (faster loading)
-  getBasicProfile: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = await verifyCoachUser(ctx);
+  getBasicProfile: coachProcedure
+    .query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
     
     try {
       const coach = await withRetry(() =>
@@ -174,8 +152,9 @@ export const coachProfileRouter = createTRPCRouter({
   }),
 
   // Get school association info
-  getSchoolInfo: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = await verifyCoachUser(ctx);
+  getSchoolInfo: onboardedCoachProcedure
+    .query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
     
     try {
       const coach = await withRetry(() =>
@@ -222,10 +201,10 @@ export const coachProfileRouter = createTRPCRouter({
   }),
 
   // Submit school association request
-  submitSchoolAssociationRequest: protectedProcedure
+  submitSchoolAssociationRequest: coachProcedure
     .input(schoolAssociationRequestSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const coachId = ctx.coachId; // Available from coachProcedure context
       
       try {
         // Check if coach already has school association
@@ -312,11 +291,10 @@ export const coachProfileRouter = createTRPCRouter({
     }),
 
   // Update coach profile
-  updateProfile: protectedProcedure
+  updateProfile: coachProcedure
     .input(profileUpdateSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify user is a coach and get user info
-      const { userId } = await verifyCoachUser(ctx);
+      const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
       
       try {
         const updatedCoach = await withRetry(() =>
@@ -371,14 +349,14 @@ export const coachProfileRouter = createTRPCRouter({
     }
   }),
 
-  // Associate coach with a school (deprecated - use submitSchoolAssociationRequest)
-  associateWithSchool: protectedProcedure
+  // Associate coach with a school (deprecated - use submitSchoolAssociationRequest) (still in use need to remove)
+  associateWithSchool: coachProcedure
     .input(z.object({
       school_id: z.string().uuid(),
       school_name: z.string().min(1),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { userId } = await verifyCoachUser(ctx);
+      const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
       
       try {
         // Verify the school exists
@@ -424,11 +402,12 @@ export const coachProfileRouter = createTRPCRouter({
     }),
 
   // Remove school association
-  removeSchoolAssociation: protectedProcedure
+  removeSchoolAssociation: onboardedCoachProcedure
     .mutation(async ({ ctx }) => {
-      const { userId } = await verifyCoachUser(ctx);
+      const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
       
       try {
+        // Update database first
         const updatedCoach = await withRetry(() =>
           ctx.db.coach.update({
             where: { clerk_id: userId },
@@ -439,6 +418,22 @@ export const coachProfileRouter = createTRPCRouter({
             },
           })
         );
+
+        // Update Clerk publicMetadata to mark coach as no longer onboarded
+        try {
+          const client = await clerkClient();
+          await client.users.updateUserMetadata(userId, {
+            publicMetadata: {
+              userType: "coach", // Keep userType as coach
+              onboarded: false,  // Set onboarded to false since they lost school association
+            },
+          });
+          console.log(`Coach ${userId} onboarded status set to false after removing school association`);
+        } catch (clerkError) {
+          console.error('Error updating Clerk metadata for coach:', clerkError);
+          // Don't throw here - database update was successful, metadata update is supplementary
+          // The middleware will still work based on database state
+        }
         
         return updatedCoach;
       } catch (error) {

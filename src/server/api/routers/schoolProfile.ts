@@ -1,8 +1,14 @@
+// This router is used to get the school profile, tryouts, games, and stats for a school
+
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 export const schoolProfileRouter = createTRPCRouter({
+  /*
+  Params: id
+  Returns: school profile
+  */
   getById: publicProcedure
     .input(z.object({
       id: z.string().uuid("Invalid school ID format"),
@@ -110,6 +116,10 @@ export const schoolProfileRouter = createTRPCRouter({
       return school;
     }),
 
+  /*
+  Params: schoolId, filter, gameId, limit, offset
+  Returns: list of tryouts for the school
+  */
   getTryouts: publicProcedure
     .input(z.object({
       schoolId: z.string().uuid("Invalid school ID format"),
@@ -195,6 +205,10 @@ export const schoolProfileRouter = createTRPCRouter({
       };
     }),
 
+  /*
+  Params: schoolId
+  Returns: list of games that have tryouts at the school
+  */
   getAvailableGames: publicProcedure
     .input(z.object({
       schoolId: z.string().uuid("Invalid school ID format"),
@@ -224,6 +238,10 @@ export const schoolProfileRouter = createTRPCRouter({
       return games;
     }),
 
+  /*
+  Params: schoolId
+  Returns: stats for the school
+  */
   getStats: publicProcedure
     .input(z.object({
       schoolId: z.string().uuid("Invalid school ID format"),

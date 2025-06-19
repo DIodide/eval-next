@@ -147,7 +147,7 @@ export const protectedProcedure = t.procedure.use(isAuthed);
  */
 const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
   // Get user from Clerk to check publicMetadata
-  const publicMetadata = ctx.auth.sessionClaims?.metadata as Record<string, unknown> | undefined;
+  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
   
   if (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach") {
     throw new TRPCError({
@@ -231,6 +231,29 @@ const isPlayer = t.middleware(async ({ next, ctx }) => {
 });
 
 /**
+ * Middleware to verify user is an admin
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isAdmin = t.middleware(async ({ next, ctx }) => {
+  // Get user from Clerk to check publicMetadata
+  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  
+  if (publicMetadata?.role !== "admin") {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin access required. Only administrators can access this resource.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      // Admin context can be enhanced here if needed
+    },
+  });
+});
+
+/**
  * Onboarded coach procedure
  *
  * This is a procedure that requires the user to be signed in and be an onboarded coach.
@@ -245,7 +268,7 @@ export const onboardedCoachProcedure = protectedProcedure.use(isOnboardedCoach);
  * It builds upon protectedProcedure, so authentication is handled automatically.
  * Provides coachId and schoolId in the context.
  */
-// export const coachProcedure = protectedProcedure.use(isCoach);
+export const coachProcedure = protectedProcedure.use(isCoach);
 
 /**
  * Player procedure
@@ -255,3 +278,12 @@ export const onboardedCoachProcedure = protectedProcedure.use(isOnboardedCoach);
  * Provides playerId in the context.
  */
 export const playerProcedure = protectedProcedure.use(isPlayer);
+
+/**
+ * Admin procedure
+ *
+ * This is a procedure that requires the user to be signed in and be an admin.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ * Checks Clerk publicMetadata.role === "admin".
+ */
+export const adminProcedure = protectedProcedure.use(isAdmin);

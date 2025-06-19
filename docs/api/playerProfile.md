@@ -1,295 +1,410 @@
-# Player Profile Router Documentation
-
-The Player Profile Router handles all player profile-related operations in the API. This router primarily uses protected endpoints that require authentication, with database retry logic for improved reliability.
+# Player Profile API Documentation
 
 ## Overview
 
-The router provides functionality for:
-
-- Managing player profiles (get/update with optimized queries)
-- Managing platform connections (add/update/remove)
-- Managing social connections (add/update/remove)
-- Retrieving available games for main game selection (public access)
-- Optimized data fetching for specific use cases
+The Player Profile router provides comprehensive endpoints for managing player profiles, connections, and game preferences. All player-specific endpoints use `playerProcedure` which automatically verifies the user is authenticated as a player and provides `playerId` in the context.
 
 ## Authentication & Authorization
 
-Most endpoints in this router use `protectedProcedure` with additional player verification:
+- **Player Endpoints**: Use `playerProcedure` - automatically verifies user is logged in and has a player profile
+- **Public Endpoints**: Use `publicProcedure` - accessible to all users
+- **Coach-Only Endpoints**: Use `onboardedCoachProcedure` - restricted to verified coaches
 
-- Users must be authenticated via Clerk
-- Users must have a valid player profile in the database
-- Access is restricted to player-type users only
-- Each request verifies the user is a player and retrieves their player ID
+## Endpoints
 
-**Exception**: `getAvailableGames` is a public endpoint that requires no authentication.
+### Player Profile Management
 
-## Database Reliability
+#### `getProfile`
 
-All database operations use the `withRetry()` wrapper to handle connection issues and improve reliability.
+**Type**: Query  
+**Auth**: Player required  
+**Description**: Get complete player profile with all related data
 
-## Schemas
+**Response**:
 
-### Profile Update Schema
+```typescript
+{
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username?: string;
+  image_url?: string;
+  location?: string;
+  bio?: string;
+  school?: string;
+  class_year?: string;
+  gpa?: number;
+  graduation_date?: string;
+  main_game_id?: string;
+  created_at: Date;
+  updated_at: Date;
+  school_ref?: {
+    id: string;
+    name: string;
+    type: string;
+    location: string;
+    state: string;
+  };
+  main_game?: {
+    id: string;
+    name: string;
+    short_name: string;
+    icon?: string;
+    color?: string;
+  };
+  platform_connections: Array<{
+    platform: string;
+    username: string;
+    connected: boolean;
+    updated_at: Date;
+  }>;
+  social_connections: Array<{
+    platform: string;
+    username: string;
+    connected: boolean;
+    updated_at: Date;
+  }>;
+}
+```
+
+#### `getBasicProfile`
+
+**Type**: Query  
+**Auth**: Player required  
+**Description**: Get basic profile information only (optimized for faster loading)
+
+**Response**:
+
+```typescript
+{
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username?: string;
+  location?: string;
+  bio?: string;
+  school?: string;
+  class_year?: string;
+  gpa?: number;
+  graduation_date?: string;
+  main_game_id?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+```
+
+#### `getConnections`
+
+**Type**: Query  
+**Auth**: Player required  
+**Description**: Get platform and social connections only (optimized for connection management)
+
+**Response**:
+
+```typescript
+{
+  platform_connections: Array<{
+    platform: string;
+    username: string;
+    connected: boolean;
+    updated_at: Date;
+  }>;
+  social_connections: Array<{
+    platform: string;
+    username: string;
+    connected: boolean;
+    updated_at: Date;
+  }>;
+}
+```
+
+#### `getRecruitingInfo`
+
+**Type**: Query  
+**Auth**: Player required  
+**Description**: Get recruiting-specific information (academic details, contact info)
+
+**Response**:
+
+```typescript
+{
+  school?: string;
+  school_id?: string;
+  gpa?: number;
+  class_year?: string;
+  graduation_date?: string;
+  intended_major?: string;
+  guardian_email?: string;
+  scholastic_contact?: string;
+  scholastic_contact_email?: string;
+  extra_curriculars?: string;
+  academic_bio?: string;
+  main_game_id?: string;
+  school_ref?: {
+    id: string;
+    name: string;
+    type: string;
+    location: string;
+    state: string;
+  };
+  main_game?: {
+    id: string;
+    name: string;
+    short_name: string;
+    icon?: string;
+    color?: string;
+  };
+}
+```
+
+#### `updateProfile`
+
+**Type**: Mutation  
+**Auth**: Player required  
+**Description**: Update player profile information
+
+**Input**:
 
 ```typescript
 {
   // Basic profile information
-  first_name?: string;              // Min length: 1
-  last_name?: string;               // Min length: 1
+  first_name?: string;
+  last_name?: string;
+  username?: string;
   location?: string;
   bio?: string;
 
   // Academic/School information
   school?: string;
-  gpa?: number;                     // Range: 0-4.0
+  gpa?: number; // 0.0 to 4.0
   class_year?: string;
   graduation_date?: string;
   intended_major?: string;
 
-  // Recruiting contact information
-  guardian_email?: string;          // Must be valid email or empty string
+  // Contact information
+  guardian_email?: string; // Valid email format
   scholastic_contact?: string;
-  scholastic_contact_email?: string; // Must be valid email or empty string
-
-  // Additional recruiting information
+  scholastic_contact_email?: string; // Valid email format
   extra_curriculars?: string;
   academic_bio?: string;
 
-  // Main game preference
-  main_game_id?: string;           // Must be valid UUID
+  // Main game selection
+  main_game_id?: string; // UUID
 }
 ```
 
-### Platform Connection Schema
+**Response**: Updated player profile with school_ref and main_game relations
+
+### Platform & Social Connections
+
+#### `updatePlatformConnection`
+
+**Type**: Mutation  
+**Auth**: Player required  
+**Description**: Add or update a gaming platform connection
+
+**Input**:
 
 ```typescript
 {
   platform: "steam" | "valorant" | "battlenet" | "epicgames" | "startgg";
-  username: string; // Min length: 3
+  username: string; // Minimum 3 characters
 }
 ```
 
-### Social Connection Schema
+**Response**: Updated platform connection object
+
+#### `updateSocialConnection`
+
+**Type**: Mutation  
+**Auth**: Player required  
+**Description**: Add or update a social media connection
+
+**Input**:
 
 ```typescript
 {
   platform: "github" | "discord" | "instagram" | "twitch" | "x";
-  username: string; // Min length: 3
+  username: string; // Minimum 3 characters
 }
 ```
 
-## Endpoints
-
-### Query Endpoints
-
-#### `getProfile`
-
-- **Method**: Query
-- **Description**: Retrieves the complete player profile including school reference, main game, platform connections, and social connections
-- **Returns**: Complete player profile object with all relations
-- **Performance**: Full profile load - use for initial profile page load
-- **Error Codes**:
-  - `NOT_FOUND`: Player profile doesn't exist
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
-
-#### `getBasicProfile` ✨ _New Optimized Endpoint_
-
-- **Method**: Query
-- **Description**: Retrieves only basic player information without relations
-- **Returns**: Basic player data (id, names, email, username, location, bio, school info, etc.)
-- **Performance**: Fast loading for basic profile information
-- **Use Case**: When you only need core profile data without connections
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Database error
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
-
-#### `getConnections` ✨ _New Optimized Endpoint_
-
-- **Method**: Query
-- **Description**: Retrieves only platform and social connections
-- **Returns**: Object with `platform_connections` and `social_connections` arrays
-- **Performance**: Optimized for connection management interfaces
-- **Use Case**: When you only need to display/manage connections
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Database error
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
-
-#### `getRecruitingInfo` ✨ _New Optimized Endpoint_
-
-- **Method**: Query
-- **Description**: Retrieves recruiting-specific information including school and game references
-- **Returns**: Recruiting data with school_ref and main_game relations
-- **Performance**: Optimized for recruiting/academic information display
-- **Use Case**: For recruiting forms and college scout interfaces
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Database error
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
-
-#### `getAvailableGames` 🌐 _Public Endpoint_
-
-- **Method**: Query
-- **Authentication**: None required (public access)
-- **Description**: Retrieves all available games for main game selection
-- **Returns**: Array of game objects containing id, name, short_name, icon, and color
-- **Performance**: Sorted alphabetically by name
-- **Use Case**: Game selection during registration, public browsing, unauthenticated interfaces
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Failed to fetch games
-
-### Mutation Endpoints
-
-#### `updateProfile`
-
-- **Method**: Mutation
-- **Input**: Profile Update Schema
-- **Description**: Updates player profile information with automatic timestamp update
-- **Returns**: Updated player profile object with all relations
-- **Validation**: Email validation for contact fields, GPA range validation
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Failed to update profile
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
-
-#### `updatePlatformConnection`
-
-- **Method**: Mutation
-- **Input**: Platform Connection Schema
-- **Description**: Adds or updates a platform connection using upsert operation
-- **Returns**: Created/Updated platform connection
-- **Behavior**: Uses compound unique constraint (player_id + platform)
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Failed to update connection
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
-
-#### `updateSocialConnection`
-
-- **Method**: Mutation
-- **Input**: Social Connection Schema
-- **Description**: Adds or updates a social connection using upsert operation
-- **Returns**: Created/Updated social connection
-- **Behavior**: Uses compound unique constraint (player_id + platform)
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Failed to update connection
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
+**Response**: Updated social connection object
 
 #### `removePlatformConnection`
 
-- **Method**: Mutation
-- **Input**: `{ platform: PlatformType }`
-- **Description**: Removes a platform connection completely
-- **Returns**: `{ success: true }`
-- **Behavior**: Uses compound unique constraint for deletion
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Failed to remove connection
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
+**Type**: Mutation  
+**Auth**: Player required  
+**Description**: Remove a gaming platform connection
+
+**Input**:
+
+```typescript
+{
+  platform: "steam" | "valorant" | "battlenet" | "epicgames" | "startgg";
+}
+```
+
+**Response**: `{ success: true }`
 
 #### `removeSocialConnection`
 
-- **Method**: Mutation
-- **Input**: `{ platform: SocialPlatformType }`
-- **Description**: Removes a social connection completely
-- **Returns**: `{ success: true }`
-- **Behavior**: Uses compound unique constraint for deletion
-- **Error Codes**:
-  - `INTERNAL_SERVER_ERROR`: Failed to remove connection
-  - `UNAUTHORIZED`: User not authenticated
-  - `FORBIDDEN`: User is not a player
+**Type**: Mutation  
+**Auth**: Player required  
+**Description**: Remove a social media connection
 
-## Performance Optimizations
-
-### Query Optimization Strategies
-
-1. **Selective Data Loading**: Use specific endpoints for different use cases
-
-   - `getBasicProfile` for basic info
-   - `getConnections` for connection management
-   - `getRecruitingInfo` for recruiting data
-   - `getProfile` for complete profile
-
-2. **Database Retry Logic**: All operations wrapped with `withRetry()` for reliability
-
-3. **Proper Indexing**: Compound unique constraints optimize connection queries
-
-4. **Minimal Data Transfer**: Each optimized endpoint only returns necessary fields
-
-## Usage Examples
+**Input**:
 
 ```typescript
-// Get complete profile (use sparingly)
-const fullProfile = await trpc.playerProfile.getProfile.query();
-
-// Get only basic info (faster)
-const basicInfo = await trpc.playerProfile.getBasicProfile.query();
-
-// Get only connections for management interface
-const connections = await trpc.playerProfile.getConnections.query();
-
-// Get recruiting info for forms
-const recruitingData = await trpc.playerProfile.getRecruitingInfo.query();
-
-// Update profile
-const updatedProfile = await trpc.playerProfile.updateProfile.mutate({
-  first_name: "John",
-  last_name: "Doe",
-  school: "University of Gaming",
-  gpa: 3.8,
-  guardian_email: "parent@example.com",
-});
-
-// Add platform connection
-const platformConnection =
-  await trpc.playerProfile.updatePlatformConnection.mutate({
-    platform: "steam",
-    username: "gamername123",
-  });
-
-// Add social connection
-const socialConnection = await trpc.playerProfile.updateSocialConnection.mutate(
-  {
-    platform: "discord",
-    username: "username#1234",
-  },
-);
-
-// Remove connections
-await trpc.playerProfile.removePlatformConnection.mutate({
-  platform: "steam",
-});
-
-await trpc.playerProfile.removeSocialConnection.mutate({
-  platform: "x",
-});
-
-// Get available games for selection (no authentication required)
-const games = await trpc.playerProfile.getAvailableGames.query();
+{
+  platform: "github" | "discord" | "instagram" | "twitch" | "x";
+}
 ```
 
-## Implementation Notes
+**Response**: `{ success: true }`
 
-### Database Constraints
+### Public Endpoints
 
-- Platform connections use compound unique key: `(player_id, platform)`
-- Social connections use compound unique key: `(player_id, platform)`
-- All timestamps are automatically managed
+#### `getAvailableGames`
+
+**Type**: Query  
+**Auth**: Public  
+**Description**: Get list of all available games for main game selection
+
+**Response**:
+
+```typescript
+Array<{
+  id: string;
+  name: string;
+  short_name: string;
+  icon?: string;
+  color?: string;
+}>;
+```
+
+#### `getPublicProfile`
+
+**Type**: Query  
+**Auth**: Public  
+**Description**: Get public player profile by username (cached for 5 minutes)
+
+**Input**:
+
+```typescript
+{
+  username: string;
+}
+```
+
+**Response**: Public profile data (excludes sensitive information like GPA, contact details)
+
+#### `getPublicRecruitingInfo`
+
+**Type**: Query  
+**Auth**: Onboarded Coach only  
+**Description**: Get recruiting information for a player (coaches only)
+
+**Input**:
+
+```typescript
+{
+  username: string;
+}
+```
+
+**Response**:
+
+```typescript
+{
+  gpa?: number;
+  graduation_date?: string;
+  intended_major?: string;
+  guardian_email?: string;
+  scholastic_contact?: string;
+  scholastic_contact_email?: string;
+  extra_curriculars?: string;
+  academic_bio?: string;
+}
+```
+
+## Architecture Notes
+
+### Context Enhancement
+
+- **playerProcedure**: Automatically provides `playerId` and verified `userId` in context
+- No manual verification needed - `ctx.playerId` and `ctx.auth.userId!` are safe to use
+- Automatic error handling for invalid/missing player profiles
+
+### Performance Optimizations
+
+- **Caching**: Public profiles cached for 5 minutes with automatic invalidation
+- **Selective Queries**: Separate endpoints for different data subsets (basic, connections, recruiting)
+- **Database Retries**: All queries wrapped with retry logic for reliability
+
+### Cache Management
+
+- Public profiles automatically cached and invalidated on username changes
+- Memory-based LRU cache with TTL support
+- Automatic cleanup of expired entries
 
 ### Error Handling
 
-- All database operations include comprehensive error handling
-- Errors are logged on the server side
-- Client receives appropriate HTTP status codes and messages
-- Uses `TRPCError` for consistent error responses
+- Consistent error responses with appropriate HTTP status codes
+- Automatic retry logic for database operations
+- Input validation with detailed error messages
 
-### Security
+## Migration Notes
 
-- Player verification happens on every request (except `getAvailableGames`)
-- User authorization checked against player database record
-- No access to other players' data
-- All mutations require valid player authentication
-- `getAvailableGames` is publicly accessible for game selection without authentication
+### Changes from Previous Version
+
+- ✅ Removed ~50 lines of duplicate `verifyPlayerUser` function
+- ✅ All player endpoints now use `playerProcedure` instead of `protectedProcedure`
+- ✅ Automatic context enhancement with `playerId`
+- ✅ Simplified error handling and verification logic
+- ✅ Maintained all existing functionality and API contracts
+
+### Benefits
+
+- **Reduced Code Duplication**: Eliminated manual verification across 9 endpoints
+- **Type Safety**: Enhanced context types with guaranteed `playerId`
+- **Consistency**: Standardized authorization pattern across all player endpoints
+- **Maintainability**: Centralized player verification logic in middleware
+
+## Usage Examples
+
+### Frontend Integration
+
+```typescript
+// Get player profile
+const profile = await api.playerProfile.getProfile.query();
+
+// Update profile
+await api.playerProfile.updateProfile.mutate({
+  first_name: "John",
+  bio: "Aspiring esports professional",
+});
+
+// Add platform connection
+await api.playerProfile.updatePlatformConnection.mutate({
+  platform: "steam",
+  username: "player123",
+});
+
+// Get public profile (no auth required)
+const publicProfile = await api.playerProfile.getPublicProfile.query({
+  username: "player123",
+});
+```
+
+### Error Handling
+
+All endpoints follow consistent error patterns:
+
+- `UNAUTHORIZED`: User not authenticated
+- `FORBIDDEN`: User not a player (handled by playerProcedure)
+- `NOT_FOUND`: Profile/resource not found
+- `BAD_REQUEST`: Invalid input data
+- `INTERNAL_SERVER_ERROR`: Database or system errors

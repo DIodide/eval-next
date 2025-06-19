@@ -1,14 +1,10 @@
+// This file is used to search for players based on the filters provided.
 
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";
-
-// Type for the tRPC context
-type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 // Input validation schemas
 const playerSearchSchema = z.object({
@@ -49,40 +45,14 @@ const updateFavoriteSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-// Helper function to verify user is a coach
-async function verifyCoachUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  const coach = await withRetry(() => 
-    ctx.db.coach.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true, school_id: true },
-    })
-  );
-
-  if (!coach) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Coach profile not found. Only coaches can access this resource.',
-    });
-  }
-
-  return { userId, coachId: coach.id, schoolId: coach.school_id };
-}
+// Verification is now handled automatically by onboardedCoachProcedure
 
 export const playerSearchRouter = createTRPCRouter({
   // Search players with filters
-  searchPlayers: protectedProcedure
+  searchPlayers: onboardedCoachProcedure
     .input(playerSearchSchema)
     .query(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       try {
         // Build where clause for filtering
@@ -265,7 +235,7 @@ export const playerSearchRouter = createTRPCRouter({
             game_profiles: player.game_profiles,
             platform_connections: player.platform_connections,
             is_favorited: player.favorited_by.length > 0,
-            favorite_info: player.favorited_by[0] || null,
+            favorite_info: player.favorited_by[0] ?? null,
             created_at: player.created_at,
           })),
           totalCount,
@@ -281,10 +251,10 @@ export const playerSearchRouter = createTRPCRouter({
     }),
 
   // Add player to favorites
-  favoritePlayer: protectedProcedure
+  favoritePlayer: onboardedCoachProcedure
     .input(favoritePlayerSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       try {
         const favorite = await withRetry(() =>
@@ -297,14 +267,14 @@ export const playerSearchRouter = createTRPCRouter({
             },
             update: {
               notes: input.notes,
-              tags: input.tags || [],
+              tags: input.tags ?? [],
               updated_at: new Date(),
             },
             create: {
               coach_id: coachId,
               player_id: input.player_id,
               notes: input.notes,
-              tags: input.tags || [],
+              tags: input.tags ?? [],
             },
             include: {
               player: {
@@ -329,10 +299,10 @@ export const playerSearchRouter = createTRPCRouter({
     }),
 
   // Remove player from favorites
-  unfavoritePlayer: protectedProcedure
+  unfavoritePlayer: onboardedCoachProcedure
     .input(unfavoritePlayerSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       try {
         await withRetry(() =>
@@ -357,10 +327,10 @@ export const playerSearchRouter = createTRPCRouter({
     }),
 
   // Update favorite notes/tags
-  updateFavorite: protectedProcedure
+  updateFavorite: onboardedCoachProcedure
     .input(updateFavoriteSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       try {
         const favorite = await withRetry(() =>
@@ -390,9 +360,9 @@ export const playerSearchRouter = createTRPCRouter({
     }),
 
   // Get coach's favorites
-  getFavorites: protectedProcedure
+  getFavorites: onboardedCoachProcedure
     .query(async ({ ctx }) => {
-      const { coachId } = await verifyCoachUser(ctx);
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       try {
         const favorites = await withRetry(() =>

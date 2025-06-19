@@ -16,45 +16,26 @@
  */
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, onboardedCoachProcedure, playerProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 export const messagesRouter = createTRPCRouter({
   /**
    * Get conversations for the authenticated coach
    */
-  getConversations: protectedProcedure
+  getConversations: onboardedCoachProcedure
     .input(z.object({
       search: z.string().optional(),
       filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can access conversations",
-        });
-      }
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       // Get actual conversations from database
       const conversations = await ctx.db.conversation.findMany({
         where: {
-          coach_id: coach.id,
+          coach_id: coachId,
           ...(input.filter === "starred" && { is_starred: true }),
           ...(input.filter === "archived" && { is_archived: true }),
         },
@@ -132,35 +113,16 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Get detailed conversation with message history
    */
-  getConversation: protectedProcedure
+  getConversation: onboardedCoachProcedure
     .input(z.object({ conversationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can access conversations",
-        });
-      }
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
       // Get actual conversation from database
       const conversation = await ctx.db.conversation.findFirst({
         where: {
           id: input.conversationId,
-          coach_id: coach.id,
+          coach_id: coachId,
         },
         include: {
           player: {
@@ -221,33 +183,14 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Send a message to a player
    */
-  sendMessage: protectedProcedure
+  sendMessage: onboardedCoachProcedure
     .input(z.object({
       conversationId: z.string().uuid().optional(),
       playerId: z.string().uuid().optional(),
       content: z.string().min(1).max(2000).trim(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can send messages",
-        });
-      }
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
              // Either conversationId or playerId must be provided
       if (!input.conversationId && !input.playerId) {
@@ -264,7 +207,7 @@ export const messagesRouter = createTRPCRouter({
         conversation = await ctx.db.conversation.findFirst({
           where: {
             id: input.conversationId,
-            coach_id: coach.id,
+            coach_id: coachId,
           },
           select: {
             id: true,
@@ -293,7 +236,7 @@ export const messagesRouter = createTRPCRouter({
         // Check if conversation already exists
         conversation = await ctx.db.conversation.findFirst({
           where: {
-            coach_id: coach.id,
+            coach_id: coachId,
             player_id: player.id,
           },
           select: {
@@ -304,7 +247,7 @@ export const messagesRouter = createTRPCRouter({
         // Create new conversation if none exists
         conversation ??= await ctx.db.conversation.create({
           data: {
-            coach_id: coach.id,
+            coach_id: coachId,
             player_id: player.id,
             is_starred: false,
             is_archived: false,
@@ -326,7 +269,7 @@ export const messagesRouter = createTRPCRouter({
       const message = await ctx.db.message.create({
         data: {
           conversation_id: conversation.id,
-          sender_id: coach.id,
+          sender_id: coachId,
           sender_type: "COACH",
           content: input.content,
           is_read: false,
@@ -350,32 +293,13 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Send bulk messages to multiple players
    */
-  sendBulkMessage: protectedProcedure
+  sendBulkMessage: onboardedCoachProcedure
     .input(z.object({
       playerIds: z.array(z.string().uuid()).min(1).max(50),
       content: z.string().min(1).max(2000).trim(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can send messages",
-        });
-      }
+      // Coach ID is available from onboardedCoachProcedure context
 
       return {
         success: true,
@@ -391,32 +315,13 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Mark messages as read
    */
-  markAsRead: protectedProcedure
+  markAsRead: onboardedCoachProcedure
     .input(z.object({
       conversationId: z.string().uuid(),
       messageIds: z.array(z.string().uuid()).optional(),
     }))
     .mutation(async ({ ctx }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can mark messages as read",
-        });
-      }
+      // Coach ID is available from onboardedCoachProcedure context
 
       return {
         success: true,
@@ -427,31 +332,12 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Star or unstar a conversation
    */
-  toggleStar: protectedProcedure
+  toggleStar: onboardedCoachProcedure
     .input(z.object({
       conversationId: z.string().uuid(),
     }))
     .mutation(async ({ ctx }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can star conversations",
-        });
-      }
+      // Coach ID is available from onboardedCoachProcedure context
 
       return {
         success: true,
@@ -462,33 +348,14 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Get available players for messaging
    */
-  getAvailablePlayers: protectedProcedure
+  getAvailablePlayers: onboardedCoachProcedure
     .input(z.object({
       search: z.string().optional(),
       gameId: z.string().uuid().optional(),
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ ctx }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a coach
-      const coach = await ctx.db.coach.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!coach) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only coaches can access player list",
-        });
-      }
+      // Coach ID is available from onboardedCoachProcedure context
 
       // Get actual players from database
       const players = await ctx.db.player.findMany({
@@ -533,38 +400,19 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Get conversations for the authenticated player
    */
-  getPlayerConversations: protectedProcedure
+  getPlayerConversations: playerProcedure
     .input(z.object({
       search: z.string().optional(),
       filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a player
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!player) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only players can access player conversations",
-        });
-      }
+      const playerId = ctx.playerId; // Available from playerProcedure context
 
       // Get actual conversations from database
       const conversations = await ctx.db.conversation.findMany({
         where: {
-          player_id: player.id,
+          player_id: playerId,
           ...(input.filter === "starred" && { is_starred: true }),
           ...(input.filter === "archived" && { is_archived: true }),
         },
@@ -629,35 +477,16 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Get detailed conversation with message history for player
    */
-  getPlayerConversation: protectedProcedure
+  getPlayerConversation: playerProcedure
     .input(z.object({ conversationId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a player
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!player) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only players can access player conversations",
-        });
-      }
+      const playerId = ctx.playerId; // Available from playerProcedure context
 
       // Get actual conversation from database
       const conversation = await ctx.db.conversation.findFirst({
         where: {
           id: input.conversationId,
-          player_id: player.id,
+          player_id: playerId,
         },
         include: {
           coach: {
@@ -705,33 +534,14 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Send a message from player to coach
    */
-  sendPlayerMessage: protectedProcedure
+  sendPlayerMessage: playerProcedure
     .input(z.object({
       conversationId: z.string().uuid().optional(),
       coachId: z.string().uuid().optional(),
       content: z.string().min(1).max(2000).trim(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a player
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!player) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only players can send player messages",
-        });
-      }
+      const playerId = ctx.playerId; // Available from playerProcedure context
 
       // Either conversationId or coachId must be provided
       if (!input.conversationId && !input.coachId) {
@@ -748,7 +558,7 @@ export const messagesRouter = createTRPCRouter({
         conversation = await ctx.db.conversation.findFirst({
           where: {
             id: input.conversationId,
-            player_id: player.id,
+            player_id: playerId,
           },
           select: {
             id: true,
@@ -780,7 +590,7 @@ export const messagesRouter = createTRPCRouter({
         conversation = await ctx.db.conversation.findFirst({
           where: {
             coach_id: coach.id,
-            player_id: player.id,
+            player_id: playerId,
           },
           select: {
             id: true,
@@ -793,7 +603,7 @@ export const messagesRouter = createTRPCRouter({
         conversation ??= await ctx.db.conversation.create({
           data: {
             coach_id: coach.id,
-            player_id: player.id,
+            player_id: playerId,
             is_starred: false,
             is_archived: false,
           },
@@ -816,7 +626,7 @@ export const messagesRouter = createTRPCRouter({
       const message = await ctx.db.message.create({
         data: {
           conversation_id: conversation.id,
-          sender_id: player.id,
+          sender_id: playerId,
           sender_type: "PLAYER",
           content: input.content,
           is_read: false,
@@ -840,32 +650,13 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Mark messages as read for player
    */
-  markPlayerMessagesAsRead: protectedProcedure
+  markPlayerMessagesAsRead: playerProcedure
     .input(z.object({
       conversationId: z.string().uuid(),
       messageIds: z.array(z.string().uuid()).optional(),
     }))
     .mutation(async ({ ctx }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a player
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!player) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only players can mark player messages as read",
-        });
-      }
+      // Player ID is available from playerProcedure context
 
       return {
         success: true,
@@ -876,31 +667,12 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Star or unstar a conversation for player
    */
-  togglePlayerStar: protectedProcedure
+  togglePlayerStar: playerProcedure
     .input(z.object({
       conversationId: z.string().uuid(),
     }))
     .mutation(async ({ ctx }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a player
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!player) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only players can star player conversations",
-        });
-      }
+      // Player ID is available from playerProcedure context
 
       return {
         success: true,
@@ -911,32 +683,13 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Get available coaches for messaging (player endpoint)
    */
-  getAvailableCoaches: protectedProcedure
+  getAvailableCoaches: playerProcedure
     .input(z.object({
       search: z.string().optional(),
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ ctx }) => {
-      const userId = ctx.auth.userId;
-      
-      if (!userId) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        });
-      }
-
-      // Verify user is a player
-      const player = await ctx.db.player.findUnique({
-        where: { clerk_id: userId },
-      });
-
-      if (!player) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only players can access coach list",
-        });
-      }
+      // Player ID is available from playerProcedure context
 
       // Get actual coaches from database
       const coaches = await ctx.db.coach.findMany({

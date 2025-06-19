@@ -1,720 +1,353 @@
-# Messages API Documentation
+# Messages Router Documentation
+
+The Messages Router handles messaging functionality between coaches and players on the platform.
 
 ## Overview
 
-The Messages API provides comprehensive messaging functionality between coaches and players in the EVAL Gaming platform. This system enables coaches to communicate with prospective players, manage conversations, and facilitate the recruiting process. Players can view and respond to messages from coaches, as well as initiate conversations with coaches.
+This router provides a comprehensive messaging system that enables:
 
-## Database Schema
+- **Coach-to-Player Communication**: Onboarded coaches can message players for recruitment
+- **Player-to-Coach Communication**: Players can respond to coaches and initiate conversations
+- **Conversation Management**: Both parties can manage conversation states (starred, archived)
+- **Real-time Messaging**: Support for conversation threading and message status tracking
 
-### Conversation Model
+## Architecture
 
-```prisma
-model Conversation {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  coach_id   String   @db.Uuid
-  player_id  String   @db.Uuid
-  is_starred Boolean  @default(false)
-  is_archived Boolean @default(false)
-  created_at DateTime @default(now()) @db.Timestamp(6)
-  updated_at DateTime @updatedAt
+### Authorization Levels
 
-  coach    Coach     @relation(fields: [coach_id], references: [id], onDelete: Cascade)
-  player   Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
-  messages Message[]
+- **Coach Endpoints**: Require `onboardedCoachProcedure` access
+  - Ensures coaches have completed onboarding and school association
+  - Provides automatic `coachId` and `schoolId` in context
+- **Player Endpoints**: Require `playerProcedure` access
+  - Ensures authenticated player access
+  - Provides automatic `playerId` in context
 
-  @@unique([coach_id, player_id], name: "coach_id_player_id")
-  @@map("conversations")
-}
+### Refactoring Benefits
+
+The router has been refactored from manual verification to structured procedures:
+
+#### Before (Manual Verification)
+
+```typescript
+// Old pattern with duplicate verification logic
+getConversations: protectedProcedure.query(async ({ ctx }) => {
+  const userId = ctx.auth.userId;
+  if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  const coach = await ctx.db.coach.findUnique({ where: { clerk_id: userId } });
+  if (!coach) throw new TRPCError({ code: "FORBIDDEN" });
+
+  // ... endpoint logic using coach.id
+});
 ```
 
-### Message Model
+#### After (Structured Procedures)
 
-```prisma
-model Message {
-  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  conversation_id String     @db.Uuid
-  sender_id       String     @db.Uuid
-  sender_type     SenderType
-  content         String     @db.Text
-  is_read         Boolean    @default(false)
-  created_at      DateTime   @default(now()) @db.Timestamp(6)
-
-  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
-
-  @@map("messages")
-}
-
-enum SenderType {
-  COACH
-  PLAYER
-}
+```typescript
+// New pattern with automatic verification and context enhancement
+getConversations: onboardedCoachProcedure.query(async ({ ctx }) => {
+  const coachId = ctx.coachId; // Automatically provided
+  // ... clean endpoint logic
+});
 ```
-
-## API Endpoints
 
 ## Coach Endpoints
 
-### 1. Get Conversations
+### `getConversations`
 
-**Endpoint:** `messages.getConversations`  
-**Method:** Query  
-**Authentication:** Required (Coach only)
+- **Method**: Query (Onboarded Coach Only)
+- **Input**: Conversation Filter Schema
+- **Description**: Get all conversations for the authenticated coach
+- **Returns**: List of conversations with player details and last messages
+- **Authorization**: Onboarded coach access required (automatic via `onboardedCoachProcedure`)
+- **Context**: Automatic `coachId` and `schoolId` available
+- **Features**:
+  - Search by player name or school
+  - Filter by status (all, unread, starred, archived)
+  - Pagination support with limit
+  - Unread message counting
 
-Retrieves a list of conversations for the authenticated coach with filtering and search capabilities.
+### `getConversation`
 
-#### Input Parameters
+- **Method**: Query (Onboarded Coach Only)
+- **Input**: Conversation ID Schema
+- **Description**: Get detailed conversation with full message history
+- **Returns**: Complete conversation data with all messages
+- **Authorization**: Onboarded coach access required
 
-```typescript
-{
-  search?: string;           // Search by player name or school
-  filter: "all" | "unread" | "starred" | "archived"; // Filter conversations
-  limit: number;            // Max 100, default 50
-}
-```
+### `sendMessage`
 
-#### Response
+- **Method**: Mutation (Onboarded Coach Only)
+- **Input**: Message Creation Schema
+- **Description**: Send a message to a player
+- **Returns**: Created message details
+- **Behavior**:
+  - Can use existing conversation ID or create new conversation with player ID
+  - Automatically creates conversation if none exists
+  - Updates conversation timestamp
+- **Authorization**: Onboarded coach access required
 
-```typescript
-{
-  conversations: Array<{
-    id: string;
-    player: {
-      id: string;
-      name: string;
-      email: string;
-      avatar?: string | null;
-      school?: string | null;
-      classYear?: string | null;
-      location?: string | null;
-      gpa?: number | null;
-      mainGame?: string;
-      gameProfiles: Array<{
-        game: string;
-        rank?: string | null;
-        role?: string | null;
-        username: string;
-      }>;
-    };
-    lastMessage: {
-      id: string;
-      content: string;
-      senderType: "COACH" | "PLAYER";
-      timestamp: Date;
-      isRead: boolean;
-    } | null;
-    unreadCount: number;
-    isStarred: boolean;
-    isArchived: boolean;
-    updatedAt: Date;
-  }>;
-  nextCursor: string | null;
-}
-```
+### `sendBulkMessage`
 
-### 2. Get Conversation Details
+- **Method**: Mutation (Onboarded Coach Only)
+- **Input**: Bulk Message Schema
+- **Description**: Send the same message to multiple players simultaneously
+- **Returns**: Bulk operation results
+- **Features**:
+  - Maximum 50 recipients per bulk operation
+  - Creates individual conversations for each player
+- **Authorization**: Onboarded coach access required
 
-**Endpoint:** `messages.getConversation`  
-**Method:** Query  
-**Authentication:** Required (Coach only)
+### `markAsRead`
 
-Retrieves detailed conversation information including full message history.
+- **Method**: Mutation (Onboarded Coach Only)
+- **Input**: Mark Read Schema
+- **Description**: Mark messages as read in a conversation
+- **Returns**: Operation success status
+- **Authorization**: Onboarded coach access required
 
-#### Input Parameters
+### `toggleStar`
 
-```typescript
-{
-  conversationId: string; // UUID of the conversation
-}
-```
+- **Method**: Mutation (Onboarded Coach Only)
+- **Input**: Conversation ID Schema
+- **Description**: Star or unstar a conversation
+- **Returns**: Updated star status
+- **Authorization**: Onboarded coach access required
 
-#### Response
+### `getAvailablePlayers`
 
-```typescript
-{
-  id: string;
-  player: {
-    // Same as above
-  }
-  messages: Array<{
-    id: string;
-    senderId: string;
-    senderType: "COACH" | "PLAYER";
-    content: string;
-    timestamp: Date;
-    isRead: boolean;
-  }>;
-  isStarred: boolean;
-  isArchived: boolean;
-}
-```
-
-### 3. Send Message
-
-**Endpoint:** `messages.sendMessage`  
-**Method:** Mutation  
-**Authentication:** Required (Coach only)
-
-Sends a message to a player. Creates a new conversation if one doesn't exist.
-
-#### Input Parameters
-
-```typescript
-{
-  conversationId?: string; // Optional: existing conversation ID
-  playerId?: string;       // Optional: player ID for new conversation
-  content: string;         // Message content (1-2000 characters)
-}
-```
-
-**Note:** Either `conversationId` or `playerId` must be provided.
-
-#### Response
-
-```typescript
-{
-  id: string;
-  conversationId: string;
-  content: string;
-  timestamp: Date;
-}
-```
-
-### 4. Send Bulk Messages
-
-**Endpoint:** `messages.sendBulkMessage`  
-**Method:** Mutation  
-**Authentication:** Required (Coach only)
-
-Sends the same message to multiple players simultaneously.
-
-#### Input Parameters
-
-```typescript
-{
-  playerIds: string[];     // Array of player UUIDs (1-50 players)
-  content: string;         // Message content (1-2000 characters)
-}
-```
-
-#### Response
-
-```typescript
-{
-  success: boolean;
-  messagesSent: number;
-  results: Array<{
-    playerId: string;
-    conversationId: string;
-    messageId: string;
-  }>;
-}
-```
-
-### 5. Mark Messages as Read
-
-**Endpoint:** `messages.markAsRead`  
-**Method:** Mutation  
-**Authentication:** Required (Coach only)
-
-Marks messages in a conversation as read.
-
-#### Input Parameters
-
-```typescript
-{
-  conversationId: string;
-  messageIds?: string[];   // Optional: specific message IDs, otherwise all unread
-}
-```
-
-#### Response
-
-```typescript
-{
-  success: boolean;
-  messagesMarked: number;
-}
-```
-
-### 6. Toggle Star Conversation
-
-**Endpoint:** `messages.toggleStar`  
-**Method:** Mutation  
-**Authentication:** Required (Coach only)
-
-Stars or unstars a conversation for easy access.
-
-#### Input Parameters
-
-```typescript
-{
-  conversationId: string;
-}
-```
-
-#### Response
-
-```typescript
-{
-  success: boolean;
-  isStarred: boolean;
-}
-```
-
-### 7. Get Available Players
-
-**Endpoint:** `messages.getAvailablePlayers`  
-**Method:** Query  
-**Authentication:** Required (Coach only)
-
-Retrieves a list of players available for messaging.
-
-#### Input Parameters
-
-```typescript
-{
-  search?: string;         // Search by name or school
-  gameId?: string;         // Filter by specific game
-  limit: number;          // Max 100, default 50
-}
-```
-
-#### Response
-
-```typescript
-Array<{
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string | null;
-  school?: string | null;
-  classYear?: string | null;
-  location?: string | null;
-  gpa?: number | null;
-  mainGame?: string;
-  gameProfiles: Array<{
-    game: string;
-    rank?: string | null;
-    role?: string | null;
-    username: string;
-  }>;
-}>;
-```
+- **Method**: Query (Onboarded Coach Only)
+- **Input**: Player Search Schema
+- **Description**: Get list of players available for messaging
+- **Returns**: List of players with profile information
+- **Features**:
+  - Search by player name
+  - Filter by game (optional)
+  - Includes player stats and game profiles
+- **Authorization**: Onboarded coach access required
 
 ## Player Endpoints
 
-### 8. Get Player Conversations
+### `getPlayerConversations`
 
-**Endpoint:** `messages.getPlayerConversations`  
-**Method:** Query  
-**Authentication:** Required (Player only)
+- **Method**: Query (Player Only)
+- **Input**: Conversation Filter Schema
+- **Description**: Get all conversations for the authenticated player
+- **Returns**: List of conversations with coach details and last messages
+- **Authorization**: Player access required (automatic via `playerProcedure`)
+- **Context**: Automatic `playerId` available
+- **Features**:
+  - Search by coach name or school
+  - Filter by status (all, unread, starred, archived)
+  - Unread message counting from coaches
 
-Retrieves a list of conversations for the authenticated player with filtering and search capabilities.
+### `getPlayerConversation`
 
-#### Input Parameters
+- **Method**: Query (Player Only)
+- **Input**: Conversation ID Schema
+- **Description**: Get detailed conversation with full message history
+- **Returns**: Complete conversation data with all messages
+- **Authorization**: Player access required
+- **Verification**: Player can only access their own conversations
 
-```typescript
-{
-  search?: string;           // Search by coach name or school
-  filter: "all" | "unread" | "starred" | "archived"; // Filter conversations
-  limit: number;            // Max 100, default 50
-}
-```
+### `sendPlayerMessage`
 
-#### Response
+- **Method**: Mutation (Player Only)
+- **Input**: Player Message Schema
+- **Description**: Send a message from player to coach
+- **Returns**: Created message details
+- **Behavior**:
+  - Can use existing conversation ID or create new conversation with coach ID
+  - Automatically creates conversation if none exists
+  - Updates conversation timestamp
+- **Authorization**: Player access required
 
-```typescript
-{
-  conversations: Array<{
-    id: string;
-    coach: {
-      id: string;
-      name: string;
-      email: string;
-      avatar?: string | null;
-      school?: string | null;
-      schoolId?: string | null;
-    };
-    lastMessage: {
-      id: string;
-      content: string;
-      senderType: "COACH" | "PLAYER";
-      timestamp: Date;
-      isRead: boolean;
-    } | null;
-    unreadCount: number;
-    isStarred: boolean;
-    isArchived: boolean;
-    updatedAt: Date;
-  }>;
-  nextCursor: string | null;
-}
-```
+### `markPlayerMessagesAsRead`
 
-### 9. Get Player Conversation Details
+- **Method**: Mutation (Player Only)
+- **Input**: Mark Read Schema
+- **Description**: Mark messages as read in a conversation
+- **Returns**: Operation success status
+- **Authorization**: Player access required
 
-**Endpoint:** `messages.getPlayerConversation`  
-**Method:** Query  
-**Authentication:** Required (Player only)
+### `togglePlayerStar`
 
-Retrieves detailed conversation information including full message history for a player.
+- **Method**: Mutation (Player Only)
+- **Input**: Conversation ID Schema
+- **Description**: Star or unstar a conversation
+- **Returns**: Updated star status
+- **Authorization**: Player access required
 
-#### Input Parameters
+### `getAvailableCoaches`
 
-```typescript
-{
-  conversationId: string; // UUID of the conversation
-}
-```
+- **Method**: Query (Player Only)
+- **Input**: Coach Search Schema
+- **Description**: Get list of coaches available for messaging
+- **Returns**: List of coaches with school information
+- **Features**:
+  - Search by coach name
+  - Includes school association details
+- **Authorization**: Player access required
 
-#### Response
+## Input Schemas
 
-```typescript
-{
-  id: string;
-  coach: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string | null;
-    school?: string | null;
-    schoolId?: string | null;
-  };
-  messages: Array<{
-    id: string;
-    senderId: string;
-    senderType: "COACH" | "PLAYER";
-    content: string;
-    timestamp: Date;
-    isRead: boolean;
-  }>;
-  isStarred: boolean;
-  isArchived: boolean;
-}
-```
-
-### 10. Send Player Message
-
-**Endpoint:** `messages.sendPlayerMessage`  
-**Method:** Mutation  
-**Authentication:** Required (Player only)
-
-Sends a message from player to coach. Can be used to reply to existing conversations or initiate new conversations.
-
-#### Input Parameters
+### Conversation Filter Schema
 
 ```typescript
 {
-  conversationId?: string; // Optional: existing conversation ID
-  coachId?: string;        // Optional: coach ID for new conversation
-  content: string;         // Message content (1-2000 characters)
+  search?: string;
+  filter: "all" | "unread" | "starred" | "archived";
+  limit: number; // 1-100, default 50
 }
 ```
 
-**Note:** Either `conversationId` or `coachId` must be provided.
-
-#### Response
+### Message Creation Schema
 
 ```typescript
 {
-  id: string;
-  conversationId: string;
-  content: string;
-  timestamp: Date;
+  conversationId?: string; // UUID
+  playerId?: string; // UUID (for new conversations)
+  content: string; // 1-2000 characters, trimmed
 }
 ```
 
-### 11. Mark Player Messages as Read
-
-**Endpoint:** `messages.markPlayerMessagesAsRead`  
-**Method:** Mutation  
-**Authentication:** Required (Player only)
-
-Marks messages as read for a player.
-
-#### Input Parameters
+### Player Message Schema
 
 ```typescript
 {
-  conversationId: string;
-  messageIds?: string[];   // Optional: specific message IDs, otherwise all unread
+  conversationId?: string; // UUID
+  coachId?: string; // UUID (for new conversations)
+  content: string; // 1-2000 characters, trimmed
 }
 ```
 
-#### Response
+### Bulk Message Schema
 
 ```typescript
 {
-  success: boolean;
-  messagesMarked: number;
+  playerIds: string[]; // 1-50 UUIDs
+  content: string; // 1-2000 characters, trimmed
 }
 ```
 
-### 12. Toggle Player Star
-
-**Endpoint:** `messages.togglePlayerStar`  
-**Method:** Mutation  
-**Authentication:** Required (Player only)
-
-Stars or unstars a conversation for a player.
-
-#### Input Parameters
+### Mark Read Schema
 
 ```typescript
 {
-  conversationId: string;
+  conversationId: string; // UUID
+  messageIds?: string[]; // Optional specific message UUIDs
 }
 ```
-
-#### Response
-
-```typescript
-{
-  success: boolean;
-  isStarred: boolean;
-}
-```
-
-### 13. Get Available Coaches
-
-**Endpoint:** `messages.getAvailableCoaches`  
-**Method:** Query  
-**Authentication:** Required (Player only)
-
-Retrieves a list of coaches available for messaging by players.
-
-#### Input Parameters
-
-```typescript
-{
-  search?: string;         // Search by coach name or school
-  limit: number;          // Max 100, default 50
-}
-```
-
-#### Response
-
-```typescript
-Array<{
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string | null;
-  school?: string | null;
-  schoolName?: string | null;
-  username?: string;
-}>;
-```
-
-## Security & Authorization
-
-### Authentication
-
-- All endpoints require user authentication via Clerk
-- Coach endpoints: Only coaches can access coach-specific functionality
-- Player endpoints: Only players can access player-specific functionality
-- Conversations are isolated by user type and ownership
-
-### Data Access
-
-- Coaches can only access their own conversations
-- Players can only access conversations where they are participants
-- Conversation access is verified by coach_id or player_id
-- All database queries include ownership checks
-
-### Input Validation
-
-- Message content: 1-2000 characters, trimmed
-- Player IDs: Valid UUIDs only
-- Bulk messaging: Limited to 50 players maximum (coach only)
-- Search queries: Sanitized for SQL injection prevention
 
 ## Error Handling
 
 ### Common Error Codes
 
-- `UNAUTHORIZED`: User not authenticated
-- `FORBIDDEN`: User is not authorized for the specific endpoint or accessing unauthorized data
-- `NOT_FOUND`: Conversation, player, coach, or message not found
-- `BAD_REQUEST`: Invalid input parameters
-- `INTERNAL_SERVER_ERROR`: Database or server errors
+- **`UNAUTHORIZED`**: User not authenticated
+- **`FORBIDDEN`**: User not authorized for role (coach/player/onboarded)
+- **`NOT_FOUND`**: Conversation, player, or coach not found
+- **`BAD_REQUEST`**: Invalid input or missing required parameters
+- **`INTERNAL_SERVER_ERROR`**: Database or system errors
 
-### Error Response Format
+### Authorization-Specific Errors
 
-```typescript
-{
-  error: {
-    code: string;
-    message: string;
-  }
-}
-```
+- **Coach Endpoints**: Require onboarded coach status
+  - Automatic verification through `onboardedCoachProcedure`
+  - No additional manual verification needed
+- **Player Endpoints**: Require player authentication
+  - Automatic verification through `playerProcedure`
+  - No additional manual verification needed
 
 ## Usage Examples
 
-### Frontend Integration (React + tRPC)
-
-#### Coach Usage
+### Frontend Integration (Coach)
 
 ```typescript
-// Get conversations
-const { data: conversations, isLoading } =
-  api.messages.getConversations.useQuery({
-    filter: "unread",
-    limit: 20,
-  });
+// Get conversations for coach
+const { data: conversations } = api.messages.getConversations.useQuery({
+  filter: "unread",
+  search: "John",
+  limit: 20,
+});
 
-// Send a message
+// Send message to player
 const sendMessage = api.messages.sendMessage.useMutation({
-  onSuccess: () => {
-    toast.success("Message sent!");
-    // Refetch conversations
-  },
-});
-
-// Send bulk messages
-const sendBulkMessage = api.messages.sendBulkMessage.useMutation({
   onSuccess: (data) => {
-    toast.success(`Sent ${data.messagesSent} messages`);
+    console.log(`Message sent: ${data.id}`);
   },
+});
+
+// Get available players
+const { data: players } = api.messages.getAvailablePlayers.useQuery({
+  search: "Basketball",
+  limit: 30,
 });
 ```
 
-#### Player Usage
+### Frontend Integration (Player)
 
 ```typescript
-// Get player conversations
-const { data: conversations, isLoading } =
-  api.messages.getPlayerConversations.useQuery({
-    filter: "all",
-    limit: 20,
-  });
+// Get conversations for player
+const { data: conversations } = api.messages.getPlayerConversations.useQuery({
+  filter: "all",
+  limit: 20,
+});
 
-// Get available coaches to message
-const { data: coaches, isLoading: coachesLoading } =
-  api.messages.getAvailableCoaches.useQuery({
-    search: searchQuery,
-    limit: 50,
-  });
-
-// Send a response to existing conversation
+// Send message to coach
 const sendMessage = api.messages.sendPlayerMessage.useMutation({
-  onSuccess: () => {
-    toast.success("Message sent!");
+  onSuccess: (data) => {
+    console.log(`Reply sent: ${data.id}`);
   },
 });
 
-// Start new conversation with a coach
-const startConversation = api.messages.sendPlayerMessage.useMutation({
-  onSuccess: () => {
-    toast.success("Conversation started!");
-  },
-});
-
-// Usage examples:
-// Reply to existing conversation
-sendMessage.mutate({
-  conversationId: "conversation-uuid",
-  content: "Thank you for reaching out!",
-});
-
-// Start new conversation
-startConversation.mutate({
-  coachId: "coach-uuid",
-  content: "Hi, I'm interested in your esports program...",
-});
-
-// Mark messages as read
-const markAsRead = api.messages.markPlayerMessagesAsRead.useMutation({
-  onSuccess: () => {
-    toast.success("Messages marked as read");
-  },
+// Get available coaches
+const { data: coaches } = api.messages.getAvailableCoaches.useQuery({
+  search: "University",
+  limit: 25,
 });
 ```
 
-### Backend Usage (Server-side)
+## Security Features
 
-```typescript
-// Create tRPC caller
-const trpc = createCaller(createContext);
-
-// Send message programmatically
-const result = await trpc.messages.sendMessage({
-  playerId: "player-uuid",
-  content: "Welcome to our program!",
-});
-```
+- **Role-based Access Control**: Strict separation of coach and player capabilities
+- **Resource Ownership**: Users can only access their own conversations
+- **Onboarding Requirements**: Coaches must be onboarded to access messaging
+- **Input Validation**: Comprehensive validation with Zod schemas
+- **Content Sanitization**: Message content trimmed and length-limited
+- **Rate Limiting**: Bulk message limits to prevent spam
 
 ## Performance Considerations
 
-### Database Optimization
+- **Optimized Queries**: Selective field inclusion and proper joins
+- **Pagination**: Configurable limits for conversation lists
+- **Index Usage**: Efficient database queries with proper indexing
+- **Conversation Threading**: Optimized message ordering and retrieval
 
-- Indexed fields: `coach_id`, `player_id`, `conversation_id`, `created_at`
-- Composite unique constraint on `coach_id + player_id`
-- Pagination support for large conversation lists
+## Integration with Other Systems
 
-### Caching Strategy
+### Recruitment System
 
-- Conversation lists cached for 30 seconds
-- Message history cached per conversation
-- Player lists cached for 5 minutes
+- Messaging integrated with player profiles and recruitment workflows
+- Coach school associations verified for onboarded status
+- Player game profiles included in messaging context
 
-### Rate Limiting
+### Profile Systems
 
-- Bulk messaging: 50 players maximum per request (coach only)
-- Message sending: 100 messages per minute per user
-- API calls: 1000 requests per hour per user
+- Links to both coach and player profile data
+- School association details included in conversations
+- Game profile information for context
 
-## Best Practices
+### Authentication System
 
-### For Coaches
+- Full integration with Clerk authentication
+- Role-based access through tRPC procedures
+- Automatic context enhancement with user-specific data
 
-1. **Professional Communication**: Maintain respectful, professional tone
-2. **Timely Responses**: Respond promptly to maintain engagement
-3. **Clear Information**: Provide specific details about opportunities
-4. **Organized Conversations**: Use starring and archiving features
+## Related Documentation
 
-### For Players
-
-1. **Authentic Communication**: Show genuine personality and passion
-2. **Prompt Responses**: Quick responses show interest and professionalism
-3. **Ask Questions**: Show interest in program, team culture, and opportunities
-4. **Share Goals**: Communicate academic and esports aspirations clearly
-
-### For Developers
-
-1. **Error Handling**: Always handle API errors gracefully
-2. **Loading States**: Show loading indicators for better UX
-3. **Real-time Updates**: Consider implementing WebSocket for live messaging
-4. **Data Validation**: Validate input on both client and server
-
-## Future Enhancements
-
-### Planned Features
-
-- Real-time messaging with WebSocket support
-- Message attachments (images, documents)
-- Message templates for common recruiting scenarios
-- Conversation analytics and metrics
-- Message scheduling and automation
-- Group conversations for team recruiting
-- Advanced coach discovery and filtering
-
-### Technical Improvements
-
-- Message encryption for sensitive information
-- Advanced search with full-text indexing
-- Message export functionality
-- Integration with external recruiting platforms
-- Mobile push notifications
-
-## Support
-
-For technical support or questions about the Messages API:
-
-- Documentation: `/docs/api/messages.md`
-- API Reference: Generated from tRPC schema
-- Support: Contact development team
+- [Coach Profile Router](./coachProfile.md) - For onboarding requirements
+- [Player Profile Router](./playerProfile.md) - For player profile integration
+- [tRPC Procedures](../schema-documentation.md) - For procedure architecture details
 
 ---
 

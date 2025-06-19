@@ -4,11 +4,11 @@
 // It also contains the logic for adding and removing platform and social connections.
 // It also contains the logic for getting all available games for main game selection.
 
-// It uses the protectedProcedure from the trpc router to ensure that the user is authenticated.
+// It uses the playerProcedure from the trpc router to ensure that the user is authenticated as a player.
 
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, onboardedCoachProcedure, playerProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
@@ -199,16 +199,14 @@ const profileUpdateSchema = z.object({
   graduation_date: z.string().optional(),
   intended_major: z.string().optional(),
   
-  // Recruiting contact information
+  // Contact information
   guardian_email: z.string().email().optional().or(z.literal("")),
   scholastic_contact: z.string().optional(),
   scholastic_contact_email: z.string().email().optional().or(z.literal("")),
-  
-  // Additional recruiting information
   extra_curriculars: z.string().optional(),
   academic_bio: z.string().optional(),
   
-  // Main game preference
+  // Main game selection
   main_game_id: z.string().uuid().optional(),
 });
 
@@ -222,43 +220,13 @@ const socialConnectionSchema = z.object({
   username: z.string().min(3),
 });
 
-// Helper function to verify user is a player using the auth context
-async function verifyPlayerUser(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  // Check if the player exists in our database using retry wrapper
-  // The userType verification should happen during user creation via webhooks
-  const player = await withRetry(() => 
-    ctx.db.player.findUnique({
-      where: { clerk_id: userId },
-      select: { id: true },
-    })
-  );
-
-  if (!player) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Player profile not found. Only players can access this resource.',
-    });
-  }
-
-  return { userId, playerId: player.id };
-}
-
+// Verification is now handled automatically by playerProcedure
 
 
 export const playerProfileRouter = createTRPCRouter({
   // Get player profile
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
-    // Verify user is a player and get user info
-    const { userId } = await verifyPlayerUser(ctx);
+  getProfile: playerProcedure.query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
     
     try {
       const player = await withRetry(() =>
@@ -293,8 +261,8 @@ export const playerProfileRouter = createTRPCRouter({
   }),
 
   // Optimized: Get basic profile info only (faster loading)
-  getBasicProfile: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = await verifyPlayerUser(ctx);
+  getBasicProfile: playerProcedure.query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
     
     try {
       const player = await withRetry(() =>
@@ -330,8 +298,8 @@ export const playerProfileRouter = createTRPCRouter({
   }),
 
   // Optimized: Get connections only (for connection management)
-  getConnections: protectedProcedure.query(async ({ ctx }) => {
-    const { playerId } = await verifyPlayerUser(ctx);
+  getConnections: playerProcedure.query(async ({ ctx }) => {
+    const playerId = ctx.playerId; // Available from playerProcedure context
     
     try {
       const [platformConnections, socialConnections] = await Promise.all([
@@ -375,8 +343,8 @@ export const playerProfileRouter = createTRPCRouter({
   }),
 
   // Optimized: Get recruiting info only
-  getRecruitingInfo: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = await verifyPlayerUser(ctx);
+  getRecruitingInfo: playerProcedure.query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
     
     try {
       const player = await withRetry(() =>
@@ -427,12 +395,11 @@ export const playerProfileRouter = createTRPCRouter({
     }
   }),
 
-  // Update player profile - with cache invalidation
-  updateProfile: protectedProcedure
+  // Update player profile
+  updateProfile: playerProcedure
     .input(profileUpdateSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify user is a player and get user info
-      const { userId } = await verifyPlayerUser(ctx);
+      const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
       
       try {
         // Get current player data to access username before update
@@ -479,19 +446,16 @@ export const playerProfileRouter = createTRPCRouter({
       }
     }),
 
-  // Add or update platform connection
-  updatePlatformConnection: protectedProcedure
+  // Update platform connection
+  updatePlatformConnection: playerProcedure
     .input(platformConnectionSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify user is a player and get user info
-      const { playerId } = await verifyPlayerUser(ctx);
+      const playerId = ctx.playerId; // Available from playerProcedure context
       
       try {
-        // Upsert platform connection using the correct unique constraint
         const connection = await withRetry(() =>
           ctx.db.playerPlatformConnection.upsert({
             where: {
-              // Use the compound unique constraint properly
               player_id_platform: {
                 player_id: playerId,
                 platform: input.platform,
@@ -521,19 +485,16 @@ export const playerProfileRouter = createTRPCRouter({
       }
     }),
 
-  // Add or update social connection
-  updateSocialConnection: protectedProcedure
+  // Update social connection
+  updateSocialConnection: playerProcedure
     .input(socialConnectionSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify user is a player and get user info
-      const { playerId } = await verifyPlayerUser(ctx);
+      const playerId = ctx.playerId; // Available from playerProcedure context
       
       try {
-        // Upsert social connection using the correct unique constraint
         const connection = await withRetry(() =>
           ctx.db.playerSocialConnection.upsert({
             where: {
-              // Use the compound unique constraint properly
               player_id_platform: {
                 player_id: playerId,
                 platform: input.platform,
@@ -564,24 +525,22 @@ export const playerProfileRouter = createTRPCRouter({
     }),
 
   // Remove platform connection
-  removePlatformConnection: protectedProcedure
+  removePlatformConnection: playerProcedure
     .input(z.object({ platform: z.enum(["steam", "valorant", "battlenet", "epicgames", "startgg"]) }))
     .mutation(async ({ ctx, input }) => {
-      // Verify user is a player and get user info
-      const { playerId } = await verifyPlayerUser(ctx);
+      const playerId = ctx.playerId; // Available from playerProcedure context
       
       try {
-          // Delete platform connection using the correct unique constraint
-          await withRetry(() =>
-            ctx.db.playerPlatformConnection.delete({
-              where: {
-                player_id_platform: {
-                  player_id: playerId,
-                  platform: input.platform,
-                },
+        await withRetry(() =>
+          ctx.db.playerPlatformConnection.delete({
+            where: {
+              player_id_platform: {
+                player_id: playerId,
+                platform: input.platform,
               },
-            })
-          );
+            },
+          })
+        );
         
         return { success: true };
       } catch (error) {
@@ -594,14 +553,12 @@ export const playerProfileRouter = createTRPCRouter({
     }),
 
   // Remove social connection
-  removeSocialConnection: protectedProcedure
+  removeSocialConnection: playerProcedure
     .input(z.object({ platform: z.enum(["github", "discord", "instagram", "twitch", "x"]) }))
     .mutation(async ({ ctx, input }) => {
-      // Verify user is a player and get user info
-      const { playerId } = await verifyPlayerUser(ctx);
+      const playerId = ctx.playerId; // Available from playerProcedure context
       
       try {
-        // Delete social connection using the correct unique constraint
         await withRetry(() =>
           ctx.db.playerSocialConnection.delete({
             where: {
@@ -623,125 +580,6 @@ export const playerProfileRouter = createTRPCRouter({
       }
     }),
 
-  // Get public player profile by username (for public profile pages) - with caching
-  getPublicProfile: publicProcedure
-    .input(z.object({ username: z.string().min(1) }))
-    .query(async ({ ctx, input }) => {
-      const cacheKey = `profile:${input.username}`;
-      
-      try {
-        // Check cache first
-        const cachedProfile = publicProfileCache.get(cacheKey);
-        if (cachedProfile) {
-          return cachedProfile;
-        }
-
-        // Cache miss - fetch from database
-        // Do not retry for this query - if player not found, return immediately
-        const player = await ctx.db.player.findUnique({
-          where: { username: input.username },
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            username: true,
-            image_url: true,
-            location: true,
-            bio: true,
-            class_year: true,
-            school: true,
-            created_at: true,
-            main_game_id: true,
-            school_ref: {
-              select: {
-                id: true,
-                name: true,
-                type: true,
-                location: true,
-                state: true,
-              },
-            },
-            main_game: {
-              select: {
-                id: true,
-                name: true,
-                short_name: true,
-                icon: true,
-                color: true,
-              },
-            },
-            game_profiles: {
-              select: {
-                id: true,
-                game_id: true,
-                username: true,
-                rank: true,
-                role: true,
-                play_style: true,
-                agents: true,
-                combine_score: true,
-                league_score: true,
-                updated_at: true,
-                game: {
-                  select: {
-                    id: true,
-                    name: true,
-                    short_name: true,
-                    icon: true,
-                    color: true,
-                  },
-                },
-              },
-              orderBy: {
-                updated_at: 'desc',
-              },
-            },
-            platform_connections: {
-              select: {
-                platform: true,
-                username: true,
-                connected: true,
-              },
-              where: {
-                connected: true,
-              },
-            },
-            social_connections: {
-              select: {
-                platform: true,
-                username: true,
-                connected: true,
-              },
-              where: {
-                connected: true,
-              },
-            },
-          },
-        });
-        
-        if (!player) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Player profile not found',
-          });
-        }
-        
-        // Cache the result before returning
-        publicProfileCache.set(cacheKey, player, CACHE_CONFIG.PUBLIC_PROFILE_TTL);
-        
-        return player;
-      } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        console.error('Error fetching public player profile:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch player profile',
-        });
-      }
-    }),
-
   // Get all available games for main game selection
   getAvailableGames: publicProcedure.query(async ({ ctx }) => {
     try {
@@ -754,15 +592,12 @@ export const playerProfileRouter = createTRPCRouter({
             icon: true,
             color: true,
           },
-          // orderBy: {
-          //   name: 'asc',
-          // },
+          orderBy: { name: 'asc' },
         })
       );
       
       return games;
     } catch (error) {
-      console.error('Error fetching games:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch available games',
@@ -770,25 +605,138 @@ export const playerProfileRouter = createTRPCRouter({
     }
   }),
 
-  // Get recruiting information for a player (secure - onboarded coaches only)
-  getPublicRecruitingInfo: onboardedCoachProcedure
+  // Get public profile by username (for public viewing)
+  getPublicProfile: publicProcedure
     .input(z.object({ username: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
+      // Check cache first
+      const cacheKey = `profile:${input.username}`;
+      const cachedData = publicProfileCache.get(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
+
       try {
-        const player = await ctx.db.player.findUnique({
-          where: { username: input.username },
-          select: {
-            id: true,
-            username: true,
-            first_name: true,
-            last_name: true,
-            graduation_date: true,
-            intended_major: true,
-            gpa: true,
-            extra_curriculars: true,
-            academic_bio: true,
-          },
+        const player = await withRetry(() =>
+          ctx.db.player.findUnique({
+            where: { username: input.username },
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              username: true,
+              image_url: true,
+              location: true,
+              bio: true,
+              class_year: true,
+              school: true,
+              created_at: true,
+              main_game_id: true,
+              school_ref: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  location: true,
+                  state: true,
+                },
+              },
+              main_game: {
+                select: {
+                  id: true,
+                  name: true,
+                  short_name: true,
+                  icon: true,
+                  color: true,
+                },
+              },
+              game_profiles: {
+                select: {
+                  id: true,
+                  game_id: true,
+                  username: true,
+                  rank: true,
+                  role: true,
+                  play_style: true,
+                  agents: true,
+                  combine_score: true,
+                  league_score: true,
+                  updated_at: true,
+                  game: {
+                    select: {
+                      id: true,
+                      name: true,
+                      short_name: true,
+                      icon: true,
+                      color: true,
+                    },
+                  },
+                },
+              },
+              platform_connections: {
+                where: { connected: true },
+                select: {
+                  platform: true,
+                  username: true,
+                  connected: true,
+                },
+              },
+              social_connections: {
+                where: { connected: true },
+                select: {
+                  platform: true,
+                  username: true,
+                  connected: true,
+                },
+              },
+            },
+          })
+        );
+        
+        if (!player) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Player profile not found',
+          });
+        }
+
+        // Cache the result
+        publicProfileCache.set(cacheKey, player, CACHE_CONFIG.PUBLIC_PROFILE_TTL);
+        
+        return player;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error fetching public profile:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch public profile',
         });
+      }
+    }),
+
+  // Get public recruiting info (only accessible by onboarded coaches)
+  getPublicRecruitingInfo: onboardedCoachProcedure
+    .input(z.object({ username: z.string().min(3) }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const player = await withRetry(() =>
+          ctx.db.player.findUnique({
+            where: { username: input.username },
+            select: {
+              gpa: true,
+              graduation_date: true,
+              intended_major: true,
+              guardian_email: true,
+              scholastic_contact: true,
+              scholastic_contact_email: true,
+              extra_curriculars: true,
+              academic_bio: true,
+            },
+          })
+        );
         
         if (!player) {
           throw new TRPCError({
@@ -802,10 +750,10 @@ export const playerProfileRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error fetching player recruiting info:', error);
+        console.error('Error fetching public recruiting info:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch player recruiting information',
+          message: 'Failed to fetch recruiting info',
         });
       }
     }),

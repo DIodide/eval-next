@@ -67,8 +67,8 @@ getPlayerRegistrations: playerProcedure
 - **Access**: Fully onboarded coaches only
 - **Verification**:
   - Clerk authentication
-  - `publicMetadata.onboarded === true`
-  - `publicMetadata.userType === "coach"`
+  - `sessionClaims.publicMetadata.onboarded === true`
+  - `sessionClaims.publicMetadata.userType === "coach"`
   - Valid coach profile in database
 - **Context**: Includes `coachId` and `schoolId` automatically
 - **Use Cases**: Managing tryouts/combines, player applications, administrative functions
@@ -90,6 +90,25 @@ createTryout: onboardedCoachProcedure
 - **Context**: Includes `coachId` and `schoolId`
 - **Use Cases**: Basic coach operations that don't require full onboarding
 
+#### `adminProcedure`
+
+- **Access**: Authenticated administrators only
+- **Verification**:
+  - Clerk authentication
+  - `sessionClaims.publicMetadata.role === "admin"`
+- **Context**: Standard authenticated context
+- **Use Cases**: System administration, managing school association requests, user management
+
+```typescript
+// Example usage
+approveSchoolAssociation: adminProcedure
+  .input(approveRequestSchema)
+  .mutation(async ({ ctx, input }) => {
+    // Admin-only operations
+    // Automatically verified admin access
+  });
+```
+
 ### Authorization Levels
 
 1. **Public Access**: General browsing, viewing published content
@@ -100,6 +119,10 @@ createTryout: onboardedCoachProcedure
    - Player recruitment and communication
    - Application review and status updates
    - School-associated operations
+5. **Admin Access**: System administration and management
+   - Managing school association requests
+   - User administration and system settings
+   - Platform oversight and moderation
 
 ### Middleware Architecture
 
@@ -108,7 +131,9 @@ createTryout: onboardedCoachProcedure
 protectedProcedure // Base authentication
   .use(isPlayer) // Player verification middleware
   // OR
-  .use(isOnboardedCoach); // Onboarded coach verification middleware
+  .use(isOnboardedCoach) // Onboarded coach verification middleware
+  // OR
+  .use(isAdmin); // Admin verification middleware
 ```
 
 The middleware system provides:

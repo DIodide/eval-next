@@ -4,7 +4,7 @@
 // Similar to tryouts but adapted for combine-specific features like qualification status and invite-only events.
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure, playerProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, playerProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";

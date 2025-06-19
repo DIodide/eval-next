@@ -5,6 +5,9 @@ import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 
+// Cache configuration
+const CACHE_DURATION = 300; // 5 minutes in seconds
+const CACHE_STALE_DURATION = 600; // 10 minutes in seconds
 
 
 /**
@@ -16,6 +19,11 @@ const createContext = async (req: NextRequest) => {
     headers: req.headers,
   });
 };
+
+
+const cachedRoutes = [
+  'public',
+]
 
 const handler = (req: NextRequest) =>
   fetchRequestHandler({
@@ -31,6 +39,27 @@ const handler = (req: NextRequest) =>
             );
           }
         : undefined,
+    responseMeta(opts) {
+      const { type, paths } = opts
+      
+      // Cache public queries for 5 minutes
+      const publicPaths = paths?.filter(path => cachedRoutes.includes(path.toLowerCase()))
+      
+      if (type === 'query' && publicPaths?.length) {
+        return {
+          headers: {
+            'Cache-Control': `public, s-maxage=${CACHE_DURATION}, stale-while-revalidate=${CACHE_STALE_DURATION}`
+          }
+        }
+      }
+      
+      // Don't cache mutations or private queries
+      return {
+        headers: {
+          'Cache-Control': 'no-store'
+        }
+      }
+    },
   });
 
 export { handler as GET, handler as POST };

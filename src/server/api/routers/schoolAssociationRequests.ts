@@ -2,15 +2,10 @@
 // Admin router for managing coach school association requests
 
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import type { createTRPCContext } from "@/server/api/trpc";
-import { isCurrentUserAdmin } from "@/lib/admin-utils";
 import { clerkClient } from "@clerk/nextjs/server";
 import { type Prisma } from "@prisma/client";
-
-// Type for the tRPC context
-type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 // Input validation schemas
 const approveRequestSchema = z.object({
@@ -30,34 +25,11 @@ const searchRequestsSchema = z.object({
   limit: z.number().min(1).max(100).default(20),
 });
 
-// Helper function to verify admin access
-async function verifyAdminAccess(ctx: Context) {
-  const userId = ctx.auth.userId;
-  
-  if (!userId) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'User not authenticated',
-    });
-  }
-
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Admin access required',
-    });
-  }
-
-  return { userId };
-}
-
 export const schoolAssociationRequestsRouter = createTRPCRouter({
   // Get all school association requests with filtering and pagination
-  getRequests: protectedProcedure
+  getRequests: adminProcedure
     .input(searchRequestsSchema)
     .query(async ({ ctx, input }) => {
-      await verifyAdminAccess(ctx);
 
       try {
         const { status, search, page, limit } = input;
@@ -145,8 +117,7 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
     }),
 
   // Get pending requests count for dashboard
-  getPendingCount: protectedProcedure.query(async ({ ctx }) => {
-    await verifyAdminAccess(ctx);
+  getPendingCount: adminProcedure.query(async ({ ctx }) => {
 
     try {
       const count = await ctx.db.schoolAssociationRequest.count({
@@ -164,10 +135,10 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
   }),
 
   // Approve a school association request
-  approveRequest: protectedProcedure
+  approveRequest: adminProcedure
     .input(approveRequestSchema)
     .mutation(async ({ ctx, input }) => {
-      const { userId } = await verifyAdminAccess(ctx);
+      const userId = ctx.auth.userId!; // Safe to use ! because adminProcedure ensures userId exists
 
       try {
         // Get the request details
@@ -261,10 +232,10 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
     }),
 
   // Reject a school association request
-  rejectRequest: protectedProcedure
+  rejectRequest: adminProcedure
     .input(rejectRequestSchema)
     .mutation(async ({ ctx, input }) => {
-      const { userId } = await verifyAdminAccess(ctx);
+      const userId = ctx.auth.userId!; // Safe to use ! because adminProcedure ensures userId exists
 
       try {
         const request = await ctx.db.schoolAssociationRequest.findUnique({
@@ -324,10 +295,9 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
     }),
 
   // Get request details by ID
-  getRequestById: protectedProcedure
+  getRequestById: adminProcedure
     .input(z.object({ requestId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      await verifyAdminAccess(ctx);
 
       try {
         const request = await ctx.db.schoolAssociationRequest.findUnique({

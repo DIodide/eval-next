@@ -22,7 +22,7 @@ The router uses a structured procedure-based authorization system:
   - Context automatically includes `playerId`
 - **Onboarded Coach Procedures**: Advanced coach access (`onboardedCoachProcedure`)
   - Requires authentication + onboarded coach verification
-  - Checks Clerk `publicMetadata.onboarded === true` and `userType === "coach"`
+  - Checks Clerk `sessionClaims.publicMetadata.onboarded === true` and `userType === "coach"`
   - Context automatically includes `coachId` and `schoolId`
 - **Ownership Verification**: Coaches can only manage combines they organize
 
