@@ -6,6 +6,8 @@
   "scripts": {
     "build": "next build",
     "check": "next lint && tsc --noEmit",
+    "env:dev": "vercel env pull .env",
+    "env:prod": "vercel env pull --environment=production .env",
     "db:generate": "prisma migrate dev",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
