@@ -568,10 +568,10 @@ CREATE INDEX "coach_favorites_player_id_idx" ON "coach_favorites"("player_id");
 CREATE UNIQUE INDEX "coach_favorites_coach_id_player_id_key" ON "coach_favorites"("coach_id", "player_id");
 
 -- AddForeignKey
-ALTER TABLE "players" ADD CONSTRAINT "players_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "players" ADD CONSTRAINT "players_main_game_id_fkey" FOREIGN KEY ("main_game_id") REFERENCES "games"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "players" ADD CONSTRAINT "players_main_game_id_fkey" FOREIGN KEY ("main_game_id") REFERENCES "games"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "players" ADD CONSTRAINT "players_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "coaches" ADD CONSTRAINT "coaches_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -583,10 +583,10 @@ ALTER TABLE "school_association_requests" ADD CONSTRAINT "school_association_req
 ALTER TABLE "school_association_requests" ADD CONSTRAINT "school_association_requests_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "player_game_profiles" ADD CONSTRAINT "player_game_profiles_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "player_game_profiles" ADD CONSTRAINT "player_game_profiles_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "player_game_profiles" ADD CONSTRAINT "player_game_profiles_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "player_game_profiles" ADD CONSTRAINT "player_game_profiles_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "player_platform_connections" ADD CONSTRAINT "player_platform_connections_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -595,19 +595,22 @@ ALTER TABLE "player_platform_connections" ADD CONSTRAINT "player_platform_connec
 ALTER TABLE "player_social_connections" ADD CONSTRAINT "player_social_connections_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "teams" ADD CONSTRAINT "teams_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "teams" ADD CONSTRAINT "teams_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "teams" ADD CONSTRAINT "teams_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "teams" ADD CONSTRAINT "teams_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "teams" ADD CONSTRAINT "teams_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "team_members" ADD CONSTRAINT "team_members_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "teams"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "team_members" ADD CONSTRAINT "team_members_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -616,19 +619,16 @@ ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_game_id_fkey" FOREIGN KEY ("game_i
 ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tryouts" ADD CONSTRAINT "tryouts_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_tryout_id_fkey" FOREIGN KEY ("tryout_id") REFERENCES "tryouts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tryout_registrations" ADD CONSTRAINT "tryout_registrations_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "combines" ADD CONSTRAINT "combines_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "combines" ADD CONSTRAINT "combines_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "combines" ADD CONSTRAINT "combines_coach_id_fkey" FOREIGN KEY ("coach_id") REFERENCES "coaches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "combine_registrations" ADD CONSTRAINT "combine_registrations_combine_id_fkey" FOREIGN KEY ("combine_id") REFERENCES "combines"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -652,16 +652,16 @@ ALTER TABLE "league_schools" ADD CONSTRAINT "league_schools_league_id_fkey" FORE
 ALTER TABLE "league_schools" ADD CONSTRAINT "league_schools_school_id_fkey" FOREIGN KEY ("school_id") REFERENCES "schools"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "player_leagues" ADD CONSTRAINT "player_leagues_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "player_leagues" ADD CONSTRAINT "player_leagues_league_id_fkey" FOREIGN KEY ("league_id") REFERENCES "leagues"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "player_rankings" ADD CONSTRAINT "player_rankings_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "player_leagues" ADD CONSTRAINT "player_leagues_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "player_rankings" ADD CONSTRAINT "player_rankings_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "player_rankings" ADD CONSTRAINT "player_rankings_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "player_performance_stats" ADD CONSTRAINT "player_performance_stats_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -689,3 +689,4 @@ ALTER TABLE "coach_favorites" ADD CONSTRAINT "coach_favorites_coach_id_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "coach_favorites" ADD CONSTRAINT "coach_favorites_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "players"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
