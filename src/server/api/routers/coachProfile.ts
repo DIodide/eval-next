@@ -152,7 +152,7 @@ export const coachProfileRouter = createTRPCRouter({
   }),
 
   // Get school association info
-  getSchoolInfo: onboardedCoachProcedure
+  getSchoolInfo: coachProcedure
     .query(async ({ ctx }) => {
     const userId = ctx.auth.userId!; // Safe to use ! because coachProcedure ensures userId exists
     
