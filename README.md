@@ -213,6 +213,7 @@ The platform uses a comprehensive PostgreSQL schema with the following core mode
 5. Commit your changes: `git commit -m 'Add amazing feature'`
 6. Push to the branch: `git push origin feature/amazing-feature`
 7. Open a Pull Request
+   ..
 
 ## Deployment
 

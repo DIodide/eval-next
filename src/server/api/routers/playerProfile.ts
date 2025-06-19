@@ -7,11 +7,11 @@
 // It uses the playerProcedure from the trpc router to ensure that the user is authenticated as a player.
 
 
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, onboardedCoachProcedure, playerProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
-import type { createTRPCContext } from "@/server/api/trpc";
 import { withRetry } from "@/lib/db-utils";
+import type { createTRPCContext } from "@/server/api/trpc";
+import { createTRPCRouter, onboardedCoachProcedure, playerProcedure, publicProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
