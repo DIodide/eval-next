@@ -14,6 +14,8 @@ import { createClerkContext } from "../context";
 import { db } from "../db";
 
 
+import { clerkClient } from '@clerk/nextjs/server';
+
 /**
  * 1. CONTEXT
  *
@@ -236,9 +238,12 @@ const isPlayer = t.middleware(async ({ next, ctx }) => {
  */
 const isAdmin = t.middleware(async ({ next, ctx }) => {
   // Get user from Clerk to check publicMetadata
-  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  const client = await clerkClient();
+  const user = await client.users.getUser(ctx.auth.userId!);
+  const privateMetadata = user.privateMetadata as Record<string, unknown> | undefined;
   
-  if (publicMetadata?.role !== "admin") {
+  if (!privateMetadata?.role || privateMetadata.role !== "admin") {
+    console.warn(`[SECURITY] Non-admin user ${ctx.auth.userId} attempted admin access`);
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Admin access required. Only administrators can access this resource.',

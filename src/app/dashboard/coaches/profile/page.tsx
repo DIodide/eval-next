@@ -10,21 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { 
   UserIcon, 
   SchoolIcon, 
   SaveIcon, 
@@ -39,21 +24,11 @@ import {
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
-
-interface School {
-  id: string;
-  name: string;
-  type: "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY";
-  location: string;
-  state: string;
-  region?: string | null;
-}
+import Link from "next/link";
 
 export default function CoachProfilePage() {
   const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);
-  const [schoolDialogOpen, setSchoolDialogOpen] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Form state
@@ -65,29 +40,12 @@ export default function CoachProfilePage() {
 
   // Fetch coach profile
   const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = api.coachProfile.getProfile.useQuery();
-  
-  // Fetch available schools
-  const { data: schools, isLoading: schoolsLoading } = api.coachProfile.getAvailableSchools.useQuery();
 
   // Mutations
   const updateProfileMutation = api.coachProfile.updateProfile.useMutation({
     onSuccess: () => {
       setIsEditing(false);
       setHasUnsavedChanges(false);
-      void refetchProfile();
-    },
-  });
-
-  const associateSchoolMutation = api.coachProfile.associateWithSchool.useMutation({
-    onSuccess: () => {
-      setSchoolDialogOpen(false);
-      setSelectedSchool(null);
-      void refetchProfile();
-    },
-  });
-
-  const removeSchoolMutation = api.coachProfile.removeSchoolAssociation.useMutation({
-    onSuccess: () => {
       void refetchProfile();
     },
   });
@@ -130,15 +88,6 @@ export default function CoachProfilePage() {
     setHasUnsavedChanges(false);
   };
 
-  const handleSchoolAssociation = () => {
-    if (selectedSchool) {
-      associateSchoolMutation.mutate({
-        school_id: selectedSchool.id,
-        school_name: selectedSchool.name,
-      });
-    }
-  };
-
   const getSchoolTypeLabel = (type: string) => {
     switch (type) {
       case "HIGH_SCHOOL":
@@ -164,13 +113,6 @@ export default function CoachProfilePage() {
         return "bg-gray-600";
     }
   };
-
-  // Group schools by state
-  const schoolsByState = schools?.reduce((acc, school) => {
-    acc[school.state] ??= [];
-    acc[school.state]!.push(school);
-    return acc;
-  }, {} as Record<string, School[]>) ?? {};
 
   if (profileLoading) {
     return (
@@ -375,31 +317,6 @@ export default function CoachProfilePage() {
                         View Public Profile
                       </a>
                     </Button>
-                    <Dialog open={schoolDialogOpen} onOpenChange={setSchoolDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
-                        >
-                          Change School
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeSchoolMutation.mutate()}
-                      disabled={removeSchoolMutation.isPending}
-                      className="border-red-600 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                    >
-                      {removeSchoolMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <XIcon className="w-4 h-4 mr-1" />
-                      )}
-                      Remove
-                    </Button>
                   </div>
                 </div>
               ) : (
@@ -414,16 +331,15 @@ export default function CoachProfilePage() {
                     </p>
                   </div>
                   
-                  <Dialog open={schoolDialogOpen} onOpenChange={setSchoolDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
-                      >
-                        <SchoolIcon className="w-4 h-4 mr-2" />
-                        Associate with School
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
+                  <Button 
+                    asChild
+                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                  >
+                    <Link href="/dashboard/coaches">
+                      <SchoolIcon className="w-4 h-4 mr-2" />
+                      Associate with School
+                    </Link>
+                  </Button>
                 </div>
               )}
 
@@ -441,121 +357,6 @@ export default function CoachProfilePage() {
           </Card>
         </div>
       </div>
-
-      {/* School Selection Dialog */}
-      <Dialog open={schoolDialogOpen} onOpenChange={setSchoolDialogOpen}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-orbitron text-xl">Select Your School</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Choose the school or institution you&apos;re coaching for
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {schoolsLoading ? (
-              <div className="text-center py-8">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-400" />
-                <p className="text-gray-400">Loading schools...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-white font-rajdhani">Select School</Label>
-                  <Select 
-                    value={selectedSchool?.id ?? ""} 
-                    onValueChange={(value) => {
-                      const school = schools?.find(s => s.id === value);
-                      setSelectedSchool(school ?? null);
-                    }}
-                  >
-                    <SelectTrigger className="bg-gray-800 border-gray-700 text-white mt-1">
-                      <SelectValue placeholder="Choose a school..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
-                      {Object.entries(schoolsByState).map(([state, stateSchools]) => (
-                        <div key={state}>
-                          <div className="px-2 py-1 text-xs font-semibold text-gray-400 bg-gray-700">
-                            {state}
-                          </div>
-                          {stateSchools.map((school) => (
-                            <SelectItem 
-                              key={school.id} 
-                              value={school.id} 
-                              className="text-white hover:bg-gray-700"
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <div>
-                                  <div className="font-medium">{school.name}</div>
-                                  <div className="text-xs text-gray-400">{school.location}</div>
-                                </div>
-                                <Badge 
-                                  className={cn("text-white text-xs ml-2", getSchoolTypeBadgeColor(school.type))}
-                                >
-                                  {getSchoolTypeLabel(school.type)}
-                                </Badge>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </div>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {selectedSchool && (
-                  <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                    <h4 className="font-orbitron font-bold text-white mb-2">Selected School</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-300">{selectedSchool.name}</span>
-                        <Badge className={cn("text-white text-xs", getSchoolTypeBadgeColor(selectedSchool.type))}>
-                          {getSchoolTypeLabel(selectedSchool.type)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-400">
-                        <MapPinIcon className="w-4 h-4" />
-                        <span>{selectedSchool.location}, {selectedSchool.state}</span>
-                      </div>
-                      {selectedSchool.region && (
-                        <div className="flex items-center space-x-2 text-sm text-gray-400">
-                          <GlobeIcon className="w-4 h-4" />
-                          <span>{selectedSchool.region} Region</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSchoolDialogOpen(false);
-                setSelectedSchool(null);
-              }}
-              className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSchoolAssociation}
-              disabled={!selectedSchool || associateSchoolMutation.isPending}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white"
-            >
-              {associateSchoolMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <CheckIcon className="w-4 h-4 mr-2" />
-              )}
-              Associate with School
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 } 
