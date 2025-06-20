@@ -181,6 +181,22 @@ export async function POST(req: NextRequest) {
           // throw error
         }
       } else {
+        // Log discord sign-in userType
+        try {
+          await logUserRegistration({
+            userType: "not selected",
+            registrationMethod: 'Clerk Webhook',
+            userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              userName: userData.first_name && userData.last_name 
+                ? `${userData.first_name} ${userData.last_name}` 
+                : userData.username ?? null,
+            timestamp: new Date(),
+          });
+        } catch (discordError) {
+          console.error('Discord error logging failed:', discordError);
+        }
+        
         console.warn('Unknown user type or missing userType in unsafe_metadata')
       }
     }
