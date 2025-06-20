@@ -260,7 +260,7 @@ export default function HomePage() {
                 />
             </div>
             <div className="text-center group cursor-pointer">
-              <div className=" rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
+              <div className=" rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 ">
                 <Image
                   src="/smash/logos/SSBU Logo white_trans.png"
                   alt="Super Smash Bros Ultimate"
