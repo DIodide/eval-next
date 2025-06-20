@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BuildingIcon, SendIcon, SearchIcon, PlusIcon } from "lucide-react";
+import { BuildingIcon, SendIcon, PlusIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
 export function SchoolAssociationRequestForm() {
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("");
   const [requestMessage, setRequestMessage] = useState("");
-  const [schoolSearch, setSchoolSearch] = useState("");
+  const [comboboxOpen, setComboboxOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNewSchoolRequest, setIsNewSchoolRequest] = useState(false);
   const [newSchoolData, setNewSchoolData] = useState({
@@ -35,7 +37,7 @@ export function SchoolAssociationRequestForm() {
       toast.success("School association request submitted successfully!");
       setSelectedSchoolId("");
       setRequestMessage("");
-      setSchoolSearch("");
+      setComboboxOpen(false);
       setIsNewSchoolRequest(false);
       setNewSchoolData({
         name: "",
@@ -58,13 +60,6 @@ export function SchoolAssociationRequestForm() {
   });
 
   const utils = api.useUtils();
-
-  // Filter schools based on search
-  const filteredSchools = schools?.filter(school =>
-    school.name.toLowerCase().includes(schoolSearch.toLowerCase()) ||
-    school.location.toLowerCase().includes(schoolSearch.toLowerCase()) ||
-    school.state.toLowerCase().includes(schoolSearch.toLowerCase())
-  ) ?? [];
 
   const selectedSchool = schools?.find(school => school.id === selectedSchoolId);
 
@@ -130,6 +125,7 @@ export function SchoolAssociationRequestForm() {
                 onClick={() => {
                   setIsNewSchoolRequest(false);
                   setSelectedSchoolId("");
+                  setComboboxOpen(false);
                 }}
                 className={`${!isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600"} text-white border-gray-600`}
               >
@@ -142,8 +138,9 @@ export function SchoolAssociationRequestForm() {
                 onClick={() => {
                   setIsNewSchoolRequest(true);
                   setSelectedSchoolId("");
+                  setComboboxOpen(false);
                 }}
-                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600"} text-white border-gray-600`}
+                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-gray-200"} text-white border-gray-600`}
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Request New School
@@ -153,89 +150,99 @@ export function SchoolAssociationRequestForm() {
 
           {!isNewSchoolRequest ? (
             <>
-              {/* School Search */}
+              {/* School Combobox */}
               <div className="space-y-2">
-                <Label htmlFor="schoolSearch" className="text-gray-300">
-                  Search Schools
-                </Label>
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="schoolSearch"
-                    type="text"
-                    placeholder="Search by school name, location, or state..."
-                    value={schoolSearch}
-                    onChange={(e) => setSchoolSearch(e.target.value)}
-                    className="pl-10 bg-gray-700 border-gray-600 text-white"
-                    disabled={isLoadingSchools}
-                  />
-                </div>
-              </div>
-
-              {/* School Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="school" className="text-gray-300">
+                <Label className="text-gray-300">
                   Select School *
                 </Label>
-                <Select 
-                  value={selectedSchoolId} 
-                  onValueChange={setSelectedSchoolId}
-                  disabled={isLoadingSchools}
-                >
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue placeholder="Choose a school..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-700 border-gray-600">
-                    {filteredSchools.length === 0 ? (
-                      <div className="p-3 text-gray-400 text-sm">
-                        {isLoadingSchools ? "Loading schools..." : (
+                <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={comboboxOpen}
+                      className="w-full justify-between bg-gray-700 border-gray-600 text-white hover:bg-gray-600 hover:text-gray-200"
+                      disabled={isLoadingSchools}
+                    >
+                      {selectedSchoolId && selectedSchool ? (
+                        <div className="flex flex-col text-left">
+                          <span className="font-medium">{selectedSchool.name}</span>
+                          <span className="text-sm text-gray-400">
+                            {selectedSchool.type.replace('_', ' ')} • {selectedSchool.location}, {selectedSchool.state}
+                          </span>
+                        </div>
+                      ) : (
+                        "Search and select a school..."
+                      )}
+                      <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                    <Command className="bg-gray-700">
+                      <CommandInput 
+                        placeholder="Search schools by name, location, or state..." 
+                        className="bg-gray-700 text-white border-none"
+                      />
+                      <CommandList>
+                        <CommandEmpty className="py-6 text-center text-sm text-gray-400">
                           <div className="space-y-2">
-                            <p>No schools found matching your search.</p>
+                            <p>No schools found.</p>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => setIsNewSchoolRequest(true)}
-                              className="w-full bg-gray-600 hover:bg-gray-500 text-white border-gray-500"
+                              onClick={() => {
+                                setIsNewSchoolRequest(true);
+                                setComboboxOpen(false);
+                              }}
+                              className="bg-gray-600 hover:bg-gray-500 text-white border-gray-500"
                             >
                               <PlusIcon className="h-3 w-3 mr-1" />
                               Request New School Instead
                             </Button>
                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        {filteredSchools.map((school) => (
-                          <SelectItem
-                            key={school.id}
-                            value={school.id}
-                            className="text-white hover:bg-gray-600"
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {schools?.map((school) => (
+                            <CommandItem
+                              key={school.id}
+                              value={`${school.name} ${school.location} ${school.state} ${school.type}`.toLowerCase()}
+                              onSelect={() => {
+                                setSelectedSchoolId(school.id);
+                                setComboboxOpen(false);
+                              }}
+                              className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                            >
+                              <CheckIcon
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedSchoolId === school.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium text-white">{school.name}</span>
+                                <span className="text-sm text-gray-400">
+                                  {school.type.replace('_', ' ')} • {school.location}, {school.state}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                          <div className="border-t border-gray-600 mx-1 my-1"></div>
+                          <CommandItem
+                            onSelect={() => {
+                              setIsNewSchoolRequest(true);
+                              setComboboxOpen(false);
+                            }}
+                            className="text-cyan-400 hover:bg-gray-600 hover:text-cyan-300 data-[selected=true]:bg-gray-600 data-[selected=true]:text-cyan-300"
                           >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{school.name}</span>
-                              <span className="text-sm text-gray-400">
-                                {school.type.replace('_', ' ')} • {school.location}, {school.state}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                        <div className="border-t border-gray-600 mt-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsNewSchoolRequest(true)}
-                            className="w-full justify-start text-cyan-400 hover:bg-gray-600 hover:text-cyan-300"
-                          >
-                            <PlusIcon className="h-3 w-3 mr-2" />
-                                                         Don&apos;t see your school? Request a new one
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            Don&apos;t see your school? Request a new one
+                          </CommandItem>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </>
           ) : (
@@ -263,27 +270,65 @@ export function SchoolAssociationRequestForm() {
                     <Label htmlFor="schoolType" className="text-gray-300">
                       School Type *
                     </Label>
-                    <Select 
-                      value={newSchoolData.type} 
-                      onValueChange={(value: "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY") => 
-                        setNewSchoolData(prev => ({ ...prev, type: value }))
-                      }
-                    >
-                      <SelectTrigger className="bg-gray-600 border-gray-500 text-white">
-                        <SelectValue placeholder="Select type..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-700 border-gray-600">
-                        <SelectItem value="HIGH_SCHOOL" className="text-white hover:bg-gray-600">
-                          High School
-                        </SelectItem>
-                        <SelectItem value="COLLEGE" className="text-white hover:bg-gray-600">
-                          College
-                        </SelectItem>
-                        <SelectItem value="UNIVERSITY" className="text-white hover:bg-gray-600">
-                          University
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500"
+                        >
+                          {newSchoolData.type ? (
+                            newSchoolData.type === "HIGH_SCHOOL" ? "High School" :
+                            newSchoolData.type === "COLLEGE" ? "College" : "University"
+                          ) : "Select type..."}
+                          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                        <Command className="bg-gray-700">
+                          <CommandList>
+                            <CommandGroup>
+                              <CommandItem
+                                onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "HIGH_SCHOOL" }))}
+                                className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    newSchoolData.type === "HIGH_SCHOOL" ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                High School
+                              </CommandItem>
+                              <CommandItem
+                                onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "COLLEGE" }))}
+                                className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    newSchoolData.type === "COLLEGE" ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                College
+                              </CommandItem>
+                              <CommandItem
+                                onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "UNIVERSITY" }))}
+                                className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    newSchoolData.type === "UNIVERSITY" ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                University
+                              </CommandItem>
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   
                   <div className="space-y-2">
