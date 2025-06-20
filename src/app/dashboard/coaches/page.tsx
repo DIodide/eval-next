@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/trpc/react";
-import { isCoachOnboarded } from "@/lib/permissions";
 import { SchoolAssociationRequestForm } from "./_components/SchoolAssociationRequestForm";
 
 export default function CoachesDashboard() {
@@ -26,7 +25,26 @@ export default function CoachesDashboard() {
   // Get school info to show current requests (only for display purposes)
   const { data: schoolInfo, isLoading: isLoadingSchool } = api.coachProfile.getSchoolInfo.useQuery();
   
-  const canAccess = user ? isCoachOnboarded(user) : false;
+  // Check if coach is onboarded by looking at Clerk public metadata
+  const canAccess = user?.publicMetadata?.onboarded === true && user?.publicMetadata?.userType === "coach";
+
+  // Get dashboard stats (only fetch if coach has access)
+  const { data: prospectsCount = 0 } = api.playerSearch.getFavoritesCount.useQuery(undefined, {
+    enabled: canAccess,
+  });
+  
+  const { data: activeTryoutsCount = 0 } = api.tryouts.getActiveTryoutsCount.useQuery(undefined, {
+    enabled: canAccess,
+  });
+  
+  const { data: unreadMessagesCount = 0 } = api.messages.getUnreadCount.useQuery(undefined, {
+    enabled: canAccess,
+  });
+
+  // Get recent activity (only fetch if coach has access)
+  const { data: recentActivity = [] } = api.coachProfile.getRecentActivity.useQuery(undefined, {
+    enabled: canAccess,
+  });
 
   const quickActions = [
     {
@@ -58,21 +76,24 @@ export default function CoachesDashboard() {
   const stats = [
     {
       title: "My Prospects",
-      value: canAccess ? "0" : "—",
+      value: canAccess ? prospectsCount.toString() : "—",
       icon: UsersIcon,
-      description: canAccess ? "Players you're tracking" : "Available after onboarding"
+      description: canAccess ? "Players you're tracking" : "Available after onboarding",
+      href: canAccess ? "/dashboard/coaches/prospects" : undefined,
     },
     {
       title: "Active Tryouts",
-      value: canAccess ? "0" : "—",
+      value: canAccess ? activeTryoutsCount.toString() : "—",
       icon: TrophyIcon,
-      description: canAccess ? "Ongoing recruitment events" : "Available after onboarding"
+      description: canAccess ? "Ongoing recruitment events" : "Available after onboarding",
+      href: canAccess ? "/dashboard/coaches/tryouts" : undefined,
     },
     {
       title: "Unread Messages",
-      value: canAccess ? "0" : "—",
+      value: canAccess ? unreadMessagesCount.toString() : "—",
       icon: MessageSquareIcon,
-      description: canAccess ? "New player inquiries" : "Available after onboarding"
+      description: canAccess ? "New player inquiries" : "Available after onboarding",
+      href: canAccess ? "/dashboard/coaches/messages" : undefined,
     },
   ];
 
@@ -205,8 +226,8 @@ export default function CoachesDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat) => {
           const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className={`bg-gray-900 border-gray-800 ${!canAccess ? 'opacity-60' : ''}`}>
+          const StatCard = (
+            <Card key={stat.title} className={`bg-gray-900 border-gray-800 ${!canAccess ? 'opacity-60' : stat.href ? 'hover:border-cyan-400 cursor-pointer' : ''} transition-colors`}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -224,6 +245,14 @@ export default function CoachesDashboard() {
                 </div>
               </CardContent>
             </Card>
+          );
+
+          return stat.href ? (
+            <Link key={stat.title} href={stat.href}>
+              {StatCard}
+            </Link>
+          ) : (
+            StatCard
           );
         })}
       </div>
@@ -289,33 +318,31 @@ export default function CoachesDashboard() {
           <CardContent>
             {canAccess ? (
               <div className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 bg-gray-800 rounded-lg">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-white font-rajdhani">
-                      PLACEHOLDER: New player application received for VALORANT tryout
+                {recentActivity.length > 0 ? (
+                  recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-center space-x-4 p-4 bg-gray-800 rounded-lg">
+                      <div className={`w-2 h-2 ${activity.color} rounded-full`}></div>
+                      <div className="flex-1">
+                        <p className="text-white font-rajdhani">
+                          {activity.title}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {new Date(activity.timestamp).toLocaleDateString()} at {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <ClockIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400 font-rajdhani">
+                      No recent activity in the last 7 days
                     </p>
-                    <p className="text-gray-400 text-sm">2 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 p-4 bg-gray-800 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-white font-rajdhani">
-                      PLACEHOLDER: Player profile updated: Alex Chen
+                    <p className="text-gray-500 text-sm mt-2">
+                      Start recruiting players and managing tryouts to see activity here
                     </p>
-                    <p className="text-gray-400 text-sm">5 hours ago</p>
                   </div>
-                </div>
-                <div className="flex items-center space-x-4 p-4 bg-gray-800 rounded-lg">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-white font-rajdhani">
-                      PLACEHOLDER: Tryout reminder: Overwatch 2 tryout starts tomorrow
-                    </p>
-                    <p className="text-gray-400 text-sm">1 day ago</p>
-                  </div>
-                </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8">
