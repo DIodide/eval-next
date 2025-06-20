@@ -23,7 +23,7 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Platform</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <Link href="/rankings" className="hover:text-white">
+                <Link href="/rankings/combines" className="hover:text-white">
                   Rankings
                 </Link>
               </li>
@@ -33,12 +33,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/leagues" className="hover:text-white">
+                <Link href="/rankings/leagues" className="hover:text-white">
                   Leagues
                 </Link>
               </li>
               <li>
-                <Link href="/combines" className="hover:text-white">
+                <Link href="/tryouts/combines" className="hover:text-white">
                   Combines
                 </Link>
               </li>
@@ -59,11 +59,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="hover:text-white">
-                  Careers
-                </Link>
-              </li>
-              <li>
                 <Link href="/about/contact" className="hover:text-white">
                   Contact
                 </Link>
@@ -74,11 +69,6 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-gray-400">
-              <li>
-                <Link href="/help" className="hover:text-white">
-                  Help Center
-                </Link>
-              </li>
               <li>
                 <Link href="/privacy-policy" className="hover:text-white">
                   Privacy Policy

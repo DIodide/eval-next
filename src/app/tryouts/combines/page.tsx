@@ -614,7 +614,7 @@ function CombinesPageContent() {
                 CREATE PROFILE
               </Button>
             </Link>
-            <Link href="/rankings">
+            <Link href="/rankings/combines">
               <Button
                 variant="outline"
                 className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto"

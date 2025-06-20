@@ -987,11 +987,11 @@ export default function ProfilePage() {
                       <Button
                         key={platform.platform}
                         variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                        className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                        className={`text-white justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                         onClick={() => setSelectedPlatform(platform.platform)}
                         disabled={updatePlatformMutation.isPending}
                       >
-                        <platform.icon className="h-4 w-4 mr-2" />
+                        <platform.icon className="h-4 w-4 mr-2 text-white" />
                         {platform.displayName}
                       </Button>
                     ))}
@@ -1019,10 +1019,10 @@ export default function ProfilePage() {
                       setConnectionUsername("");
                       setConnectionError("");
                     }}
-                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    className="border-gray-600 text-black hover:bg-gray-200"
                     disabled={updatePlatformMutation.isPending}
                   >
-                    <XIcon className="w-4 h-4 mr-2" />
+                    <XIcon className="w-4 h-4 mr-2 text-black" />
                     Cancel
                   </Button>
                   <Button
@@ -1130,11 +1130,11 @@ export default function ProfilePage() {
                       <Button
                         key={platform.platform}
                         variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                        className={`justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                        className={`text-white justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                         onClick={() => setSelectedPlatform(platform.platform)}
                         disabled={updateSocialMutation.isPending}
                       >
-                        <platform.icon className="h-4 w-4 mr-2" />
+                        <platform.icon className="h-4 w-4 mr-2 text-white" />
                         {platform.displayName}
                       </Button>
                     ))}
@@ -1162,7 +1162,7 @@ export default function ProfilePage() {
                       setConnectionUsername("");
                       setConnectionError("");
                     }}
-                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    className="border-gray-600 text-black hover:bg-gray-200"
                     disabled={updateSocialMutation.isPending}
                   >
                     <XIcon className="w-4 h-4 mr-2" />

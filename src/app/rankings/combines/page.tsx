@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Filter, Trophy, Star, ChevronRight, Medal, Crown, Award } from "lucide-react"
 import type { Player } from "@/app/rankings/types"
+import Link from "next/link"
 
 
 
@@ -177,8 +178,9 @@ function GameRankingCard({ game, players }: { game: string; players: Player[] })
           <Button
             variant="outline"
             className="w-full border-cyan-400 text-cyan-black hover:bg-cyan-400 hover:text-black font-orbitron text-sm"
+            disabled={true}
           >
-            VIEW FULL RANKINGS
+            FULL RANKINGS COMING SOON
           </Button>
         </div>
       </CardContent>
@@ -339,15 +341,11 @@ export default function CombinesRankingPage() {
             players.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+            <Link href="/tryouts/college">
             <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 tracking-wider">
               JOIN NEXT COMBINE
             </Button>
-            <Button
-              variant="outline"
-              className="border-cyan-400 text-cyan-800 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider"
-            >
-              VIEW SCHEDULE
-            </Button>
+            </Link>
           </div>
         </div>
       </div>

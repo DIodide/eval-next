@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 import { ChevronDown, ChevronRight } from "lucide-react"
+import Link from "next/link"
 
 const faqs = [
   {
@@ -118,12 +119,12 @@ export default function FAQPage() {
             <p className="text-gray-300 font-rajdhani mb-6">
               Can&apos;t find the answer you&apos;re looking for? Our support team is here to help.
             </p>
-            <a
-              href="/contact"
+            <Link
+              href="/about/contact"
               className="inline-block bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 rounded-lg tracking-wider transition-colors"
             >
               CONTACT SUPPORT
-            </a>
+            </Link>
           </div>
         </div>
       </div>

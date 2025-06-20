@@ -14,25 +14,25 @@ async function main() {
     {
       name: 'VALORANT',
       short_name: 'VAL',
-      icon: '/valorant/logos/valorant-logo.png',
+      icon: '/valorant/logos/Valorant Logo Red Border.jpg',
       color: '#FF4654'
     },
     {
       name: 'Overwatch 2',
       short_name: 'OW2',
-      icon: '/overwatch/logos/overwatch-logo.png',
+      icon: '/overwatch/logos/Overwatch2_Primary_LTBKGD.png',
       color: '#F99E1A'
     },
     {
       name: 'Super Smash Bros. Ultimate',
       short_name: 'SSBU',
-      icon: '/smash/logos/smash-logo.png',
+      icon: '/smash/logos/Super Smash Bros Ultimate Black Logo.png',
       color: '#0066CC'
     },
     {
       name: 'Rocket League',
       short_name: 'RL',
-      icon: '/rocket-league/logos/rocket-league-logo.png',
+      icon: '/rocket-league/logos/Rocket League Emblem.png',
       color: '#1F8EF1'
     }
   ]

@@ -39,7 +39,7 @@ export default function PartnersPage() {
         {/* Current Partners Section */}
         <section className="mb-20">
           <h2 className="font-orbitron text-3xl text-cyan-400 mb-12 text-center">Our Current Partners</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {partners.map((partner, index) => (
               <Card
                 key={index}

@@ -87,7 +87,7 @@ export default function HomePage() {
       <section className="bg-gradient-to-b from-gray-900 to-black text-white py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-cyan-400">FOR PLAYERS & FAMILIES</h2>
+            <h2 className="text-4xl font-orbitron md:text-5xl font-bold mb-4 text-cyan-400">FOR PLAYERS & FAMILIES</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Take control of your esports future with tools designed to showcase your skills and connect you with
               opportunities
@@ -138,7 +138,7 @@ export default function HomePage() {
       <section className="bg-gradient-to-b from-black to-gray-900 text-white py-20 border-t border-gray-200/40">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-orange-400">FOR COACHES & SCOUTS</h2>
+            <h2 className="text-4xl font-orbitron md:text-5xl font-bold mb-4 text-orange-400">FOR COACHES & SCOUTS</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Discover and recruit the next generation of esports talent with comprehensive analytics and scouting tools
             </p>

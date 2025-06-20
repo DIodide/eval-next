@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Check, X, Zap, Calendar, BarChart3, Trophy, Users, GraduationCap, Target } from "lucide-react"
+import Link from "next/link"
 
 export default function PricingPage() {
   const [requestDemoOpen, setRequestDemoOpen] = useState(false)
@@ -44,19 +45,19 @@ export default function PricingPage() {
           <TabsList className="grid grid-cols-3 mb-12 bg-gray-800 rounded-full p-1 w-full max-w-md mx-auto">
             <TabsTrigger
               value="players"
-              className="font-orbitron data-[state=active]:bg-cyan-400 data-[state=active]:text-black rounded-full"
+              className="font-orbitron text-white data-[state=active]:bg-cyan-400 data-[state=active]:text-black rounded-full"
             >
               PLAYERS
             </TabsTrigger>
             <TabsTrigger
               value="coaches"
-              className="font-orbitron data-[state=active]:bg-orange-400 data-[state=active]:text-black rounded-full"
+              className="font-orbitron text-white data-[state=active]:bg-orange-400 data-[state=active]:text-black rounded-full"
             >
               COACHES
             </TabsTrigger>
             <TabsTrigger
               value="leagues"
-              className="font-orbitron data-[state=active]:bg-purple-400 data-[state=active]:text-black rounded-full"
+              className="font-orbitron text-white data-[state=active]:bg-purple-400 data-[state=active]:text-black rounded-full"
             >
               LEAGUES
             </TabsTrigger>
@@ -66,7 +67,7 @@ export default function PricingPage() {
           <TabsContent value="players" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Free Tier */}
-              <Card className="bg-gray-800 border-gray-700 hover:border-gray-500 transition-all duration-300">
+              <Card className="col-2 bg-gray-800 border-gray-700 hover:border-gray-500 transition-all duration-300">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-white font-orbitron text-2xl">Free</CardTitle>
                   <CardDescription className="text-gray-400 font-rajdhani">
@@ -111,7 +112,7 @@ export default function PricingPage() {
               </Card>
 
               {/* Eval+ Tier */}
-              <Card className="bg-gray-800 border-cyan-400/50 hover:border-cyan-400 transition-all duration-300 shadow-lg shadow-cyan-400/10">
+              {/* <Card className="bg-gray-800 border-cyan-400/50 hover:border-cyan-400 transition-all duration-300 shadow-lg shadow-cyan-400/10">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-2">
                     <CardTitle className="text-white font-orbitron text-2xl">Eval+</CardTitle>
@@ -156,10 +157,10 @@ export default function PricingPage() {
                 <CardFooter>
                   <Button className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron">UPGRADE NOW</Button>
                 </CardFooter>
-              </Card>
+              </Card> */}
 
               {/* Eval++ Tier */}
-              <Card className="bg-gray-800 border-purple-400/50 hover:border-purple-400 transition-all duration-300 shadow-lg shadow-purple-400/10">
+              {/* <Card className="bg-gray-800 border-purple-400/50 hover:border-purple-400 transition-all duration-300 shadow-lg shadow-purple-400/10">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-2">
                     <CardTitle className="text-white font-orbitron text-2xl">Eval++</CardTitle>
@@ -210,7 +211,7 @@ export default function PricingPage() {
                     GO PREMIUM
                   </Button>
                 </CardFooter>
-              </Card>
+              </Card> */}
             </div>
           </TabsContent>
 
@@ -391,9 +392,11 @@ export default function PricingPage() {
                   </p>
                 </div>
               </div>
+              <Link href="/about/contact">
               <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-orbitron font-bold px-8 py-3 tracking-wider">
                 CONTACT SALES
               </Button>
+              </Link>
             </div>
           </TabsContent>
         </Tabs>

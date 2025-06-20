@@ -12,23 +12,23 @@ const collegeTriouts = [
   { id: 1, title: "Princeton Esports Club VALORANT", school: "Princeton", date: "Dec 15", spots: "5 left" },
   { id: 2, title: "Princeton Esports Club Overwatch 2", school: "Princeton", date: "Dec 20", spots: "12 left" },
   { id: 3, title: "Princeton Esports Club Rocket League", school: "Princeton", date: "Jan 5", spots: "8 left" },
-  { id: 4, title: "Princeton Esports Club Super Smash Bros Ultimate", school: "Princeton", date: "Dec 18", spots: "6 left" },
+  { id: 4, title: "Princeton Esports Club Smash Ultimate", school: "Princeton", date: "Dec 18", spots: "6 left" },
 ]
 
 const evalCombines = [
-  { id: 1, title: "EVAL Invitational 2025", game: "VALORANT", prize: "$50,000", status: "Invitation Only" },
-  { id: 2, title: "EVAL Spring Championship", game: "VALORANT", prize: "$25,000", status: "Invitation Only" },
-  { id: 3, title: "EVAL OW2 Masters", game: "Overwatch 2", prize: "$40,000", status: "Invitation Only" },
-  { id: 4, title: "EVAL RL Championship", game: "Rocket League", prize: "$60,000", status: "Invitation Only" },
+  { id: 1, title: "EVAL Rocket League Combine", game: "VALORANT", prize: "$300", status: "Open" },
+  { id: 2, title: "EVAL Valorant Combine", game: "Rocket League", prize: "$500", status: "Open" },
+  { id: 3, title: "EVAL Smash Ultimate Combine Day 1", game: "Overwatch 2", prize: "$100", status: "Open" },
+  { id: 4, title: "EVAL Smash Ultimate Combine Day 2", game: "Rocket League", prize: "$100", status: "Open" },
 ]
 
 const testimonials = [
   {
-    name: "Placeholder",
-    role: "Placeholder",
-    school: "Placeholder",
+    name: "Chelsea O",
+    role: "Valorant Team Manager",
+    school: "Middlesex High School",
     quote:
-      "EVAL helped me get noticed by college scouts. I went from unknown to scholarship recipient in just 6 months!",
+      "Thanks to EVAL, we placed 1st in our group and got top 4 in playoffs!",
     avatar: "/placeholder.svg?height=60&width=60",
   },
   {
