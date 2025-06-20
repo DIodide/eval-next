@@ -12,114 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
 import { api } from "@/trpc/react";
-import { toast } from "sonner";
-
-// Mock data - replace with actual API calls later
-const mockTryoutsData = {
-  tryouts: [
-    {
-      id: "tryout-1",
-      title: "Valorant Varsity Team Tryouts",
-      description: "Competitive tryouts for our varsity Valorant team. Looking for skilled players with tournament experience.",
-      date: new Date("2024-02-15T18:00:00Z"),
-      time_start: "18:00",
-      time_end: "20:00",
-      location: "Frist Multipurpose Room",
-      type: "IN_PERSON" as const,
-      status: "PUBLISHED" as const,
-      price: "Free",
-      max_spots: 20,
-      _count: { registrations: 15 },
-      game: {
-        id: "game-val",
-        name: "VALORANT",
-        short_name: "VAL",
-        icon: null,
-        color: null
-      },
-      school: {
-        id: "princeton",
-        name: "Princeton University",
-        location: "Princeton, NJ",
-        state: "NJ",
-        type: "University"
-      },
-      organizer: {
-        id: "coach-1",
-        first_name: "Sarah",
-        last_name: "Johnson"
-      }
-    },
-    {
-      id: "tryout-2", 
-      title: "Overwatch Open Recruitment",
-      description: "Open recruitment for all skill levels. We'll help you develop your competitive skills.",
-      date: new Date("2024-02-20T19:00:00Z"),
-      time_start: "19:00",
-      time_end: "21:00",
-      location: "Online - Discord",
-      type: "ONLINE" as const,
-      status: "PUBLISHED" as const,
-      price: "Free",
-      max_spots: 30,
-      _count: { registrations: 8 },
-      game: {
-        id: "game-ow",
-        name: "Overwatch 2",
-        short_name: "OW2",
-        icon: null,
-        color: null
-      },
-      school: {
-        id: "princeton",
-        name: "Princeton University", 
-        location: "Princeton, NJ",
-        state: "NJ",
-        type: "University"
-      },
-      organizer: {
-        id: "coach-2",
-        first_name: "Michael",
-        last_name: "Chen"
-      }
-    },
-    {
-      id: "tryout-3",
-      title: "Rocket League JV Team",
-      description: "Junior varsity team tryouts for players looking to break into competitive Rocket League.",
-      date: new Date("2024-01-10T17:00:00Z"), // Past date
-      time_start: "17:00", 
-      time_end: "19:00",
-      location: "Fine Hall",
-      type: "HYBRID" as const,
-      status: "PUBLISHED" as const,
-      price: "Free",
-      max_spots: 15,
-      _count: { registrations: 15 },
-      game: {
-        id: "game-rl",
-        name: "Rocket League",
-        short_name: "RL",
-        icon: null,
-        color: null
-      },
-      school: {
-        id: "princeton",
-        name: "Princeton University",
-        location: "Princeton, NJ", 
-        state: "NJ",
-        type: "University"
-      },
-      organizer: {
-        id: "coach-2",
-        first_name: "Michael",
-        last_name: "Chen"
-      }
-    }
-  ],
-  total: 3,
-  hasMore: false
-};
 
 const mockSchoolData = {
   id: "princeton",
@@ -432,7 +324,7 @@ const formatDate = (date: Date) => {
 };
 
 // Format time helper
-const formatTime = (timeStart?: string, timeEnd?: string) => {
+const formatTime = (timeStart?: string | null, timeEnd?: string | null) => {
   if (!timeStart) return "Time TBA";
   if (!timeEnd) return timeStart;
   return `${timeStart} - ${timeEnd}`;
@@ -448,53 +340,51 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   const [tryoutFilter, setTryoutFilter] = useState<"all" | "upcoming" | "past">("all")
   const [tryoutGameFilter, setTryoutGameFilter] = useState<string>("all")
 
-  // Use mock data for now - in production this would be a real API call with proper UUID
-  const tryoutsData = mockTryoutsData;
-  const isLoadingTryouts = false;
+  // Get tryouts using real API
+  const { data: tryoutsData, isLoading: isLoadingTryouts, error: tryoutsError } = api.schoolProfile.getTryouts.useQuery({
+    schoolId: unwrappedParams.id,
+    filter: tryoutFilter,
+    gameId: tryoutGameFilter === "all" ? undefined : tryoutGameFilter,
+    limit: 50, // Get more tryouts for filtering
+  });
 
-  // Filter tryouts based on current filters
-  const filteredTryouts = useMemo(() => {
-    if (!tryoutsData?.tryouts) return [];
+  // Get available games for filtering
+  const { data: availableGamesData } = api.schoolProfile.getAvailableGames.useQuery({
+    schoolId: unwrappedParams.id,
+  });
 
-    return tryoutsData.tryouts.filter(tryout => {
-      const now = new Date();
-      const tryoutDate = new Date(tryout.date);
-      
-      // Date filter
-      if (tryoutFilter === "upcoming" && tryoutDate <= now) return false;
-      if (tryoutFilter === "past" && tryoutDate > now) return false;
-      
-      // Game filter
-      if (tryoutGameFilter !== "all" && tryout.game.id !== tryoutGameFilter) return false;
-      
-      return true;
-    });
-  }, [tryoutsData?.tryouts, tryoutFilter, tryoutGameFilter]);
+  // Since filtering is now done on the server, we can use the data directly
+  const filteredTryouts = tryoutsData?.tryouts ?? [];
 
-  // Get unique games for filter
-  const availableGames = useMemo(() => {
-    if (!tryoutsData?.tryouts) return [];
-    const games = tryoutsData.tryouts.map(tryout => tryout.game);
-    const uniqueGames = games.filter((game, index, self) => 
-      index === self.findIndex(g => g.id === game.id)
-    );
-    return uniqueGames;
-  }, [tryoutsData?.tryouts]);
+  // Use available games from the API
+  const availableGames = availableGamesData ?? [];
 
-  // Get counts for each filter
+  // Get counts for each filter - we need to make separate API calls for counts
+  const { data: allTryoutsData } = api.schoolProfile.getTryouts.useQuery({
+    schoolId: unwrappedParams.id,
+    filter: "all",
+    limit: 1, // Just get count, don't need the actual data
+  });
+
+  const { data: upcomingTryoutsData } = api.schoolProfile.getTryouts.useQuery({
+    schoolId: unwrappedParams.id,
+    filter: "upcoming", 
+    limit: 1,
+  });
+
+  const { data: pastTryoutsData } = api.schoolProfile.getTryouts.useQuery({
+    schoolId: unwrappedParams.id,
+    filter: "past",
+    limit: 1,
+  });
+
   const tryoutCounts = useMemo(() => {
-    if (!tryoutsData?.tryouts) return { all: 0, upcoming: 0, past: 0 };
-    
-    const now = new Date();
-    const upcoming = tryoutsData.tryouts.filter(t => new Date(t.date) > now).length;
-    const past = tryoutsData.tryouts.filter(t => new Date(t.date) <= now).length;
-    
     return {
-      all: tryoutsData.tryouts.length,
-      upcoming,
-      past
+      all: allTryoutsData?.total ?? 0,
+      upcoming: upcomingTryoutsData?.total ?? 0,
+      past: pastTryoutsData?.total ?? 0,
     };
-  }, [tryoutsData?.tryouts]);
+  }, [allTryoutsData?.total, upcomingTryoutsData?.total, pastTryoutsData?.total]);
 
   return (
     <div className="min-h-screen bg-gray-900 py-8">
@@ -756,6 +646,13 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                   {isLoadingTryouts ? (
                     <div className="col-span-full flex items-center justify-center py-16">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+                    </div>
+                  ) : tryoutsError ? (
+                    <div className="col-span-full text-center py-16">
+                      <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                      <p className="text-red-400 font-rajdhani text-lg">
+                        Error loading tryouts. Please try again later.
+                      </p>
                     </div>
                   ) : filteredTryouts.length === 0 ? (
                     <div className="col-span-full text-center py-16">
