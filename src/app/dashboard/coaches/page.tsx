@@ -58,19 +58,19 @@ export default function CoachesDashboard() {
   const stats = [
     {
       title: "My Prospects",
-      value: canAccess ? "12" : "—",
+      value: canAccess ? "0" : "—",
       icon: UsersIcon,
       description: canAccess ? "Players you're tracking" : "Available after onboarding"
     },
     {
       title: "Active Tryouts",
-      value: canAccess ? "3" : "—",
+      value: canAccess ? "0" : "—",
       icon: TrophyIcon,
       description: canAccess ? "Ongoing recruitment events" : "Available after onboarding"
     },
     {
       title: "Unread Messages",
-      value: canAccess ? "7" : "—",
+      value: canAccess ? "0" : "—",
       icon: MessageSquareIcon,
       description: canAccess ? "New player inquiries" : "Available after onboarding"
     },
@@ -293,7 +293,7 @@ export default function CoachesDashboard() {
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   <div className="flex-1">
                     <p className="text-white font-rajdhani">
-                      New player application received for VALORANT tryout
+                      PLACEHOLDER: New player application received for VALORANT tryout
                     </p>
                     <p className="text-gray-400 text-sm">2 hours ago</p>
                   </div>
@@ -302,7 +302,7 @@ export default function CoachesDashboard() {
                   <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                   <div className="flex-1">
                     <p className="text-white font-rajdhani">
-                      Player profile updated: Alex Chen
+                      PLACEHOLDER: Player profile updated: Alex Chen
                     </p>
                     <p className="text-gray-400 text-sm">5 hours ago</p>
                   </div>
@@ -311,7 +311,7 @@ export default function CoachesDashboard() {
                   <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                   <div className="flex-1">
                     <p className="text-white font-rajdhani">
-                      Tryout reminder: Overwatch 2 tryout starts tomorrow
+                      PLACEHOLDER: Tryout reminder: Overwatch 2 tryout starts tomorrow
                     </p>
                     <p className="text-gray-400 text-sm">1 day ago</p>
                   </div>
