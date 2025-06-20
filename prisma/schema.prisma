@@ -96,7 +96,7 @@ model SchoolAssociationRequest {
   reviewed_by     String?
   created_at      DateTime                @default(now()) @db.Timestamp(6)
   updated_at      DateTime                @updatedAt
-  coach           Coach                   @relation(fields: [coach_id], references: [id])
+  coach           Coach                   @relation(fields: [coach_id], references: [id], onDelete: Cascade)
   school          School                  @relation(fields: [school_id], references: [id])
 
   @@unique([coach_id, school_id])
