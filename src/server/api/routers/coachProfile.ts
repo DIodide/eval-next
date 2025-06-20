@@ -7,6 +7,7 @@ import { createTRPCRouter, publicProcedure, coachProcedure, onboardedCoachProced
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/db-utils";
 import { clerkClient } from "@clerk/nextjs/server";
+import { logSchoolAssociationRequest } from "@/lib/discord-logger";
 
 // Input validation schemas
 const profileUpdateSchema = z.object({
@@ -265,6 +266,13 @@ export const coachProfileRouter = createTRPCRouter({
               request_message: input.request_message,
             },
             include: {
+              coach: {
+                select: {
+                  first_name: true,
+                  last_name: true,
+                  email: true,
+                },
+              },
               school: {
                 select: {
                   name: true,
@@ -276,6 +284,25 @@ export const coachProfileRouter = createTRPCRouter({
             },
           })
         );
+
+        // Log the school association request to Discord
+        try {
+          await logSchoolAssociationRequest({
+            requestId: request.id,
+            coachName: `${request.coach.first_name} ${request.coach.last_name}`,
+            coachEmail: request.coach.email,
+            schoolName: request.school.name,
+            schoolType: request.school.type.replace("_", " "),
+            schoolLocation: `${request.school.location}, ${request.school.state}`,
+            requestMessage: input.request_message,
+            userId: ctx.auth.userId,
+            userEmail: request.coach.email,
+            timestamp: new Date(),
+          });
+        } catch (discordError) {
+          console.error("Discord notification failed:", discordError);
+          // Don't fail the main operation if Discord logging fails
+        }
 
         return request;
       } catch (error) {

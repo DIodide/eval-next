@@ -6,6 +6,7 @@ import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { type Prisma } from "@prisma/client";
+import { logSchoolAssociationApproved, logSchoolAssociationRejected, logAdminAction } from "@/lib/discord-logger";
 
 // Input validation schemas
 const approveRequestSchema = z.object({
@@ -146,7 +147,7 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
           where: { id: input.requestId },
           include: {
             coach: {
-              select: { id: true, clerk_id: true, school_id: true },
+              select: { id: true, clerk_id: true, school_id: true, first_name: true, last_name: true, email: true },
             },
             school: {
               select: { id: true, name: true },
@@ -218,6 +219,40 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
           // The coach can still function, they just might need to refresh
         }
 
+        // Log the approval to Discord
+        try {
+
+          const adminName = ctx.adminName ?? "Unknown Admin";
+          const adminEmail = ctx.adminEmail ?? "Unknown";
+
+          await logSchoolAssociationApproved({
+            requestId: input.requestId,
+            coachName: `${request.coach.first_name} ${request.coach.last_name}`,
+            coachEmail: request.coach.email,
+            schoolName: request.school.name,
+            adminName,
+            adminNotes: input.adminNotes,
+            decision: "approved",
+            userId: ctx.auth.userId,
+            userEmail: adminEmail,
+            timestamp: new Date(),
+          });
+
+          // Also log the admin action
+          await logAdminAction({
+            action: "School Association Request Approved",
+            details: `Approved school association for ${request.coach.email} with ${request.school.name}`,
+            targetUserEmail: request.coach.email,
+            userId: ctx.auth.userId,
+            userEmail: adminEmail,
+            userName: adminName,
+            timestamp: new Date(),
+          });
+        } catch (discordError) {
+          console.error("Discord notifications failed:", discordError);
+          // Don't fail the main operation if Discord logging fails
+        }
+
         return result;
       } catch (error) {
         if (error instanceof TRPCError) {
@@ -240,7 +275,14 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
       try {
         const request = await ctx.db.schoolAssociationRequest.findUnique({
           where: { id: input.requestId },
-          select: { id: true, status: true },
+          include: {
+            coach: {
+              select: { first_name: true, last_name: true, email: true },
+            },
+            school: {
+              select: { name: true },
+            },
+          },
         });
 
         if (!request) {
@@ -280,6 +322,39 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
             },
           },
         });
+
+        // Log the rejection to Discord
+        try {
+          const adminName = ctx.adminName ?? "Unknown Admin";
+          const adminEmail = ctx.adminEmail ?? "Unknown";
+
+          await logSchoolAssociationRejected({
+            requestId: input.requestId,
+            coachName: `${updatedRequest.coach.first_name} ${updatedRequest.coach.last_name}`,
+            coachEmail: updatedRequest.coach.email,
+            schoolName: updatedRequest.school.name,
+            adminName,
+            adminNotes: input.adminNotes,
+            decision: "rejected",
+            userId: ctx.auth.userId,
+            userEmail: adminEmail,
+            timestamp: new Date(),
+          });
+
+          // Also log the admin action
+          await logAdminAction({
+            action: "School Association Request Rejected",
+            details: `Rejected school association for ${updatedRequest.coach.email} with ${updatedRequest.school.name}. Reason: ${input.adminNotes}`,
+            targetUserEmail: updatedRequest.coach.email,
+            userId: ctx.auth.userId,
+            userEmail: adminEmail,
+            userName: adminName,
+            timestamp: new Date(),
+          });
+        } catch (discordError) {
+          console.error("Discord notifications failed:", discordError);
+          // Don't fail the main operation if Discord logging fails
+        }
 
         return updatedRequest;
       } catch (error) {

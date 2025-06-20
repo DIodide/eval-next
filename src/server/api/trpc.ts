@@ -254,6 +254,8 @@ const isAdmin = t.middleware(async ({ next, ctx }) => {
     ctx: {
       ...ctx, // Preserve existing context
       // Admin context can be enhanced here if needed
+      adminEmail: user.emailAddresses[0]?.emailAddress,
+      adminName: `${user.firstName} ${user.lastName}`,
     },
   });
 });

@@ -19,6 +19,13 @@ export const env = createEnv({
       .default("development"),
     CLERK_SECRET_KEY: z.string(),
     CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
+    
+    // Discord webhook URLs (optional)
+    DISCORD_WEBHOOK_GENERAL: z.string().optional(),
+    DISCORD_WEBHOOK_ADMIN: z.string().optional(),
+    DISCORD_WEBHOOK_SECURITY: z.string().optional(),
+    DISCORD_WEBHOOK_ERRORS: z.string().optional(),
+    DISCORD_WEBHOOK_SCHOOL_ASSOCIATION: z.string().optional(),
   },
 
   /**
@@ -50,6 +57,12 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+    // Discord webhook URLs
+    DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
+    DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,
+    DISCORD_WEBHOOK_SECURITY: process.env.DISCORD_WEBHOOK_SECURITY,
+    DISCORD_WEBHOOK_ERRORS: process.env.DISCORD_WEBHOOK_ERRORS,
+    DISCORD_WEBHOOK_SCHOOL_ASSOCIATION: process.env.DISCORD_WEBHOOK_SCHOOL_ASSOCIATION,
 
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
