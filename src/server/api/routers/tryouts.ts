@@ -829,6 +829,38 @@ export const tryoutsRouter = createTRPCRouter({
       }
     }),
 
+  // Get count of coach's active tryouts (for dashboard)
+  getActiveTryoutsCount: onboardedCoachProcedure
+    .query(async ({ ctx }) => {
+      const { coachId } = ctx;
+
+      try {
+        const now = new Date();
+        
+        const count = await withRetry(() =>
+          ctx.db.tryout.count({
+            where: {
+              coach_id: coachId,
+              status: 'PUBLISHED',
+              date: { gte: now },
+              OR: [
+                { registration_deadline: null },
+                { registration_deadline: { gte: now } }
+              ]
+            },
+          })
+        );
+
+        return count;
+      } catch (error) {
+        console.error('Error fetching active tryouts count:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch active tryouts count',
+        });
+      }
+    }),
+
   // Get detailed tryout applications for coaches
   getTryoutApplications: onboardedCoachProcedure
     .input(z.object({

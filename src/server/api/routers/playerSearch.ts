@@ -415,4 +415,28 @@ export const playerSearchRouter = createTRPCRouter({
         });
       }
     }),
+
+  // Get count of coach's favorited players (for dashboard)
+  getFavoritesCount: onboardedCoachProcedure
+    .query(async ({ ctx }) => {
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+
+      try {
+        const count = await withRetry(() =>
+          ctx.db.coachFavorite.count({
+            where: {
+              coach_id: coachId,
+            },
+          })
+        );
+
+        return count;
+      } catch (error) {
+        console.error('Error fetching favorites count:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch favorites count',
+        });
+      }
+    }),
 }); 

@@ -111,6 +111,34 @@ export const messagesRouter = createTRPCRouter({
     }),
 
   /**
+   * Get count of unread messages for coach dashboard
+   */
+  getUnreadCount: onboardedCoachProcedure
+    .query(async ({ ctx }) => {
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+
+      try {
+        const count = await ctx.db.message.count({
+          where: {
+            conversation: {
+              coach_id: coachId,
+            },
+            sender_type: "PLAYER",
+            is_read: false,
+          },
+        });
+
+        return count;
+      } catch (error) {
+        console.error('Error fetching unread messages count:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch unread messages count',
+        });
+      }
+    }),
+
+  /**
    * Get detailed conversation with message history
    */
   getConversation: onboardedCoachProcedure

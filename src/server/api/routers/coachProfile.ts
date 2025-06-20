@@ -526,5 +526,153 @@ export const coachProfileRouter = createTRPCRouter({
       }
     }),
 
+  // Get recent dashboard activity
+  getRecentActivity: onboardedCoachProcedure
+    .query(async ({ ctx }) => {
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+      
+      try {
+        // Get recent activities in parallel
+        const [recentRegistrations, recentMessages, recentFavorites] = await Promise.all([
+          // Recent tryout registrations for coach's tryouts
+          withRetry(() =>
+            ctx.db.tryoutRegistration.findMany({
+              where: {
+                tryout: {
+                  coach_id: coachId,
+                },
+                registered_at: {
+                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+                },
+              },
+              include: {
+                player: {
+                  select: {
+                    first_name: true,
+                    last_name: true,
+                  },
+                },
+                tryout: {
+                  select: {
+                    title: true,
+                    game: {
+                      select: {
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: { registered_at: 'desc' },
+              take: 3,
+            })
+          ),
+          
+          // Recent messages to coach
+          withRetry(() =>
+            ctx.db.message.findMany({
+              where: {
+                conversation: {
+                  coach_id: coachId,
+                },
+                sender_type: "PLAYER",
+                created_at: {
+                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+                },
+              },
+              include: {
+                conversation: {
+                  include: {
+                    player: {
+                      select: {
+                        first_name: true,
+                        last_name: true,
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: { created_at: 'desc' },
+              take: 2,
+            })
+          ),
+          
+          // Recent favorites added
+          withRetry(() =>
+            ctx.db.coachFavorite.findMany({
+              where: {
+                coach_id: coachId,
+                created_at: {
+                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+                },
+              },
+              include: {
+                player: {
+                  select: {
+                    first_name: true,
+                    last_name: true,
+                  },
+                },
+              },
+              orderBy: { created_at: 'desc' },
+              take: 2,
+            })
+          ),
+        ]);
+
+        // Combine and sort activities by timestamp
+        const activities: Array<{
+          id: string;
+          type: 'registration' | 'message' | 'favorite';
+          title: string;
+          timestamp: Date;
+          color: string;
+        }> = [];
+
+        // Add registration activities
+        recentRegistrations.forEach(reg => {
+          activities.push({
+            id: `reg-${reg.id}`,
+            type: 'registration',
+            title: `New application from ${reg.player.first_name} ${reg.player.last_name} for ${reg.tryout.game.name} tryout`,
+            timestamp: reg.registered_at,
+            color: 'bg-green-400',
+          });
+        });
+
+        // Add message activities
+        recentMessages.forEach(msg => {
+          activities.push({
+            id: `msg-${msg.id}`,
+            type: 'message',
+            title: `New message from ${msg.conversation.player.first_name} ${msg.conversation.player.last_name}`,
+            timestamp: msg.created_at,
+            color: 'bg-blue-400',
+          });
+        });
+
+        // Add favorite activities
+        recentFavorites.forEach(fav => {
+          activities.push({
+            id: `fav-${fav.id}`,
+            type: 'favorite',
+            title: `Added ${fav.player.first_name} ${fav.player.last_name} to prospects`,
+            timestamp: fav.created_at,
+            color: 'bg-yellow-400',
+          });
+        });
+
+        // Sort by timestamp and take the most recent 5
+        activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        
+        return activities.slice(0, 5);
+      } catch (error) {
+        console.error('Error fetching recent activity:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch recent activity',
+        });
+      }
+    }),
 
 }); 

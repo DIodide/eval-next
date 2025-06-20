@@ -32,6 +32,7 @@ export function getUserRole(user: ClerkUser): UserRole {
 /**
  * Check if a coach is onboarded using Clerk's publicMetadata.
  * This function does not make any Prisma calls to avoid client context issues.
+ * This function can only be used on the server side.
  */
 export function isCoachOnboarded(user: ClerkUser): boolean {
   if (!user) return false;
