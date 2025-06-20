@@ -191,7 +191,7 @@ export default function CoachProfilePage() {
     }
   }, [formData, profile]);
 
-  // Track school form changes and validate on change
+  // Track school form changes
   useEffect(() => {
     if (schoolDetails) {
       const hasChanges = 
@@ -201,13 +201,8 @@ export default function CoachProfilePage() {
         schoolFormData.phone !== (schoolDetails.phone ?? "") ||
         schoolFormData.logo_url !== (schoolDetails.logo_url ?? "");
       setHasUnsavedSchoolChanges(hasChanges);
-      
-      // Clear validation errors when form changes
-      if (hasChanges && Object.keys(schoolValidationErrors).length > 0) {
-        setSchoolValidationErrors({});
-      }
     }
-  }, [schoolFormData, schoolDetails, schoolValidationErrors]);
+  }, [schoolFormData, schoolDetails]);
 
   const handleSave = () => {
     updateProfileMutation.mutate(formData);
@@ -251,9 +246,16 @@ export default function CoachProfilePage() {
   const handleSchoolFieldChange = (field: keyof typeof schoolFormData, value: string) => {
     setSchoolFormData(prev => ({ ...prev, [field]: value }));
     
-    // Clear specific field error when user starts typing
+    // Clear specific field error when user starts typing (with a small delay to avoid flicker)
     if (schoolValidationErrors[field]) {
-      setSchoolValidationErrors(prev => ({ ...prev, [field]: undefined }));
+      // Use setTimeout to ensure the error clears after the input is updated
+      setTimeout(() => {
+        setSchoolValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }, 0);
     }
   };
 
