@@ -3,6 +3,7 @@ import { clerkClient } from '@clerk/nextjs/server'
 import type { NextRequest } from 'next/server'
 import { db } from '@/server/db'
 import type { Prisma } from '@prisma/client'
+import { logUserRegistration, logError } from '@/lib/discord-logger'
 
 // Schema for Clerk unsafe_metadata
 interface ClerkUnsafeMetadata {
@@ -89,8 +90,40 @@ export async function POST(req: NextRequest) {
             }
           })
           console.log('Player created successfully:', newPlayer.id)
+
+          // Log player registration to Discord
+          try {
+            await logUserRegistration({
+              userType: 'player',
+              registrationMethod: 'Clerk Webhook',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              userName: userData.first_name && userData.last_name 
+                ? `${userData.first_name} ${userData.last_name}` 
+                : userData.username ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord notification failed for player registration:', discordError);
+          }
         } catch (error) {
           console.error('Error creating player:', error)
+          
+          // Log error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error creating player',
+              errorCode: 'PLAYER_CREATION_FAILED',
+              endpoint: 'webhooks/user.created',
+              severity: 'high',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+          
           // You might want to throw an error here to trigger webhook retry
           // throw error
         }
@@ -110,8 +143,40 @@ export async function POST(req: NextRequest) {
             }
           })
           console.log('Coach created successfully:', newCoach.id)
+
+          // Log coach registration to Discord
+          try {
+            await logUserRegistration({
+              userType: 'coach',
+              registrationMethod: 'Clerk Webhook',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              userName: userData.first_name && userData.last_name 
+                ? `${userData.first_name} ${userData.last_name}` 
+                : userData.username ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord notification failed for coach registration:', discordError);
+          }
         } catch (error) {
           console.error('Error creating coach:', error)
+          
+          // Log error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error creating coach',
+              errorCode: 'COACH_CREATION_FAILED',
+              endpoint: 'webhooks/user.created',
+              severity: 'high',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+          
           // You might want to throw an error here to trigger webhook retry
           // throw error
         }
@@ -167,6 +232,22 @@ export async function POST(req: NextRequest) {
           console.log('Player updated successfully:', updatedPlayer.id)
         } catch (error) {
           console.error('Error updating player:', error)
+          
+          // Log error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error updating player',
+              errorCode: 'PLAYER_UPDATE_FAILED',
+              endpoint: 'webhooks/user.updated',
+              severity: 'medium',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+          
           // You might want to throw an error here to trigger webhook retry
           // throw error
         }
@@ -189,6 +270,22 @@ export async function POST(req: NextRequest) {
           console.log('Coach updated successfully:', updatedCoach.id)
         } catch (error) {
           console.error('Error updating coach:', error)
+          
+          // Log error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error updating coach',
+              errorCode: 'COACH_UPDATE_FAILED',
+              endpoint: 'webhooks/user.updated',
+              severity: 'medium',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+          
           // You might want to throw an error here to trigger webhook retry
           // throw error
         }
@@ -222,6 +319,21 @@ export async function POST(req: NextRequest) {
         }
       } catch (error) {
         console.error('Error deleting user:', error)
+        
+        // Log error to Discord
+        try {
+          await logError({
+            error: error instanceof Error ? error.message : 'Unknown error deleting user',
+            errorCode: 'USER_DELETION_FAILED',
+            endpoint: 'webhooks/user.deleted',
+            severity: 'high',
+            userId: evt.data.id,
+            timestamp: new Date(),
+          });
+        } catch (discordError) {
+          console.error('Discord error logging failed:', discordError);
+        }
+        
         // You might want to throw an error here to trigger webhook retry
         // throw error
       }
@@ -236,6 +348,20 @@ export async function POST(req: NextRequest) {
     return new Response('Webhook received', { status: 200 })
   } catch (err) {
     console.error('Error verifying webhook:', err)
+    
+    // Log webhook verification error to Discord
+    try {
+      await logError({
+        error: err instanceof Error ? err.message : 'Unknown webhook verification error',
+        errorCode: 'WEBHOOK_VERIFICATION_FAILED',
+        endpoint: 'webhooks',
+        severity: 'high',
+        timestamp: new Date(),
+      });
+    } catch (discordError) {
+      console.error('Discord error logging failed:', discordError);
+    }
+    
     return new Response('Error verifying webhook', { status: 400 })
   }
 }
