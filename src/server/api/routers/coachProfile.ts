@@ -22,8 +22,26 @@ const profileUpdateSchema = z.object({
 });
 
 const schoolAssociationRequestSchema = z.object({
-  school_id: z.string().uuid(),
+  school_id: z.string().uuid().optional(),
   request_message: z.string().min(10).max(500).optional(),
+  // New school creation fields
+  is_new_school_request: z.boolean().default(false),
+  proposed_school_name: z.string().min(1).max(100).optional(),
+  proposed_school_type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]).optional(),
+  proposed_school_location: z.string().min(1).max(100).optional(),
+  proposed_school_state: z.string().min(2).max(50).optional(),
+  proposed_school_region: z.string().max(50).optional(),
+  proposed_school_website: z.string().url().optional(),
+}).refine((data) => {
+  // Either existing school or new school, but not both
+  if (data.is_new_school_request) {
+    return data.proposed_school_name && data.proposed_school_type && 
+           data.proposed_school_location && data.proposed_school_state;
+  } else {
+    return data.school_id;
+  }
+}, {
+  message: "Either provide school_id for existing school or complete new school information",
 });
 
 export const coachProfileRouter = createTRPCRouter({
@@ -177,7 +195,18 @@ export const coachProfileRouter = createTRPCRouter({
             },
             school_requests: {
               orderBy: { requested_at: 'desc' },
-              include: {
+              select: {
+                id: true,
+                status: true,
+                request_message: true,
+                requested_at: true,
+                is_new_school_request: true,
+                proposed_school_name: true,
+                proposed_school_type: true,
+                proposed_school_location: true,
+                proposed_school_state: true,
+                proposed_school_region: true,
+                proposed_school_website: true,
                 school: {
                   select: {
                     name: true,
@@ -223,38 +252,53 @@ export const coachProfileRouter = createTRPCRouter({
           });
         }
 
-        // Check if there's already a pending request for this school
-        const existingRequest = await withRetry(() =>
-          ctx.db.schoolAssociationRequest.findUnique({
-            where: {
-              coach_id_school_id: {
+        let school = null;
+        let schoolName = '';
+        let schoolType = '';
+        let schoolLocation = '';
+
+        if (input.is_new_school_request) {
+          // For new school requests, we'll use the proposed values
+          schoolName = input.proposed_school_name!;
+          schoolType = input.proposed_school_type!.replace("_", " ");
+          schoolLocation = `${input.proposed_school_location!}, ${input.proposed_school_state!}`;
+        } else {
+          // Verify the existing school exists
+          school = await withRetry(() =>
+            ctx.db.school.findUnique({
+              where: { id: input.school_id! },
+              select: { id: true, name: true, type: true, location: true, state: true },
+            })
+          );
+
+          if (!school) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'School not found',
+            });
+          }
+
+          schoolName = school.name;
+          schoolType = school.type.replace("_", " ");
+          schoolLocation = `${school.location}, ${school.state}`;
+
+          // Check if there's already a pending request for this school
+          const existingRequest = await withRetry(() =>
+            ctx.db.schoolAssociationRequest.findFirst({
+              where: {
                 coach_id: coachId,
                 school_id: input.school_id,
+                status: 'PENDING',
               },
-            },
-          })
-        );
+            })
+          );
 
-        if (existingRequest) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'A request for this school is already pending',
-          });
-        }
-
-        // Verify the school exists
-        const school = await withRetry(() =>
-          ctx.db.school.findUnique({
-            where: { id: input.school_id },
-            select: { id: true, name: true },
-          })
-        );
-
-        if (!school) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'School not found',
-          });
+          if (existingRequest) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'A request for this school is already pending',
+            });
+          }
         }
 
         // Create the association request
@@ -262,8 +306,15 @@ export const coachProfileRouter = createTRPCRouter({
           ctx.db.schoolAssociationRequest.create({
             data: {
               coach_id: coachId,
-              school_id: input.school_id,
+              school_id: input.is_new_school_request ? null : input.school_id,
               request_message: input.request_message,
+              is_new_school_request: input.is_new_school_request,
+              proposed_school_name: input.proposed_school_name,
+              proposed_school_type: input.proposed_school_type,
+              proposed_school_location: input.proposed_school_location,
+              proposed_school_state: input.proposed_school_state,
+              proposed_school_region: input.proposed_school_region,
+              proposed_school_website: input.proposed_school_website,
             },
             include: {
               coach: {
@@ -285,18 +336,21 @@ export const coachProfileRouter = createTRPCRouter({
           })
         );
 
+        // Get coach information for logging
+        const coachInfo = request.coach;
+
         // Log the school association request to Discord
         try {
           await logSchoolAssociationRequest({
             requestId: request.id,
-            coachName: `${request.coach.first_name} ${request.coach.last_name}`,
-            coachEmail: request.coach.email,
-            schoolName: request.school.name,
-            schoolType: request.school.type.replace("_", " "),
-            schoolLocation: `${request.school.location}, ${request.school.state}`,
+            coachName: `${coachInfo.first_name} ${coachInfo.last_name}`,
+            coachEmail: coachInfo.email,
+            schoolName,
+            schoolType,
+            schoolLocation,
             requestMessage: input.request_message,
             userId: ctx.auth.userId,
-            userEmail: request.coach.email,
+            userEmail: coachInfo.email,
             timestamp: new Date(),
           });
         } catch (discordError) {

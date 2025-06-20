@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BuildingIcon, SendIcon, SearchIcon } from "lucide-react";
+import { BuildingIcon, SendIcon, SearchIcon, PlusIcon } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
@@ -16,6 +16,15 @@ export function SchoolAssociationRequestForm() {
   const [requestMessage, setRequestMessage] = useState("");
   const [schoolSearch, setSchoolSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNewSchoolRequest, setIsNewSchoolRequest] = useState(false);
+  const [newSchoolData, setNewSchoolData] = useState({
+    name: "",
+    type: undefined as "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY" | undefined,
+    location: "",
+    state: "",
+    region: "",
+    website: "",
+  });
 
   // Get available schools
   const { data: schools, isLoading: isLoadingSchools } = api.coachProfile.getAvailableSchools.useQuery();
@@ -27,6 +36,15 @@ export function SchoolAssociationRequestForm() {
       setSelectedSchoolId("");
       setRequestMessage("");
       setSchoolSearch("");
+      setIsNewSchoolRequest(false);
+      setNewSchoolData({
+        name: "",
+        type: undefined,
+        location: "",
+        state: "",
+        region: "",
+        website: "",
+      });
       // Refetch onboarding status and school info
       void utils.coachProfile.getOnboardingStatus.invalidate();
       void utils.coachProfile.getSchoolInfo.invalidate();
@@ -53,15 +71,42 @@ export function SchoolAssociationRequestForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedSchoolId) {
-      toast.error("Please select a school");
-      return;
+    if (isNewSchoolRequest) {
+      // Validate new school data
+      if (!newSchoolData.name.trim()) {
+        toast.error("Please enter the school name");
+        return;
+      }
+      if (!newSchoolData.type) {
+        toast.error("Please select the school type");
+        return;
+      }
+      if (!newSchoolData.location.trim()) {
+        toast.error("Please enter the school location");
+        return;
+      }
+      if (!newSchoolData.state.trim()) {
+        toast.error("Please enter the school state");
+        return;
+      }
+    } else {
+      if (!selectedSchoolId) {
+        toast.error("Please select a school");
+        return;
+      }
     }
 
     setIsSubmitting(true);
     await submitRequest.mutateAsync({
-      school_id: selectedSchoolId,
+      school_id: isNewSchoolRequest ? undefined : selectedSchoolId,
       request_message: requestMessage || undefined,
+      is_new_school_request: isNewSchoolRequest,
+      proposed_school_name: isNewSchoolRequest ? newSchoolData.name : undefined,
+      proposed_school_type: isNewSchoolRequest ? newSchoolData.type : undefined,
+      proposed_school_location: isNewSchoolRequest ? newSchoolData.location : undefined,
+      proposed_school_state: isNewSchoolRequest ? newSchoolData.state : undefined,
+      proposed_school_region: isNewSchoolRequest && newSchoolData.region ? newSchoolData.region : undefined,
+      proposed_school_website: isNewSchoolRequest && newSchoolData.website ? newSchoolData.website : undefined,
     });
   };
 
@@ -75,62 +120,231 @@ export function SchoolAssociationRequestForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* School Search */}
+          {/* Mode Toggle */}
           <div className="space-y-2">
-            <Label htmlFor="schoolSearch" className="text-gray-300">
-              Search Schools
-            </Label>
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="schoolSearch"
-                type="text"
-                placeholder="Search by school name, location, or state..."
-                value={schoolSearch}
-                onChange={(e) => setSchoolSearch(e.target.value)}
-                className="pl-10 bg-gray-700 border-gray-600 text-white"
-                disabled={isLoadingSchools}
-              />
+            <Label className="text-gray-300">Request Type</Label>
+            <div className="flex space-x-4">
+              <Button
+                type="button"
+                variant={!isNewSchoolRequest ? "default" : "outline"}
+                onClick={() => {
+                  setIsNewSchoolRequest(false);
+                  setSelectedSchoolId("");
+                }}
+                className={`${!isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600"} text-white border-gray-600`}
+              >
+                <BuildingIcon className="h-4 w-4 mr-2" />
+                Existing School
+              </Button>
+              <Button
+                type="button"
+                variant={isNewSchoolRequest ? "default" : "outline"}
+                onClick={() => {
+                  setIsNewSchoolRequest(true);
+                  setSelectedSchoolId("");
+                }}
+                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600"} text-white border-gray-600`}
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Request New School
+              </Button>
             </div>
           </div>
 
-          {/* School Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="school" className="text-gray-300">
-              Select School *
-            </Label>
-            <Select 
-              value={selectedSchoolId} 
-              onValueChange={setSelectedSchoolId}
-              disabled={isLoadingSchools}
-            >
-              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                <SelectValue placeholder="Choose a school..." />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-700 border-gray-600">
-                {filteredSchools.length === 0 ? (
-                  <div className="p-3 text-gray-400 text-sm">
-                    {isLoadingSchools ? "Loading schools..." : "No schools found"}
-                  </div>
-                ) : (
-                  filteredSchools.map((school) => (
-                    <SelectItem
-                      key={school.id}
-                      value={school.id}
-                      className="text-white hover:bg-gray-600"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">{school.name}</span>
-                        <span className="text-sm text-gray-400">
-                          {school.type.replace('_', ' ')} • {school.location}, {school.state}
-                        </span>
+          {!isNewSchoolRequest ? (
+            <>
+              {/* School Search */}
+              <div className="space-y-2">
+                <Label htmlFor="schoolSearch" className="text-gray-300">
+                  Search Schools
+                </Label>
+                <div className="relative">
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="schoolSearch"
+                    type="text"
+                    placeholder="Search by school name, location, or state..."
+                    value={schoolSearch}
+                    onChange={(e) => setSchoolSearch(e.target.value)}
+                    className="pl-10 bg-gray-700 border-gray-600 text-white"
+                    disabled={isLoadingSchools}
+                  />
+                </div>
+              </div>
+
+              {/* School Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="school" className="text-gray-300">
+                  Select School *
+                </Label>
+                <Select 
+                  value={selectedSchoolId} 
+                  onValueChange={setSelectedSchoolId}
+                  disabled={isLoadingSchools}
+                >
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Choose a school..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    {filteredSchools.length === 0 ? (
+                      <div className="p-3 text-gray-400 text-sm">
+                        {isLoadingSchools ? "Loading schools..." : (
+                          <div className="space-y-2">
+                            <p>No schools found matching your search.</p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsNewSchoolRequest(true)}
+                              className="w-full bg-gray-600 hover:bg-gray-500 text-white border-gray-500"
+                            >
+                              <PlusIcon className="h-3 w-3 mr-1" />
+                              Request New School Instead
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                    ) : (
+                      <>
+                        {filteredSchools.map((school) => (
+                          <SelectItem
+                            key={school.id}
+                            value={school.id}
+                            className="text-white hover:bg-gray-600"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{school.name}</span>
+                              <span className="text-sm text-gray-400">
+                                {school.type.replace('_', ' ')} • {school.location}, {school.state}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                        <div className="border-t border-gray-600 mt-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsNewSchoolRequest(true)}
+                            className="w-full justify-start text-cyan-400 hover:bg-gray-600 hover:text-cyan-300"
+                          >
+                            <PlusIcon className="h-3 w-3 mr-2" />
+                                                         Don&apos;t see your school? Request a new one
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* New School Form */}
+              <div className="space-y-4 bg-gray-700 rounded-lg p-4">
+                <h4 className="text-white font-medium mb-2">New School Information</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolName" className="text-gray-300">
+                      School Name *
+                    </Label>
+                    <Input
+                      id="schoolName"
+                      type="text"
+                      placeholder="Enter school name"
+                      value={newSchoolData.name}
+                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, name: e.target.value }))}
+                      className="bg-gray-600 border-gray-500 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolType" className="text-gray-300">
+                      School Type *
+                    </Label>
+                    <Select 
+                      value={newSchoolData.type} 
+                      onValueChange={(value: "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY") => 
+                        setNewSchoolData(prev => ({ ...prev, type: value }))
+                      }
+                    >
+                      <SelectTrigger className="bg-gray-600 border-gray-500 text-white">
+                        <SelectValue placeholder="Select type..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        <SelectItem value="HIGH_SCHOOL" className="text-white hover:bg-gray-600">
+                          High School
+                        </SelectItem>
+                        <SelectItem value="COLLEGE" className="text-white hover:bg-gray-600">
+                          College
+                        </SelectItem>
+                        <SelectItem value="UNIVERSITY" className="text-white hover:bg-gray-600">
+                          University
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolLocation" className="text-gray-300">
+                      City/Location *
+                    </Label>
+                    <Input
+                      id="schoolLocation"
+                      type="text"
+                      placeholder="Enter city"
+                      value={newSchoolData.location}
+                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, location: e.target.value }))}
+                      className="bg-gray-600 border-gray-500 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolState" className="text-gray-300">
+                      State *
+                    </Label>
+                    <Input
+                      id="schoolState"
+                      type="text"
+                      placeholder="Enter state"
+                      value={newSchoolData.state}
+                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, state: e.target.value }))}
+                      className="bg-gray-600 border-gray-500 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolRegion" className="text-gray-300">
+                      Region (Optional)
+                    </Label>
+                    <Input
+                      id="schoolRegion"
+                      type="text"
+                      placeholder="Enter region"
+                      value={newSchoolData.region}
+                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, region: e.target.value }))}
+                      className="bg-gray-600 border-gray-500 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolWebsite" className="text-gray-300">
+                      Website (Optional)
+                    </Label>
+                    <Input
+                      id="schoolWebsite"
+                      type="url"
+                      placeholder="Enter website URL"
+                      value={newSchoolData.website}
+                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, website: e.target.value }))}
+                      className="bg-gray-600 border-gray-500 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Selected School Info */}
           {selectedSchool && (
@@ -168,7 +382,7 @@ export function SchoolAssociationRequestForm() {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={!selectedSchoolId || isSubmitting}
+            disabled={(!selectedSchoolId && !isNewSchoolRequest) || isSubmitting}
             className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
           >
             {isSubmitting ? (
@@ -184,9 +398,12 @@ export function SchoolAssociationRequestForm() {
             )}
           </Button>
 
-                     <p className="text-xs text-gray-400">
-             Your request will be reviewed by our administrators. You&apos;ll be notified once it&apos;s processed.
-           </p>
+          <p className="text-xs text-gray-400">
+            {isNewSchoolRequest 
+              ? "Your new school request will be reviewed by our administrators. If approved, the school will be created and you'll be associated with it."
+              : "Your request will be reviewed by our administrators. You'll be notified once it's processed."
+            }
+          </p>
         </form>
       </CardContent>
     </Card>

@@ -150,15 +150,43 @@ export default function CoachesDashboard() {
                    Pending Request
                  </h4>
                  <div className="text-sm text-gray-300">
-                   <p className="mb-1">
-                     <span className="font-medium">School:</span> {schoolInfo.school_requests[0]!.school.name}
-                   </p>
-                   <p className="mb-1">
-                     <span className="font-medium">Type:</span> {schoolInfo.school_requests[0]!.school.type.replace('_', ' ')}
-                   </p>
-                   <p className="mb-1">
-                     <span className="font-medium">Location:</span> {schoolInfo.school_requests[0]!.school.location}, {schoolInfo.school_requests[0]!.school.state}
-                   </p>
+                   {schoolInfo.school_requests[0]!.is_new_school_request ? (
+                     // New school creation request
+                     <>
+                       <p className="mb-1">
+                         <span className="font-medium">School:</span> {schoolInfo.school_requests[0]!.proposed_school_name} (New School Request)
+                       </p>
+                       <p className="mb-1">
+                         <span className="font-medium">Type:</span> {schoolInfo.school_requests[0]!.proposed_school_type?.replace('_', ' ')}
+                       </p>
+                       <p className="mb-1">
+                         <span className="font-medium">Location:</span> {schoolInfo.school_requests[0]!.proposed_school_location}, {schoolInfo.school_requests[0]!.proposed_school_state}
+                       </p>
+                       {schoolInfo.school_requests[0]!.proposed_school_region && (
+                         <p className="mb-1">
+                           <span className="font-medium">Region:</span> {schoolInfo.school_requests[0]!.proposed_school_region}
+                         </p>
+                       )}
+                       {schoolInfo.school_requests[0]!.proposed_school_website && (
+                         <p className="mb-1">
+                           <span className="font-medium">Website:</span> {schoolInfo.school_requests[0]!.proposed_school_website}
+                         </p>
+                       )}
+                     </>
+                   ) : (
+                     // Existing school association request
+                     <>
+                       <p className="mb-1">
+                         <span className="font-medium">School:</span> {schoolInfo.school_requests[0]!.school?.name}
+                       </p>
+                       <p className="mb-1">
+                         <span className="font-medium">Type:</span> {schoolInfo.school_requests[0]!.school?.type.replace('_', ' ')}
+                       </p>
+                       <p className="mb-1">
+                         <span className="font-medium">Location:</span> {schoolInfo.school_requests[0]!.school?.location}, {schoolInfo.school_requests[0]!.school?.state}
+                       </p>
+                     </>
+                   )}
                    <p>
                      <span className="font-medium">Submitted:</span> {new Date(schoolInfo.school_requests[0]!.requested_at).toLocaleDateString()}
                    </p>

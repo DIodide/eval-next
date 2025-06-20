@@ -72,7 +72,21 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
               { status: 'asc' }, // PENDING first
               { requested_at: 'desc' },
             ],
-            include: {
+            select: {
+              id: true,
+              status: true,
+              requested_at: true,
+              request_message: true,
+              admin_notes: true,
+              reviewed_at: true,
+              reviewed_by: true,
+              is_new_school_request: true,
+              proposed_school_name: true,
+              proposed_school_type: true,
+              proposed_school_location: true,
+              proposed_school_state: true,
+              proposed_school_region: true,
+              proposed_school_website: true,
               coach: {
                 select: {
                   id: true,
@@ -178,6 +192,49 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
 
         // Perform the approval in a transaction
         const result = await ctx.db.$transaction(async (tx) => {
+          let schoolId = request.school?.id;
+          let schoolName = request.school?.name;
+
+          // If this is a new school request, create the school first
+          if (request.is_new_school_request && !schoolId) {
+            if (!request.proposed_school_name || !request.proposed_school_type || 
+                !request.proposed_school_location || !request.proposed_school_state) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Missing required school information for new school creation',
+              });
+            }
+
+            const newSchool = await tx.school.create({
+              data: {
+                name: request.proposed_school_name,
+                type: request.proposed_school_type,
+                location: request.proposed_school_location,
+                state: request.proposed_school_state,
+                region: request.proposed_school_region ?? null,
+                website: request.proposed_school_website ?? null,
+              },
+            });
+
+            schoolId = newSchool.id;
+            schoolName = newSchool.name;
+
+            // Update the request to reference the newly created school
+            await tx.schoolAssociationRequest.update({
+              where: { id: input.requestId },
+              data: {
+                created_school_id: newSchool.id,
+              },
+            });
+          }
+
+          if (!schoolId || !schoolName) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No valid school found for association',
+            });
+          }
+
           // Update the request status
           const updatedRequest = await tx.schoolAssociationRequest.update({
             where: { id: input.requestId },
@@ -193,13 +250,13 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
           const updatedCoach = await tx.coach.update({
             where: { id: request.coach.id },
             data: {
-              school_id: request.school.id,
-              school: request.school.name,
+              school_id: schoolId,
+              school: schoolName,
               updated_at: new Date(),
             },
           });
 
-          return { request: updatedRequest, coach: updatedCoach };
+          return { request: updatedRequest, coach: updatedCoach, schoolName, schoolId };
         });
 
         // Update Clerk publicMetadata to mark coach as onboarded
@@ -209,8 +266,8 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
             publicMetadata: {
               onboarded: true,
               userType: 'coach',
-              schoolId: request.school.id,
-              schoolName: request.school.name,
+              schoolId: result.schoolId,
+              schoolName: result.schoolName,
             },
           });
         } catch (clerkError) {
@@ -229,7 +286,7 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
             requestId: input.requestId,
             coachName: `${request.coach.first_name} ${request.coach.last_name}`,
             coachEmail: request.coach.email,
-            schoolName: request.school.name,
+            schoolName: result.schoolName || "New School",
             adminName,
             adminNotes: input.adminNotes,
             decision: "approved",
@@ -241,7 +298,7 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
           // Also log the admin action
           await logAdminAction({
             action: "School Association Request Approved",
-            details: `Approved school association for ${request.coach.email} with ${request.school.name}`,
+            details: `Approved school association for ${request.coach.email} with ${result.schoolName}`,
             targetUserEmail: request.coach.email,
             userId: ctx.auth.userId,
             userEmail: adminEmail,
@@ -327,12 +384,16 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
         try {
           const adminName = ctx.adminName ?? "Unknown Admin";
           const adminEmail = ctx.adminEmail ?? "Unknown";
+          
+          // Get school name for logging
+          const schoolName = updatedRequest.school?.name ?? 
+            (updatedRequest.proposed_school_name ? `${updatedRequest.proposed_school_name} (New School Request)` : "Unknown School");
 
           await logSchoolAssociationRejected({
             requestId: input.requestId,
             coachName: `${updatedRequest.coach.first_name} ${updatedRequest.coach.last_name}`,
             coachEmail: updatedRequest.coach.email,
-            schoolName: updatedRequest.school.name,
+            schoolName,
             adminName,
             adminNotes: input.adminNotes,
             decision: "rejected",
@@ -344,7 +405,7 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
           // Also log the admin action
           await logAdminAction({
             action: "School Association Request Rejected",
-            details: `Rejected school association for ${updatedRequest.coach.email} with ${updatedRequest.school.name}. Reason: ${input.adminNotes}`,
+            details: `Rejected school association for ${updatedRequest.coach.email} with ${schoolName}. Reason: ${input.adminNotes}`,
             targetUserEmail: updatedRequest.coach.email,
             userId: ctx.auth.userId,
             userEmail: adminEmail,
@@ -377,7 +438,21 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
       try {
         const request = await ctx.db.schoolAssociationRequest.findUnique({
           where: { id: input.requestId },
-          include: {
+          select: {
+            id: true,
+            status: true,
+            requested_at: true,
+            request_message: true,
+            admin_notes: true,
+            reviewed_at: true,
+            reviewed_by: true,
+            is_new_school_request: true,
+            proposed_school_name: true,
+            proposed_school_type: true,
+            proposed_school_location: true,
+            proposed_school_state: true,
+            proposed_school_region: true,
+            proposed_school_website: true,
             coach: {
               select: {
                 id: true,

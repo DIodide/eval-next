@@ -29,6 +29,13 @@ interface RequestData {
     requested_at: string;
     request_message?: string;
     admin_notes?: string;
+    is_new_school_request?: boolean;
+    proposed_school_name?: string;
+    proposed_school_type?: "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY";
+    proposed_school_location?: string;
+    proposed_school_state?: string;
+    proposed_school_region?: string;
+    proposed_school_website?: string;
     coach: {
       first_name: string;
       last_name: string;
@@ -36,7 +43,7 @@ interface RequestData {
       username: string;
       created_at: string;
     };
-    school: {
+    school?: {
       name: string;
       type: string;
       location: string;
@@ -266,11 +273,29 @@ export default function SchoolRequestsPage() {
                           School Information
                         </h3>
                         <div className="text-sm text-gray-300 space-y-1">
-                          <p><span className="font-medium">Name:</span> {request.school.name}</p>
-                          <p><span className="font-medium">Type:</span> {request.school.type.replace('_', ' ')}</p>
-                          <p><span className="font-medium">Location:</span> {request.school.location}, {request.school.state}</p>
-                          {request.school.region && (
-                            <p><span className="font-medium">Region:</span> {request.school.region}</p>
+                          {request.is_new_school_request ? (
+                            // New school creation request
+                            <>
+                              <p><span className="font-medium">Name:</span> {request.proposed_school_name} <span className="text-cyan-400">(New School Request)</span></p>
+                                                             <p><span className="font-medium">Type:</span> {request.proposed_school_type ? request.proposed_school_type.replace('_', ' ') : 'N/A'}</p>
+                              <p><span className="font-medium">Location:</span> {request.proposed_school_location}, {request.proposed_school_state}</p>
+                              {request.proposed_school_region && (
+                                <p><span className="font-medium">Region:</span> {request.proposed_school_region}</p>
+                              )}
+                              {request.proposed_school_website && (
+                                <p><span className="font-medium">Website:</span> <a href={request.proposed_school_website} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">{request.proposed_school_website}</a></p>
+                              )}
+                            </>
+                          ) : (
+                            // Existing school association request
+                            <>
+                              <p><span className="font-medium">Name:</span> {request.school?.name}</p>
+                                                             <p><span className="font-medium">Type:</span> {request.school?.type ? request.school.type.replace('_', ' ') : 'N/A'}</p>
+                              <p><span className="font-medium">Location:</span> {request.school?.location}, {request.school?.state}</p>
+                              {request.school?.region && (
+                                <p><span className="font-medium">Region:</span> {request.school.region}</p>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
