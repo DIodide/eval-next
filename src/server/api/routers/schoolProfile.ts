@@ -1,8 +1,18 @@
 // This router is used to get the school profile, tryouts, games, and stats for a school
 
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { withRetry } from "@/lib/db-utils";
+
+// Input validation schema for school information updates
+const schoolInfoUpdateSchema = z.object({
+  bio: z.string().max(2000).optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().max(20).optional().or(z.literal("")),
+  logo_url: z.string().url().optional().or(z.literal("")),
+});
 
 export const schoolProfileRouter = createTRPCRouter({
   /*
@@ -114,6 +124,123 @@ export const schoolProfileRouter = createTRPCRouter({
       }
 
       return school;
+    }),
+
+  // Get detailed school information for editing (only for onboarded coaches)
+  getDetailsForEdit: onboardedCoachProcedure
+    .query(async ({ ctx }) => {
+      const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
+      
+      try {
+        const school = await withRetry(() =>
+          ctx.db.school.findUnique({
+            where: { id: schoolId },
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              location: true,
+              state: true,
+              region: true,
+              website: true,
+              email: true,
+              phone: true,
+              bio: true,
+              logo_url: true,
+              created_at: true,
+              updated_at: true,
+            },
+          })
+        );
+        
+        if (!school) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'School not found',
+          });
+        }
+        
+        return school;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch school details',
+        });
+      }
+    }),
+
+  // Update school information (only for onboarded coaches)
+  updateInfo: onboardedCoachProcedure
+    .input(schoolInfoUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+      const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
+      
+      try {
+        // Verify coach has permission to edit this school
+        const coach = await withRetry(() =>
+          ctx.db.coach.findUnique({
+            where: { id: coachId },
+            select: { school_id: true },
+          })
+        );
+
+        if (!coach || coach.school_id !== schoolId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to edit this school',
+          });
+        }
+
+        // Build update data
+        const updateData: {
+          bio?: string | null;
+          website?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          logo_url?: string | null;
+          updated_at: Date;
+        } = {
+          updated_at: new Date(),
+        };
+        
+        if (input.bio !== undefined) {
+          updateData.bio = input.bio === "" ? null : input.bio;
+        }
+        if (input.website !== undefined) {
+          updateData.website = input.website === "" ? null : input.website;
+        }
+        if (input.email !== undefined) {
+          updateData.email = input.email === "" ? null : input.email;
+        }
+        if (input.phone !== undefined) {
+          updateData.phone = input.phone === "" ? null : input.phone;
+        }
+        if (input.logo_url !== undefined) {
+          updateData.logo_url = input.logo_url === "" ? null : input.logo_url;
+        }
+
+        const updatedSchool = await withRetry(() =>
+          ctx.db.school.update({
+            where: { id: schoolId },
+            data: updateData,
+          })
+        );
+        
+        return updatedSchool;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating school information:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update school information',
+        });
+      }
     }),
 
   /*
