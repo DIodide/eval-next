@@ -70,6 +70,7 @@ export const WEBHOOK_URLS = {
   admin: env.DISCORD_WEBHOOK_ADMIN ?? '',
   security: env.DISCORD_WEBHOOK_SECURITY ?? '',
   errors: env.DISCORD_WEBHOOK_ERRORS ?? '',
+  registrations: env.DISCORD_WEBHOOK_REGISTRATIONS ?? '',
 } as const;
 
 // Event routing - which events go to which webhooks
@@ -569,7 +570,8 @@ export const logTryoutCreated = (data: TryoutCreatedData, webhookUrl?: string) =
 };
 
 export const logUserRegistration = (data: UserRegistrationData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.USER_REGISTRATION, data, webhookUrl);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return discordLogger.logEvent(LogEventType.USER_REGISTRATION, data, WEBHOOK_URLS.registrations);
 };
 
 export const logAdminAction = (data: AdminActionData, webhookUrl?: string) => {
@@ -578,9 +580,11 @@ export const logAdminAction = (data: AdminActionData, webhookUrl?: string) => {
 };
 
 export const logError = (data: ErrorEventData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.ERROR, data, webhookUrl);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return discordLogger.logEvent(LogEventType.ERROR, data, WEBHOOK_URLS.errors);
 };
 
 export const logSecurityAlert = (data: SecurityAlertData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.SECURITY_ALERT, data, webhookUrl);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return discordLogger.logEvent(LogEventType.SECURITY_ALERT, data, WEBHOOK_URLS.errors);
 }; 
