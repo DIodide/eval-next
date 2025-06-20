@@ -55,7 +55,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-gradient-to-t from-black/60 to-black text-white px-6 py-4">
+    <nav className="sticky top-0 z-51 bg-gradient-to-t from-black/60 to-black text-white px-6 py-4">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
