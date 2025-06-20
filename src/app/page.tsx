@@ -9,10 +9,10 @@ import { FlipWords } from "@/components/ui/flip-words"
 
 // Mock data for ranking previews
 const collegeTriouts = [
-  { id: 1, title: "UCLA Esports VALORANT", school: "UCLA", date: "Dec 15", spots: "5 left" },
-  { id: 2, title: "Stanford Cardinal Gaming", school: "Stanford", date: "Dec 20", spots: "12 left" },
-  { id: 3, title: "UC Berkeley Combine", school: "UC Berkeley", date: "Jan 5", spots: "8 left" },
-  { id: 4, title: "USC Trojans OW2", school: "USC", date: "Dec 18", spots: "6 left" },
+  { id: 1, title: "Princeton Esports Club VALORANT", school: "Princeton", date: "Dec 15", spots: "5 left" },
+  { id: 2, title: "Princeton Esports Club Overwatch 2", school: "Princeton", date: "Dec 20", spots: "12 left" },
+  { id: 3, title: "Princeton Esports Club Rocket League", school: "Princeton", date: "Jan 5", spots: "8 left" },
+  { id: 4, title: "Princeton Esports Club Super Smash Bros Ultimate", school: "Princeton", date: "Dec 18", spots: "6 left" },
 ]
 
 const evalCombines = [
@@ -24,25 +24,25 @@ const evalCombines = [
 
 const testimonials = [
   {
-    name: "Alex Chen",
-    role: "VALORANT Player",
-    school: "UCLA",
+    name: "Placeholder",
+    role: "Placeholder",
+    school: "Placeholder",
     quote:
       "EVAL helped me get noticed by college scouts. I went from unknown to scholarship recipient in just 6 months!",
     avatar: "/placeholder.svg?height=60&width=60",
   },
   {
-    name: "Coach Martinez",
-    role: "Esports Coach",
-    school: "Stanford University",
+    name: "Placeholder",
+    role: "Placeholder",
+    school: "Placeholder",
     quote:
       "The analytics and player insights on EVAL are game-changing. We&apos;ve built our entire roster using this platform.",
     avatar: "/placeholder.svg?height=60&width=60",
   },
   {
-    name: "Sarah Johnson",
-    role: "Rocket League Player",
-    school: "UC Berkeley",
+    name: "Placeholder",
+    role: "Placeholder",
+    school: "Placeholder",
     quote: "The combines on EVAL pushed me to improve my game. Now I&apos;m competing at the highest collegiate level.",
     avatar: "/placeholder.svg?height=60&width=60",
   },
@@ -237,28 +237,26 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-8xl mx-auto">
             <div className="text-center group cursor-pointer">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-red-500/25 group-hover:shadow-red-500/40">
                 <Image
-                  src="/valorant/logos/V_Lockup_Vertical Black.png"
+                  src="/valorant/logos/Lockup_Horizontal_Off_White.png"
                   alt="VALORANT"
-                  width={60}
-                  height={60}
-                  className="object-contain"
+                  width={5000}
+                  height={5000}
+                  className="scale-300"
                 />
-              </div>
-              <h3 className="font-orbitron text-white font-bold group-hover:text-red-400 transition-colors">
+              {/* <h3 className="font-orbitron text-white font-bold group-hover:text-red-400 transition-colors">
                 VALORANT
-              </h3>
+              </h3> */}
             </div>
             <div className="text-center group cursor-pointer">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40">
+              <div className="w-32 h-32 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
                 <Image
-                  src="/rocket-league/logos/bwt_rocket_league.png"
+                  src="/rocket-league/logos/Rocket League Emblem.png"
                   alt="Rocket League"
-                  width={60}
-                  height={60}
+                  width={100}
+                  height={100}
                   className="object-contain"
                 />
               </div>
@@ -267,32 +265,32 @@ export default function HomePage() {
               </h3>
             </div>
             <div className="text-center group cursor-pointer">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40">
+              <div className=" rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
                 <Image
-                  src="/smash/logos/Super Smash Bros Ultimate Black Logo.png"
+                  src="/smash/logos/SSBU Logo Black on White (1).png"
                   alt="Super Smash Bros Ultimate"
-                  width={60}
-                  height={60}
+                  width={400}
+                  height={400}
                   className="object-contain"
                 />
               </div>
-              <h3 className="font-orbitron text-white font-bold group-hover:text-purple-400 transition-colors">
+              {/* <h3 className="font-orbitron text-white font-bold group-hover:text-purple-400 transition-colors">
                 SMASH ULTIMATE
-              </h3>
+              </h3> */}
             </div>
-            <div className="text-center group cursor-pointer">
-              <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-orange-500/25 group-hover:shadow-orange-500/40">
+            <div className="text-center group cursor-pointer flex justify-center items-center">
+              <div className=" rounded-2xl flex items-center justify-center mx-auto px-5 mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
                 <Image
-                  src="/overwatch/logos/Overwatch 2 Secondary Black.png"
+                  src="/overwatch/logos/Overwatch 2 Wordmark.png"
                   alt="Overwatch 2"
-                  width={60}
-                  height={60}
+                  width={500}
+                  height={500}
                   className="object-contain"
                 />
               </div>
-              <h3 className="font-orbitron text-white font-bold group-hover:text-orange-400 transition-colors">
+              {/* <h3 className="font-orbitron text-white font-bold group-hover:text-orange-400 transition-colors">
                 OVERWATCH 2
-              </h3>
+              </h3> */}
             </div>
           </div>
         </div>
