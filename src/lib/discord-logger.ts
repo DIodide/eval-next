@@ -129,7 +129,7 @@ export interface TryoutCreatedData extends BaseEventData {
 }
 
 export interface UserRegistrationData extends BaseEventData {
-  userType: 'coach' | 'player';
+  userType: 'coach' | 'player' | 'not selected';
   registrationMethod: string;
 }
 
