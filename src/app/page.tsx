@@ -232,42 +232,37 @@ export default function HomePage() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">OUR GAMES</h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto font-rajdhani">
-              Compete in the most popular esports titles with comprehensive analytics and recruitment opportunities
+            <p className="text-xl text-gray-300 max-w-5xl mx-auto font-rajdhani">
+              We support the biggest titles in collegiate esports with comprehensive analytics and recruitment opportunities.
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-8xl mx-auto">
-            <div className="text-center group cursor-pointer">
+            <div className="flex items-center justify-center text-center group cursor-pointer hover:scale-110 transition-all duration-300">
                 <Image
-                  src="/valorant/logos/Lockup_Horizontal_Off_White.png"
+                  src="/valorant/logos/Lockup Horizontal Off-White_cropped.png"
                   alt="VALORANT"
                   width={5000}
                   height={5000}
-                  className="scale-300"
+                  className="transition-all duration-300"
                 />
               {/* <h3 className="font-orbitron text-white font-bold group-hover:text-red-400 transition-colors">
                 VALORANT
               </h3> */}
             </div>
-            <div className="text-center group cursor-pointer">
-              <div className="w-32 h-32 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
-                <Image
-                  src="/rocket-league/logos/Rocket League Emblem.png"
+            <div className=" flex items-center justify-center mx-5 text-center group cursor-pointer hover:scale-110 transition-all duration-300">
+              <Image
+                  src="/rocket-league/logos/Rocket League Black and White Logo.png"
                   alt="Rocket League"
-                  width={100}
-                  height={100}
+                  width={750}
+                  height={304}
                   className="object-contain"
                 />
-              </div>
-              <h3 className="font-orbitron text-white font-bold group-hover:text-blue-400 transition-colors">
-                ROCKET LEAGUE
-              </h3>
             </div>
             <div className="text-center group cursor-pointer">
               <div className=" rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
                 <Image
-                  src="/smash/logos/SSBU Logo Black on White (1).png"
+                  src="/smash/logos/SSBU Logo white_trans.png"
                   alt="Super Smash Bros Ultimate"
                   width={400}
                   height={400}
