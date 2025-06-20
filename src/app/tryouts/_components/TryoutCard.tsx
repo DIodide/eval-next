@@ -40,7 +40,7 @@ export default function TryoutCard({ tryout }: { tryout: CardTryout }) {
           src={gameCardImages[tryout.game]} 
           alt={`${tryout.game} background`} 
           fill
-          className="object-cover opacity-80" 
+          className="object-cover opacity-50" 
         />
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-slate-900/30"></div>
@@ -50,7 +50,7 @@ export default function TryoutCard({ tryout }: { tryout: CardTryout }) {
       <CardContent className="relative z-10 p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3 flex-1 mr-4">
-            <div className="w-12 h-12 bg-gray-700/80 backdrop-blur-sm rounded-full flex items-center justify-center">
+            <div className=" bg-gray-700/20 backdrop-blur-sm rounded-full flex items-center justify-center">
               <Image 
                 src={gameIcons[tryout.game]} 
                 alt={tryout.title} 

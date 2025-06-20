@@ -14,10 +14,10 @@ const gameColors = {
 }
 
 export const gameIcons = {
-  "VALORANT": "/valorant/logos/V_Lockup_Vertical Black.png",
-  "Overwatch 2": "/overwatch/logos/Overwatch 2 Secondary Black.png",
-  "Smash Ultimate": "/smash/logos/smash-logo.png",
-  "Rocket League": "/rocket-league/logos/rl-logo.png",
+  "VALORANT": "/valorant/logos/Valorant Logo Red Border.jpg",
+  "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png",
+  "Smash Ultimate": "/smash/logos/Smash Ball White Logo.png",
+  "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
 } as const
 
 export type GameType = keyof typeof gameIcons;
@@ -55,9 +55,7 @@ export default function GameCarousel({ game, tryouts }: { game: GameType; tryout
     <div className="mb-12">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
-          <div
-            className={`w-16 h-16 bg-gradient-to-br ${gameColors[game]} rounded-lg flex items-center justify-center text-2xl`}
-          >
+
             <Image 
               src={gameIcons[game]} 
               alt={game} 
@@ -65,7 +63,7 @@ export default function GameCarousel({ game, tryouts }: { game: GameType; tryout
               height={48} 
               className="object-contain" 
             />
-          </div>
+          
           <h2 className="font-orbitron text-2xl font-bold text-white tracking-wide">{game}</h2>
         </div>
         <div className="flex space-x-2">
