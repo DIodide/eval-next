@@ -16,6 +16,7 @@
     "db:reset:confirm": "prisma migrate reset --force && prisma generate",
     "db:reset:dev": "prisma db push --force-reset && prisma generate",
     "db:reset:script": "./scripts/db-reset.sh",
+    "db:reset:production": "tsx prisma/seed_production.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:profiles": "tsx prisma/seed-game-profiles.ts",
     "db:reset:full": "npm run db:reset:confirm && npm run db:seed",
