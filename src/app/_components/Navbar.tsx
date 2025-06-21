@@ -3,7 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Search, User, GraduationCap, X, Shield } from "lucide-react"
+import { ChevronDown, Search, User, GraduationCap, X, Shield, Menu } from "lucide-react"
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -14,6 +14,7 @@ export default function Navbar() {
   const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Check admin status when user is signed in
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-51 bg-gradient-to-t from-black/60 to-black text-white px-6 py-4">
+    <nav className="lg:sticky lg:top-0 z-50 bg-gradient-to-t from-black/60 to-black text-white px-4 md:px-6 py-4">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
@@ -67,7 +68,8 @@ export default function Navbar() {
           />
         </Link>
 
-        <div className="hidden md:flex items-center space-x-8">
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center space-x-8">
           <SignedIn>
             <Link href="/dashboard" className="font-orbitron hover:text-cyan-400 transition-colors">
               DASHBOARD
@@ -112,6 +114,9 @@ export default function Navbar() {
           </DropdownMenu>
           <Link href="/pricing" className="font-orbitron hover:text-cyan-400 transition-colors">
             PRICING
+          </Link>
+          <Link href="/privacy-policy" className="font-orbitron hover:text-cyan-400 transition-colors">
+            PRIVACY POLICY
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
@@ -187,8 +192,10 @@ export default function Navbar() {
           )}
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="relative">
+        {/* Mobile menu button and user actions */}
+        <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Search - Hidden on mobile, visible on md+ */}
+          <div className="relative hidden md:block">
             <input
               type="text"
               placeholder="PLAYER SEARCH"
@@ -199,32 +206,272 @@ export default function Navbar() {
             </button>
           </div>
 
-          <SignedOut>
-            <Button
-              onClick={() => setShowSignUpModal(true)}
-              variant="outline"
-              className="bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full px-6"
-            >
-              SIGN UP
-            </Button>
-            <SignInButton mode="modal">
-              <Button variant="outline" className="bg-blue-500 hover:bg-blue-600 text-white border-none rounded-full px-6">
-                SIGN IN
+          {/* User buttons - visible on desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            <SignedOut>
+              <Button
+                onClick={() => setShowSignUpModal(true)}
+                variant="outline"
+                className="bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full px-6"
+              >
+                SIGN UP
               </Button>
-            </SignInButton>
-          </SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="outline" className="bg-blue-500 hover:bg-blue-600 text-white border-none rounded-full px-6">
+                  SIGN IN
+                </Button>
+              </SignInButton>
+            </SignedOut>
 
-          <SignedIn>
-            <UserButton 
-              appearance={{
-                elements: {
-                  avatarBox: "w-10 h-10"
-                }
-              }}
-            />
-          </SignedIn>
+            <SignedIn>
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10"
+                  }
+                }}
+              />
+            </SignedIn>
+          </div>
+
+          {/* Mobile UserButton - visible only on mobile */}
+          <div className="md:hidden">
+            <SignedIn>
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
+                }}
+              />
+            </SignedIn>
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-2 rounded-md hover:bg-gray-800 transition-colors"
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-white" />
+            ) : (
+              <Menu className="w-6 h-6 text-white" />
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden bg-black/95 backdrop-blur-sm border-t border-gray-700">
+          <div className="container mx-auto px-4 py-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="PLAYER SEARCH"
+                className="w-full bg-gray-800 text-gray-300 rounded-full pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-gray-600"
+              />
+              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <Search className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            {/* Mobile Navigation Links */}
+            <div className="space-y-3">
+              <SignedIn>
+                <Link 
+                  href="/dashboard" 
+                  className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  DASHBOARD
+                </Link>
+              </SignedIn>
+              
+              <Link 
+                href="/recruiting" 
+                className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                RECRUITING
+              </Link>
+
+              {/* Rankings Submenu */}
+              <div className="space-y-2">
+                <div className="font-orbitron text-white py-2">RANKINGS</div>
+                <div className="pl-4 space-y-2">
+                  <Link 
+                    href="/rankings/leagues"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    LEAGUES
+                  </Link>
+                  <Link 
+                    href="/rankings/combines"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    COMBINES
+                  </Link>
+                </div>
+              </div>
+
+              {/* Tryouts Submenu */}
+              <div className="space-y-2">
+                <div className="font-orbitron text-white py-2">TRYOUTS</div>
+                <div className="pl-4 space-y-2">
+                  <Link 
+                    href="/tryouts/combines"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    EVAL COMBINES
+                  </Link>
+                  <Link 
+                    href="/tryouts/college"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    COLLEGE
+                  </Link>
+                </div>
+              </div>
+
+              <Link 
+                href="/pricing" 
+                className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                PRICING
+              </Link>
+
+              {/* About Us Submenu */}
+              <div className="space-y-2">
+                <div className="font-orbitron text-white py-2">ABOUT US</div>
+                <div className="pl-4 space-y-2">
+                  <Link 
+                    href="/about/partners"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    OUR PARTNERS
+                  </Link>
+                  <Link 
+                    href="/about/team"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    OUR TEAM
+                  </Link>
+                  <Link 
+                    href="/about/contact"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    CONTACT
+                  </Link>
+                  <Link 
+                    href="/about/faq"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    FAQs
+                  </Link>
+                </div>
+              </div>
+
+              {/* Admin Menu for mobile */}
+              {isAdmin && !isCheckingAdmin && (
+                <div className="space-y-2">
+                  <div className="font-orbitron text-red-400 py-2 flex items-center">
+                    <Shield className="w-4 h-4 mr-2" />
+                    ADMIN
+                  </div>
+                  <div className="pl-4 space-y-2">
+                    <Link 
+                      href="/admin"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      ADMIN DASHBOARD
+                    </Link>
+                    <Link 
+                      href="/admin/test-player-profile"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      PLAYER PROFILE TEST
+                    </Link>
+                    <Link 
+                      href="/admin/test-tryouts"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      TRYOUTS TEST
+                    </Link>
+                    <Link 
+                      href="/admin/test-combines"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      COMBINES TEST
+                    </Link>
+                    <Link 
+                      href="/admin/test-messages"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      MESSAGES TEST
+                    </Link>
+                    <Link 
+                      href="/admin/test-player-search"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      PLAYER SEARCH TEST
+                    </Link>
+                    <Link 
+                      href="/admin/settings"
+                      className="block font-orbitron text-gray-300 hover:text-red-400 transition-colors py-1"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      ADMIN SETTINGS
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Auth Buttons */}
+            <div className="pt-4 border-t border-gray-700">
+              <SignedOut>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => {
+                      setShowSignUpModal(true)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="w-full bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full py-2"
+                  >
+                    SIGN UP
+                  </Button>
+                  <SignInButton mode="modal">
+                    <Button 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white border-none rounded-full py-2"
+                    >
+                      SIGN IN
+                    </Button>
+                  </SignInButton>
+                </div>
+              </SignedOut>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sign Up Modal */}
       <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
