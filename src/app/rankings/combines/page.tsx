@@ -197,7 +197,7 @@ export default function CombinesRankingPage() {
   const regions = ["West", "Southwest", "Northwest", "Midwest", "South", "Southeast", "Northeast"]
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
       <div className="container mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <div className="mb-8">

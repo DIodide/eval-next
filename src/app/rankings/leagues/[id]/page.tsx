@@ -54,7 +54,7 @@ export default function LeagueDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
           <p className="text-gray-300 font-rajdhani">Loading league details...</p>
@@ -65,7 +65,7 @@ export default function LeagueDetailPage() {
 
   if (error || !league) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
         <div className="container mx-auto px-6 py-12 text-center">
           <h1 className="font-orbitron text-4xl font-bold text-white mb-4">League Not Found</h1>
           <p className="text-gray-300 mb-8 font-rajdhani">The league you&apos;re looking for doesn&apos;t exist.</p>
@@ -82,7 +82,7 @@ export default function LeagueDetailPage() {
   const statusColor = statusColors[league.status as keyof typeof statusColors] ?? "bg-gray-400 text-white"
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
       <div className="container mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <div className="mb-8">

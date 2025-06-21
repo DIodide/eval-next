@@ -22,7 +22,7 @@ const partners = [
 
 export default function PartnersPage() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
   
 
       <div className="container mx-auto px-6 py-12">
@@ -41,7 +41,7 @@ export default function PartnersPage() {
           <h2 className="font-orbitron text-3xl text-cyan-400 mb-12 text-center">Our Current Partners</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {partners.map((partner, index) => (
-              <Card
+              <Card 
                 key={index}
                 className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/20 flex flex-col"
               >
