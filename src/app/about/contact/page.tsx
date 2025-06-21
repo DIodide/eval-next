@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Mail, Phone, MapPin, Send, MessageSquare } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Mail, Phone, MapPin, Send, MessageSquare, CheckCircle, AlertCircle } from "lucide-react"
+import { env } from "@/env"
 
 export default function AboutContactPage() {
   const [formData, setFormData] = useState({
@@ -23,27 +25,106 @@ export default function AboutContactPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const sendToDiscord = async (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    category: string;
+    subject: string;
+    message: string;
+  }) => { 
+    const webhookUrl = env.NEXT_PUBLIC_DISCORD_WEBHOOK_CONTACT as string | undefined
+    if (!webhookUrl) {
+      console.warn("Discord webhook URL not configured")
+      return false
+    }
+
+    try {
+      const embed = {
+        title: "New Contact Form Submission",
+        color: 0x00FFFF, // Cyan color to match the theme
+        fields: [
+          {
+            name: "👤 Name",
+            value: `${data.firstName} ${data.lastName}`,
+            inline: true
+          },
+          {
+            name: "📧 Email",
+            value: data.email,
+            inline: true
+          },
+          {
+            name: "🏷️ Category",
+            value: data.category,
+            inline: true
+          },
+          {
+            name: "📝 Subject",
+            value: data.subject,
+            inline: false
+          },
+          {
+            name: "💬 Message",
+            value: data.message.length > 1000 
+              ? data.message.substring(0, 1000) + "..."
+              : data.message,
+            inline: false
+          }
+        ],
+        timestamp: new Date().toISOString(),
+        footer: {
+          text: "EVAL Contact Form"
+        }
+      }
+
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          embeds: [embed]
+        }),
+      })
+
+      return response.ok
+    } catch (error) {
+      console.error("Failed to send to Discord:", error)
+      return false
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    console.log("Form submitted:", formData)
-    alert("Thank you for your message! We'll get back to you within 24 hours.")
-
-    // Reset form
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      category: "",
-      subject: "",
-      message: "",
-    })
-
-    setIsSubmitting(false)
+    try {
+      // Send to Discord
+      const discordSuccess = await sendToDiscord(formData)
+      
+      if (discordSuccess) {
+        alert("Thank you for your message! We'll get back to you within 24 hours.")
+        console.log("Form submitted successfully:", formData)
+        
+        // Reset form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          category: "",
+          subject: "",
+          message: "",
+        })
+      } else {
+        alert("There was an issue sending your message. Please try again or contact us directly.")
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+      alert("There was an issue sending your message. Please try again or contact us directly.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {

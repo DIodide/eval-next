@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 import { env } from "@/env";
 
 // Discord webhook configuration types
@@ -71,6 +71,8 @@ export const WEBHOOK_URLS = {
   security: env.DISCORD_WEBHOOK_SECURITY ?? '',
   errors: env.DISCORD_WEBHOOK_ERRORS ?? '',
   registrations: env.DISCORD_WEBHOOK_REGISTRATIONS ?? '',
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  contact: env.NEXT_PUBLIC_DISCORD_WEBHOOK_CONTACT ?? '',
 } as const;
 
 // Event routing - which events go to which webhooks
