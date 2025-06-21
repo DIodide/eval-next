@@ -1,11 +1,16 @@
+"use client"
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, User, Quote } from "lucide-react"
+import { Trophy, User, Quote, GraduationCap, X } from "lucide-react"
 import FAQSection from "./_components/FAQSection"
 import { FlipWords } from "@/components/ui/flip-words"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { SignUpButton, SignInButton, useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 // Mock data for ranking previews
 const collegeTriouts = [
@@ -49,6 +54,38 @@ const testimonials = [
 ]
 
 export default function HomePage() {
+  const { user } = useUser()
+  const router = useRouter()
+  const [showSignUpModal, setShowSignUpModal] = useState(false)
+  const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
+
+  const handleUserTypeSelect = (userType: 'player' | 'coach') => {
+    setSelectedUserType(userType)
+  }
+
+  const handleSignUp = () => {
+    if (selectedUserType) {
+      setShowSignUpModal(false)
+      // Reset selection after a brief delay to allow modal to close
+      setTimeout(() => setSelectedUserType(null), 300)
+    }
+  }
+
+  const resetAndCloseModal = () => {
+    setSelectedUserType(null)
+    setShowSignUpModal(false)
+  }
+
+  const handleGetStarted = () => {
+    if (user) {
+      // User is signed in, redirect to dashboard
+      router.push('/dashboard')
+    } else {
+      // User is not signed in, show signup modal
+      setShowSignUpModal(true)
+    }
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -108,18 +145,22 @@ export default function HomePage() {
 
           {/* Dual CTA Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-black font-bold px-8 py-4 text-lg font-orbitron tracking-wider shadow-lg shadow-cyan-400/25"
-            >
-              FOR PLAYERS
-            </Button>
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-black font-bold px-8 py-4 text-lg font-orbitron tracking-wider shadow-lg shadow-orange-400/25"
-            >
-              FOR COACHES
-            </Button>
+            <Link href="/recruiting">
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-black font-bold px-8 py-4 text-lg font-orbitron tracking-wider shadow-lg shadow-cyan-400/25"
+              >
+                FOR PLAYERS
+              </Button>
+            </Link>
+            <Link href="/recruiting">
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-black font-bold px-8 py-4 text-lg font-orbitron tracking-wider shadow-lg shadow-orange-400/25"
+              >
+                FOR COACHES
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -342,12 +383,124 @@ export default function HomePage() {
           </p>
           <Button
             size="lg"
+            onClick={handleGetStarted}
             className="bg-white hover:bg-gray-100 text-black font-bold px-12 py-6 text-xl font-orbitron tracking-wider shadow-2xl hover:shadow-white/20 hover:scale-105 transition-all duration-300"
           >
             GET STARTED TODAY
           </Button>
         </div>
       </section>
+
+      {/* Sign Up Modal */}
+      <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
+        <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">CHOOSE YOUR ACCOUNT TYPE</h2>
+              <p className="text-slate-300 text-sm">
+                Empowering students and college coaches to connect.
+              </p>
+            </div>
+
+            {/* Horizontal Options */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Player Option */}
+              <button
+                onClick={() => handleUserTypeSelect('player')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'player'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'player' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <User className={`w-6 h-6 ${
+                      selectedUserType === 'player' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">PLAYER</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a player looking to find an esports scholarship and related opportunities.
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* College Option */}
+              <button
+                onClick={() => handleUserTypeSelect('coach')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'coach'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'coach' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <GraduationCap className={`w-6 h-6 ${
+                      selectedUserType === 'coach' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">SCHOOL</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a coach, director or administrator looking to make finding players easier.
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Sign Up Button */}
+            {selectedUserType ? (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: selectedUserType }}
+              >
+                <Button
+                  onClick={handleSignUp}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-medium shadow-lg"
+                >
+                  SIGN UP AS {selectedUserType === 'coach' ? 'SCHOOL' : selectedUserType.toUpperCase()}
+                </Button>
+              </SignUpButton>
+            ) : (
+              <Button
+                disabled
+                className="w-full bg-slate-700 text-slate-500 rounded-lg py-3 font-medium cursor-not-allowed"
+              >
+                SIGN UP
+              </Button>
+            )}
+
+            {/* Sign In Link */}
+            <div className="text-center">
+              <SignInButton mode="modal">
+                <button 
+                  onClick={resetAndCloseModal}
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                >
+                  Already have an account? Sign In
+                </button>
+              </SignInButton>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
