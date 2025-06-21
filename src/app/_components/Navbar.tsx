@@ -348,6 +348,14 @@ export default function Navbar() {
                 PRICING
               </Link>
 
+              <Link 
+                href="/privacy-policy" 
+                className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                PRIVACY POLICY
+              </Link>
+
               {/* About Us Submenu */}
               <div className="space-y-2">
                 <div className="font-orbitron text-white py-2">ABOUT US</div>

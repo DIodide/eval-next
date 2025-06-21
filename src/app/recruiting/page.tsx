@@ -1,9 +1,29 @@
+"use client"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, BarChart3, MessageSquare, Users, Trophy, GraduationCap, Eye, Award, UserCheck } from "lucide-react"
+import { SignUpButton, useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
+  const { user } = useUser()
+  const router = useRouter()
+
+  const handlePlayerSignup = () => {
+    if (user) {
+      router.push('/dashboard/player')
+    }
+    // If user is not signed in, the SignUpButton will handle the signup
+  }
+
+  const handleCoachSignup = () => {
+    if (user) {
+      router.push('/dashboard/coaches')
+    }
+    // If user is not signed in, the SignUpButton will handle the signup
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -49,9 +69,23 @@ export default function HomePage() {
                   Get noticed by college scouts
                 </li>
               </ul>
-              <Button className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-semibold py-3">
-                START YOUR JOURNEY
-              </Button>
+              {user ? (
+                <Button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-semibold py-3"
+                >
+                  START YOUR JOURNEY
+                </Button>
+              ) : (
+                <SignUpButton
+                  mode="modal"
+                  unsafeMetadata={{ userType: "player" }}
+                >
+                  <Button className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-semibold py-3">
+                    START YOUR JOURNEY
+                  </Button>
+                </SignUpButton>
+              )}
             </div>
 
             {/* Coaches Path */}
@@ -75,9 +109,23 @@ export default function HomePage() {
                   Direct communication tools
                 </li>
               </ul>
-              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-black font-semibold py-3">
-                FIND TALENT
-              </Button>
+              {user ? (
+                <Button 
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full bg-orange-400 hover:bg-orange-500 text-black font-semibold py-3"
+                >
+                  FIND TALENT
+                </Button>
+              ) : (
+                <SignUpButton
+                  mode="modal"
+                  unsafeMetadata={{ userType: "coach" }}
+                >
+                  <Button className="w-full bg-orange-400 hover:bg-orange-500 text-black font-semibold py-3">
+                    FIND TALENT
+                  </Button>
+                </SignUpButton>
+              )}
             </div>
           </div>
         </div>
@@ -127,9 +175,24 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button size="lg" className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4">
-              CREATE PLAYER PROFILE
-            </Button>
+            {user ? (
+              <Button 
+                onClick={() => router.push('/dashboard')}
+                size="lg" 
+                className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4"
+              >
+                CREATE PLAYER PROFILE
+              </Button>
+            ) : (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: "player" }}
+              >
+                <Button size="lg" className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4">
+                  CREATE PLAYER PROFILE
+                </Button>
+              </SignUpButton>
+            )}
           </div>
         </div>
       </section>
@@ -177,9 +240,24 @@ export default function HomePage() {
           </div>
 
           <div className="text-center mt-12">
-            <Button size="lg" className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4">
-              START RECRUITING
-            </Button>
+            {user ? (
+              <Button 
+                onClick={() => router.push('/dashboard')}
+                size="lg" 
+                className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4"
+              >
+                START RECRUITING
+              </Button>
+            ) : (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: "coach" }}
+              >
+                <Button size="lg" className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4">
+                  START RECRUITING
+                </Button>
+              </SignUpButton>
+            )}
           </div>
         </div>
       </section>
@@ -295,18 +373,48 @@ export default function HomePage() {
             Join the platform that&apos;s revolutionizing esports recruitment and player development
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center max-w-2xl mx-auto">
-            <Button
-              size="lg"
-              className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4 text-lg flex-1"
-            >
-              JOIN AS PLAYER
-            </Button>
-            <Button
-              size="lg"
-              className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4 text-lg flex-1"
-            >
-              JOIN AS COACH
-            </Button>
+            {user ? (
+              <Button
+                onClick={() => router.push('/dashboard')}
+                size="lg"
+                className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4 text-lg flex-1"
+              >
+                JOIN AS PLAYER
+              </Button>
+            ) : (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: "player" }}
+              >
+                <Button
+                  size="lg"
+                  className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4 text-lg flex-1"
+                >
+                  JOIN AS PLAYER
+                </Button>
+              </SignUpButton>
+            )}
+            {user ? (
+              <Button
+                onClick={() => router.push('/dashboard')}
+                size="lg"
+                className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4 text-lg flex-1"
+              >
+                JOIN AS COACH
+              </Button>
+            ) : (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: "coach" }}
+              >
+                <Button
+                  size="lg"
+                  className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4 text-lg flex-1"
+                >
+                  JOIN AS COACH
+                </Button>
+              </SignUpButton>
+            )}
           </div>
         </div>
       </section>

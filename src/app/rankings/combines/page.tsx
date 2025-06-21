@@ -341,7 +341,7 @@ export default function CombinesRankingPage() {
             players.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-            <Link href="/tryouts/college">
+            <Link href="/tryouts/combines">
             <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 tracking-wider">
               JOIN NEXT COMBINE
             </Button>
