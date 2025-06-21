@@ -115,7 +115,7 @@ export default function Navbar() {
           <Link href="/pricing" className="font-orbitron hover:text-cyan-400 transition-colors">
             PRICING
           </Link>
-          <Link href="/privacy-policy" className="font-orbitron hover:text-cyan-400 transition-colors">
+          <Link href="https://evalgaming.com/privacy-policy" className="font-orbitron hover:text-cyan-400 transition-colors">
             PRIVACY POLICY
           </Link>
           <DropdownMenu>
