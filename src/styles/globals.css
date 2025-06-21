@@ -10,12 +10,13 @@
 /* Global Background Image */
 .global-background {
   background-image: url('/eval/recruitment_bg.png');
+  background-color: #0f0f1a;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
   min-height: 100vh;
-  width: 100%;
+  max-width: 100vw;
 }
 
 .tryouts-combine-background {
@@ -25,7 +26,20 @@
   background-size: cover;
   background-attachment: fixed;
   min-height: 100vh;
-  width: 100%;
+  max-width: 100vw;
+}
+
+/* Remove fixed background attachment on mobile devices */
+@media (max-width: 768px) {
+  .global-background {
+    background-image: none;
+    background-attachment: scroll;
+  }
+  
+  .tryouts-combine-background {
+    background-image: none;
+    background-attachment: scroll;
+  }
 }
 
 
