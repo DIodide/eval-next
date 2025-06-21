@@ -44,7 +44,7 @@ export default function AboutContactPage() {
     subject: string;
     message: string;
   }) => { 
-    const webhookUrl = env.NEXT_PUBLIC_DISCORD_WEBHOOK_CONTACT as string | undefined
+    const webhookUrl = env.NEXT_PUBLIC_DISCORD_WEBHOOK_CONTACT!
     if (!webhookUrl) {
       console.warn("Discord webhook URL not configured")
       return false
