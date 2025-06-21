@@ -24,6 +24,17 @@ export default function AboutContactPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  })
 
   const sendToDiscord = async (data: {
     firstName: string;
@@ -104,7 +115,12 @@ export default function AboutContactPage() {
       const discordSuccess = await sendToDiscord(formData)
       
       if (discordSuccess) {
-        alert("Thank you for your message! We'll get back to you within 24 hours.")
+        setModalState({
+          isOpen: true,
+          type: 'success',
+          title: 'Message Sent Successfully!',
+          message: "Thank you for your message! We'll get back to you within 24 hours."
+        })
         console.log("Form submitted successfully:", formData)
         
         // Reset form
@@ -117,11 +133,21 @@ export default function AboutContactPage() {
           message: "",
         })
       } else {
-        alert("There was an issue sending your message. Please try again or contact us directly.")
+        setModalState({
+          isOpen: true,
+          type: 'error',
+          title: 'Message Failed to Send',
+          message: 'There was an issue sending your message. Please try again or contact us directly at support@evalgaming.com.'
+        })
       }
     } catch (error) {
       console.error("Form submission error:", error)
-      alert("There was an issue sending your message. Please try again or contact us directly.")
+      setModalState({
+        isOpen: true,
+        type: 'error', 
+        title: 'Message Failed to Send',
+        message: 'There was an issue sending your message. Please try again or contact us directly at support@evalgaming.com.'
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -356,6 +382,37 @@ export default function AboutContactPage() {
           </div>
         </div>
       </div>
+
+      {/* Success/Error Modal */}
+      <Dialog open={modalState.isOpen} onOpenChange={(open) => setModalState(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron text-xl tracking-wide flex items-center gap-3">
+              {modalState.type === 'success' ? (
+                <CheckCircle className="w-6 h-6 text-green-400" />
+              ) : (
+                <AlertCircle className="w-6 h-6 text-red-400" />
+              )}
+              {modalState.title}
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 font-rajdhani text-base leading-relaxed pt-2">
+              {modalState.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end pt-4">
+            <Button
+              onClick={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+              className={`font-orbitron font-bold tracking-wider ${
+                modalState.type === 'success' 
+                  ? 'bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-black'
+                  : 'bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white'
+              }`}
+            >
+              CLOSE
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )
