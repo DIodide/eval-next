@@ -1,5 +1,4 @@
 "use client"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, BarChart3, MessageSquare, Users, Trophy, GraduationCap, Eye, Award, UserCheck } from "lucide-react"
@@ -71,7 +70,7 @@ export default function HomePage() {
               </ul>
               {user ? (
                 <Button 
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push('/dashboard/player')}
                   className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-semibold py-3"
                 >
                   START YOUR JOURNEY
@@ -111,7 +110,7 @@ export default function HomePage() {
               </ul>
               {user ? (
                 <Button 
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push('/dashboard/coaches')}
                   className="w-full bg-orange-400 hover:bg-orange-500 text-black font-semibold py-3"
                 >
                   FIND TALENT
@@ -177,7 +176,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             {user ? (
               <Button 
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/dashboard/player')}
                 size="lg" 
                 className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4"
               >
@@ -242,7 +241,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             {user ? (
               <Button 
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/dashboard/coaches')}
                 size="lg" 
                 className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4"
               >
@@ -375,7 +374,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center max-w-2xl mx-auto">
             {user ? (
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/dashboard/player')}
                 size="lg"
                 className="bg-cyan-400 hover:bg-cyan-500 text-black font-semibold px-8 py-4 text-lg flex-1"
               >
@@ -396,7 +395,7 @@ export default function HomePage() {
             )}
             {user ? (
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/dashboard/coaches')}
                 size="lg"
                 className="bg-orange-400 hover:bg-orange-500 text-black font-semibold px-8 py-4 text-lg flex-1"
               >
