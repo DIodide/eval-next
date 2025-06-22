@@ -30,6 +30,7 @@ import {
   CalendarIcon,
   TrashIcon
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -382,11 +383,112 @@ export default function CoachProfilePage() {
 
   if (profileLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
-          <div className="text-white font-rajdhani">Loading profile...</div>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-32" />
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Profile Information Skeleton */}
+          <div className="lg:col-span-2">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white font-orbitron">
+                  <Skeleton className="h-6 w-40" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Profile Header Skeleton */}
+                <div className="flex items-center space-x-4">
+                  <Skeleton className="w-20 h-20 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-56" />
+                  </div>
+                </div>
+
+                <Separator className="bg-gray-700" />
+
+                {/* Form Fields Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* School Association Skeleton */}
+          <div>
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white font-orbitron">
+                  <Skeleton className="h-6 w-40" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-gray-800 rounded-lg">
+                  <div className="space-y-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-6 w-full" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
+                </div>
+                <Skeleton className="h-10 w-full" />
+                <div className="p-3 bg-gray-800 rounded-lg">
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Achievements Skeleton */}
+        <Card className="bg-gray-900 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white font-orbitron flex items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-8 w-36" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="bg-gray-800 border-gray-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-64" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-8 w-8" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -654,9 +756,56 @@ export default function CoachProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {schoolLoading && (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500"></div>
-                <span className="ml-2 text-gray-400">Loading school details...</span>
+              <div className="space-y-6">
+                {/* Basic Info Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                </div>
+
+                <Separator className="bg-gray-700" />
+
+                {/* Editable Fields Skeleton */}
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -905,9 +1054,23 @@ export default function CoachProfilePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {achievementsLoading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500"></div>
-              <span className="ml-2 text-gray-400">Loading achievements...</span>
+            <div className="space-y-3">
+              {[...Array(2)].map((_, i) => (
+                <Card key={i} className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-5 w-64" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
 
