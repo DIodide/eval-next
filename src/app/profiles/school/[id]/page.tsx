@@ -12,68 +12,42 @@ import { Label } from "@/components/ui/label";
 import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
 import { api } from "@/trpc/react";
+import Image from "next/image";
 
-const mockSchoolData = {
-  id: "princeton",
-  name: "Princeton University",
-  location: "Princeton, NJ",
-  logo: "/eval/logos/PU_mark.svg",
-  bio: "Princeton University's esports program represents the pinnacle of competitive gaming excellence in the Ivy League. We field teams across multiple premier titles including Valorant, League of Legends, Overwatch, and Rocket League. Our student-athletes balance academic rigor with competitive gaming, consistently achieving top placements in collegiate tournaments while maintaining Princeton's academic standards.",
-  website: "https://esports.princeton.edu",
-  email: "esports@princeton.edu",
-  phone: "(609) 258-3000",
-  coaches: [
-    {
-      id: "coach-1",
-      name: "Sarah Johnson",
-      title: "Head Coach",
-      image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZc", // Example Clerk image URL
-      games: ["Valorant", "Overwatch"],
-      achievements: ["National Champion 2023", "Regional Winner 2022", "Coach of the Year 2023"],
-      isPrimary: true,
-      email: "s.johnson@princeton.edu"
-    },
-    {
-      id: "coach-2", 
-      name: "Michael Chen",
-      title: "Assistant Coach",
-      image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZd", // Example Clerk image URL
-      games: ["Rocket League", "Smash Bros"],
-      achievements: ["Ivy League Champion 2023", "NACE Tournament Winner 2022"],
-      isPrimary: false,
-      email: "m.chen@princeton.edu"
-    },
-    {
-      id: "coach-3",
-      name: "Alex Rodriguez",
-      title: "Strategy Coach",
-      image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZe", // Example Clerk image URL
-      games: ["League of Legends", "Valorant"],
-      achievements: ["Collegiate World Championship 2022", "Ivy League Winner 2023"],
-      isPrimary: false,
-      email: "a.rodriguez@princeton.edu"
-    },
-    {
-      id: "coach-4",
-      name: "Jennifer Kim",
-      title: "Performance Coach",
-      image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZf", // Example Clerk image URL
-      games: ["Overwatch", "Apex Legends"],
-      achievements: ["NACE Championship 2023", "Princeton Excellence Award 2022"],
-      isPrimary: false,
-      email: "j.kim@princeton.edu"
-    },
-    {
-      id: "coach-5",
-      name: "David Park",
-      title: "Analyst Coach",
-      image_url: "https://images.clerk.dev/uploaded/img_2eYI2aJ1NCbh9u7V4dP5kpZKHZg", // Example Clerk image URL
-      games: ["Valorant", "CS2"],
-      achievements: ["Data Analytics Excellence 2023", "Ivy Innovation Award 2022"],
-      isPrimary: false,
-      email: "d.park@princeton.edu"
-    }
-  ]
+// Types for coach data
+interface CoachData {
+  id: string;
+  first_name: string;
+  last_name: string;
+  username: string | null;
+  image_url: string | null;
+  email: string;
+  created_at: Date;
+}
+
+interface TransformedCoach {
+  id: string;
+  name: string;
+  title: string;
+  image_url: string | null;
+  games: string[];
+  achievements: string[];
+  isPrimary: boolean;
+  email: string;
+}
+
+// Helper function to transform coach data to match the expected format
+const transformCoachData = (coaches: CoachData[]): TransformedCoach[] => {
+  return coaches.map((coach, index) => ({
+    id: coach.id,
+    name: `${coach.first_name} ${coach.last_name}`,
+    title: index === 0 ? "Head Coach" : "Assistant Coach", // First coach is head coach
+    image_url: coach.image_url,
+    games: ["Multiple Games"], // We'll need to add this data to the backend later
+    achievements: ["E-Sports Collegiate Experience"], // We'll need to add this data to the backend later
+    isPrimary: index === 0, // First coach is primary
+    email: coach.email,
+  }));
 };
 
 interface SchoolProfilePageProps {
@@ -138,7 +112,7 @@ function MessageCoachDialog({ coachId, coachName }: { coachId: string; coachName
   );
 }
 
-function CoachCarousel({ coaches, canMessage }: { coaches: typeof mockSchoolData.coaches; canMessage: boolean }) {
+function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; canMessage: boolean }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerPage = 2;
   const totalPages = Math.ceil(coaches.length / itemsPerPage);
@@ -193,9 +167,8 @@ function CoachCarousel({ coaches, canMessage }: { coaches: typeof mockSchoolData
             )}
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                                 {/* Coach Avatar */}
                  <Avatar className="w-16 h-16">
-                   <AvatarImage src={coach.image_url} alt={coach.name} />
+                   <AvatarImage src={coach.image_url ?? undefined} alt={coach.name} />
                    <AvatarFallback className="text-lg bg-gray-700 text-white font-orbitron">
                      {coach.name.split(' ').map(n => n[0]).join('')}
                    </AvatarFallback>
@@ -333,9 +306,27 @@ const formatTime = (timeStart?: string | null, timeEnd?: string | null) => {
 export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   const { user } = useUser();
   const unwrappedParams = use(params);
-  const school = mockSchoolData;
-  const primaryCoach = school.coaches.find(coach => coach.isPrimary);
-  const primaryContact = primaryCoach?.email ?? school.email;
+  
+  // Fetch school data using tRPC
+  const { data: schoolData, isLoading: isLoadingSchool, error: schoolError } = api.schoolProfile.getById.useQuery({
+    id: unwrappedParams.id,
+  });
+  
+  // Transform the data to match expected format
+  const school = schoolData ? {
+    id: schoolData.id,
+    name: schoolData.name,
+    location: `${schoolData.location}, ${schoolData.state}`,
+    logo: schoolData.logo_url ?? "/eval/logos/emblem.png", // Fallback logo
+    bio: schoolData.bio ?? "Welcome to our esports program. We are committed to excellence in competitive gaming.",
+    website: schoolData.website ?? "",
+    email: schoolData.email ?? "",
+    phone: schoolData.phone ?? "",
+    coaches: transformCoachData(schoolData.coaches),
+  } : null;
+  
+  const primaryCoach = school?.coaches.find((coach: TransformedCoach) => coach.isPrimary);
+  const primaryContact = primaryCoach?.email ?? school?.email ?? "";
   const canMessage = user ? hasPermission(user, "message_coach") : false;
   const [tryoutFilter, setTryoutFilter] = useState<"all" | "upcoming" | "past">("all")
   const [tryoutGameFilter, setTryoutGameFilter] = useState<string>("all")
@@ -386,6 +377,63 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
     };
   }, [allTryoutsData?.total, upcomingTryoutsData?.total, pastTryoutsData?.total]);
 
+  // Handle loading state
+  if (isLoadingSchool) {
+    return (
+      <div className="min-h-screen bg-gray-900 py-8">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <Card className="mb-8 bg-gray-800 border-gray-700">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (schoolError) {
+    return (
+      <div className="min-h-screen bg-gray-900 py-8">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <Card className="mb-8 bg-gray-800 border-gray-700">
+            <CardContent className="p-8">
+              <div className="text-center py-16">
+                <h1 className="text-2xl font-orbitron font-bold mb-4 text-red-400">School Not Found</h1>
+                <p className="text-gray-400 font-rajdhani">
+                  The school you&apos;re looking for doesn&apos;t exist or may have been removed.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle case where school data is null
+  if (!school) {
+    return (
+      <div className="min-h-screen bg-gray-900 py-8">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <Card className="mb-8 bg-gray-800 border-gray-700">
+            <CardContent className="p-8">
+              <div className="text-center py-16">
+                <h1 className="text-2xl font-orbitron font-bold mb-4 text-gray-400">No School Data</h1>
+                <p className="text-gray-400 font-rajdhani">
+                  Unable to load school information at this time.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -395,7 +443,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
             <div className="flex flex-col md:flex-row items-start gap-8">
               {/* School Logo and Basic Info */}
               <div className="flex flex-col items-center md:items-start">
-                <img src={school.logo} alt={school.name} className="w-32 h-32 rounded-lg mb-4" />
+                <Image src={school.logo} alt={school.name} width={128} height={128} className="w-32 h-32 rounded-lg mb-4 p-1" />
                 <div className="text-center md:text-left">
                   <h1 className="text-3xl font-orbitron font-bold mb-2 text-white">{school.name}</h1>
                   <div className="flex items-center gap-2 text-gray-400 mb-4">
@@ -417,32 +465,38 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                   <div>
                     <h3 className="font-orbitron font-semibold text-gray-300 mb-3">Contact Information</h3>
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <div className="text-sm text-gray-400 font-rajdhani">Primary Contact:</div>
-                          <a href={`mailto:${primaryContact}`} className="text-cyan-400 hover:text-cyan-300 font-rajdhani">
-                            {primaryContact}
+                      {primaryContact && (
+                        <div className="flex items-center gap-3">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm text-gray-400 font-rajdhani">Primary Contact:</div>
+                            <a href={`mailto:${primaryContact}`} className="text-cyan-400 hover:text-cyan-300 font-rajdhani">
+                              {primaryContact}
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {school.phone && (
+                        <div className="flex items-center gap-3">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <a href={`tel:${school.phone}`} className="text-gray-300 font-rajdhani">
+                            {school.phone}
                           </a>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <a href={`tel:${school.phone}`} className="text-gray-300 font-rajdhani">
-                          {school.phone}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a 
-                          href={school.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-cyan-400 hover:text-cyan-300 font-rajdhani"
-                        >
-                          Official Website
-                        </a>
-                      </div>
+                      )}
+                      {school.website && (
+                        <div className="flex items-center gap-3">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a 
+                            href={school.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-cyan-400 hover:text-cyan-300 font-rajdhani"
+                          >
+                            Official Website
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -455,7 +509,8 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 font-rajdhani">Games Offered:</span>
-                        <span className="text-sm text-gray-300 font-rajdhani">6+</span>
+                        {/* TODO: Add Number From DB */}
+                        <span className="text-sm text-gray-300 font-rajdhani">Multiple</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 font-rajdhani">Program Type:</span>
@@ -477,7 +532,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
             <div className="xl:col-span-2">
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-8">
-                  <CoachCarousel coaches={school.coaches} canMessage={canMessage} />
+                  <CoachCarousel coaches={school?.coaches || []} canMessage={canMessage} />
                 </CardContent>
               </Card>
             </div>
