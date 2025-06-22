@@ -48,6 +48,16 @@ export const schoolProfileRouter = createTRPCRouter({
               image_url: true,
               email: true,
               created_at: true,
+              achievements: {
+                select: {
+                  id: true,
+                  title: true,
+                  date_achieved: true,
+                },
+                orderBy: {
+                  date_achieved: 'desc',
+                },
+              },
             },
             orderBy: {
               created_at: 'asc',

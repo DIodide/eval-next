@@ -24,7 +24,11 @@ import {
   InfoIcon,
   EditIcon,
   MailIcon,
-  PhoneIcon
+  PhoneIcon,
+  TrophyIcon,
+  PlusIcon,
+  CalendarIcon,
+  TrashIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
@@ -46,6 +50,8 @@ export default function CoachProfilePage() {
   const [isEditingSchool, setIsEditingSchool] = useState(false);
   const [hasUnsavedSchoolChanges, setHasUnsavedSchoolChanges] = useState(false);
   const [schoolValidationErrors, setSchoolValidationErrors] = useState<ValidationErrors>({});
+  const [isAddingAchievement, setIsAddingAchievement] = useState(false);
+  const [editingAchievementId, setEditingAchievementId] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -63,6 +69,12 @@ export default function CoachProfilePage() {
     logo_url: "",
   });
 
+  // Achievement form state
+  const [achievementFormData, setAchievementFormData] = useState({
+    title: "",
+    date_achieved: "",
+  });
+
   // Fetch coach profile
   const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = api.coachProfile.getProfile.useQuery();
 
@@ -73,6 +85,9 @@ export default function CoachProfilePage() {
       enabled: !!profile?.school_id, // Only fetch if coach has a school association
     }
   );
+
+  // Fetch coach achievements
+  const { data: achievements, isLoading: achievementsLoading, refetch: refetchAchievements } = api.coachProfile.getAchievements.useQuery();
 
   // Mutations
   const updateProfileMutation = api.coachProfile.updateProfile.useMutation({
@@ -97,6 +112,40 @@ export default function CoachProfilePage() {
     },
     onError: (error) => {
       toast.error(`Failed to update school information: ${error.message}`);
+    },
+  });
+
+  const createAchievementMutation = api.coachProfile.createAchievement.useMutation({
+    onSuccess: () => {
+      setIsAddingAchievement(false);
+      setAchievementFormData({ title: "", date_achieved: "" });
+      void refetchAchievements();
+      toast.success("Achievement added successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to add achievement: ${error.message}`);
+    },
+  });
+
+  const updateAchievementMutation = api.coachProfile.updateAchievement.useMutation({
+    onSuccess: () => {
+      setEditingAchievementId(null);
+      setAchievementFormData({ title: "", date_achieved: "" });
+      void refetchAchievements();
+      toast.success("Achievement updated successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to update achievement: ${error.message}`);
+    },
+  });
+
+  const deleteAchievementMutation = api.coachProfile.deleteAchievement.useMutation({
+    onSuccess: () => {
+      void refetchAchievements();
+      toast.success("Achievement deleted successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete achievement: ${error.message}`);
     },
   });
 
@@ -256,6 +305,52 @@ export default function CoachProfilePage() {
           return newErrors;
         });
       }, 0);
+    }
+  };
+
+  // Achievement handlers
+  const handleAddAchievement = () => {
+    if (!achievementFormData.title.trim() || !achievementFormData.date_achieved) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    createAchievementMutation.mutate({
+      title: achievementFormData.title.trim(),
+      date_achieved: new Date(achievementFormData.date_achieved),
+    });
+  };
+
+  const handleEditAchievement = (achievement: { id: string; title: string; date_achieved: Date }) => {
+    setEditingAchievementId(achievement.id);
+    setAchievementFormData({
+      title: achievement.title,
+      date_achieved: achievement.date_achieved.toISOString().split('T')[0] ?? "",
+    });
+  };
+
+  const handleUpdateAchievement = () => {
+    if (!achievementFormData.title.trim() || !achievementFormData.date_achieved || !editingAchievementId) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    updateAchievementMutation.mutate({
+      id: editingAchievementId,
+      title: achievementFormData.title.trim(),
+      date_achieved: new Date(achievementFormData.date_achieved),
+    });
+  };
+
+  const handleCancelAchievement = () => {
+    setIsAddingAchievement(false);
+    setEditingAchievementId(null);
+    setAchievementFormData({ title: "", date_achieved: "" });
+  };
+
+  const handleDeleteAchievement = (id: string) => {
+    if (confirm("Are you sure you want to delete this achievement?")) {
+      deleteAchievementMutation.mutate({ id });
     }
   };
 
@@ -789,6 +884,227 @@ export default function CoachProfilePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Achievements Panel */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white font-orbitron flex items-center justify-between">
+            <div className="flex items-center">
+              <TrophyIcon className="w-5 h-5 mr-2" />
+              <span>Achievements</span>
+            </div>
+            <Button
+              onClick={() => setIsAddingAchievement(true)}
+              size="sm"
+              className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+            >
+              <PlusIcon className="w-4 h-4 mr-2" />
+              Add Achievement
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {achievementsLoading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500"></div>
+              <span className="ml-2 text-gray-400">Loading achievements...</span>
+            </div>
+          )}
+
+          {/* Add Achievement Form */}
+          {isAddingAchievement && (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-white font-orbitron">Add New Achievement</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="achievement_title" className="text-white font-rajdhani">
+                      Achievement Title
+                    </Label>
+                    <Input
+                      id="achievement_title"
+                      value={achievementFormData.title}
+                      onChange={(e) => setAchievementFormData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g., Regional Championship Winner"
+                      className="bg-gray-900 border-gray-600 text-white mt-1"
+                      maxLength={200}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="achievement_date" className="text-white font-rajdhani flex items-center">
+                      <CalendarIcon className="w-4 h-4 mr-1" />
+                      Date Achieved
+                    </Label>
+                    <Input
+                      id="achievement_date"
+                      type="date"
+                      value={achievementFormData.date_achieved}
+                      onChange={(e) => setAchievementFormData(prev => ({ ...prev, date_achieved: e.target.value }))}
+                      className="bg-gray-900 border-gray-600 text-white mt-1"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelAchievement}
+                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                  >
+                    <XIcon className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddAchievement}
+                    disabled={createAchievementMutation.isPending}
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                  >
+                    {createAchievementMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <SaveIcon className="w-4 h-4 mr-2" />
+                    )}
+                    Add Achievement
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Achievements List */}
+          {achievements && achievements.length > 0 ? (
+            <div className="space-y-3">
+              {achievements.map((achievement) => (
+                <Card key={achievement.id} className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-4">
+                    {editingAchievementId === achievement.id ? (
+                      // Edit mode
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor={`edit_title_${achievement.id}`} className="text-white font-rajdhani">
+                              Achievement Title
+                            </Label>
+                            <Input
+                              id={`edit_title_${achievement.id}`}
+                              value={achievementFormData.title}
+                              onChange={(e) => setAchievementFormData(prev => ({ ...prev, title: e.target.value }))}
+                              className="bg-gray-900 border-gray-600 text-white mt-1"
+                              maxLength={200}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`edit_date_${achievement.id}`} className="text-white font-rajdhani flex items-center">
+                              <CalendarIcon className="w-4 h-4 mr-1" />
+                              Date Achieved
+                            </Label>
+                            <Input
+                              id={`edit_date_${achievement.id}`}
+                              type="date"
+                              value={achievementFormData.date_achieved}
+                              onChange={(e) => setAchievementFormData(prev => ({ ...prev, date_achieved: e.target.value }))}
+                              className="bg-gray-900 border-gray-600 text-white mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <Button
+                            variant="outline"
+                            onClick={handleCancelAchievement}
+                            className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                          >
+                            <XIcon className="w-4 h-4 mr-2" />
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleUpdateAchievement}
+                            disabled={updateAchievementMutation.isPending}
+                            className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                          >
+                            {updateAchievementMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <SaveIcon className="w-4 h-4 mr-2" />
+                            )}
+                            Update Achievement
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // View mode
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-orbitron font-semibold text-white mb-1">
+                            {achievement.title}
+                          </h4>
+                          <div className="flex items-center text-gray-400 text-sm">
+                            <CalendarIcon className="w-4 h-4 mr-1" />
+                            <span className="font-rajdhani">
+                              {new Date(achievement.date_achieved).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditAchievement(achievement)}
+                            className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                          >
+                            <EditIcon className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteAchievement(achievement.id)}
+                            disabled={deleteAchievementMutation.isPending}
+                            className="border-red-600 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                          >
+                            <TrashIcon className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            !achievementsLoading && (
+              <div className="text-center py-8">
+                <TrophyIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-orbitron text-gray-400 mb-2">No Achievements Yet</h3>
+                <p className="text-gray-500 font-rajdhani mb-4">
+                  Add your coaching achievements to showcase your experience on your school&apos;s public profile.
+                </p>
+                <Button
+                  onClick={() => setIsAddingAchievement(true)}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                >
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Add Your First Achievement
+                </Button>
+              </div>
+            )
+          )}
+
+          {/* Info Box */}
+          <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <InfoIcon className="w-4 h-4 text-blue-400 mt-0.5" />
+              <div className="text-xs text-blue-300">
+                <p className="font-semibold mb-1">Achievement Display</p>
+                <p>These achievements will be displayed on your school&apos;s public profile page to showcase your coaching experience and accomplishments.</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

@@ -79,8 +79,24 @@ model Coach {
   school_requests   SchoolAssociationRequest[]
   teams             Team[]
   tryouts_created   Tryout[]
+  achievements      CoachAchievement[]
 
   @@map("coaches")
+}
+
+/// Coach achievements for display on public profiles
+model CoachAchievement {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  coach_id      String   @db.Uuid
+  title         String
+  date_achieved DateTime @db.Date
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @updatedAt
+  coach         Coach    @relation(fields: [coach_id], references: [id], onDelete: Cascade)
+
+  @@index([coach_id])
+  @@index([date_achieved])
+  @@map("coach_achievements")
 }
 
 /// School association requests for coach onboarding

@@ -23,6 +23,11 @@ interface CoachData {
   image_url: string | null;
   email: string;
   created_at: Date;
+  achievements: Array<{
+    id: string;
+    title: string;
+    date_achieved: Date;
+  }>;
 }
 
 interface TransformedCoach {
@@ -31,7 +36,11 @@ interface TransformedCoach {
   title: string;
   image_url: string | null;
   games: string[];
-  achievements: string[];
+  achievements: Array<{
+    id: string;
+    title: string;
+    date_achieved: Date;
+  }>;
   isPrimary: boolean;
   email: string;
 }
@@ -44,7 +53,7 @@ const transformCoachData = (coaches: CoachData[]): TransformedCoach[] => {
     title: index === 0 ? "Head Coach" : "Assistant Coach", // First coach is head coach
     image_url: coach.image_url,
     games: ["Multiple Games"], // We'll need to add this data to the backend later
-    achievements: ["E-Sports Collegiate Experience"], // We'll need to add this data to the backend later
+    achievements: coach.achievements || [],
     isPrimary: index === 0, // First coach is primary
     email: coach.email,
   }));
@@ -213,12 +222,22 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
                   <div>
                     <div className="text-sm text-gray-400 mb-2 font-rajdhani">Recent Achievements:</div>
                     <div className="space-y-1">
-                      {coach.achievements.slice(0, 2).map((achievement, index) => (
-                        <div key={index} className="flex items-center gap-2">
+                      {coach.achievements.length > 0 ? (
+                        coach.achievements.slice(0, 2).map((achievement) => (
+                          <div key={achievement.id} className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                            <span className="text-sm text-gray-300 font-rajdhani">{achievement.title}</span>
+                            <span className="text-xs text-gray-500 font-rajdhani">
+                              ({new Date(achievement.date_achieved).getFullYear()})
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                          <span className="text-sm text-gray-300 font-rajdhani">{achievement}</span>
+                          <span className="text-sm text-gray-300 font-rajdhani">E-Sports Coaching Experience</span>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 </div>
@@ -322,7 +341,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
     website: schoolData.website ?? "",
     email: schoolData.email ?? "",
     phone: schoolData.phone ?? "",
-    coaches: transformCoachData(schoolData.coaches),
+    coaches: transformCoachData(schoolData.coaches as CoachData[]),
   } : null;
   
   const primaryCoach = school?.coaches.find((coach: TransformedCoach) => coach.isPrimary);

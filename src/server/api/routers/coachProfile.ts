@@ -21,6 +21,21 @@ const profileUpdateSchema = z.object({
   school_id: z.string().uuid().optional(),
 });
 
+const achievementCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+  date_achieved: z.date(),
+});
+
+const achievementUpdateSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  date_achieved: z.date(),
+});
+
+const achievementDeleteSchema = z.object({
+  id: z.string().uuid(),
+});
+
 const schoolAssociationRequestSchema = z.object({
   school_id: z.string().uuid().optional(),
   request_message: z.string().min(10).max(500).optional(),
@@ -671,6 +686,157 @@ export const coachProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch recent activity',
+        });
+      }
+    }),
+
+  // Get coach achievements
+  getAchievements: coachProcedure
+    .query(async ({ ctx }) => {
+      const coachId = ctx.coachId; // Available from coachProcedure context
+      
+      try {
+        const achievements = await withRetry(() =>
+          ctx.db.coachAchievement.findMany({
+            where: { coach_id: coachId },
+            orderBy: { date_achieved: 'desc' },
+          })
+        );
+        
+        return achievements;
+      } catch (error) {
+        console.error('Error fetching coach achievements:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch achievements',
+        });
+      }
+    }),
+
+  // Create a new achievement
+  createAchievement: coachProcedure
+    .input(achievementCreateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId; // Available from coachProcedure context
+      
+      try {
+        const achievement = await withRetry(() =>
+          ctx.db.coachAchievement.create({
+            data: {
+              coach_id: coachId,
+              title: input.title,
+              date_achieved: input.date_achieved,
+            },
+          })
+        );
+        
+        return achievement;
+      } catch (error) {
+        console.error('Error creating achievement:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create achievement',
+        });
+      }
+    }),
+
+  // Update an existing achievement
+  updateAchievement: coachProcedure
+    .input(achievementUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId; // Available from coachProcedure context
+      
+      try {
+        // Verify the achievement belongs to this coach
+        const existingAchievement = await withRetry(() =>
+          ctx.db.coachAchievement.findUnique({
+            where: { id: input.id },
+            select: { coach_id: true },
+          })
+        );
+
+        if (!existingAchievement) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Achievement not found',
+          });
+        }
+
+        if (existingAchievement.coach_id !== coachId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot update another coach\'s achievement',
+          });
+        }
+
+        const achievement = await withRetry(() =>
+          ctx.db.coachAchievement.update({
+            where: { id: input.id },
+            data: {
+              title: input.title,
+              date_achieved: input.date_achieved,
+              updated_at: new Date(),
+            },
+          })
+        );
+        
+        return achievement;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating achievement:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update achievement',
+        });
+      }
+    }),
+
+  // Delete an achievement
+  deleteAchievement: coachProcedure
+    .input(achievementDeleteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId; // Available from coachProcedure context
+      
+      try {
+        // Verify the achievement belongs to this coach
+        const existingAchievement = await withRetry(() =>
+          ctx.db.coachAchievement.findUnique({
+            where: { id: input.id },
+            select: { coach_id: true },
+          })
+        );
+
+        if (!existingAchievement) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Achievement not found',
+          });
+        }
+
+        if (existingAchievement.coach_id !== coachId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot delete another coach\'s achievement',
+          });
+        }
+
+        await withRetry(() =>
+          ctx.db.coachAchievement.delete({
+            where: { id: input.id },
+          })
+        );
+        
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error deleting achievement:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete achievement',
         });
       }
     }),
