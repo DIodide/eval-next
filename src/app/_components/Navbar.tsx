@@ -56,15 +56,15 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="lg:sticky lg:top-0 z-50 bg-gradient-to-t from-black/60 to-black text-white px-4 md:px-6 py-4">
+    <nav className="lg:sticky lg:top-0 z-50 bg-gradient-to-t from-black/60 to-black text-white px-4 py-4">
       <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="items-center flex-shrink-0">
           <Image
             src="/eval/logos/eLOGO_white.png"
             alt="EVAL Logo"
             width={80}
             height={40}
-            className="object-contain"
+            className="object-contain w-20 h-10 "
           />
         </Link>
 
