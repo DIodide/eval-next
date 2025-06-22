@@ -21,6 +21,7 @@ import {
   LockIcon
 } from "lucide-react";
 import { isCoachOnboarded } from "@/lib/permissions";
+import { api } from "@/trpc/react";
 
 // Define protected routes that require onboarding
 const protectedRoutes = [
@@ -28,53 +29,6 @@ const protectedRoutes = [
   "/dashboard/coaches/prospects", 
   "/dashboard/coaches/tryouts",
   "/dashboard/coaches/messages"
-];
-
-const sidebarItems = [
-  {
-    title: "EVAL Home",
-    href: "/dashboard/coaches",
-    icon: HomeIcon,
-    requiresOnboarding: false,
-  },
-  {
-    title: "Profile",
-    href: "/dashboard/coaches/profile",
-    icon: UserIcon,
-    requiresOnboarding: false,
-    subItems: [
-      {
-        title: "Public Profile",
-        href: "/dashboard/coaches/public-profile",
-        icon: EyeIcon,
-        requiresOnboarding: false,
-      }
-    ]
-  },
-  {
-    title: "Player Search",
-    href: "/dashboard/coaches/player-search",
-    icon: SearchIcon,
-    requiresOnboarding: true,
-  },
-  {
-    title: "My Prospects",
-    href: "/dashboard/coaches/prospects",
-    icon: UsersIcon,
-    requiresOnboarding: true,
-  },
-  {
-    title: "My Tryouts",
-    href: "/dashboard/coaches/tryouts",
-    icon: TrophyIcon,
-    requiresOnboarding: true,
-  },
-  {
-    title: "Messages",
-    href: "/dashboard/coaches/messages",
-    icon: MessageSquareIcon,
-    requiresOnboarding: true,
-  },
 ];
 
 export default function CoachesDashboardLayout({
@@ -86,6 +40,11 @@ export default function CoachesDashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoaded } = useUser();
+
+  // Fetch coach profile to get school association
+  const { data: profile } = api.coachProfile.getProfile.useQuery(undefined, {
+    enabled: isLoaded && !!user,
+  });
 
   // Check if user is a coach
   if (isLoaded && user) {
@@ -117,6 +76,55 @@ export default function CoachesDashboardLayout({
   }
 
   const isOnboarded = user ? isCoachOnboarded(user) : false;
+
+  // Define sidebar items with dynamic public profile link
+  const sidebarItems = [
+    {
+      title: "EVAL Home",
+      href: "/dashboard/coaches",
+      icon: HomeIcon,
+      requiresOnboarding: false,
+    },
+    {
+      title: "Profile",
+      href: "/dashboard/coaches/profile",
+      icon: UserIcon,
+      requiresOnboarding: false,
+      subItems: [
+        // Only show public profile link for onboarded coaches with school association
+        ...(isOnboarded && profile?.school_id ? [{
+          title: "Public Profile",
+          href: `/profiles/school/${profile.school_id}`,
+          icon: EyeIcon,
+          requiresOnboarding: true,
+        }] : [])
+      ]
+    },
+    {
+      title: "Player Search",
+      href: "/dashboard/coaches/player-search",
+      icon: SearchIcon,
+      requiresOnboarding: true,
+    },
+    {
+      title: "My Prospects",
+      href: "/dashboard/coaches/prospects",
+      icon: UsersIcon,
+      requiresOnboarding: true,
+    },
+    {
+      title: "My Tryouts",
+      href: "/dashboard/coaches/tryouts",
+      icon: TrophyIcon,
+      requiresOnboarding: true,
+    },
+    {
+      title: "Messages",
+      href: "/dashboard/coaches/messages",
+      icon: MessageSquareIcon,
+      requiresOnboarding: true,
+    },
+  ];
 
   return (
     <div className="flex h-screen bg-[#0f0f1a]">
@@ -199,8 +207,8 @@ export default function CoachesDashboardLayout({
                       </Link>
                     )}
 
-                    {/* Sub-items (always visible for Profile) */}
-                    {item.subItems && (
+                    {/* Sub-items (only show if they exist) */}
+                    {item.subItems && item.subItems.length > 0 && (
                       <ul className="ml-4 mt-2 space-y-1">
                         {item.subItems.map((subItem) => {
                           const SubIcon = subItem.icon;
