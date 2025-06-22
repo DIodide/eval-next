@@ -491,7 +491,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                       </div>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {[...Array(2)].map((_, i) => (
+                        {Array.from({ length: 2 }).map((_, i) => (
                           <Card key={i} className="bg-gray-900 border-gray-700">
                             <CardContent className="p-6">
                               <div className="flex items-start gap-4">
@@ -535,7 +535,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-4">
-                      {[...Array(4)].map((_, i) => (
+                      {Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="border-l-4 border-cyan-500 pl-4 py-2">
                           <div className="space-y-2">
                             <Skeleton className="h-3 w-16" />
@@ -580,7 +580,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
 
                 {/* Tryouts Grid Skeleton */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[...Array(6)].map((_, i) => (
+                  {Array.from({ length: 6 }).map((_, i) => (
                     <Card key={i} className="bg-gray-900 border-gray-700">
                       <CardContent className="p-6 space-y-4">
                         <div className="flex items-start justify-between">
@@ -950,7 +950,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {isLoadingTryouts ? (
                     <>
-                      {[...Array(6)].map((_, i) => (
+                      {Array.from({ length: 6 }).map((_, i) => (
                         <Card key={i} className="bg-gray-900 border-gray-700">
                           <CardContent className="p-6 space-y-4">
                             <div className="flex items-start justify-between">

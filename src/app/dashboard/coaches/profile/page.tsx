@@ -44,6 +44,14 @@ interface ValidationErrors {
   logo_url?: string;
 }
 
+interface Achievement {
+  id: string;
+  title: string;
+  date_achieved: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export default function CoachProfilePage() {
   const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);
@@ -88,7 +96,11 @@ export default function CoachProfilePage() {
   );
 
   // Fetch coach achievements
-  const { data: achievements, isLoading: achievementsLoading, refetch: refetchAchievements } = api.coachProfile.getAchievements.useQuery();
+  const { data: achievements, isLoading: achievementsLoading, refetch: refetchAchievements } = api.coachProfile.getAchievements.useQuery() as {
+    data: Achievement[] | undefined;
+    isLoading: boolean;
+    refetch: () => void;
+  };
 
   // Mutations
   const updateProfileMutation = api.coachProfile.updateProfile.useMutation({
@@ -471,7 +483,7 @@ export default function CoachProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[...Array(3)].map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i} className="bg-gray-800 border-gray-700">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -1055,7 +1067,7 @@ export default function CoachProfilePage() {
         <CardContent className="space-y-4">
           {achievementsLoading && (
             <div className="space-y-3">
-              {[...Array(2)].map((_, i) => (
+              {Array.from({ length: 2 }).map((_, i) => (
                 <Card key={i} className="bg-gray-800 border-gray-700">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
