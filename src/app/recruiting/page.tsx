@@ -101,7 +101,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center">
                   <Users className="w-4 h-4 text-orange-400 mr-2" />
-                  Access to 10K+ players
+                  Access to nationwide recruiting
                 </li>
                 <li className="flex items-center">
                   <MessageSquare className="w-4 h-4 text-orange-400 mr-2" />
@@ -342,13 +342,15 @@ export default function HomePage() {
 
       {/* Stats Section */}
       <section className="bg-black text-white py-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="container mx-auto px-6 flex flex-col items-center justify-center">
+          <div className="text-6xl font-bold text-white mb-4">CLAIM YOUR SCHOLARSHIP TODAY</div>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-8 text-center">
             <div>
               <h3 className="text-4xl font-bold text-cyan-400 mb-2">$50M+</h3>
               <p className="text-gray-400">Scholarships Available</p>
             </div>
-            <div>
+            
+            {/* <div>
               <h3 className="text-4xl font-bold text-cyan-400 mb-2">10K+</h3>
               <p className="text-gray-400">Active Players</p>
             </div>
@@ -359,7 +361,7 @@ export default function HomePage() {
             <div>
               <h3 className="text-4xl font-bold text-orange-400 mb-2">1K+</h3>
               <p className="text-gray-400">Active Coaches</p>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
