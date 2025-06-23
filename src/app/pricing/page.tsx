@@ -6,15 +6,54 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Check, X, Zap, Calendar, BarChart3, Trophy, Users, GraduationCap, Target } from "lucide-react"
+import { Check, X, Zap, Calendar, BarChart3, Trophy, Users, GraduationCap, Target, User } from "lucide-react"
 import Link from "next/link"
+import { SignUpButton, SignInButton, useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 export default function PricingPage() {
+  const { user } = useUser()
+  const router = useRouter()
   const [requestDemoOpen, setRequestDemoOpen] = useState(false)
+  const [showSignUpModal, setShowSignUpModal] = useState(false)
+  const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
 
   const handleScheduleDemo = () => {
     window.open("https://calendly.com/evalgaming/eval-demo", "_blank")
     setRequestDemoOpen(false)
+  }
+
+  const handleUserTypeSelect = (userType: 'player' | 'coach') => {
+    setSelectedUserType(userType)
+  }
+
+  const handleSignUp = () => {
+    if (selectedUserType) {
+      setShowSignUpModal(false)
+      // Reset selection after a brief delay to allow modal to close
+      setTimeout(() => setSelectedUserType(null), 300)
+    }
+  }
+
+  const resetAndCloseModal = () => {
+    setSelectedUserType(null)
+    setShowSignUpModal(false)
+  }
+
+  const handlePlayerCTA = () => {
+    if (user) {
+      router.push('/dashboard/player')
+    } else {
+      setShowSignUpModal(true)
+    }
+  }
+
+  const handleCoachCTA = () => {
+    if (user) {
+      router.push('/dashboard/coaches')
+    } else {
+      setShowSignUpModal(true)
+    }
   }
 
   return (
@@ -107,7 +146,12 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-gray-700 hover:bg-gray-600 text-white font-orbitron">GET STARTED</Button>
+                  <Button 
+                    onClick={handlePlayerCTA}
+                    className="w-full bg-gray-700 hover:bg-gray-600 text-white font-orbitron"
+                  >
+                    GET STARTED
+                  </Button>
                 </CardFooter>
               </Card>
 
@@ -253,7 +297,12 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-gray-700 hover:bg-gray-600 text-white font-orbitron">GET STARTED</Button>
+                  <Button 
+                    onClick={handleCoachCTA}
+                    className="w-full bg-gray-700 hover:bg-gray-600 text-white font-orbitron"
+                  >
+                    GET STARTED
+                  </Button>
                 </CardFooter>
               </Card>
 
@@ -299,7 +348,10 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-orange-400 hover:bg-orange-500 text-black font-orbitron">
+                  <Button 
+                    onClick={handleCoachCTA}
+                    className="w-full bg-orange-400 hover:bg-orange-500 text-black font-orbitron"
+                  >
                     UPGRADE NOW
                   </Button>
                 </CardFooter>
@@ -353,7 +405,10 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-purple-400 hover:bg-purple-500 text-black font-orbitron">
+                  <Button 
+                    onClick={handleCoachCTA}
+                    className="w-full bg-purple-400 hover:bg-purple-500 text-black font-orbitron"
+                  >
                     GO PREMIUM
                   </Button>
                 </CardFooter>
@@ -552,6 +607,117 @@ export default function PricingPage() {
                   </a>
                 </div>
               </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sign Up Modal */}
+      <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
+        <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">CHOOSE YOUR ACCOUNT TYPE</h2>
+              <p className="text-slate-300 text-sm">
+                Empowering students and college coaches to connect.
+              </p>
+            </div>
+
+            {/* Horizontal Options */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Player Option */}
+              <button
+                onClick={() => handleUserTypeSelect('player')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'player'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'player' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <User className={`w-6 h-6 ${
+                      selectedUserType === 'player' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">PLAYER</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a player looking to find an esports scholarship and related opportunities.
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* College Option */}
+              <button
+                onClick={() => handleUserTypeSelect('coach')}
+                className={`p-6 rounded-lg border-2 text-center transition-all ${
+                  selectedUserType === 'coach'
+                    ? 'border-blue-400 bg-blue-900/50 shadow-lg shadow-blue-500/20'
+                    : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
+                    selectedUserType === 'coach' 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-slate-500 bg-slate-700/50'
+                  }`}>
+                    <GraduationCap className={`w-6 h-6 ${
+                      selectedUserType === 'coach' ? 'text-blue-400' : 'text-slate-400'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-2">SCHOOL</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      I am a coach, director or administrator looking to make finding players easier.
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Sign Up Button */}
+            {selectedUserType ? (
+              <SignUpButton
+                mode="modal"
+                unsafeMetadata={{ userType: selectedUserType }}
+              >
+                <Button
+                  onClick={handleSignUp}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-medium shadow-lg"
+                >
+                  SIGN UP AS {selectedUserType === 'coach' ? 'SCHOOL' : selectedUserType.toUpperCase()}
+                </Button>
+              </SignUpButton>
+            ) : (
+              <Button
+                disabled
+                className="w-full bg-slate-700 text-slate-500 rounded-lg py-3 font-medium cursor-not-allowed"
+              >
+                SIGN UP
+              </Button>
+            )}
+
+            {/* Sign In Link */}
+            <div className="text-center">
+              <SignInButton mode="modal">
+                <button 
+                  onClick={resetAndCloseModal}
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                >
+                  Already have an account? Sign In
+                </button>
+              </SignInButton>
             </div>
           </div>
         </DialogContent>
