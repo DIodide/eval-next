@@ -77,7 +77,7 @@ export default function PricingPage() {
                 <CardContent className="pb-4">
                   <div className="mb-4">
                     <p className="text-4xl font-orbitron text-white mb-2">$0</p>
-                    <p className="text-gray-400 font-rajdhani">Forever free</p>
+                    <p className="text-gray-400 font-rajdhani">Free pilot</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
@@ -227,7 +227,7 @@ export default function PricingPage() {
                 <CardContent className="pb-4">
                   <div className="mb-4">
                     <p className="text-4xl font-orbitron text-white mb-2">$0</p>
-                    <p className="text-gray-400 font-rajdhani">Forever free</p>
+                    <p className="text-gray-400 font-rajdhani">Free pilot</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
@@ -239,8 +239,8 @@ export default function PricingPage() {
                       <span className="text-gray-300">Browse player profiles</span>
                     </li>
                     <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Contact up to 5 players per month</span>
+                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-500">Contact players in curated e-sports recruiting database</span>
                     </li>
                     <li className="flex items-start">
                       <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
@@ -268,7 +268,7 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="pb-4">
                   <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$15</p>
+                    <p className="text-4xl font-orbitron text-white mb-2">$0</p>
                     <p className="text-gray-400 font-rajdhani">per month</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
@@ -282,11 +282,11 @@ export default function PricingPage() {
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Contact up to 30 players per month</span>
+                      <span className="text-gray-300">Contact up to 100 players per month</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Create up to 3 tryouts</span>
+                      <span className="text-gray-300">Create up to 4 tryouts per month</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
@@ -318,7 +318,7 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="pb-4">
                   <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$40</p>
+                    <p className="text-4xl font-orbitron text-white mb-2">$0</p>
                     <p className="text-gray-400 font-rajdhani">per month</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
