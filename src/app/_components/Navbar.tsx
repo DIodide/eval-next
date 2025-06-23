@@ -115,9 +115,6 @@ export default function Navbar() {
           <Link href="/pricing" className="font-orbitron hover:text-cyan-400 transition-colors">
             PRICING
           </Link>
-          <Link href="https://evalgaming.com/privacy-policy" className="font-orbitron hover:text-cyan-400 transition-colors">
-            PRIVACY POLICY
-          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
@@ -348,13 +345,6 @@ export default function Navbar() {
                 PRICING
               </Link>
 
-              <Link 
-                href="/privacy-policy" 
-                className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                PRIVACY POLICY
-              </Link>
 
               {/* About Us Submenu */}
               <div className="space-y-2">
