@@ -887,9 +887,9 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                           <p className="text-gray-400 text-sm font-rajdhani">
                             {announcement.content}
                           </p>
-                          {announcement.author && (
+                          {announcement.author_id && (
                             <div className="mt-2 text-xs text-gray-500 font-rajdhani">
-                              by {announcement.author.first_name} {announcement.author.last_name}
+                              by Coach
                             </div>
                           )}
                         </div>

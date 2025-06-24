@@ -514,7 +514,7 @@ export const schoolProfileRouter = createTRPCRouter({
           ),
           withRetry(() =>
             ctx.db.schoolAnnouncement.count({ where })
-          ) as Promise<number>,
+          ),
         ]);
 
         return {
