@@ -661,21 +661,20 @@ export const combinesRouter = createTRPCRouter({
       }
     }),
 
-  // Update registration status and qualification (coaches only)
-  updateRegistrationStatus: onboardedCoachProcedure
+  // Update registration status and qualification (admin only)
+  updateRegistrationStatus: adminProcedure
     .input(combineRegistrationStatusSchema)
     .mutation(async ({ ctx, input }) => {
-      const { coachId } = ctx;
-
       try {
-        // Verify coach owns this combine
+        // Get registration to verify it exists
         const registration = await withRetry(() =>
           ctx.db.combineRegistration.findUnique({
             where: { id: input.registration_id },
             include: {
               combine: {
                 select: {
-                  coach_id: true,
+                  id: true,
+                  title: true,
                 },
               },
             },
@@ -686,13 +685,6 @@ export const combinesRouter = createTRPCRouter({
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Registration not found',
-          });
-        }
-
-        if (registration.combine.coach_id !== coachId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cannot update registration for combine you don\'t organize',
           });
         }
 
