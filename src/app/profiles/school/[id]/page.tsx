@@ -323,6 +323,49 @@ const formatTime = (timeStart?: string | null, timeEnd?: string | null) => {
   return `${timeStart} - ${timeEnd}`;
 };
 
+// Get announcement type colors
+const getAnnouncementColor = (type: string) => {
+  switch (type) {
+    case "TRYOUT":
+      return "border-cyan-500 bg-cyan-400";
+    case "ACHIEVEMENT":
+      return "border-green-500 bg-green-400";
+    case "FACILITY":
+      return "border-yellow-500 bg-yellow-400";
+    case "SCHOLARSHIP":
+      return "border-purple-500 bg-purple-400";
+    case "ALUMNI":
+      return "border-blue-500 bg-blue-400";
+    case "EVENT":
+      return "border-indigo-500 bg-indigo-400";
+    case "SEASON_REVIEW":
+      return "border-red-500 bg-red-400";
+    default: // GENERAL
+      return "border-gray-500 bg-gray-400";
+  }
+};
+
+// Format relative time
+const formatRelativeTime = (date: Date) => {
+  const now = new Date();
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) {
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    return diffInMinutes < 1 ? "Just now" : `${diffInMinutes} minutes ago`;
+  } else if (diffInHours < 24) {
+    return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
+  } else {
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
+    } else {
+      const diffInWeeks = Math.floor(diffInDays / 7);
+      return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`;
+    }
+  }
+};
+
 export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   const { user } = useUser();
   const unwrappedParams = use(params);
@@ -362,6 +405,12 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   // Get available games for filtering
   const { data: availableGamesData } = api.schoolProfile.getAvailableGames.useQuery({
     schoolId: unwrappedParams.id,
+  });
+
+  // Get school announcements
+  const { data: announcementsData, isLoading: isLoadingAnnouncements } = api.schoolProfile.getAnnouncements.useQuery({
+    schoolId: unwrappedParams.id,
+    limit: 10,
   });
 
   // Since filtering is now done on the server, we can use the data directly
@@ -796,72 +845,67 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {/* Mock announcements */}
-                  <div className="border-l-4 border-cyan-500 pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                      <span className="text-xs text-gray-400 font-rajdhani">2 hours ago</span>
+                  {isLoadingAnnouncements ? (
+                    // Loading skeleton
+                    <div className="space-y-4">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="border-l-4 border-gray-600 pl-4 py-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Skeleton className="w-2 h-2 rounded-full" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                          <Skeleton className="h-4 w-48 mb-1" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-3/4" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Valorant Tryouts Starting Soon</h4>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      Registration for our Valorant team tryouts opens next Monday. Check your email for details.
-                    </p>
-                  </div>
-
-                  <div className="border-l-4 border-green-500 pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-gray-400 font-rajdhani">1 day ago</span>
+                  ) : announcementsData?.announcements && announcementsData.announcements.length > 0 ? (
+                    // Real announcements
+                    announcementsData.announcements.map((announcement) => {
+                      const colors = getAnnouncementColor(announcement.type);
+                      const [borderColor, dotColor] = colors.split(' ');
+                      
+                      return (
+                        <div key={announcement.id} className={`border-l-4 ${borderColor} pl-4 py-2`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-2 h-2 ${dotColor} rounded-full`}></div>
+                            <span className="text-xs text-gray-400 font-rajdhani">
+                              {formatRelativeTime(new Date(announcement.created_at))}
+                            </span>
+                            {announcement.is_pinned && (
+                              <Badge variant="outline" className="text-xs px-1 py-0 border-yellow-400 text-yellow-400">
+                                Pinned
+                              </Badge>
+                            )}
+                          </div>
+                          <h4 className="font-orbitron font-semibold text-sm text-white mb-1">
+                            {announcement.title}
+                          </h4>
+                          <p className="text-gray-400 text-sm font-rajdhani">
+                            {announcement.content}
+                          </p>
+                          {announcement.author && (
+                            <div className="mt-2 text-xs text-gray-500 font-rajdhani">
+                              by {announcement.author.first_name} {announcement.author.last_name}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    // Empty state
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <span className="text-2xl">📢</span>
+                      </div>
+                      <p className="text-gray-400 font-rajdhani">
+                        No announcements yet. Check back later for program updates!
+                      </p>
                     </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Championship Victory!</h4>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      Our Overwatch team secured 1st place in the Pacific Coast Championship. Congratulations!
-                    </p>
-                  </div>
-
-                  <div className="border-l-4 border-yellow-500 pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                      <span className="text-xs text-gray-400 font-rajdhani">3 days ago</span>
-                    </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">New Training Facility</h4>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      Our new Princeton Esports Center is now open with 25 high-end gaming stations in Frist Campus Center.
-                    </p>
-                  </div>
-
-                  <div className="border-l-4 border-purple-500 pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                      <span className="text-xs text-gray-400 font-rajdhani">1 week ago</span>
-                    </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Princeton Esports Scholarship</h4>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      Announcing our new Princeton Esports Excellence Scholarship for outstanding student-athletes.
-                    </p>
-                  </div>
-
-                  <div className="border-l-4 border-blue-500 pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span className="text-xs text-gray-400 font-rajdhani">1 week ago</span>
-                    </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Alumni Spotlight</h4>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      Princeton graduate Emma Thompson &apos;23 signs with Cloud9 professional Valorant team.
-                    </p>
-                  </div>
-
-                  <div className="border-l-4 border-red-500 pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                      <span className="text-xs text-gray-400 font-rajdhani">2 weeks ago</span>
-                    </div>
-                    <h4 className="font-orbitron font-semibold text-sm text-white mb-1">Season Review Meeting</h4>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      All team members are invited to our end-of-season review and planning session.
-                    </p>
-                  </div>
+                  )}
                 </div>
                 
                 {/* View All Button */}
