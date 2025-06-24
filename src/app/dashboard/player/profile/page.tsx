@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,8 @@ import {
   LoaderIcon,
   SaveIcon,
   CheckIcon,
-  UserIcon
+  UserIcon,
+  ShieldIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { neobrutalism } from "@clerk/themes";
@@ -38,6 +40,7 @@ interface GameConnection {
   icon: React.ComponentType<{ className?: string }>;
   displayName: string;
   color: string;
+  requiresOAuth?: boolean; // New field to indicate OAuth requirement
 }
 
 interface SocialConnection {
@@ -47,6 +50,7 @@ interface SocialConnection {
   icon: React.ComponentType<{ className?: string }>;
   displayName: string;
   color: string;
+  requiresOAuth?: boolean; // New field to indicate OAuth requirement
 }
 
 interface ProfileData {
@@ -107,6 +111,18 @@ export default function ProfilePage() {
     onSuccess: () => {
       void refetchProfile();
       setConnectionUsername("");
+      setSelectedPlatform("");
+      setConnectionError("");
+      setIsEditingGameConnections(false);
+    },
+    onError: (error) => {
+      setConnectionError(error.message);
+    }
+  });
+
+  const updateOAuthMutation = api.playerProfile.updateOAuthConnection.useMutation({
+    onSuccess: () => {
+      void refetchProfile();
       setSelectedPlatform("");
       setConnectionError("");
       setIsEditingGameConnections(false);
@@ -249,15 +265,17 @@ export default function ProfilePage() {
       connected: false,
       icon: MonitorIcon,
       displayName: "Steam",
-      color: "bg-blue-600"
+      color: "bg-blue-600",
+      requiresOAuth: false
     },
     {
       platform: "valorant",
       username: "",
       connected: false,
-      icon: GamepadIcon,
+      icon: ShieldIcon,
       displayName: "VALORANT",
-      color: "bg-red-600"
+      color: "bg-red-600",
+      requiresOAuth: true // Valorant uses OAuth
     },
     {
       platform: "battlenet",
@@ -265,7 +283,8 @@ export default function ProfilePage() {
       connected: false,
       icon: GamepadIcon,
       displayName: "Battle.net",
-      color: "bg-blue-500"
+      color: "bg-blue-500",
+      requiresOAuth: false
     },
     {
       platform: "epicgames",
@@ -273,7 +292,8 @@ export default function ProfilePage() {
       connected: false,
       icon: GamepadIcon,
       displayName: "Epic Games",
-      color: "bg-gray-600"
+      color: "bg-gray-600",
+      requiresOAuth: false
     },
     {
       platform: "startgg",
@@ -281,7 +301,8 @@ export default function ProfilePage() {
       connected: false,
       icon: GamepadIcon,
       displayName: "start.gg",
-      color: "bg-purple-600"
+      color: "bg-purple-600",
+      requiresOAuth: false
     }
   ];
 
@@ -301,7 +322,8 @@ export default function ProfilePage() {
       connected: false,
       icon: MessageCircleIcon,
       displayName: "Discord",
-      color: "bg-indigo-600"
+      color: "bg-indigo-600",
+      requiresOAuth: true // Discord uses OAuth
     },
     {
       platform: "instagram",
@@ -329,22 +351,54 @@ export default function ProfilePage() {
     }
   ];
 
-  // Create connection arrays from database data and config
+  // Create connection arrays from database data, config, and OAuth external accounts
   const gameConnections = gameConnectionsConfig.map(config => {
     const dbConnection = profileData?.platform_connections?.find(conn => conn.platform === config.platform);
+    
+    // Check for OAuth connections (like Valorant) from Clerk external accounts
+    let isOAuthConnected = false;
+    let oauthUsername = "";
+    
+    if (config.requiresOAuth && config.platform === "valorant") {
+      const externalAccount = user?.externalAccounts?.find(account => 
+        account.provider.includes("valorant") || account.provider === "custom_valorant"
+      );
+      
+      if (externalAccount && externalAccount.verification?.status === "verified") {
+        isOAuthConnected = true;
+        oauthUsername = externalAccount.username ?? externalAccount.emailAddress ?? "Connected Account";
+      }
+    }
+    
     return {
       ...config,
-      username: dbConnection?.username ?? "",
-      connected: dbConnection?.connected ?? false
+      username: dbConnection?.username ?? oauthUsername,
+      connected: dbConnection?.connected ?? isOAuthConnected
     };
   });
 
   const socialConnections = socialConnectionsConfig.map(config => {
     const dbConnection = profileData?.social_connections?.find(conn => conn.platform === config.platform);
+    
+    // Check for OAuth connections (like Discord) from Clerk external accounts
+    let isOAuthConnected = false;
+    let oauthUsername = "";
+    
+    if (config.requiresOAuth && config.platform === "discord") {
+      const externalAccount = user?.externalAccounts?.find(account => 
+        account.provider === "discord"
+      );
+      
+      if (externalAccount && externalAccount.verification?.status === "verified") {
+        isOAuthConnected = true;
+        oauthUsername = externalAccount.username ?? externalAccount.emailAddress ?? "Connected Account";
+      }
+    }
+    
     return {
       ...config,
-      username: dbConnection?.username ?? "",
-      connected: dbConnection?.connected ?? false
+      username: dbConnection?.username ?? oauthUsername,
+      connected: dbConnection?.connected ?? isOAuthConnected
     };
   });
 
@@ -424,24 +478,92 @@ export default function ProfilePage() {
   };
 
   const handleGameConnectionSave = () => {
-    if (!validateConnection()) return;
+    const platformConfig = gameConnectionsConfig.find(p => p.platform === selectedPlatform);
     
-    updatePlatformMutation.mutate({
-      platform: selectedPlatform as "steam" | "valorant" | "battlenet" | "epicgames" | "startgg",
-      username: connectionUsername.trim()
-    });
+    if (platformConfig?.requiresOAuth) {
+      // Handle OAuth connection
+      void handleOAuthConnection();
+    } else {
+      // Handle manual username connection
+      if (!validateConnection()) return;
+      
+      updatePlatformMutation.mutate({
+        platform: selectedPlatform as "steam" | "valorant" | "battlenet" | "epicgames" | "startgg",
+        username: connectionUsername.trim()
+      });
+    }
+  };
+
+  const handleOAuthConnection = async () => {
+    if (selectedPlatform === "valorant") {
+      // Check if user already has a Valorant account connected
+      const hasValorantAccount = user?.externalAccounts?.some(account => 
+        account.provider.includes("valorant") || account.provider === "custom_valorant"
+      );
+      
+      if (!hasValorantAccount) {
+        // Redirect to connect Valorant account
+        setConnectionError("Please connect your Valorant account first through your account settings.");
+        return;
+      }
+      
+      // Use the OAuth connection
+      updateOAuthMutation.mutate({
+        platform: "valorant",
+        provider: "custom_valorant"
+      });
+    }
   };
 
   const handleSocialConnectionSave = () => {
-    if (!validateConnection()) return;
+    const platformConfig = socialConnectionsConfig.find(p => p.platform === selectedPlatform);
     
-    updateSocialMutation.mutate({
-      platform: selectedPlatform as "github" | "discord" | "instagram" | "twitch" | "x",
-      username: connectionUsername.trim()
-    });
+    if (platformConfig?.requiresOAuth) {
+      // For Discord OAuth, redirect to external accounts page
+      if (selectedPlatform === "discord") {
+        window.open('/dashboard/player/profile/external-accounts', '_blank');
+        return;
+      }
+    } else {
+      // Handle manual username connection
+      if (!validateConnection()) return;
+      
+      updateSocialMutation.mutate({
+        platform: selectedPlatform as "github" | "discord" | "instagram" | "twitch" | "x",
+        username: connectionUsername.trim()
+      });
+    }
   };
 
   const disconnectAccount = (platform: string, type: 'game' | 'social') => {
+    // Check if this is an OAuth connection that needs to be managed through external accounts
+    if (type === 'game') {
+      const platformConfig = gameConnectionsConfig.find(config => config.platform === platform);
+      const isOAuthConnection = platformConfig?.requiresOAuth && user?.externalAccounts?.some(account => 
+        (account.provider.includes("valorant") || account.provider === "custom_valorant") && 
+        account.verification?.status === "verified"
+      );
+
+      if (isOAuthConnection) {
+        // Redirect to external accounts management for OAuth connections
+        window.open('/dashboard/player/profile/external-accounts', '_blank');
+        return;
+      }
+    } else {
+      // Check for social OAuth connections (like Discord)
+      const socialConfig = socialConnectionsConfig.find(config => config.platform === platform);
+      const isDiscordOAuth = socialConfig?.requiresOAuth && platform === "discord" && user?.externalAccounts?.some(account => 
+        account.provider === "discord" && account.verification?.status === "verified"
+      );
+
+      if (isDiscordOAuth) {
+        // Redirect to external accounts management for Discord OAuth
+        window.open('/dashboard/player/profile/external-accounts', '_blank');
+        return;
+      }
+    }
+
+    // Handle regular platform connections
     if (type === 'game') {
       removePlatformMutation.mutate({
         platform: platform as "steam" | "valorant" | "battlenet" | "epicgames" | "startgg"
@@ -960,7 +1082,7 @@ export default function ProfilePage() {
                   size="sm" 
                   className="bg-blue-600 hover:bg-blue-700"
                   onClick={() => setIsEditingGameConnections(true)}
-                  disabled={updatePlatformMutation.isPending || removePlatformMutation.isPending}
+                  disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending || removePlatformMutation.isPending}
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Connect Account
@@ -989,9 +1111,19 @@ export default function ProfilePage() {
                         variant={selectedPlatform === platform.platform ? "default" : "outline"}
                         className={`text-white justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
                         onClick={() => setSelectedPlatform(platform.platform)}
-                        disabled={updatePlatformMutation.isPending}
+                        disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending}
                       >
-                        <platform.icon className="h-4 w-4 mr-2 text-white" />
+                        {platform.platform === "valorant" ? (
+                          <Image 
+                            src="/valorant/logos/Valorant Logo Red Border.jpg"
+                            alt="VALORANT Logo"
+                            width={20}
+                            height={20}
+                            className="object-contain mr-2"
+                          />
+                        ) : (
+                          <platform.icon className="h-4 w-4 mr-2 text-white" />
+                        )}
                         {platform.displayName}
                       </Button>
                     ))}
@@ -999,15 +1131,60 @@ export default function ProfilePage() {
                 </div>
                 {selectedPlatform && (
                   <div>
-                    <Label htmlFor="gameUsername" className="text-white font-rajdhani">Username</Label>
-                    <Input
-                      id="gameUsername"
-                      value={connectionUsername}
-                      onChange={(e) => setConnectionUsername(e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white mt-1"
-                      placeholder="Enter your username"
-                      disabled={updatePlatformMutation.isPending}
-                    />
+                    {gameConnectionsConfig.find(p => p.platform === selectedPlatform)?.requiresOAuth ? (
+                      // OAuth platform (like Valorant)
+                      <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <ShieldIcon className="h-5 w-5 text-blue-400" />
+                          <div>
+                            <h4 className="text-white font-medium">Secure Connection Required</h4>
+                            <p className="text-blue-300 text-sm">
+                              This platform uses OAuth for secure authentication
+                            </p>
+                          </div>
+                        </div>
+                                                 {!user?.externalAccounts?.some(account => 
+                           account.provider.includes("valorant") || account.provider === "custom_valorant"
+                         ) ? (
+                          <div className="text-center">
+                                                         <p className="text-gray-300 text-sm mb-3">
+                               You need to connect your Valorant account first
+                             </p>
+                                                         <Button
+                               variant="outline"
+                               className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
+                               onClick={() => window.open('profile/external-accounts', '_blank')}
+                             >
+                               <LinkIcon className="h-4 w-4 mr-2" />
+                               Connect Valorant Account
+                             </Button>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                                                         <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+                               <CheckIcon className="h-4 w-4" />
+                               <span className="text-sm">Valorant account connected</span>
+                             </div>
+                                                         <p className="text-gray-300 text-sm">
+                               Click &quot;Connect Account&quot; to link your Valorant profile
+                             </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // Manual username entry
+                      <div>
+                        <Label htmlFor="gameUsername" className="text-white font-rajdhani">Username</Label>
+                        <Input
+                          id="gameUsername"
+                          value={connectionUsername}
+                          onChange={(e) => setConnectionUsername(e.target.value)}
+                          className="bg-gray-800 border-gray-700 text-white mt-1"
+                          placeholder="Enter your username"
+                          disabled={updatePlatformMutation.isPending}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
@@ -1020,17 +1197,27 @@ export default function ProfilePage() {
                       setConnectionError("");
                     }}
                     className="border-gray-600 text-black hover:bg-gray-200"
-                    disabled={updatePlatformMutation.isPending}
+                    disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending}
                   >
                     <XIcon className="w-4 h-4 mr-2 text-black" />
                     Cancel
                   </Button>
                   <Button
                     onClick={handleGameConnectionSave}
-                    disabled={updatePlatformMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
+                    disabled={
+                      updatePlatformMutation.isPending || 
+                      updateOAuthMutation.isPending ||
+                      !selectedPlatform || 
+                                             (gameConnectionsConfig.find(p => p.platform === selectedPlatform)?.requiresOAuth 
+                         ? !user?.externalAccounts?.some(account => 
+                             account.provider.includes("valorant") || account.provider === "custom_valorant"
+                           )
+                         : !connectionUsername.trim()
+                       )
+                    }
                     className="bg-cyan-600 hover:bg-cyan-700 text-white"
                   >
-                    {updatePlatformMutation.isPending ? (
+                    {(updatePlatformMutation.isPending || updateOAuthMutation.isPending) ? (
                       <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
                       <SaveIcon className="w-4 h-4 mr-2" />
@@ -1043,37 +1230,64 @@ export default function ProfilePage() {
             
             <div className="space-y-3">
               {gameConnections.some(conn => conn.connected) ? (
-                gameConnections.filter(conn => conn.connected).map((connection) => (
-                  <div key={connection.platform} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded ${connection.color}`}>
-                        <connection.icon className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">{connection.displayName}</p>
-                        <p className="text-gray-400 text-sm">{connection.username}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-green-600 text-white">
-                        Connected
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-gray-400 hover:text-red-400"
-                        onClick={() => disconnectAccount(connection.platform, 'game')}
-                        disabled={removePlatformMutation.isPending}
-                      >
-                        {removePlatformMutation.isPending ? (
-                          <LoaderIcon className="h-4 w-4 animate-spin" />
+                gameConnections.filter(conn => conn.connected).map((connection) => {
+                  // Check if this is an OAuth connection
+                  const isOAuthConnection = connection.requiresOAuth && user?.externalAccounts?.some(account => 
+                    (account.provider.includes("valorant") || account.provider === "custom_valorant") && 
+                    account.verification?.status === "verified"
+                  );
+
+                  return (
+                    <div key={connection.platform} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {connection.platform === "valorant" ? (
+                          <div className="w-10 h-10 flex items-center justify-center">
+                            <Image 
+                              src="/valorant/logos/Valorant Logo Red Border.jpg"
+                              alt="VALORANT Logo"
+                              width={28}
+                              height={28}
+                              className="object-contain"
+                            />
+                          </div>
                         ) : (
-                          <XIcon className="h-4 w-4" />
+                          <div className={`p-2 rounded ${connection.color}`}>
+                            <connection.icon className="h-4 w-4 text-white" />
+                          </div>
                         )}
-                      </Button>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-white font-medium">{connection.displayName}</p>
+                            {isOAuthConnection && (
+                              <Badge variant="outline" className="text-xs border-blue-400 text-blue-400">
+                                OAuth
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-400 text-sm">{connection.username}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-green-600 text-white">
+                          Connected
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-red-400"
+                          onClick={() => disconnectAccount(connection.platform, 'game')}
+                          disabled={removePlatformMutation.isPending}
+                        >
+                          {removePlatformMutation.isPending ? (
+                            <LoaderIcon className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <XIcon className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-400 mb-4">
@@ -1134,7 +1348,17 @@ export default function ProfilePage() {
                         onClick={() => setSelectedPlatform(platform.platform)}
                         disabled={updateSocialMutation.isPending}
                       >
-                        <platform.icon className="h-4 w-4 mr-2 text-white" />
+                        {platform.platform === "discord" && platform.requiresOAuth ? (
+                          <Image 
+                            src="/discord/Discord-Symbol-White.svg"
+                            alt="Discord Logo"
+                            width={16}
+                            height={16}
+                            className="object-contain mr-2"
+                          />
+                        ) : (
+                          <platform.icon className="h-4 w-4 mr-2 text-white" />
+                        )}
                         {platform.displayName}
                       </Button>
                     ))}
@@ -1142,15 +1366,60 @@ export default function ProfilePage() {
                 </div>
                 {selectedPlatform && (
                   <div>
-                    <Label htmlFor="socialUsername" className="text-white font-rajdhani">Username</Label>
-                    <Input
-                      id="socialUsername"
-                      value={connectionUsername}
-                      onChange={(e) => setConnectionUsername(e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white mt-1"
-                      placeholder="Enter your username"
-                      disabled={updateSocialMutation.isPending}
-                    />
+                    {socialConnectionsConfig.find(p => p.platform === selectedPlatform)?.requiresOAuth ? (
+                      // OAuth platform (like Discord)
+                      <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <ShieldIcon className="h-5 w-5 text-blue-400" />
+                          <div>
+                            <h4 className="text-white font-medium">Secure Connection Required</h4>
+                            <p className="text-blue-300 text-sm">
+                              This platform uses OAuth for secure authentication
+                            </p>
+                          </div>
+                        </div>
+                        {!user?.externalAccounts?.some(account => 
+                          account.provider === "discord"
+                        ) ? (
+                          <div className="text-center">
+                            <p className="text-gray-300 text-sm mb-3">
+                              You need to connect your Discord account first
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
+                              onClick={() => window.open('/dashboard/player/profile/external-accounts', '_blank')}
+                            >
+                              <LinkIcon className="h-4 w-4 mr-2" />
+                              Connect Discord Account
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+                              <CheckIcon className="h-4 w-4" />
+                              <span className="text-sm">Discord account connected</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">
+                              Click &quot;Connect Account&quot; to link your Discord profile
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // Manual username entry
+                      <div>
+                        <Label htmlFor="socialUsername" className="text-white font-rajdhani">Username</Label>
+                        <Input
+                          id="socialUsername"
+                          value={connectionUsername}
+                          onChange={(e) => setConnectionUsername(e.target.value)}
+                          className="bg-gray-800 border-gray-700 text-white mt-1"
+                          placeholder="Enter your username"
+                          disabled={updateSocialMutation.isPending}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
@@ -1170,7 +1439,14 @@ export default function ProfilePage() {
                   </Button>
                   <Button
                     onClick={handleSocialConnectionSave}
-                    disabled={updateSocialMutation.isPending || !selectedPlatform || !connectionUsername.trim()}
+                    disabled={
+                      updateSocialMutation.isPending || 
+                      !selectedPlatform || 
+                      (socialConnectionsConfig.find(p => p.platform === selectedPlatform)?.requiresOAuth 
+                        ? !user?.externalAccounts?.some(account => account.provider === "discord")
+                        : !connectionUsername.trim()
+                      )
+                    }
                     className="bg-cyan-600 hover:bg-cyan-700 text-white"
                   >
                     {updateSocialMutation.isPending ? (
@@ -1189,11 +1465,30 @@ export default function ProfilePage() {
                 socialConnections.filter(conn => conn.connected).map((connection) => (
                   <div key={connection.platform} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded ${connection.color}`}>
-                        <connection.icon className="h-4 w-4 text-white" />
-                      </div>
+                      {connection.platform === "discord" && connection.requiresOAuth ? (
+                        <div className="w-8 h-8 flex items-center justify-center">
+                          <Image 
+                            src="/discord/Discord-Symbol-White.svg"
+                            alt="Discord Logo"
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className={`p-2 rounded ${connection.color}`}>
+                          <connection.icon className="h-4 w-4 text-white" />
+                        </div>
+                      )}
                       <div>
-                        <p className="text-white font-medium">{connection.displayName}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-white font-medium">{connection.displayName}</p>
+                          {connection.requiresOAuth && (
+                            <Badge variant="outline" className="text-xs border-blue-400 text-blue-400">
+                              OAuth
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-gray-400 text-sm">@{connection.username}</p>
                       </div>
                     </div>
