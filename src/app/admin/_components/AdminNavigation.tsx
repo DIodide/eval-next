@@ -48,6 +48,11 @@ const adminRoutes = [
     icon: Trophy,
   },
   {
+    href: "/admin/combines",
+    label: "Manage Combines",
+    icon: Trophy,
+  },
+  {
     href: "/admin/system-health",
     label: "System Health",
     icon: Activity,

@@ -86,7 +86,7 @@ interface CombineCardProps {
     type: "ONLINE" | "IN_PERSON" | "HYBRID";
     year: string;
     max_spots: number;
-    claimed_spots: number;
+    registered_spots: number;
     prize_pool: string;
     status: string;
     invite_only: boolean;
@@ -155,7 +155,7 @@ function InvitationalCard({ combine }: CombineCardProps) {
               <Badge className="bg-yellow-400 text-black font-orbitron text-xs">INVITATIONAL</Badge>
             </div>
             <div className="text-right">
-              <span className="text-lg text-gray-200 font-rajdhani">{combine.claimed_spots}/{combine.max_spots} spots taken</span>
+              <span className="text-lg text-gray-200 font-rajdhani">{combine.registered_spots}/{combine.max_spots} spots taken</span>
             </div>
           </div>
         </CardContent>
@@ -206,7 +206,7 @@ function CombineCard({ combine }: CombineCardProps) {
               VIEW DETAILS
             </Button>
             <div className="text-right">
-              <span className="text-lg  text-gray-200 font-rajdhani">{combine.claimed_spots}/{combine.max_spots} spots taken</span>
+              <span className="text-lg  text-gray-200 font-rajdhani">{combine.registered_spots}/{combine.max_spots} spots taken</span>
             </div>
           </div>
         </CardContent>
@@ -321,10 +321,10 @@ function CombinesPageContent() {
     limit: 100, // Fetch more data upfront
     offset: 0
   }, {
-    // Time-based invalidation: 5 minutes
-    staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes - garbage collection time for cached data
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    // Time-based invalidation: 30 seconds for development
+    staleTime: 30 * 1000, // 30 seconds - data is considered fresh for 30 seconds
+    gcTime: 2 * 60 * 1000, // 2 minutes - garbage collection time for cached data
+    refetchOnWindowFocus: true, // Refetch when window gains focus (helpful for development)
     refetchOnMount: true, // Always refetch when component mounts
     refetchOnReconnect: true, // Refetch when internet connection is restored
     retry: 3, // Retry failed requests 3 times
@@ -555,12 +555,34 @@ function CombinesPageContent() {
             </SelectContent>
           </Select>
 
+          <Select value={upcomingOnly ? "upcoming" : "all"} onValueChange={(value) => setUpcomingOnly(value === "upcoming")}>
+            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+              <SelectValue placeholder="All Times" />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-800 border-gray-700">
+              <SelectItem value="upcoming" className="text-white font-rajdhani">
+                Upcoming Only
+              </SelectItem>
+              <SelectItem value="all" className="text-white font-rajdhani">
+                All Times
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
             onClick={() => clearFilters()}
             className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
           >
             Clear Filters
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => void refetchCombines()}
+            className="border-cyan-600 text-cyan-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
+          >
+            Refresh
           </Button>
         </div>
 

@@ -4,10 +4,11 @@
 // Similar to tryouts but adapted for combine-specific features like qualification status and invite-only events.
 
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, playerProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, playerProcedure, onboardedCoachProcedure, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";
+import { type Combine, type EventType } from "@prisma/client";
 
 // Input validation schemas
 const combineFiltersSchema = z.object({
@@ -30,6 +31,62 @@ const combineRegistrationStatusSchema = z.object({
   registration_id: z.string().uuid(),
   status: z.enum(["PENDING", "CONFIRMED", "WAITLISTED", "DECLINED", "CANCELLED"]),
   qualified: z.boolean().optional(),
+});
+
+// Enhanced validation schemas for admin operations
+const createCombineSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  long_description: z.string().optional(),
+  game_id: z.string().uuid("Invalid game ID"),
+  date: z.date(),
+  time_start: z.string().optional(),
+  time_end: z.string().optional(),
+  location: z.string().min(1, "Location is required"),
+  type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]),
+  year: z.string().min(1, "Year is required"),
+  max_spots: z.number().int().min(1),
+  registration_deadline: z.date().optional(),
+  min_gpa: z.number().min(0).max(4.0).optional(),
+  class_years: z.array(z.string()).default([]),
+  required_roles: z.array(z.string()).default([]),
+  prize_pool: z.string().default("TBD"),
+  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).default("UPCOMING"),
+  requirements: z.string().default("None specified"),
+  invite_only: z.boolean().default(false),
+});
+
+const updateCombineSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  long_description: z.string().optional(),
+  game_id: z.string().uuid().optional(),
+  date: z.date().optional(),
+  time_start: z.string().optional(),
+  time_end: z.string().optional(),
+  location: z.string().optional(),
+  type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]).optional(),
+  year: z.string().optional(),
+  max_spots: z.number().int().min(1).optional(),
+  registration_deadline: z.date().optional(),
+  min_gpa: z.number().min(0).max(4.0).optional(),
+  class_years: z.array(z.string()).optional(),
+  required_roles: z.array(z.string()).optional(),
+  prize_pool: z.string().optional(),
+  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).optional(),
+  requirements: z.string().optional(),
+  invite_only: z.boolean().optional(),
+});
+
+const searchCombinesSchema = z.object({
+  search: z.string().optional(),
+  game_id: z.string().uuid().optional(),
+  type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]).optional(),
+  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).optional(),
+  year: z.string().optional(),
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(20),
 });
 
 export const combinesRouter = createTRPCRouter({
@@ -311,7 +368,7 @@ export const combinesRouter = createTRPCRouter({
             select: {
               id: true,
               max_spots: true,
-              claimed_spots: true,
+              registered_spots: true,
               date: true,
               status: true,
               invite_only: true,
@@ -353,7 +410,7 @@ export const combinesRouter = createTRPCRouter({
         }
 
         // Check if spots available
-        if (combine.claimed_spots >= combine.max_spots) {
+        if (combine.registered_spots >= combine.max_spots) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Combine is full',
@@ -402,7 +459,7 @@ export const combinesRouter = createTRPCRouter({
             await tx.combine.update({
               where: { id: input.combine_id },
               data: {
-                claimed_spots: {
+                registered_spots: {
                   increment: 1,
                 },
               },
@@ -489,7 +546,7 @@ export const combinesRouter = createTRPCRouter({
             await tx.combine.update({
               where: { id: registration.combine.id },
               data: {
-                claimed_spots: {
+                registered_spots: {
                   decrement: 1,
                 },
               },
@@ -543,58 +600,6 @@ export const combinesRouter = createTRPCRouter({
     }),
 
   // Coach-only endpoints for managing combines
-
-  // Create a new combine (coaches only)
-  create: onboardedCoachProcedure
-    .input(z.object({
-      title: z.string().min(5).max(200),
-      description: z.string().min(10).max(500),
-      long_description: z.string().optional(),
-      game_id: z.string().uuid(),
-      date: z.date(),
-      location: z.string().min(5).max(200),
-      type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]),
-      year: z.string().min(4).max(4),
-      max_spots: z.number().min(1).max(1000),
-      prize_pool: z.string().min(1).max(100),
-      format: z.string().optional(),
-      requirements: z.string().min(10).max(500),
-      invite_only: z.boolean().default(false),
-      status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED"]).default("UPCOMING"),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const { coachId } = ctx;
-
-      try {
-        const combine = await withRetry(() =>
-          ctx.db.combine.create({
-            data: {
-              ...input,
-              coach_id: coachId,
-              claimed_spots: 0,
-            },
-            include: {
-              game: true,
-              organizer: {
-                select: {
-                  id: true,
-                  first_name: true,
-                  last_name: true,
-                },
-              },
-            },
-          })
-        );
-
-        return combine;
-      } catch (error) {
-        console.error('Error creating combine:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create combine',
-        });
-      }
-    }),
 
   // Update combine status (coaches only)
   updateStatus: onboardedCoachProcedure
@@ -723,6 +728,411 @@ export const combinesRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update combine registration status',
+        });
+      }
+    }),
+
+  // ===== ADMIN PROCEDURES =====
+
+  // Get all combines with filtering for admin dashboard
+  getAllForAdmin: adminProcedure
+    .input(searchCombinesSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        const {
+          search,
+          game_id,
+          type,
+          status,
+          year,
+          page,
+          limit
+        } = input;
+
+        const skip = (page - 1) * limit;
+
+        // Build where clause
+        const where: Prisma.CombineWhereInput = {};
+        
+        if (search) {
+          where.OR = [
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { location: { contains: search, mode: 'insensitive' } },
+          ];
+        }
+        
+        if (game_id) where.game_id = game_id;
+        if (type) where.type = type;
+        if (status) where.status = status;
+        if (year) where.year = year;
+
+        const [combines, total] = await Promise.all([
+          ctx.db.combine.findMany({
+            where,
+            include: {
+              game: {
+                select: {
+                  id: true,
+                  name: true,
+                  short_name: true,
+                  icon: true,
+                  color: true,
+                },
+              },
+              registrations: {
+                select: {
+                  id: true,
+                  player: {
+                    select: {
+                      id: true,
+                      first_name: true,
+                      last_name: true,
+                      username: true,
+                    },
+                  },
+                },
+              },
+              _count: {
+                select: {
+                  registrations: true,
+                },
+              },
+            },
+            orderBy: {
+              date: 'desc',
+            },
+            skip,
+            take: limit,
+          }),
+          ctx.db.combine.count({ where }),
+        ]);
+
+        return {
+          combines,
+          total,
+          pages: Math.ceil(total / limit),
+          currentPage: page,
+        };
+      } catch (error) {
+        console.error('Error fetching combines for admin:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch combines',
+        });
+      }
+    }),
+
+  // Create a new combine (admin only)
+  create: adminProcedure
+    .input(createCombineSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Verify the game exists
+        const game = await ctx.db.game.findUnique({
+          where: { id: input.game_id },
+          select: { id: true, name: true },
+        });
+
+        if (!game) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Game not found',
+          });
+        }
+
+        // Validate registration deadline is before combine date
+        if (input.registration_deadline && input.registration_deadline >= input.date) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Registration deadline must be before the combine date',
+          });
+        }
+
+        const combine = await ctx.db.combine.create({
+          data: {
+            title: input.title,
+            description: input.description,
+            long_description: input.long_description,
+            game_id: input.game_id,
+            coach_id: null,
+            date: input.date,
+            time_start: input.time_start,
+            time_end: input.time_end,
+            location: input.location,
+            type: input.type as EventType,
+            year: input.year,
+            max_spots: input.max_spots,
+            registered_spots: 0,
+            registration_deadline: input.registration_deadline,
+            min_gpa: input.min_gpa,
+            class_years: input.class_years,
+            required_roles: input.required_roles,
+            prize_pool: input.prize_pool,
+            status: input.status,
+            requirements: input.requirements,
+            invite_only: input.invite_only,
+          },
+          include: {
+            game: {
+              select: {
+                id: true,
+                name: true,
+                short_name: true,
+                icon: true,
+                color: true,
+              },
+            },
+            _count: {
+              select: {
+                registrations: true,
+              },
+            },
+          },
+        });
+
+        return combine;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error creating combine:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create combine',
+        });
+      }
+    }),
+
+  // Update an existing combine (admin only)
+  update: adminProcedure
+    .input(updateCombineSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { id, ...updateData } = input;
+
+        // Check if combine exists
+        const existingCombine = await ctx.db.combine.findUnique({
+          where: { id },
+          select: { id: true, date: true },
+        });
+
+        if (!existingCombine) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Combine not found',
+          });
+        }
+
+        // If game_id is being updated, verify the new game exists
+        if (updateData.game_id) {
+          const game = await ctx.db.game.findUnique({
+            where: { id: updateData.game_id },
+            select: { id: true },
+          });
+
+          if (!game) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Game not found',
+            });
+          }
+        }
+
+        // Validate registration deadline vs combine date
+        const combineDate = updateData.date ?? existingCombine.date;
+        if (updateData.registration_deadline && updateData.registration_deadline >= combineDate) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Registration deadline must be before the combine date',
+          });
+        }
+
+        const combine = await ctx.db.combine.update({
+          where: { id },
+          data: updateData,
+          include: {
+            game: {
+              select: {
+                id: true,
+                name: true,
+                short_name: true,
+                icon: true,
+                color: true,
+              },
+            },
+            _count: {
+              select: {
+                registrations: true,
+              },
+            },
+          },
+        });
+
+        return combine;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating combine:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update combine',
+        });
+      }
+    }),
+
+  // Delete a combine (admin only)
+  delete: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Check if combine exists and get registration count
+        const combine = await ctx.db.combine.findUnique({
+          where: { id: input.id },
+          include: {
+            _count: {
+              select: {
+                registrations: true,
+              },
+            },
+          },
+        });
+
+        if (!combine) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Combine not found',
+          });
+        }
+
+        // Check if there are any registrations
+        if (combine._count.registrations > 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `Cannot delete combine with ${combine._count.registrations} existing registrations. Please remove registrations first.`,
+          });
+        }
+
+        await ctx.db.combine.delete({
+          where: { id: input.id },
+        });
+
+        return { success: true };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error deleting combine:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete combine',
+        });
+      }
+    }),
+
+
+
+  // Get combine details for admin (includes registration details)
+  getByIdForAdmin: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const combine = await ctx.db.combine.findUnique({
+          where: { id: input.id },
+          include: {
+            game: {
+              select: {
+                id: true,
+                name: true,
+                short_name: true,
+                icon: true,
+                color: true,
+              },
+            },
+            registrations: {
+              include: {
+                player: {
+                  select: {
+                    id: true,
+                    first_name: true,
+                    last_name: true,
+                    username: true,
+                    email: true,
+                    image_url: true,
+                    created_at: true,
+                  },
+                },
+              },
+              orderBy: {
+                registered_at: 'desc',
+              },
+            },
+            _count: {
+              select: {
+                registrations: true,
+              },
+            },
+          },
+        });
+
+        if (!combine) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Combine not found',
+          });
+        }
+
+        return combine;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error fetching combine details:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch combine details',
+        });
+      }
+    }),
+
+  // Get combines statistics for admin dashboard
+  getStatistics: adminProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const [
+          totalCombines,
+          upcomingCombines,
+          totalRegistrations,
+          recentRegistrations,
+        ] = await Promise.all([
+          ctx.db.combine.count(),
+          ctx.db.combine.count({ 
+            where: { 
+              date: { gte: new Date() }
+            } 
+          }),
+          ctx.db.combineRegistration.count(),
+          ctx.db.combineRegistration.count({
+            where: {
+              registered_at: {
+                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+              },
+            },
+          }),
+        ]);
+
+        return {
+          totalCombines,
+          upcomingCombines,
+          totalRegistrations,
+          recentRegistrations,
+        };
+      } catch (error) {
+        console.error('Error fetching combine statistics:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch combine statistics',
         });
       }
     }),

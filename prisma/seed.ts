@@ -993,7 +993,7 @@ async function main() {
       type: isOnline ? 'ONLINE' : getRandomElement(['IN_PERSON', 'HYBRID']),
       year: currentYear,
       max_spots: Math.floor(Math.random() * 48) + 16, // 16-63 spots
-      claimed_spots: Math.floor(Math.random() * 20),
+      registered_spots: Math.floor(Math.random() * 20),
       prize_pool: getRandomElement(prizePools),
       format: getRandomElement(formats),
       status: getRandomElement(combineStatuses) as 'UPCOMING' | 'REGISTRATION_OPEN' | 'REGISTRATION_CLOSED',
@@ -1033,7 +1033,7 @@ async function main() {
       type: isOnline ? 'ONLINE' : getRandomElement(['IN_PERSON', 'HYBRID']),
       year: currentYear,
       max_spots: Math.floor(Math.random() * 36) + 12, // 12-47 spots
-      claimed_spots: Math.floor(Math.random() * 15),
+      registered_spots: Math.floor(Math.random() * 15),
       prize_pool: getRandomElement(prizePools),
       format: getRandomElement(formats),
       status: getRandomElement(combineStatuses) as 'UPCOMING' | 'REGISTRATION_OPEN' | 'REGISTRATION_CLOSED',
@@ -1072,7 +1072,7 @@ async function main() {
       type: isOnline ? 'ONLINE' : getRandomElement(['IN_PERSON', 'HYBRID']),
       year: currentYear,
       max_spots: Math.floor(Math.random() * 32) + 8, // 8-39 spots
-      claimed_spots: Math.floor(Math.random() * 12),
+      registered_spots: Math.floor(Math.random() * 12),
       prize_pool: getRandomElement(prizePools),
       format: getRandomElement(formats),
       status: getRandomElement(combineStatuses) as 'UPCOMING' | 'REGISTRATION_OPEN' | 'REGISTRATION_CLOSED',
@@ -1109,7 +1109,7 @@ async function main() {
       type: getRandomElement(['IN_PERSON', 'HYBRID']),
       year: currentYear,
       max_spots: Math.floor(Math.random() * 24) + 8, // 8-31 spots
-      claimed_spots: Math.floor(Math.random() * 10),
+      registered_spots: Math.floor(Math.random() * 10),
       prize_pool: getRandomElement(prizePools),
       format: getRandomElement(formats),
       status: getRandomElement(combineStatuses) as 'UPCOMING' | 'REGISTRATION_OPEN' | 'REGISTRATION_CLOSED',
