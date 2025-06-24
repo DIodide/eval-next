@@ -323,30 +323,34 @@ model TryoutRegistration {
 
 /// Combines for competitive events
 model Combine {
-  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title            String
-  description      String
-  long_description String?
-  game_id          String                @db.Uuid
-  coach_id         String?               @db.Uuid
-  date             DateTime              @db.Timestamp(6)
-  time_start       String?
-  time_end         String?
-  location         String
-  type             EventType
-  year             String
-  max_spots        Int
-  claimed_spots    Int                   @default(0)
-  prize_pool       String
-  format           String?
-  status           CombineStatus
-  requirements     String
-  invite_only      Boolean               @default(false)
-  created_at       DateTime              @default(now()) @db.Timestamp(6)
-  updated_at       DateTime              @updatedAt
-  registrations    CombineRegistration[]
-  organizer        Coach?                @relation(fields: [coach_id], references: [id])
-  game             Game                  @relation(fields: [game_id], references: [id])
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                 String
+  description           String
+  long_description      String?
+  game_id               String                @db.Uuid
+  coach_id              String?               @db.Uuid
+  date                  DateTime              @db.Timestamp(6)
+  time_start            String?
+  time_end              String?
+  location              String
+  type                  EventType
+  year                  String
+  max_spots             Int
+  registered_spots      Int                   @default(0)
+  registration_deadline DateTime?             @db.Timestamp(6)
+  min_gpa               Decimal?              @db.Decimal(3, 2)
+  class_years           String[]
+  required_roles        String[]
+  prize_pool            String
+  format                String?
+  status                CombineStatus
+  requirements          String
+  invite_only           Boolean               @default(false)
+  created_at            DateTime              @default(now()) @db.Timestamp(6)
+  updated_at            DateTime              @updatedAt
+  registrations         CombineRegistration[]
+  organizer             Coach?                @relation(fields: [coach_id], references: [id])
+  game                  Game                  @relation(fields: [game_id], references: [id])
 
   @@map("combines")
 }
