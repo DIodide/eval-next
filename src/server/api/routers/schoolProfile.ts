@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/db-utils";
+import type { Prisma } from "@prisma/client";
 
 // Input validation schema for school information updates
 const schoolInfoUpdateSchema = z.object({
@@ -474,21 +475,11 @@ export const schoolProfileRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         // Build where clause
-        const where: {
-          school_id: string;
-          is_archived?: boolean;
-          type?: string;
-        } = {
+        const where: Prisma.SchoolAnnouncementWhereInput = {
           school_id: input.schoolId,
+          ...(input.include_archived ? {} : { is_archived: false }),
+          ...(input.type ? { type: input.type } : {}),
         };
-
-        if (!input.include_archived) {
-          where.is_archived = false;
-        }
-
-        if (input.type) {
-          where.type = input.type;
-        }
 
         const [announcements, total] = await Promise.all([
           withRetry(() =>
