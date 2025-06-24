@@ -60,26 +60,27 @@ model Player {
 
 /// Coaches table with Clerk integration
 model Coach {
-  id                String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clerk_id          String                     @unique
-  email             String                     @unique
-  first_name        String
-  last_name         String
-  username          String                     @unique
-  image_url         String?
-  external_accounts Json?
-  school            String
-  school_id         String?                    @db.Uuid
-  created_at        DateTime                   @default(now()) @db.Timestamp(6)
-  updated_at        DateTime                   @updatedAt
-  favorites         CoachFavorite[]
-  school_ref        School?                    @relation(fields: [school_id], references: [id])
-  combines_created  Combine[]
-  Conversation      Conversation[]
-  school_requests   SchoolAssociationRequest[]
-  teams             Team[]
-  tryouts_created   Tryout[]
-  achievements      CoachAchievement[]
+  id                 String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_id           String                     @unique
+  email              String                     @unique
+  first_name         String
+  last_name          String
+  username           String                     @unique
+  image_url          String?
+  external_accounts  Json?
+  school             String
+  school_id          String?                    @db.Uuid
+  created_at         DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at         DateTime                   @updatedAt
+  favorites          CoachFavorite[]
+  school_ref         School?                    @relation(fields: [school_id], references: [id])
+  combines_created   Combine[]
+  Conversation       Conversation[]
+  school_requests    SchoolAssociationRequest[]
+  teams              Team[]
+  tryouts_created    Tryout[]
+  achievements       CoachAchievement[]
+  SchoolAnnouncement SchoolAnnouncement[]
 
   @@map("coaches")
 }
@@ -229,6 +230,7 @@ model School {
   created_school_requests SchoolAssociationRequest[] @relation("CreatedSchoolRequests")
   teams                   Team[]
   tryouts                 Tryout[]
+  SchoolAnnouncement      SchoolAnnouncement[]
 
   @@unique([name, type, state])
   @@map("schools")
@@ -563,6 +565,29 @@ model CoachFavorite {
   @@map("coach_favorites")
 }
 
+/// School announcements/feed posts
+model SchoolAnnouncement {
+  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  school_id   String                 @db.Uuid
+  author_id   String                 @db.Uuid
+  title       String
+  content     String
+  type        SchoolAnnouncementType @default(GENERAL)
+  is_pinned   Boolean                @default(false)
+  is_archived Boolean                @default(false)
+  created_at  DateTime               @default(now()) @db.Timestamp(6)
+  updated_at  DateTime               @updatedAt
+  school      School                 @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  author      Coach                  @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@index([school_id])
+  @@index([school_id, created_at])
+  @@index([school_id, type])
+  @@index([school_id, is_pinned])
+  @@index([created_at])
+  @@map("school_announcements")
+}
+
 enum SchoolAssociationStatus {
   PENDING
   APPROVED
@@ -642,4 +667,15 @@ enum MatchStatus {
 enum SenderType {
   COACH
   PLAYER
+}
+
+enum SchoolAnnouncementType {
+  GENERAL
+  TRYOUT
+  ACHIEVEMENT
+  FACILITY
+  SCHOLARSHIP
+  ALUMNI
+  EVENT
+  SEASON_REVIEW
 }
