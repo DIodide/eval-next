@@ -312,26 +312,52 @@ export async function POST(req: NextRequest) {
     
     // Handle user.deleted
     if (eventType === 'user.deleted') {
-      console.log('User deleted:', { userId: evt.data.id })
+      const userData = evt.data
+      
+      console.log('User deleted:', { userId: userData.id })
       
       try {
-        // Try to delete from both player and coach tables
-        // Only one will succeed, the other will fail silently
-        
-        const deletedPlayer = await db.player.deleteMany({
-          where: { clerk_id: evt.data.id }
+        // First, find existing records to get their emails before deletion
+        const existingPlayer = await db.player.findFirst({
+          where: { clerk_id: userData.id },
+          select: { id: true, email: true }
         })
         
-        const deletedCoach = await db.coach.deleteMany({
-          where: { clerk_id: evt.data.id }
+        const existingCoach = await db.coach.findFirst({
+          where: { clerk_id: userData.id },
+          select: { id: true, email: true }
         })
         
-        if (deletedPlayer.count > 0) {
-          console.log('Player deleted successfully')
-        } else if (deletedCoach.count > 0) {
-          console.log('Coach deleted successfully')  
-        } else {
-          console.warn('No user found to delete with clerk_id:', evt.data.id)
+        // Delete records that match both clerk_id and email for precise deletion
+        let deletedPlayer = { count: 0 }
+        let deletedCoach = { count: 0 }
+        
+        if (existingPlayer) {
+          deletedPlayer = await db.player.deleteMany({
+            where: { 
+              AND: [
+                { clerk_id: userData.id },
+                { email: existingPlayer.email }
+              ]
+            }
+          })
+          console.log(`Player deleted successfully (${deletedPlayer.count} records) with email: ${existingPlayer.email}`)
+        }
+        
+        if (existingCoach) {
+          deletedCoach = await db.coach.deleteMany({
+            where: { 
+              AND: [
+                { clerk_id: userData.id },
+                { email: existingCoach.email }
+              ]
+            }
+          })
+          console.log(`Coach deleted successfully (${deletedCoach.count} records) with email: ${existingCoach.email}`)
+        }
+        
+        if (deletedPlayer.count === 0 && deletedCoach.count === 0) {
+          console.warn('No user found to delete with clerk_id:', userData.id)
         }
       } catch (error) {
         console.error('Error deleting user:', error)
@@ -343,7 +369,7 @@ export async function POST(req: NextRequest) {
             errorCode: 'USER_DELETION_FAILED',
             endpoint: 'webhooks/user.deleted',
             severity: 'high',
-            userId: evt.data.id,
+            userId: userData.id,
             timestamp: new Date(),
           });
         } catch (discordError) {
@@ -356,7 +382,7 @@ export async function POST(req: NextRequest) {
       
       // Alternative approach: Soft delete by adding a 'deleted' field to your schema
       // await db.player.updateMany({
-      //   where: { clerk_id: evt.data.id },
+      //   where: { clerk_id: userData.id },
       //   data: { deleted: true }
       // })
     }

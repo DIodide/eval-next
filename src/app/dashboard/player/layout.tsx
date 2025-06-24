@@ -18,7 +18,8 @@ import {
   XIcon,
   UsersIcon,
   ShieldCheckIcon,
-  ZapIcon
+  ZapIcon,
+  LinkIcon
 } from "lucide-react";
 
 const sidebarItems = [
@@ -31,6 +32,13 @@ const sidebarItems = [
     title: "Profile",
     href: "/dashboard/player/profile",
     icon: UserIcon,
+    subItems: [
+      {
+        title: "External Accounts",
+        href: "/dashboard/player/profile/external-accounts",
+        icon: LinkIcon,
+      }
+    ]
   },
   {
     title: "My Tryouts",
@@ -132,6 +140,7 @@ export default function DashboardLayout({
                 
                 return (
                   <li key={item.href}>
+                    {/* Main navigation item */}
                     <Link
                       href={item.href}
                       className={cn(
@@ -145,6 +154,34 @@ export default function DashboardLayout({
                       <Icon className="h-5 w-5" />
                       {item.title}
                     </Link>
+
+                    {/* Sub-items (only show if they exist) */}
+                    {item.subItems && item.subItems.length > 0 && (
+                      <ul className="ml-8 mt-2 space-y-1">
+                        {item.subItems.map((subItem) => {
+                          const SubIcon = subItem.icon;
+                          const isSubActive = pathname === subItem.href;
+                          
+                          return (
+                            <li key={subItem.href}>
+                              <Link
+                                href={subItem.href}
+                                className={cn(
+                                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                                  isSubActive
+                                    ? "bg-blue-500 text-white"
+                                    : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                )}
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <SubIcon className="h-4 w-4" />
+                                {subItem.title}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
