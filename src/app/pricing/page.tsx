@@ -602,8 +602,8 @@ export default function PricingPage() {
                 </Button>
                 <div className="text-slate-400 text-sm font-rajdhani">
                   or email{" "}
-                  <a href="mailto:info@evalgaming.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                    info@evalgaming.com
+                  <a href="mailto:support@evalgaming.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    support@evalgaming.com
                   </a>
                 </div>
               </div>
