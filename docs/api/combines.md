@@ -188,7 +188,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   - Combine hasn't occurred yet
   - Registration is open (`REGISTRATION_OPEN` status)
   - Not invitation-only (for public registration)
-  - Spots available (`claimed_spots < max_spots`)
+  - Spots available (`registered_spots < max_spots`)
   - Player not already registered
 - **Features**:
   - Atomic transaction (registration + spot count update)
@@ -236,7 +236,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
 - **Returns**: Created combine with game and organizer details
 - **Features**:
   - Automatic assignment of organizing coach
-  - Initializes `claimed_spots` to 0
+  - Initializes `registered_spots` to 0
   - Comprehensive input validation
 - **Error Codes**:
   - `UNAUTHORIZED`: User not authenticated
@@ -299,7 +299,7 @@ All database operations use the `withRetry()` wrapper to handle connection issue
   type: "ONLINE" | "IN_PERSON" | "HYBRID";
   year: string;
   max_spots: number;
-  claimed_spots: number;
+  registered_spots: number;
   prize_pool: string;
   format?: string;
   status: "UPCOMING" | "REGISTRATION_OPEN" | "REGISTRATION_CLOSED" | "IN_PROGRESS" | "COMPLETED";
@@ -459,7 +459,7 @@ const updatedRegistration = await trpc.combines.updateRegistrationStatus.mutate(
 
 1. **Timing**: Can only register for future combines
 2. **Status**: Registration must be open (`REGISTRATION_OPEN`)
-3. **Capacity**: Must have available spots (`claimed_spots < max_spots`)
+3. **Capacity**: Must have available spots (`registered_spots < max_spots`)
 4. **Access**: Public combines allow open registration, invite-only requires invitation
 5. **Uniqueness**: One registration per player per combine
 
@@ -483,7 +483,7 @@ const updatedRegistration = await trpc.combines.updateRegistrationStatus.mutate(
 ### Database Constraints
 
 - **Unique Registration**: Compound unique key `(combine_id, player_id)`
-- **Spot Tracking**: `claimed_spots` automatically managed via transactions
+- **Spot Tracking**: `registered_spots` automatically managed via transactions
 - **Referential Integrity**: Proper foreign key relationships maintained
 
 ### Error Handling

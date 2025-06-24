@@ -405,7 +405,7 @@ function CombinesPageContent() {
               const combine = registration.combine;
               const isUpcoming = isCombineUpcoming(combine.date);
               const canCancel = isUpcoming && registration.status !== "CANCELLED" && registration.status !== "DECLINED";
-              const spotsLeft = combine.max_spots - combine.claimed_spots;
+              const spotsLeft = combine.max_spots - combine.registered_spots;
 
               return (
                 <Card key={registration.id} className="bg-[#1a1a2e] border-gray-800 p-6 hover:border-gray-700 transition-colors">

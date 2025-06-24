@@ -133,7 +133,7 @@ interface CombineCardProps {
     type: "ONLINE" | "IN_PERSON" | "HYBRID";
     year: string;
     max_spots: number;
-    claimed_spots: number;
+    registered_spots: number;
     prize_pool: string;
     status: string;
     invite_only: boolean;
@@ -153,7 +153,7 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
   const gameName = gameNameMap[combine.game.name] ?? combine.game.name
   const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
   const gameIcon = gameIcons[gameName as keyof typeof gameIcons] || "🎮"
-  const spotsLeft = combine.max_spots - combine.claimed_spots
+  const spotsLeft = combine.max_spots - combine.registered_spots
 
   return (
     <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20">
@@ -438,7 +438,7 @@ export default function CombineDetailPage() {
   const gameName = gameNameMap[combine.game.name] ?? combine.game.name
   const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
   const gameIcon = gameIcons[gameName as keyof typeof gameIcons] || "🎮"
-  const spotsLeft = combine.max_spots - combine.claimed_spots
+  const spotsLeft = combine.max_spots - combine.registered_spots
   const isPastCombine = new Date(combine.date) < new Date()
   const canRegister = !isPastCombine && spotsLeft > 0 && !existingRegistration && user && !combine.invite_only
 
@@ -520,7 +520,7 @@ export default function CombineDetailPage() {
                     <Users className="w-5 h-5 text-cyan-400" />
                     <div>
                       <p className="text-white font-medium">{combine.max_spots} Total Spots</p>
-                      <p className="text-gray-400 text-sm">{combine.claimed_spots} registered</p>
+                      <p className="text-gray-400 text-sm">{combine.registered_spots} registered</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
