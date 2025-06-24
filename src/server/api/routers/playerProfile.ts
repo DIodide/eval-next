@@ -12,6 +12,7 @@ import type { createTRPCContext } from "@/server/api/trpc";
 import { createTRPCRouter, onboardedCoachProcedure, playerProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { clerkClient } from "@clerk/nextjs/server";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
@@ -213,6 +214,12 @@ const profileUpdateSchema = z.object({
 const platformConnectionSchema = z.object({
   platform: z.enum(["steam", "valorant", "battlenet", "epicgames", "startgg"]),
   username: z.string().min(3),
+});
+
+// New schema for OAuth connections
+const oauthConnectionSchema = z.object({
+  platform: z.enum(["valorant"]), // Currently only Valorant supports OAuth
+  provider: z.string(), // OAuth provider (e.g., "custom_valorant")
 });
 
 const socialConnectionSchema = z.object({
@@ -446,7 +453,7 @@ export const playerProfileRouter = createTRPCRouter({
       }
     }),
 
-  // Update platform connection
+  // Update platform connection (for manual username entry)
   updatePlatformConnection: playerProcedure
     .input(platformConnectionSchema)
     .mutation(async ({ ctx, input }) => {
@@ -481,6 +488,70 @@ export const playerProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update platform connection',
+        });
+      }
+    }),
+
+  // Update OAuth platform connection (for OAuth providers like Valorant RSO)
+  updateOAuthConnection: playerProcedure
+    .input(oauthConnectionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.auth.userId!;
+      const playerId = ctx.playerId;
+      
+      try {
+        // Get external accounts from Clerk
+        
+        const client = await clerkClient();
+        const user = await client.users.getUser(userId);
+        
+        // Find the relevant external account
+        const externalAccount = user.externalAccounts.find(
+          account => account.provider === input.provider
+        );
+        
+        if (!externalAccount) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `No ${input.provider} account found. Please connect your Riot account first.`,
+          });
+        }
+        
+        // Extract username from external account
+        const username = externalAccount.username ?? externalAccount.emailAddress ?? 'Connected Account';
+        
+        // Store the connection (OAuth metadata stored in database after migration)
+        const connection = await withRetry(() =>
+          ctx.db.playerPlatformConnection.upsert({
+            where: {
+              player_id_platform: {
+                player_id: playerId,
+                platform: input.platform,
+              },
+            },
+            update: {
+              username: username,
+              connected: true,
+              updated_at: new Date(),
+            },
+            create: {
+              player_id: playerId,
+              platform: input.platform,
+              username: username,
+              connected: true,
+            },
+          })
+        );
+        
+        return connection;
+      } catch (error) {
+        console.error('Error updating OAuth connection:', error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update OAuth connection',
         });
       }
     }),

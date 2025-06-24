@@ -177,14 +177,16 @@ model PlayerGameProfile {
 
 /// Player gaming platform connections (Steam, Battle.net, etc.)
 model PlayerPlatformConnection {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  player_id  String   @db.Uuid
-  platform   String
-  username   String
-  connected  Boolean  @default(true)
-  created_at DateTime @default(now()) @db.Timestamp(6)
-  updated_at DateTime @updatedAt
-  player     Player   @relation(fields: [player_id], references: [id])
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id        String   @db.Uuid
+  platform         String
+  username         String
+  connected        Boolean  @default(true)
+  oauth_provider   String? // e.g., "oauth_riot" for OAuth connections
+  oauth_account_id String? // External account ID from OAuth provider
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @updatedAt
+  player           Player   @relation(fields: [player_id], references: [id])
 
   @@unique([player_id, platform])
   @@map("player_platform_connections")
