@@ -84,12 +84,14 @@ export default function CoachesDashboardLayout({
       href: "/dashboard/coaches",
       icon: HomeIcon,
       requiresOnboarding: false,
+      enabled: true,
     },
     {
       title: "Profile",
       href: "/dashboard/coaches/profile",
       icon: UserIcon,
       requiresOnboarding: false,
+      enabled: true,
       subItems: [
         // Only show public profile link for onboarded coaches with school association
         ...(isOnboarded && profile?.school_id ? [{
@@ -105,24 +107,28 @@ export default function CoachesDashboardLayout({
       href: "/dashboard/coaches/player-search",
       icon: SearchIcon,
       requiresOnboarding: true,
+      enabled: false,
     },
     {
       title: "My Prospects",
       href: "/dashboard/coaches/prospects",
       icon: UsersIcon,
       requiresOnboarding: true,
+      enabled: true,
     },
     {
       title: "My Tryouts",
       href: "/dashboard/coaches/tryouts",
       icon: TrophyIcon,
       requiresOnboarding: true,
+      enabled: true,
     },
     {
       title: "Messages",
       href: "/dashboard/coaches/messages",
       icon: MessageSquareIcon,
       requiresOnboarding: true,
+      enabled: true,
     },
   ];
 
@@ -176,7 +182,7 @@ export default function CoachesDashboardLayout({
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                const isDisabled = item.requiresOnboarding && !isOnboarded;
+                const isDisabled = (item.requiresOnboarding && !isOnboarded) || item.enabled === false;
                 
                 return (
                   <li key={item.href}>
