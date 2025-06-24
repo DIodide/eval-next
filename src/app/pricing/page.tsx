@@ -116,7 +116,7 @@ export default function PricingPage() {
                 <CardContent className="pb-4">
                   <div className="mb-4">
                     <p className="text-4xl font-orbitron text-white mb-2">$0</p>
-                    <p className="text-gray-400 font-rajdhani">Free pilot</p>
+                    <p className="text-gray-400 font-rajdhani">Forever free for players and students</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
@@ -270,7 +270,7 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="pb-4">
                   <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$0</p>
+                    <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
                     <p className="text-gray-400 font-rajdhani">Free pilot</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
@@ -317,8 +317,8 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="pb-4">
                   <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$0</p>
-                    <p className="text-gray-400 font-rajdhani">per month</p>
+                    <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
+                    <p className="text-gray-400 font-rajdhani">per year</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
@@ -370,8 +370,8 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="pb-4">
                   <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$0</p>
-                    <p className="text-gray-400 font-rajdhani">per month</p>
+                    <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
+                    <p className="text-gray-400 font-rajdhani">per year</p>
                   </div>
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
