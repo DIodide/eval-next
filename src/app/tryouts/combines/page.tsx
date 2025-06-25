@@ -507,7 +507,7 @@ function CombinesPageContent() {
               <SelectItem value="all" className="text-white font-rajdhani">
                 All Games
               </SelectItem>
-              {availableGames?.map((game) => (
+              {availableGames?.filter(game => game.id && game.id.trim() !== '').map((game) => (
                 <SelectItem key={game.id} value={game.id} className="text-white font-rajdhani">
                   {gameNameMap[game.name] ?? game.name}
                 </SelectItem>
