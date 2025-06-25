@@ -26,7 +26,12 @@ import {
   Check,
   X,
   ExternalLink,
-  MoreHorizontal
+  MoreHorizontal,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/hooks/use-toast";
@@ -100,6 +105,14 @@ export default function AdminCombinesPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingCombine, setEditingCombine] = useState<string | null>(null);
   const [selectedCombine, setSelectedCombine] = useState<string | null>(null);
+  const [showOutputPanel, setShowOutputPanel] = useState(false);
+  const [outputData, setOutputData] = useState<{
+    lastOperation: string;
+    success: boolean;
+    data?: unknown;
+    error?: string;
+    timestamp: Date;
+  } | null>(null);
 
   // Form state
   const [createForm, setCreateForm] = useState<CreateCombineData>({
@@ -166,11 +179,18 @@ export default function AdminCombinesPage() {
   });
   
   const createCombineMutation = api.combines.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ 
         title: "Success", 
         description: "Combine created successfully!" 
       });
+      setOutputData({
+        lastOperation: "Create Combine",
+        success: true,
+        data: data,
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true); // Auto-open panel on success
       resetForm();
       setShowCreateDialog(false);
       void refetchCombines();
@@ -181,15 +201,29 @@ export default function AdminCombinesPage() {
         description: error.message || "Failed to create combine",
         variant: "destructive" 
       });
+      setOutputData({
+        lastOperation: "Create Combine",
+        success: false,
+        error: error.message || "Failed to create combine",
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true); // Auto-open panel on error
     }
   });
 
   const updateCombineMutation = api.combines.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ 
         title: "Success", 
         description: "Combine updated successfully!" 
       });
+      setOutputData({
+        lastOperation: "Update Combine",
+        success: true,
+        data: data,
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true); // Auto-open panel on success
       setEditingCombine(null);
       setEditValidationErrors({});
       void refetchCombines();
@@ -200,15 +234,29 @@ export default function AdminCombinesPage() {
         description: error.message || "Failed to update combine",
         variant: "destructive" 
       });
+      setOutputData({
+        lastOperation: "Update Combine",
+        success: false,
+        error: error.message || "Failed to update combine",
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true); // Auto-open panel on error
     }
   });
 
   const updateRegistrationStatusMutation = api.combines.updateRegistrationStatus.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ 
         title: "Success", 
         description: "Registration status updated successfully!" 
       });
+      setOutputData({
+        lastOperation: "Update Registration Status",
+        success: true,
+        data: data,
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true); // Auto-open panel on success
       void refetchCombines();
     },
     onError: (error) => {
@@ -217,6 +265,13 @@ export default function AdminCombinesPage() {
         description: error.message || "Failed to update registration status",
         variant: "destructive" 
       });
+      setOutputData({
+        lastOperation: "Update Registration Status",
+        success: false,
+        error: error.message || "Failed to update registration status",
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true); // Auto-open panel on error
     }
   });
 
@@ -509,6 +564,38 @@ export default function AdminCombinesPage() {
 
   const handleViewPlayerProfile = (username: string) => {
     window.open(`/profiles/player/${username}`, '_blank');
+  };
+
+  // Test API functions for debugging
+  const testGetAllCombines = () => {
+    setOutputData({
+      lastOperation: "Test: Get All Combines",
+      success: true,
+      data: combinesData,
+      timestamp: new Date()
+    });
+    setShowOutputPanel(true); // Auto-open panel for test
+  };
+
+  const testApiConnection = () => {
+    // Just show current data for testing
+    setOutputData({
+      lastOperation: "Test: Current Data",
+      success: true,
+      data: {
+        totalCombines: combinesData?.total ?? 0,
+        combinesCount: combinesData?.combines?.length ?? 0,
+        currentFilters: {
+          search: searchTerm,
+          status: statusFilter,
+          game: gameFilter,
+          type: typeFilter,
+          year: yearFilter
+        }
+      },
+      timestamp: new Date()
+    });
+    setShowOutputPanel(true); // Auto-open panel for test
   };
 
   const formatDate = (date: Date) => {
@@ -804,6 +891,68 @@ export default function AdminCombinesPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">EVAL Combines Management</h1>
           <p className="text-gray-300">Create and manage competitive combines</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={testGetAllCombines}
+            className="border-cyan-600 text-cyan-400 hover:bg-cyan-600 hover:text-white"
+          >
+            Test Data
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={testApiConnection}
+            className="border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+          >
+            Test Filters
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setOutputData({
+                lastOperation: "Manual Test - Success",
+                success: true,
+                data: {
+                  message: "This is a manual test of the output panel",
+                  timestamp: new Date().toISOString(),
+                  testData: {
+                    combines: combinesData?.combines?.length ?? 0,
+                    total: combinesData?.total ?? 0,
+                    filters: {
+                      search: searchTerm,
+                      game: gameFilter,
+                      status: statusFilter
+                    }
+                  }
+                },
+                timestamp: new Date()
+              });
+              setShowOutputPanel(true);
+            }}
+            className="border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white"
+          >
+            Test Success
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setOutputData({
+                lastOperation: "Manual Test - Error",
+                success: false,
+                error: "This is a simulated error to test the error display functionality in the output panel.",
+                timestamp: new Date()
+              });
+              setShowOutputPanel(true);
+            }}
+            className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+          >
+            Test Error
+          </Button>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
@@ -1729,6 +1878,125 @@ export default function AdminCombinesPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Output Panel */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader 
+          className="cursor-pointer hover:bg-gray-750" 
+          onClick={() => setShowOutputPanel(!showOutputPanel)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Code className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-white">API Output Panel</CardTitle>
+              {outputData && (
+                <Badge 
+                  className={`ml-2 ${outputData.success ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                >
+                  {outputData.success ? (
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                  ) : (
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                  )}
+                  {outputData.success ? 'Success' : 'Error'}
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {outputData && (
+                <span className="text-xs text-gray-400">
+                  Last: {outputData.timestamp.toLocaleTimeString()}
+                </span>
+              )}
+              {showOutputPanel ? (
+                <ChevronUp className="h-4 w-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        
+        {showOutputPanel && (
+          <CardContent className="pt-0">
+            {outputData ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-300 text-sm">Operation</Label>
+                    <p className="text-white font-mono">{outputData.lastOperation}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-300 text-sm">Status</Label>
+                    <div className="flex items-center gap-2">
+                      {outputData.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-400" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-red-400" />
+                      )}
+                      <span className={`font-semibold ${outputData.success ? 'text-green-400' : 'text-red-400'}`}>
+                        {outputData.success ? 'Success' : 'Failed'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-300 text-sm">Timestamp</Label>
+                  <p className="text-white font-mono">{outputData.timestamp.toLocaleString()}</p>
+                </div>
+
+                {outputData.error && (
+                  <div>
+                    <Label className="text-gray-300 text-sm">Error Message</Label>
+                    <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3 mt-1">
+                      <p className="text-red-400 font-mono text-sm">{outputData.error}</p>
+                    </div>
+                  </div>
+                )}
+
+                {outputData.data ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-gray-300 text-sm">Response Data (JSON)</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
+                        onClick={() => navigator.clipboard.writeText(JSON.stringify(outputData.data, null, 2))}
+                      >
+                        Copy JSON
+                      </Button>
+                    </div>
+                    <div className="bg-gray-900 border border-gray-600 rounded-lg p-3 max-h-96 overflow-auto">
+                      <pre className="text-green-400 text-xs font-mono whitespace-pre-wrap">
+                        {JSON.stringify(outputData.data as Record<string, unknown>, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
+                    onClick={() => setOutputData(null)}
+                  >
+                    Clear Output
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Code className="h-8 w-8 text-gray-500 mx-auto mb-2" />
+                <p className="text-gray-400">No API operations yet.</p>
+                <p className="text-gray-500 text-sm">Results from create, update, delete, and registration operations will appear here.</p>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 } 

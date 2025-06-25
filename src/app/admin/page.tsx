@@ -9,7 +9,9 @@ import {
   Database,
   Shield,
   Activity,
-  Settings
+  Settings,
+  School,
+  UserCheck
 } from "lucide-react";
 
 const adminTools = [
@@ -26,6 +28,13 @@ const adminTools = [
     icon: User,
     href: "/admin/test-player-profile",
     color: "text-green-500",
+  },
+  {
+    title: "Test Coach & School Profiles",
+    description: "Test coach profile endpoints, school associations, and announcements",
+    icon: UserCheck,
+    href: "/admin/test-coach-profiles",
+    color: "text-indigo-500",
   },
   {
     title: "Test Player Search",
