@@ -150,6 +150,9 @@ export const protectedProcedure = t.procedure.use(isAuthed);
 const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
   // Get user from Clerk to check publicMetadata
   const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  console.debug("publicMetadata", publicMetadata);
+  console.debug("ctx.auth.userId", ctx.auth.userId);
+  console.debug(!publicMetadata?.onboarded || publicMetadata?.userType !== "coach");
   
   if (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach") {
     throw new TRPCError({
