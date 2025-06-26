@@ -48,7 +48,7 @@ const testimonials = [
     name: "Nikolai Kostev",
     role: "Valorant Player",
     school: "Midtown High School",
-    quote: "EVAL has opened up so many opportunities for me to get scholarships… thanks to EVAL, gaming in college can be my future!"
+    quote: "EVAL has opened up so many opportunities for me to get scholarships… thanks to EVAL, gaming in college can be my future!",
     avatar: "/placeholder.svg?height=60&width=60",
   },
 ]
