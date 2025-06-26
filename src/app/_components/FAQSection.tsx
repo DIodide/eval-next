@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { cn } from "@/lib/utils"
 
 const faqs = [
   {
@@ -32,7 +33,7 @@ const faqs = [
   },
 ]
 
-export default function FAQSection() {
+export default function FAQSection(props: { className: string }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const toggleFaq = (index: number) => {
@@ -40,7 +41,7 @@ export default function FAQSection() {
   }
 
   return (
-    <section className="bg-gray-900 py-20">
+    <section className={cn("bg-gray-900 py-20", props.className)}>
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">

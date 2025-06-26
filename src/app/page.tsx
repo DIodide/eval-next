@@ -167,7 +167,7 @@ export default function HomePage() {
       </section>
 
       {/* Partners Section */}
-      <section className="bg-gray-900 py-16">
+      <section className="bg-gray-900/98 py-16">
         <div className="container mx-auto px-6">
           <h2 className="font-orbitron text-2xl text-center text-white mb-8 tracking-wide">TRUSTED BY</h2>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
@@ -178,7 +178,7 @@ export default function HomePage() {
       </section>
 
       {/* Ranking Previews Section */}
-      <section className="bg-black py-20">
+      <section className="bg-black/95 py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">
@@ -270,7 +270,7 @@ export default function HomePage() {
       </section>
 
       {/* Our Games Section */}
-      <section className="bg-gray-900 py-20">
+      <section className="bg-gray-900/98 py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">OUR GAMES</h2>
@@ -334,7 +334,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="bg-black py-20">
+      <section className="bg-black/95 py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">
@@ -372,10 +372,10 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <FAQSection />
+      <FAQSection className="bg-gray-900/99" />
 
       {/* Final CTA Section */}
-      <section className="bg-gradient-to-r from-cyan-500 via-purple-600 to-orange-500 text-white py-20 relative overflow-hidden">
+      <section className="bg-gradient-to-r from-cyan-500/90 via-purple-500/90 to-orange-500/90 text-white py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container mx-auto px-6 text-center relative z-10">
           <h2 className="font-orbitron text-4xl md:text-6xl font-black mb-6 cyber-text">START YOUR ESPORTS JOURNEY</h2>
