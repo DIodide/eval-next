@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   ...staticPageMetadata.home,
   metadataBase: new URL("https://evalgaming.com"),
   title: {
-    template: "%s | EVAL",
+    template: "%s",
     default: "EVAL - College Esports Recruiting Platform",
   },
 };
