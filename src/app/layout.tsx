@@ -8,14 +8,19 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/app/_components/Navbar";
 import Footer from "@/app/_components/Footer";
 import BackgroundManager from "@/app/_components/BackgroundManager";
-import { PostHogProvider } from "@/app/providers";
+import { PostHogProvider } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { dark, neobrutalism } from "@clerk/themes";
+import { cn } from "@/lib/utils";
+import { staticPageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = {
-  title: "EVAL - College Esports Recruiting Platform",
-  description: "The premier platform connecting student gamers with college esports programs and scholarships.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  ...staticPageMetadata.home,
+  metadataBase: new URL("https://evalgaming.com"),
+  title: {
+    template: "%s | EVAL",
+    default: "EVAL - College Esports Recruiting Platform",
+  },
 };
 
 const inter = Inter({

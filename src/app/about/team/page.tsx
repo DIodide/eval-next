@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
+import { staticPageMetadata } from "@/lib/metadata"
+
+export const metadata = staticPageMetadata.aboutTeam;
 
 const founders = [
   {

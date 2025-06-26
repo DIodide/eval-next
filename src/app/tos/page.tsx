@@ -1,3 +1,8 @@
+import { staticPageMetadata } from "@/lib/metadata"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = staticPageMetadata.termsOfService
+
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">

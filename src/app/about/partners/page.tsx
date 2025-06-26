@@ -2,6 +2,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import Link from "next/link"
+import { staticPageMetadata } from "@/lib/metadata"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = staticPageMetadata.aboutPartners
 
 const partners = [
   {
