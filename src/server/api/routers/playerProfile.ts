@@ -13,6 +13,7 @@ import { createTRPCRouter, onboardedCoachProcedure, playerProcedure, publicProce
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
+import type { ValorantMetadata } from "@/types/valorant";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
@@ -828,4 +829,71 @@ export const playerProfileRouter = createTRPCRouter({
         });
       }
     }),
+
+  // Get Valorant data from user's publicMetadata
+  getValorantData: playerProcedure.query(async ({ ctx }) => {
+    const userId = ctx.auth.userId!;
+    
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(userId);
+      
+      const valorantData = user.publicMetadata?.valorant;
+      
+      if (!valorantData) {
+        return null;
+      }
+      
+      return {
+        puuid: valorantData.puuid,
+        gameName: valorantData.gameName,
+        tagLine: valorantData.tagLine,
+        lastUpdated: valorantData.lastUpdated,
+      };
+    } catch (error) {
+      console.error('Error fetching Valorant data:', error);
+      return null;
+    }
+  }),
+
+  // Refresh Valorant data by calling the process-oauth endpoint
+  refreshValorantData: playerProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.auth.userId!;
+    
+    try {
+      // Call our internal API to process the Valorant OAuth
+      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/riot/process-oauth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Note: In production, you'd want to add proper authentication here
+        },
+      });
+      
+      const data = await response.json() as { 
+        success?: boolean; 
+        gameName?: string; 
+        tagLine?: string; 
+        error?: string; 
+      };
+      
+      if (!data.success) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: data.error ?? 'Failed to refresh Valorant data',
+        });
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error refreshing Valorant data:', error);
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to refresh Valorant data',
+      });
+    }
+  }),
 }); 

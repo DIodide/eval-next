@@ -9,8 +9,16 @@ import { logUserRegistration, logError } from '@/lib/discord-logger'
 interface ClerkUnsafeMetadata {
   userType?: 'player' | 'coach'
   // Optional additional fields
-  }
+}
 
+interface ExternalAccount {
+  id: string;
+  provider: string;
+  external_id?: string;
+  approved_scopes: string;
+  email_address?: string;
+  username?: string;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -205,6 +213,62 @@ export async function POST(req: NextRequest) {
     if (eventType === 'user.updated') {
       const userData = evt.data 
       const unsafeMetadata = userData.unsafe_metadata as unknown as ClerkUnsafeMetadata
+      
+      // Check for Valorant external account changes and clean up metadata if needed
+      const externalAccounts = userData.external_accounts as unknown as ExternalAccount[]
+      const hasValorantAccount = externalAccounts.some(
+        account => account.provider === 'custom_valorant'
+      )
+      const hasValorantMetadata = userData.public_metadata?.valorant
+      
+      // If user has Valorant metadata but NO Valorant external account, clean it up
+      if (!hasValorantAccount && hasValorantMetadata) {
+        try {
+          const client = await clerkClient()
+          
+          // Remove Valorant metadata from publicMetadata
+          const updatedMetadata = { ...userData.public_metadata }
+          delete updatedMetadata.valorant
+          
+          await client.users.updateUserMetadata(userData.id, {
+            publicMetadata: updatedMetadata,
+          })
+
+          console.log(`🧹 Cleaned up orphaned Valorant metadata for user: ${userData.id}`)
+          
+          // Log cleanup to Discord
+          try {
+            await logError({
+              error: 'Valorant metadata cleanup completed',
+              errorCode: 'VALORANT_METADATA_CLEANUP',
+              endpoint: 'webhooks/user.updated',
+              severity: 'low',
+              userId: userData.id,
+              userEmail: userData.email_addresses?.[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord logging failed for cleanup:', discordError);
+          }
+        } catch (error) {
+          console.error('❌ Error cleaning up Valorant metadata:', error)
+          
+          // Log cleanup error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error cleaning up Valorant metadata',
+              errorCode: 'VALORANT_CLEANUP_FAILED',
+              endpoint: 'webhooks/user.updated',
+              severity: 'medium',
+              userId: userData.id,
+              userEmail: userData.email_addresses?.[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+        }
+      }
       
       // Extract relevant data for database sync
       const userDataForSync = {

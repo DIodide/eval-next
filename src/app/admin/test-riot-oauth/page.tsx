@@ -391,7 +391,7 @@ export default function TestRiotOAuthPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-gray-400 text-sm">
-                  Test connectivity to Riot's API endpoints. This checks if the API is reachable.
+                  Test connectivity to Riot&apos;s API endpoints. This checks if the API is reachable.
                 </p>
                 <Button 
                   onClick={testRiotAPIConnection} 
