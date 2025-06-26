@@ -149,13 +149,13 @@ export const protectedProcedure = t.procedure.use(isAuthed);
  */
 const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
   // Get user from Clerk to check publicMetadata
-  console.debug("DEBUG -2: ctx", ctx);
-  console.debug("DEBUG -1: ctx.auth", ctx.auth);
-  console.debug("DEBUG 0: ctx.auth.sessionClaims", ctx.auth.sessionClaims);
+  // console.debug("DEBUG -2: ctx", ctx);
+  // console.debug("DEBUG -1: ctx.auth", ctx.auth);
+  // console.debug("DEBUG 0: ctx.auth.sessionClaims", ctx.auth.sessionClaims);
   const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
-  console.debug("DEBUG 1: publicMetadata", publicMetadata);
-  console.debug("DEBUG 2: ctx.auth.userId", ctx.auth.userId);
-  console.debug("DEBUG 3: (!publicMetadata?.onboarded || publicMetadata?.userType !== 'coach')...", (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach"));
+  // console.debug("DEBUG 1: publicMetadata", publicMetadata);
+  // console.debug("DEBUG 2: ctx.auth.userId", ctx.auth.userId);
+  // console.debug("DEBUG 3: (!publicMetadata?.onboarded || publicMetadata?.userType !== 'coach')...", (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach"));
   
   if (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach") {
     throw new TRPCError({
