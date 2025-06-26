@@ -1713,6 +1713,102 @@ async function main() {
     }
   }
 
+  // Create combine registrations
+  console.log('📋 Creating combine registrations...')
+  
+  // Registration status options with probabilities
+  const registrationStatuses = ['PENDING', 'CONFIRMED', 'WAITLISTED', 'DECLINED', 'CANCELLED'] as const
+  const statusWeights = [0.1, 0.6, 0.1, 0.1, 0.1] // 60% confirmed, 10% each for others
+  
+  const getWeightedRandomStatus = () => {
+    const random = Math.random()
+    let cumulativeWeight = 0
+    
+    for (let i = 0; i < statusWeights.length; i++) {
+      cumulativeWeight += statusWeights[i]!
+      if (random <= cumulativeWeight) {
+        return registrationStatuses[i]!
+      }
+    }
+    return 'CONFIRMED' // fallback
+  }
+
+  // Get all available players and combines
+  const allPlayersForRegistration = [...createdPlayers, ...createdGSEPlayers]
+  
+  // Create registrations for each combine
+  for (const combine of createdCombines) {
+    // Determine how many registrations this combine should have
+    const baseRegistrations = Math.min(combine.max_spots, Math.floor(combine.max_spots * 0.7)) // 70% of max spots
+    const additionalRegistrations = Math.floor(Math.random() * Math.min(10, combine.max_spots - baseRegistrations)) // Random additional
+    const totalRegistrations = baseRegistrations + additionalRegistrations
+    
+    // Select random players for this combine
+    const selectedPlayers = getRandomElements(allPlayersForRegistration, Math.min(totalRegistrations, allPlayersForRegistration.length))
+    
+    let confirmedCount = 0
+    
+    for (const player of selectedPlayers) {
+      try {
+        // Check if registration already exists
+        const existingRegistration = await prisma.combineRegistration.findUnique({
+          where: {
+            combine_id_player_id: {
+              combine_id: combine.id,
+              player_id: player.id
+            }
+          }
+        })
+        
+        if (existingRegistration) continue
+        
+        // Determine registration status
+        let status = getWeightedRandomStatus()
+        
+        // If we've reached max confirmed registrations, force other statuses
+        if (status === 'CONFIRMED' && confirmedCount >= combine.max_spots) {
+          status = getRandomElement(['WAITLISTED', 'PENDING', 'DECLINED', 'CANCELLED'])
+        }
+        
+        if (status === 'CONFIRMED') {
+          confirmedCount++
+        }
+        
+                 // Create registration
+         await prisma.combineRegistration.create({
+           data: {
+             combine_id: combine.id,
+             player_id: player.id,
+             status: status,
+             qualified: status === 'CONFIRMED' && Math.random() > 0.3, // 70% of confirmed players are qualified
+             registered_at: new Date(
+               combine.date.getTime() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000 // 0-30 days before combine
+             )
+           }
+         })
+        
+        console.log(`✅ Created ${status} registration for ${player.first_name} ${player.last_name} → ${combine.title}`)
+      } catch (error) {
+        console.log(`⚠️  Could not create registration for ${player.first_name} ${player.last_name} → ${combine.title}:`, error)
+      }
+    }
+    
+    // Update combine's registered_spots count based on confirmed registrations
+    const confirmedRegistrations = await prisma.combineRegistration.count({
+      where: {
+        combine_id: combine.id,
+        status: 'CONFIRMED'
+      }
+    })
+    
+    await prisma.combine.update({
+      where: { id: combine.id },
+      data: { registered_spots: confirmedRegistrations }
+    })
+    
+    console.log(`📊 Updated ${combine.title}: ${confirmedRegistrations}/${combine.max_spots} confirmed spots`)
+  }
+
   console.log('🎉 Database seed completed successfully!')
   console.log('')
   console.log('🎮 Available games:')
