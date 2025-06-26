@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useUser, useReverification } from '@clerk/nextjs'
 import type { CreateExternalAccountParams, ExternalAccountResource, OAuthStrategy } from '@clerk/types'
 import { useRouter } from 'next/navigation'
+import type { ValorantMetadata } from '@/types/valorant'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -74,6 +75,7 @@ export default function ManageExternalAccounts() {
   // Add loading state for OAuth connection
   const [isConnecting, setIsConnecting] = useState(false)
   const [isUserReady, setIsUserReady] = useState(false)
+  const [isProcessingValorant, setIsProcessingValorant] = useState(false)
   
   // Preload and warm up the user session
   useEffect(() => {
@@ -99,6 +101,34 @@ export default function ManageExternalAccounts() {
     void initializeUser()
   }, [isLoaded, user])
   
+  // Handle OAuth callback and process Valorant data
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      console.debug("DEBUG 0: handleOAuthCallback");
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('callback') === 'true' && isUserReady && user) {
+        // Check if we just connected a Valorant account
+        await user.reload(); // Refresh user data
+        
+        const valorantAccount = user.externalAccounts?.find(
+          account => account.provider === 'custom_valorant' && 
+                    account.verification?.status === 'verified'
+        );
+        
+        if (valorantAccount) {
+          // Process the Valorant OAuth to get PUUID
+          await processValorantOAuth();
+        }
+        
+        // Clean up URL
+        router.replace('/dashboard/player/profile/external-accounts');
+        setIsConnecting(false);
+      }
+    };
+
+    void handleOAuthCallback();
+  }, [isUserReady, user, router]);
+  
   // Create reverification functions only when user is ready
   const createExternalAccount = useReverification((params: CreateExternalAccountParams) => {
     if (!user?.createExternalAccount) {
@@ -107,11 +137,88 @@ export default function ManageExternalAccounts() {
     return user.createExternalAccount(params)
   })
   
-  const accountDestroy = useReverification((account: ExternalAccountResource) => account.destroy())
+  // Enhanced account removal with Valorant cleanup
+  const removeAccountWithCleanup = useReverification(async (account: ExternalAccountResource) => {
+    try {
+      const isValorantAccount = account.provider === 'custom_valorant';
+      
+      // Remove the external account
+      await account.destroy();
+      
+      // If it was a Valorant account, clean up metadata immediately
+      if (isValorantAccount) {
+        try {
+          const response = await fetch('/api/valorant/cleanup-metadata', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json() as { success?: boolean; cleaned?: boolean; message?: string };
+            if (data.success && data.cleaned) {
+              console.log('✅ Valorant metadata cleaned up successfully');
+            } else {
+              console.log('ℹ️ No cleanup needed:', data.message);
+            }
+          } else {
+            console.warn('⚠️ Failed to clean up metadata immediately - webhook will handle it');
+          }
+        } catch (cleanupError) {
+          console.warn('⚠️ Cleanup request failed - webhook will handle it:', cleanupError);
+        }
+        
+        // Refresh user data to reflect changes
+        await user?.reload();
+      }
+    } catch (error) {
+      console.error('❌ Error removing external account:', error);
+      throw error; // Re-throw so reverification can handle it
+    }
+  });
+
+  // Legacy function for backwards compatibility
+  const accountDestroy = removeAccountWithCleanup;
 
   // List the options the user can select when adding a new external account
   // Supporting Valorant and Discord OAuth
   const options: OAuthStrategy[] = ['oauth_custom_valorant', 'oauth_discord']
+
+  // Process Valorant OAuth to fetch PUUID
+  const processValorantOAuth = async () => {
+    try {
+      setIsProcessingValorant(true)
+      const response = await fetch('/api/riot/process-oauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json() as { 
+        success?: boolean; 
+        gameName?: string; 
+        tagLine?: string; 
+        error?: string; 
+      };
+      
+      if (data.success) {
+        // Show success notification
+        console.log(`Successfully connected VALORANT account: ${data.gameName}#${data.tagLine}`)
+        // Refresh user data to show updated metadata
+        await user?.reload();
+      } else {
+        console.error('Failed to process Valorant OAuth:', data.error);
+        alert('Failed to fetch VALORANT account data. Please try reconnecting.');
+      }
+    } catch (error) {
+      console.error('Error processing Valorant OAuth:', error);
+      alert('An error occurred while processing your VALORANT connection.');
+    } finally {
+      setIsProcessingValorant(false)
+    }
+  };
 
     // Handle adding the new external account
   const addSSO = async (strategy: OAuthStrategy) => {
@@ -132,14 +239,14 @@ export default function ManageExternalAccounts() {
       try {
         res = await createExternalAccount({
           strategy,
-          redirectUrl: '/dashboard/player/profile/external-accounts',
+          redirectUrl: '/dashboard/player/profile/external-accounts?callback=true',
         })
       } catch (reverificationError) {
         console.log('Reverification approach failed, trying direct user method:', reverificationError)
         // Fallback: Use user object directly
         res = await user!.createExternalAccount({
           strategy,
-          redirectUrl: '/dashboard/player/profile/external-accounts',
+          redirectUrl: '/dashboard/player/profile/external-accounts?callback=true',
         })
       }
       
@@ -213,6 +320,10 @@ export default function ManageExternalAccounts() {
               const providerColor = getProviderColor(account.provider)
               const displayName = getProviderDisplayName(account.provider)
               
+              // Get Valorant metadata if available
+              const valorantData = account.provider === 'custom_valorant' ? 
+                user.publicMetadata?.valorant : null;
+              
                              return (
                  <div key={account.id} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
                    <div className="flex items-center gap-3">
@@ -243,6 +354,14 @@ export default function ManageExternalAccounts() {
                      )}
                     <div>
                       <p className="text-white font-medium font-orbitron">{displayName}</p>
+                      
+                      {/* Show Valorant game name if available */}
+                      {account.provider === 'custom_valorant' && valorantData && 'gameName' in valorantData && (
+                        <p className="text-cyan-400 text-sm font-rajdhani">
+                          {valorantData.gameName}#{valorantData.tagLine}
+                        </p>
+                      )}
+                      
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-gray-400 text-sm font-rajdhani">
                           Scopes: {account.approvedScopes}
@@ -250,10 +369,18 @@ export default function ManageExternalAccounts() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         {account.verification?.status === 'verified' ? (
-                          <Badge className="bg-green-600 text-white text-xs">
-                            <CheckIcon className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-green-600 text-white text-xs">
+                              <CheckIcon className="h-3 w-3 mr-1" />
+                              Verified
+                            </Badge>
+                            {account.provider === 'custom_valorant' && valorantData && 'puuid' in valorantData && (
+                              <Badge className="bg-blue-600 text-white text-xs">
+                                <ShieldIcon className="h-3 w-3 mr-1" />
+                                PUUID Linked
+                              </Badge>
+                            )}
+                          </div>
                         ) : (
                           <Badge variant="destructive" className="text-xs">
                             <AlertTriangleIcon className="h-3 w-3 mr-1" />
