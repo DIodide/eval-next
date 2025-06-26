@@ -460,20 +460,20 @@ export default function PricingPage() {
         <div className="mt-24 max-w-3xl mx-auto">
           <h2 className="font-orbitron text-3xl text-white mb-8 text-center">Frequently Asked Questions</h2>
           <div className="space-y-6">
-            <div className="bg-gray-800 rounded-lg p-6">
+            <div className="faq-rainbow-border bg-gray-800 rounded-lg p-6">
               <h3 className="font-orbitron text-white text-xl mb-2">Can I change plans at any time?</h3>
               <p className="text-gray-300 font-rajdhani">
                 Yes, you can upgrade, downgrade, or cancel your subscription at any time. Changes will take effect at
                 the start of your next billing cycle.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-lg p-6">
+            <div className="faq-rainbow-border bg-gray-800 rounded-lg p-6">
               <h3 className="font-orbitron text-white text-xl mb-2">Are there any long-term contracts?</h3>
               <p className="text-gray-300 font-rajdhani">
                 No, all our plans are month-to-month with no long-term commitment required. You can cancel anytime.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-lg p-6">
+            <div className="faq-rainbow-border bg-gray-800 rounded-lg p-6">
               <h3 className="font-orbitron text-white text-xl mb-2">Do you offer student discounts?</h3>
               <p className="text-gray-300 font-rajdhani">
                 Yes, we offer a 20% discount for verified students. Contact our support team with your student ID to

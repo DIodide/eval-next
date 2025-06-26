@@ -85,7 +85,7 @@ export default function FAQPage() {
         <div className="max-w-4xl mx-auto">
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
+              <Card key={index} className="rounded-xs faq-rainbow-border bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
                 <Collapsible open={openItems.includes(index)} onOpenChange={() => toggleItem(index)}>
                   <CollapsibleTrigger className="w-full">
                     <CardContent className="p-6">

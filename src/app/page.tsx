@@ -37,11 +37,11 @@ const testimonials = [
     avatar: "/placeholder.svg?height=60&width=60",
   },
   {
-    name: "Placeholder",
-    role: "Placeholder",
-    school: "Placeholder",
+    name: "Chris Aviles",
+    role: "Founder and President",
+    school: "Garden State Esports",
     quote:
-      "The analytics and player insights on EVAL are game-changing. We&apos;ve built our entire roster using this platform.",
+      "EVAL did an outstanding job… they have gotten farther than anybody I’ve ever worked with.",
     avatar: "/placeholder.svg?height=60&width=60",
   },
   {
@@ -92,7 +92,7 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center text-center text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/80 z-10" />
         {/* <Image
-          src="/eval/hexagonwall.jpg?height=1080&width=1920"
+          src="/eval/valorant_champs.jpg?height=1080&width=1920"
           alt="Esports background"
           fill
           className="object-cover"
@@ -188,7 +188,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
             {/* College Tryouts */}
-            <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-2xl p-8 border border-cyan-400/20">
+            <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-md p-8 border border-cyan-400/20">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-orbitron text-2xl text-cyan-400 font-bold tracking-wide">COLLEGE TRYOUTS</h3>
                 <Link href="/tryouts/college">
@@ -226,7 +226,7 @@ export default function HomePage() {
             </div>
 
             {/* EVAL Combines */}
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-2xl p-8 border border-purple-400/20">
+            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-md p-8 border border-purple-400/20">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-orbitron text-2xl text-purple-400 font-bold tracking-wide">EVAL COMBINES</h3>
                 <Link href="/tryouts/combines">
@@ -244,7 +244,7 @@ export default function HomePage() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-md flex items-center justify-center">
                             <Trophy className="w-5 h-5 text-white" />
                           </div>
                           <div>

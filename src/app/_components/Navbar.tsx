@@ -56,87 +56,87 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="lg:sticky lg:top-0 z-51 bg-gradient-to-t from-black/60 to-black text-white px-4 py-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" className="items-center flex-shrink-0">
+    <nav className="nav-glass lg:sticky lg:top-0 z-51 px-4 py-4">
+      <div className="container mx-auto flex items-center justify-between rounded-full">
+        <Link href="/" className="items-center flex-shrink-0 logo-rainbow-hover py-1">
           <Image
             src="/eval/logos/eLOGO_white.png"
             alt="EVAL Logo"
             width={80}
             height={40}
-            className="object-contain w-20 h-10 "
+            className="object-contain w-20 h-10 drop-shadow-lg"
           />
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center space-x-8">
           <SignedIn>
-            <Link href="/dashboard" className="font-orbitron hover:text-cyan-400 transition-colors">
+            <Link href="/dashboard" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
               DASHBOARD
             </Link>
           </SignedIn>
-          <Link href="/recruiting" className="font-orbitron hover:text-cyan-400 transition-colors">
+          <Link href="/recruiting" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
             RECRUITING
           </Link>
           <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+            <DropdownMenuTrigger className="nav-link-dropdown heading-section text-sm text-white hover:text-gray-200 transition-colors tracking-wide flex items-center cursor-context-menu relative">
               RANKINGS <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+            <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/rankings/leagues">
-                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="font-inter dropdown-rainbow-shadow heading-section text-sm text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                   LEAGUES
                 </DropdownMenuItem>
               </Link>
               <Link href="/rankings/combines">
-                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                   COMBINES
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
           <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+            <DropdownMenuTrigger className="nav-link-dropdown heading-section text-sm text-white hover:text-gray-200 transition-colors tracking-wide flex items-center cursor-context-menu relative">
               TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+            <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/tryouts/combines">
-                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                   EVAL COMBINES
                 </DropdownMenuItem>
               </Link>
               <Link href="/tryouts/college">
-                <DropdownMenuItem className="font-orbitron text-white hover:bg-gray-800 focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                   COLLEGE
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/pricing" className="font-orbitron hover:text-cyan-400 transition-colors">
+          <Link href="/pricing" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
             PRICING
           </Link>
           <DropdownMenu>
-            <DropdownMenuTrigger className="font-orbitron hover:text-cyan-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+            <DropdownMenuTrigger className="nav-link-dropdown heading-section text-sm text-white hover:text-gray-200 transition-colors tracking-wide flex items-center cursor-context-menu relative">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-700">
+            <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/about/partners">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                   OUR PARTNERS
                 </DropdownMenuItem>
               </Link>
               <Link href="/about/team">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                   OUR TEAM
                 </DropdownMenuItem>
               </Link>
               <Link href="/about/contact">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                   CONTACT
                 </DropdownMenuItem>
               </Link>
               <Link href="/about/faq">
-                <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                   FAQs
                 </DropdownMenuItem>
               </Link>
@@ -144,43 +144,43 @@ export default function Navbar() {
           </DropdownMenu>
           {isAdmin && !isCheckingAdmin && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="font-orbitron hover:text-red-400 transition-colors tracking-wide flex items-center cursor-context-menu">
+              <DropdownMenuTrigger className="nav-link-dropdown heading-section text-sm text-white hover:text-red-400 transition-colors tracking-wide flex items-center cursor-context-menu relative">
                 <Shield className="w-4 h-4 mr-1" />
                 ADMIN <ChevronDown className="ml-1 h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-gray-900 border-gray-700">
+              <DropdownMenuContent className="glass-morphism border-white/20">
                 <Link href="/admin">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     ADMIN DASHBOARD
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-player-profile">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     PLAYER PROFILE TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-tryouts">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     TRYOUTS TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-combines">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     COMBINES TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-messages">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     MESSAGES TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-player-search">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     PLAYER SEARCH TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/settings">
-                  <DropdownMenuItem className="font-orbitron text-white data-[highlighted]:bg-gray-800 data-[highlighted]:text-white focus:bg-gray-800 focus:text-white cursor-pointer">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section text-sm text-white data-[highlighted]:bg-white/10 focus:bg-white/10 cursor-pointer">
                     ADMIN SETTINGS
                   </DropdownMenuItem>
                 </Link>
@@ -195,12 +195,10 @@ export default function Navbar() {
           <div className="relative hidden md:block">
             <input
               type="text"
-              placeholder="PLAYER SEARCH"
-              className="bg-gray-800 text-gray-300 rounded-full pl-4 pr-10 py-2 w-48 focus:outline-none focus:ring-1 focus:ring-gray-600"
+              placeholder="SEARCH PLAYER"
+              className="search-rainbow font-orbitron glass-morphism text-premium text-white rounded-xl pl-4 pr-10 py-1 w-48 border-white/20"
             />
-            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <Search className="w-5 h-5 text-white" />
-            </button>
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </div>
 
           {/* User buttons - visible on desktop */}
@@ -209,12 +207,12 @@ export default function Navbar() {
               <Button
                 onClick={() => setShowSignUpModal(true)}
                 variant="outline"
-                className="bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full px-6"
+                className="button-rainbow hover:bg-pink-600 text-white border-white rounded-full px-6 font-semibold"
               >
                 SIGN UP
               </Button>
               <SignInButton mode="modal">
-                <Button variant="outline" className="bg-blue-500 hover:bg-blue-600 text-white border-none rounded-full px-6">
+                <Button variant="outline" className="bg-white hover:bg-gray-300 text-black border-none rounded-full px-6 font-semibold">
                   SIGN IN
                 </Button>
               </SignInButton>
@@ -268,7 +266,7 @@ export default function Navbar() {
               <input
                 type="text"
                 placeholder="PLAYER SEARCH"
-                className="w-full bg-gray-800 text-gray-300 rounded-full pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-gray-600"
+                className="search-rainbow w-full bg-gray-800 text-gray-300 rounded-full pl-4 pr-10 py-2"
               />
               <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 <Search className="w-5 h-5 text-white" />
@@ -301,14 +299,14 @@ export default function Navbar() {
                 <div className="pl-4 space-y-2">
                   <Link 
                     href="/rankings/leagues"
-                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    className="block font-inter text-gray-300 hover:text-cyan-400 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     LEAGUES
                   </Link>
                   <Link 
                     href="/rankings/combines"
-                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    className="block font-inter text-gray-300 hover:text-cyan-400 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     COMBINES
@@ -452,7 +450,7 @@ export default function Navbar() {
                       setShowSignUpModal(true)
                       setIsMobileMenuOpen(false)
                     }}
-                    className="w-full bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full py-2"
+                    className="button-rainbow w-full bg-pink-500 hover:bg-pink-600 text-white border-none rounded-full py-2"
                   >
                     SIGN UP
                   </Button>
