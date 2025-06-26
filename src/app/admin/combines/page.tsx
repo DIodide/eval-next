@@ -103,7 +103,6 @@ export default function AdminCombinesPage() {
   const [typeFilter, setTypeFilter] = useState<EventType | "ALL">("ALL");
   const [yearFilter, setYearFilter] = useState<string>("ALL");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingCombine, setEditingCombine] = useState<string | null>(null);
   const [selectedCombine, setSelectedCombine] = useState<string | null>(null);
   const [showOutputPanel, setShowOutputPanel] = useState(false);
   const [outputData, setOutputData] = useState<{
@@ -113,6 +112,20 @@ export default function AdminCombinesPage() {
     error?: string;
     timestamp: Date;
   } | null>(null);
+
+  // Inline edit state
+  const [editingCombine, setEditingCombine] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    location: '',
+    max_spots: 0,
+    date: new Date(),
+    type: 'ONLINE' as EventType,
+    status: 'UPCOMING' as CombineStatus,
+    invite_only: false
+  });
+  const [editValidationErrors, setEditValidationErrors] = useState<Record<string, string>>({});
 
   // Form state
   const [createForm, setCreateForm] = useState<CreateCombineData>({
@@ -137,33 +150,8 @@ export default function AdminCombinesPage() {
     invite_only: false,
   });
 
-  // Edit form state
-  const [editForm, setEditForm] = useState<CreateCombineData & { id: string }>({
-    id: "",
-    title: "",
-    description: "",
-    long_description: "",
-    game_id: "",
-    date: new Date(),
-    time_start: "",
-    time_end: "",
-    location: "",
-    type: "ONLINE",
-    year: new Date().getFullYear().toString(),
-    max_spots: 32,
-    registration_deadline: undefined,
-    min_gpa: undefined,
-    class_years: [],
-    required_roles: [],
-    prize_pool: "TBD",
-    status: "UPCOMING",
-    requirements: "None specified",
-    invite_only: false,
-  });
-
   // Form validation errors
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [editValidationErrors, setEditValidationErrors] = useState<Record<string, string>>({});
 
   // API queries and mutations
   const { data: games = [] } = api.playerProfile.getAvailableGames.useQuery();
@@ -177,6 +165,12 @@ export default function AdminCombinesPage() {
     page: 1,
     limit: 50
   });
+
+  // Get detailed combine data for editing (includes registrations)
+  const { data: editingCombineData, refetch: refetchEditingCombine } = api.combines.getByIdForAdmin.useQuery(
+    { id: editingCombine! },
+    { enabled: !!editingCombine }
+  );
   
   const createCombineMutation = api.combines.create.useMutation({
     onSuccess: (data) => {
@@ -211,38 +205,7 @@ export default function AdminCombinesPage() {
     }
   });
 
-  const updateCombineMutation = api.combines.update.useMutation({
-    onSuccess: (data) => {
-      toast({ 
-        title: "Success", 
-        description: "Combine updated successfully!" 
-      });
-      setOutputData({
-        lastOperation: "Update Combine",
-        success: true,
-        data: data,
-        timestamp: new Date()
-      });
-      setShowOutputPanel(true); // Auto-open panel on success
-      setEditingCombine(null);
-      setEditValidationErrors({});
-      void refetchCombines();
-    },
-    onError: (error) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Failed to update combine",
-        variant: "destructive" 
-      });
-      setOutputData({
-        lastOperation: "Update Combine",
-        success: false,
-        error: error.message || "Failed to update combine",
-        timestamp: new Date()
-      });
-      setShowOutputPanel(true); // Auto-open panel on error
-    }
-  });
+
 
   const updateRegistrationStatusMutation = api.combines.updateRegistrationStatus.useMutation({
     onSuccess: (data) => {
@@ -258,6 +221,7 @@ export default function AdminCombinesPage() {
       });
       setShowOutputPanel(true); // Auto-open panel on success
       void refetchCombines();
+      if (editingCombine) void refetchEditingCombine();
     },
     onError: (error) => {
       toast({ 
@@ -275,41 +239,59 @@ export default function AdminCombinesPage() {
     }
   });
 
-  // Get specific combine for editing
-  const { data: editingCombineData } = api.combines.getByIdForAdmin.useQuery(
-    { id: editingCombine! },
-    { 
-      enabled: !!editingCombine,
+  const updateCombineMutation = api.combines.update.useMutation({
+    onSuccess: (data) => {
+      toast({ 
+        title: "Success", 
+        description: "Combine updated successfully!" 
+      });
+      setOutputData({
+        lastOperation: "Update Combine",
+        success: true,
+        data: data,
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true);
+      setEditingCombine(null);
+      void refetchCombines();
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to update combine",
+        variant: "destructive" 
+      });
+      setOutputData({
+        lastOperation: "Update Combine",
+        success: false,
+        error: error.message || "Failed to update combine",
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true);
     }
-  );
+  });
 
-  // Update edit form when editing data changes
-  React.useEffect(() => {
-    if (editingCombineData && editingCombine) {
-      setEditForm({
-        id: editingCombineData.id,
-        title: editingCombineData.title,
-        description: editingCombineData.description,
-        long_description: editingCombineData.long_description ?? "",
-        game_id: editingCombineData.game_id,
-        date: typeof editingCombineData.date === 'string' ? new Date(editingCombineData.date) : editingCombineData.date,
-        time_start: editingCombineData.time_start ?? "",
-        time_end: editingCombineData.time_end ?? "",
-        location: editingCombineData.location,
-        type: editingCombineData.type as EventType,
-        year: editingCombineData.year,
-        max_spots: editingCombineData.max_spots,
-        registration_deadline: editingCombineData.registration_deadline ? new Date(editingCombineData.registration_deadline) : undefined,
-        min_gpa: editingCombineData.min_gpa ? Number(editingCombineData.min_gpa) : undefined,
-        class_years: Array.isArray(editingCombineData.class_years) ? editingCombineData.class_years : [],
-        required_roles: Array.isArray(editingCombineData.required_roles) ? editingCombineData.required_roles : [],
-        prize_pool: editingCombineData.prize_pool,
-        status: editingCombineData.status as CombineStatus,
-        requirements: editingCombineData.requirements,
-        invite_only: editingCombineData.invite_only,
+  const removeRegistrationMutation = api.combines.removeRegistration.useMutation({
+    onSuccess: () => {
+      toast({ 
+        title: "Success", 
+        description: "Registration removed successfully!" 
+      });
+      void refetchEditingCombine();
+      void refetchCombines();
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to remove registration",
+        variant: "destructive" 
       });
     }
-  }, [editingCombineData, editingCombine]);
+  });
+
+
+
+
 
   // Helper functions
   const resetForm = () => {
@@ -465,96 +447,9 @@ export default function AdminCombinesPage() {
     }
   };
 
-  const handleEditFieldChange = (fieldName: string, value: string | number | Date | undefined | null) => {
-    setEditForm(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
-    
-    // Validate field and update errors
-    const errors = { ...editValidationErrors };
-    const fieldError = validateField(fieldName, value);
-    if (fieldError[fieldName]) {
-      errors[fieldName] = fieldError[fieldName];
-    } else {
-      delete errors[fieldName];
-    }
-    setEditValidationErrors(errors);
-  };
 
-  const validateEditForm = (): boolean => {
-    const result = createCombineSchema.safeParse({
-      title: editForm.title,
-      description: editForm.description,
-      long_description: editForm.long_description,
-      game_id: editForm.game_id,
-      date: editForm.date,
-      time_start: editForm.time_start,
-      time_end: editForm.time_end,
-      location: editForm.location,
-      type: editForm.type,
-      year: editForm.year,
-      max_spots: editForm.max_spots,
-      registration_deadline: editForm.registration_deadline,
-      min_gpa: editForm.min_gpa,
-      class_years: editForm.class_years,
-      required_roles: editForm.required_roles,
-      prize_pool: editForm.prize_pool,
-      status: editForm.status,
-      requirements: editForm.requirements,
-      invite_only: editForm.invite_only,
-    });
-    
-    if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.errors.forEach((error) => {
-        const field = error.path[0] as string;
-        errors[field] = error.message;
-      });
-      setEditValidationErrors(errors);
-      return false;
-    }
-    setEditValidationErrors({});
-    return true;
-  };
 
-  const handleUpdateCombine = () => {
-    if (!validateEditForm()) {
-      toast({ 
-        title: "Validation Error", 
-        description: "Please fix the errors in the form",
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    if (editForm.id) {
-      updateCombineMutation.mutate({
-        id: editForm.id,
-        title: editForm.title,
-        description: editForm.description,
-        long_description: editForm.long_description ?? undefined,
-        game_id: editForm.game_id,
-        date: editForm.date,
-        time_start: editForm.time_start ?? undefined,
-        time_end: editForm.time_end ?? undefined,
-        location: editForm.location,
-        type: editForm.type,
-        year: editForm.year,
-        max_spots: editForm.max_spots,
-        registration_deadline: editForm.registration_deadline,
-        min_gpa: editForm.min_gpa,
-        class_years: editForm.class_years,
-        required_roles: editForm.required_roles,
-        prize_pool: editForm.prize_pool,
-        status: editForm.status,
-        requirements: editForm.requirements,
-        invite_only: editForm.invite_only,
-      });
-    }
-  };
-
-  const handleUpdateRegistrationStatus = (registrationId: string, status: "CONFIRMED" | "DECLINED", qualified?: boolean) => {
+  const handleUpdateRegistrationStatus = (registrationId: string, status: "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED", qualified?: boolean) => {
     updateRegistrationStatusMutation.mutate({
       registration_id: registrationId,
       status,
@@ -564,6 +459,98 @@ export default function AdminCombinesPage() {
 
   const handleViewPlayerProfile = (username: string) => {
     window.open(`/profiles/player/${username}`, '_blank');
+  };
+
+  // Edit handlers
+  const handleEditCombine = (combine: {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    max_spots: number;
+    date: Date;
+    type: EventType;
+    status: CombineStatus;
+    invite_only: boolean;
+  }) => {
+    setEditForm({
+      title: combine.title,
+      description: combine.description,
+      location: combine.location,
+      max_spots: combine.max_spots,
+      date: new Date(combine.date),
+      type: combine.type,
+      status: combine.status,
+      invite_only: combine.invite_only
+    });
+    setEditValidationErrors({});
+    setEditingCombine(combine.id);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCombine(null);
+    setEditForm({
+      title: '',
+      description: '',
+      location: '',
+      max_spots: 0,
+      date: new Date(),
+      type: 'ONLINE',
+      status: 'UPCOMING',
+      invite_only: false
+    });
+    setEditValidationErrors({});
+  };
+
+  const handleEditFieldChange = (fieldName: string, value: string | number | Date | boolean) => {
+    setEditForm(prev => ({ ...prev, [fieldName]: value }));
+    
+    // Clear validation error when user starts typing
+    if (editValidationErrors[fieldName]) {
+      setEditValidationErrors(prev => ({ ...prev, [fieldName]: '' }));
+    }
+  };
+
+  const validateEditForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (editForm.title.length < 5) {
+      errors.title = "Title must be at least 5 characters";
+    }
+    if (editForm.description.length < 10) {
+      errors.description = "Description must be at least 10 characters";
+    }
+    if (editForm.location.length < 5) {
+      errors.location = "Location must be at least 5 characters";
+    }
+    if (editForm.max_spots < 1 || editForm.max_spots > 1000) {
+      errors.max_spots = "Max spots must be between 1 and 1000";
+    }
+
+    setEditValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleUpdateCombine = () => {
+    if (!validateEditForm() || !editingCombine) return;
+
+    updateCombineMutation.mutate({
+      id: editingCombine,
+      title: editForm.title,
+      description: editForm.description,
+      location: editForm.location,
+      max_spots: editForm.max_spots,
+      date: editForm.date,
+      type: editForm.type,
+      status: editForm.status,
+      invite_only: editForm.invite_only
+    });
+  };
+
+  const handleRemoveRegistration = (registrationId: string) => {
+    if (confirm("Are you sure you want to remove this registration? This action cannot be undone.")) {
+      removeRegistrationMutation.mutate({ registration_id: registrationId });
+    }
   };
 
   // Test API functions for debugging
@@ -748,6 +735,16 @@ export default function AdminCombinesPage() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => handleUpdateRegistrationStatus(registration.id, "WAITLISTED")}
+                  disabled={isProcessing}
+                  className="hover:bg-yellow-700 hover:text-white text-yellow-400"
+                  title="Move to Waitlist"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleUpdateRegistrationStatus(registration.id, "DECLINED")}
                   disabled={isProcessing}
                   className="hover:bg-red-700 hover:text-white text-red-400"
@@ -756,6 +753,32 @@ export default function AdminCombinesPage() {
                   <X className="h-4 w-4" />
                 </Button>
               </>
+            )}
+
+            {registration.status === "WAITLISTED" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleUpdateRegistrationStatus(registration.id, "CONFIRMED", true)}
+                disabled={isProcessing}
+                className="hover:bg-green-700 hover:text-white text-green-400"
+                title="Promote from Waitlist"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            )}
+
+            {registration.status === "CONFIRMED" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleUpdateRegistrationStatus(registration.id, "WAITLISTED")}
+                disabled={isProcessing}
+                className="hover:bg-yellow-700 hover:text-white text-yellow-400"
+                title="Move to Waitlist"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
             )}
             
             <Button
@@ -805,6 +828,14 @@ export default function AdminCombinesPage() {
                     Accept registration
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem
+                  onClick={() => handleRemoveRegistration(registration.id)}
+                  className="text-red-300 focus:text-red-100 focus:bg-gray-700"
+                  disabled={removeRegistrationMutation.isPending}
+                >
+                  Remove registration
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -1349,7 +1380,8 @@ export default function AdminCombinesPage() {
               </div>
             ) : (
               combines.map((combine) => (
-              <div key={combine.id} className="border border-gray-600 rounded-lg p-4 hover:bg-gray-700 bg-gray-750">
+              <div key={combine.id} className="space-y-4">
+                <div className="border border-gray-600 rounded-lg p-4 hover:bg-gray-700 transition-colors bg-gray-750">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -1391,18 +1423,16 @@ export default function AdminCombinesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
-                      onClick={() => setSelectedCombine(combine.id)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
-                      onClick={() => setEditingCombine(combine.id)}
+                      className={editingCombine === combine.id 
+                        ? "border-green-500 bg-green-600 text-white" 
+                        : "border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+                      }
+                      onClick={() => editingCombine === combine.id ? handleCancelEdit() : handleEditCombine(combine)}
                     >
                       <Edit className="h-4 w-4" />
+                      <span className="ml-1 hidden sm:inline">
+                        {editingCombine === combine.id ? "Cancel" : "Edit"}
+                      </span>
                     </Button>
                     <Button
                       variant="outline"
@@ -1414,9 +1444,181 @@ export default function AdminCombinesPage() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  </div>
                 </div>
+
+                {/* Inline Edit Form */}
+                {editingCombine === combine.id && (
+                  <div className="ml-6 border-l-4 border-blue-500 pl-4">
+                    <Card className="bg-gray-800 border-gray-600">
+                      <CardHeader>
+                        <CardTitle className="text-white">Edit Combine</CardTitle>
+                        <CardDescription className="text-gray-300">
+                          Update combine details and manage registrations
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Tabs defaultValue="details" className="w-full">
+                          <TabsList className="bg-gray-700 border-gray-600">
+                            <TabsTrigger value="details" className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white">
+                              Edit Details
+                            </TabsTrigger>
+                            <TabsTrigger value="registrations" className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white">
+                              Manage Registrations ({combine._count.registrations})
+                            </TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="details" className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="md:col-span-2">
+                                <Label htmlFor="edit-title" className="text-gray-300">Title *</Label>
+                                <Input
+                                  id="edit-title"
+                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
+                                    editValidationErrors.title ? "border-red-500" : ""
+                                  }`}
+                                  value={editForm.title}
+                                  onChange={(e) => handleEditFieldChange('title', e.target.value)}
+                                  placeholder="Combine title"
+                                />
+                                {editValidationErrors.title && (
+                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.title}</p>
+                                )}
+                              </div>
+                              
+                              <div className="md:col-span-2">
+                                <Label htmlFor="edit-description" className="text-gray-300">Description *</Label>
+                                <Textarea
+                                  id="edit-description"
+                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
+                                    editValidationErrors.description ? "border-red-500" : ""
+                                  }`}
+                                  value={editForm.description}
+                                  onChange={(e) => handleEditFieldChange('description', e.target.value)}
+                                  placeholder="Combine description"
+                                  rows={3}
+                                />
+                                {editValidationErrors.description && (
+                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.description}</p>
+                                )}
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-location" className="text-gray-300">Location *</Label>
+                                <Input
+                                  id="edit-location"
+                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
+                                    editValidationErrors.location ? "border-red-500" : ""
+                                  }`}
+                                  value={editForm.location}
+                                  onChange={(e) => handleEditFieldChange('location', e.target.value)}
+                                  placeholder="Event location"
+                                />
+                                {editValidationErrors.location && (
+                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.location}</p>
+                                )}
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-max-spots" className="text-gray-300">Max Spots *</Label>
+                                <Input
+                                  id="edit-max-spots"
+                                  type="number"
+                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
+                                    editValidationErrors.max_spots ? "border-red-500" : ""
+                                  }`}
+                                  value={editForm.max_spots}
+                                  onChange={(e) => handleEditFieldChange('max_spots', parseInt(e.target.value) || 0)}
+                                  placeholder="Maximum participants"
+                                  min="1"
+                                  max="1000"
+                                />
+                                {editValidationErrors.max_spots && (
+                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.max_spots}</p>
+                                )}
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-type" className="text-gray-300">Event Type</Label>
+                                <Select 
+                                  value={editForm.type} 
+                                  onValueChange={(value: EventType) => handleEditFieldChange('type', value)}
+                                >
+                                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-gray-800 border-gray-600">
+                                    <SelectItem value="ONLINE" className="text-white hover:bg-gray-700">🌐 Online</SelectItem>
+                                    <SelectItem value="IN_PERSON" className="text-white hover:bg-gray-700">📍 In Person</SelectItem>
+                                    <SelectItem value="HYBRID" className="text-white hover:bg-gray-700">🔄 Hybrid</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-status" className="text-gray-300">Status</Label>
+                                <Select 
+                                  value={editForm.status} 
+                                  onValueChange={(value: CombineStatus) => handleEditFieldChange('status', value)}
+                                >
+                                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-gray-800 border-gray-600">
+                                    <SelectItem value="UPCOMING" className="text-white hover:bg-gray-700">Upcoming</SelectItem>
+                                    <SelectItem value="REGISTRATION_OPEN" className="text-white hover:bg-gray-700">Registration Open</SelectItem>
+                                    <SelectItem value="REGISTRATION_CLOSED" className="text-white hover:bg-gray-700">Registration Closed</SelectItem>
+                                    <SelectItem value="IN_PROGRESS" className="text-white hover:bg-gray-700">In Progress</SelectItem>
+                                    <SelectItem value="COMPLETED" className="text-white hover:bg-gray-700">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 pt-4">
+                              <Button
+                                onClick={handleUpdateCombine}
+                                disabled={updateCombineMutation.isPending}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                {updateCombineMutation.isPending ? "Saving..." : "Save Changes"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={handleCancelEdit}
+                                className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="registrations" className="space-y-4">
+                            <div className="text-gray-300">
+                              <p className="mb-4">
+                                Manage registrations for this combine. You can accept, decline, or remove registrations.
+                              </p>
+                              
+                              {editingCombineData?.registrations && editingCombineData.registrations.length > 0 ? (
+                                <DataTable
+                                  columns={registrationColumns}
+                                  data={editingCombineData.registrations}
+                                />
+                              ) : (
+                                <div className="border border-gray-600 rounded-lg p-4 bg-gray-750 text-center">
+                                  <p className="text-gray-400">No registrations yet</p>
+                                </div>
+                              )}
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
               </div>
-            ))
+              ))
             )}
           </div>
         </CardContent>
@@ -1628,256 +1830,7 @@ export default function AdminCombinesPage() {
         </Dialog>
       )}
 
-      {/* Edit Combine Dialog */}
-      {editingCombine && (
-        <Dialog open={!!editingCombine} onOpenChange={() => setEditingCombine(null)}>
-          <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto bg-gray-800 border-gray-700 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-white">Edit Combine</DialogTitle>
-              <DialogDescription className="text-gray-300">
-                Update combine details and manage registrations
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Tabs defaultValue="details" className="w-full">
-              <TabsList className="bg-gray-700 border-gray-600">
-                <TabsTrigger value="details" className="text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-600">
-                  Combine Details
-                </TabsTrigger>
-                <TabsTrigger value="registrations" className="text-gray-300 data-[state=active]:text-white data-[state=active]:bg-gray-600">
-                  Registrations ({editingCombineData?.registrations?.length ?? 0})
-                </TabsTrigger>
-              </TabsList>
 
-              <TabsContent value="details" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="edit-title" className="text-gray-300">Title *</Label>
-                <Input
-                  id="edit-title"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    editValidationErrors.title ? "border-red-500 focus-visible:border-red-500" : ""
-                  }`}
-                  value={editForm.title}
-                  onChange={(e) => handleEditFieldChange('title', e.target.value)}
-                  placeholder="e.g., VALORANT Spring Regional Combine"
-                />
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-xs text-gray-500">
-                    {editForm.title.length}/200 characters
-                  </p>
-                  {editValidationErrors.title && (
-                    <p className="text-xs text-red-400">{editValidationErrors.title}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-status" className="text-gray-300">Status *</Label>
-                <Select 
-                  value={editForm.status} 
-                  onValueChange={(value: CombineStatus) => handleEditFieldChange('status', value)}
-                >
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="UPCOMING" className="text-white hover:bg-gray-700">Upcoming</SelectItem>
-                    <SelectItem value="REGISTRATION_OPEN" className="text-white hover:bg-gray-700">Registration Open</SelectItem>
-                    <SelectItem value="REGISTRATION_CLOSED" className="text-white hover:bg-gray-700">Registration Closed</SelectItem>
-                    <SelectItem value="IN_PROGRESS" className="text-white hover:bg-gray-700">In Progress</SelectItem>
-                    <SelectItem value="COMPLETED" className="text-white hover:bg-gray-700">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-game" className="text-gray-300">Game *</Label>
-                <Select 
-                  value={editForm.game_id} 
-                  onValueChange={(value) => handleEditFieldChange('game_id', value)}
-                >
-                  <SelectTrigger className={`bg-gray-700 border-gray-600 text-white ${
-                    editValidationErrors.game_id ? "border-red-500" : ""
-                  }`}>
-                    <SelectValue placeholder="Select a game" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    {games.map((game) => (
-                      <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
-                        {game.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {editValidationErrors.game_id && (
-                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.game_id}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="edit-type" className="text-gray-300">Event Type *</Label>
-                <Select 
-                  value={editForm.type} 
-                  onValueChange={(value: EventType) => handleEditFieldChange('type', value)}
-                >
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="ONLINE" className="text-white hover:bg-gray-700">Online</SelectItem>
-                    <SelectItem value="IN_PERSON" className="text-white hover:bg-gray-700">In Person</SelectItem>
-                    <SelectItem value="HYBRID" className="text-white hover:bg-gray-700">Hybrid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-max-spots" className="text-gray-300">Max Participants *</Label>
-                <Input
-                  id="edit-max-spots"
-                  type="number"
-                  min="1"
-                  max="1000"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    editValidationErrors.max_spots ? "border-red-500 focus-visible:border-red-500" : ""
-                  }`}
-                  value={editForm.max_spots}
-                  onChange={(e) => handleEditFieldChange('max_spots', parseInt(e.target.value))}
-                />
-                {editValidationErrors.max_spots && (
-                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.max_spots}</p>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <Label htmlFor="edit-description" className="text-gray-300">Description *</Label>
-                <Textarea
-                  id="edit-description"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none ${
-                    editValidationErrors.description ? "border-red-500 focus-visible:border-red-500" : ""
-                  }`}
-                  value={editForm.description}
-                  onChange={(e) => handleEditFieldChange('description', e.target.value)}
-                  placeholder="Describe the combine's format, goals, and requirements..."
-                  rows={3}
-                />
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-xs text-gray-500">
-                    {editForm.description.length}/500 characters
-                  </p>
-                  {editValidationErrors.description && (
-                    <p className="text-xs text-red-400">{editValidationErrors.description}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-location" className="text-gray-300">Location *</Label>
-                <Input
-                  id="edit-location"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    editValidationErrors.location ? "border-red-500 focus-visible:border-red-500" : ""
-                  }`}
-                  value={editForm.location}
-                  onChange={(e) => handleEditFieldChange('location', e.target.value)}
-                  placeholder="e.g., Online - Custom Servers"
-                />
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-xs text-gray-500">
-                    {editForm.location.length}/200 characters
-                  </p>
-                  {editValidationErrors.location && (
-                    <p className="text-xs text-red-400">{editValidationErrors.location}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-date" className="text-gray-300">Date & Time *</Label>
-                <Input
-                  id="edit-date"
-                  type="datetime-local"
-                  className={`bg-gray-700 border-gray-600 text-white ${
-                    editValidationErrors.date ? "border-red-500 focus-visible:border-red-500" : ""
-                  }`}
-                  value={editForm.date.toISOString().slice(0, 16)}
-                  onChange={(e) => handleEditFieldChange('date', new Date(e.target.value))}
-                />
-                {editValidationErrors.date && (
-                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.date}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="edit-prize-pool" className="text-gray-300">Prize Pool</Label>
-                <Input
-                  id="edit-prize-pool"
-                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  value={editForm.prize_pool}
-                  onChange={(e) => handleEditFieldChange('prize_pool', e.target.value)}
-                  placeholder="e.g., $1,000 + Scholarships"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="edit-year" className="text-gray-300">Year *</Label>
-                <Input
-                  id="edit-year"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    editValidationErrors.year ? "border-red-500 focus-visible:border-red-500" : ""
-                  }`}
-                  value={editForm.year}
-                  onChange={(e) => handleEditFieldChange('year', e.target.value)}
-                  placeholder="2024"
-                />
-                {editValidationErrors.year && (
-                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.year}</p>
-                )}
-              </div>
-            </div>
-
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button 
-                    variant="outline" 
-                    className="border-gray-600 text-white hover:bg-gray-700" 
-                    onClick={() => setEditingCombine(null)}
-                    disabled={updateCombineMutation.isPending}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white" 
-                    onClick={handleUpdateCombine}
-                    disabled={updateCombineMutation.isPending}
-                  >
-                    {updateCombineMutation.isPending ? "Updating..." : "Update Combine"}
-                  </Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="registrations" className="mt-4">
-                {editingCombineData?.registrations && editingCombineData.registrations.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-                      <DataTable
-                        columns={registrationColumns}
-                        data={editingCombineData.registrations as Registration[]}
-                        loading={updateRegistrationStatusMutation.isPending}
-                        filterColumn="player"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400">No registrations yet.</p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Output Panel */}
       <Card className="bg-gray-800 border-gray-700">

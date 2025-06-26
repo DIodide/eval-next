@@ -724,6 +724,109 @@ export const combinesRouter = createTRPCRouter({
       }
     }),
 
+  // Remove/delete a registration (admin only)
+  removeRegistration: adminProcedure
+    .input(z.object({
+      registration_id: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Get registration to verify it exists
+        const registration = await withRetry(() =>
+          ctx.db.combineRegistration.findUnique({
+            where: { id: input.registration_id },
+            include: {
+              combine: {
+                select: {
+                  id: true,
+                  title: true,
+                  registered_spots: true,
+                },
+              },
+            },
+          })
+        );
+
+        if (!registration) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Registration not found',
+          });
+        }
+
+        // Delete registration and update spot count if necessary
+        await withRetry(() =>
+          ctx.db.$transaction(async (tx) => {
+            // Delete the registration
+            await tx.combineRegistration.delete({
+              where: { id: input.registration_id },
+            });
+
+            // Only decrement spots if the registration was not already cancelled
+            if (registration.status !== 'CANCELLED') {
+              await tx.combine.update({
+                where: { id: registration.combine.id },
+                data: {
+                  registered_spots: {
+                    decrement: 1,
+                  },
+                },
+              });
+            }
+          })
+        );
+
+        return { success: true, registration };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('Error removing registration:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to remove registration',
+        });
+      }
+    }),
+
+  // Get registration statistics for a combine (admin only)
+  getRegistrationStats: adminProcedure
+    .input(z.object({ combine_id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const stats = await withRetry(() =>
+          ctx.db.combineRegistration.groupBy({
+            by: ['status'],
+            where: {
+              combine_id: input.combine_id,
+            },
+            _count: {
+              status: true,
+            },
+          })
+        );
+
+        const statusCounts = stats.reduce((acc, stat) => {
+          acc[stat.status] = stat._count.status;
+          return acc;
+        }, {} as Record<string, number>);
+
+        const activeRegistrations = (statusCounts.PENDING ?? 0) + 
+          (statusCounts.CONFIRMED ?? 0) + 
+          (statusCounts.WAITLISTED ?? 0);
+
+        return {
+          ...statusCounts,
+          activeRegistrations,
+          totalRegistrations: stats.reduce((sum, stat) => sum + stat._count.status, 0),
+        };
+      } catch (error) {
+        console.error('Error fetching registration statistics:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch registration statistics',
+        });
+      }
+    }),
+
   // ===== ADMIN PROCEDURES =====
 
   // Get all combines with filtering for admin dashboard
@@ -1022,8 +1125,6 @@ export const combinesRouter = createTRPCRouter({
         });
       }
     }),
-
-
 
   // Get combine details for admin (includes registration details)
   getByIdForAdmin: adminProcedure
