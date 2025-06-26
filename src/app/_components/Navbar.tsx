@@ -2,6 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, Search, User, GraduationCap, X, Shield, Menu } from "lucide-react"
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
@@ -10,11 +11,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 export default function Navbar() {
   const { user } = useUser()
+  const pathname = usePathname()
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  // Check if we're on a dashboard route
+  const isDashboardRoute = pathname?.startsWith('/dashboard')
 
   // Check admin status when user is signed in
   useEffect(() => {
@@ -56,7 +61,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="nav-glass lg:sticky lg:top-0 z-51 px-4 py-4">
+    <nav className={`${isDashboardRoute ? 'nav-glass-static' : 'nav-glass'} z-50 px-4 py-4`}>
       <div className="container mx-auto flex items-center justify-between rounded-full">
         <Link href="/" className="items-center flex-shrink-0 logo-rainbow-hover py-1">
           <Image

@@ -223,10 +223,18 @@
 .nav-glass {
   background: rgba(10, 10, 15, 0.9);
   backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+}
+
+.nav-glass-static {
+  background: rgba(10, 10, 15, 0.9);
+  backdrop-filter: blur(20px);
   position: relative;
 }
 
-.nav-glass::after {
+.nav-glass::after,
+.nav-glass-static::after {
   content: '';
   position: absolute;
   bottom: 0;
