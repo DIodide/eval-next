@@ -13,7 +13,10 @@ export function useRouteBackground() {
     body.classList.remove('global-background', 'tryouts-combine-background');
     
     // Apply appropriate background based on route
-    if (pathname.startsWith('/tryouts') || pathname.startsWith('/rankings')) {
+    if (pathname == "/") {
+      body.classList.add('home-background');
+    }
+    else if (pathname.startsWith('/tryouts') || pathname.startsWith('/rankings')) {
       body.classList.add('tryouts-combine-background');
     } else {
       body.classList.add('global-background');
@@ -21,7 +24,7 @@ export function useRouteBackground() {
     
     // Cleanup function to remove classes when component unmounts
     return () => {
-      body.classList.remove('global-background', 'tryouts-combine-background');
+      body.classList.remove('global-background', 'tryouts-combine-background', 'home-background');
     };
   }, [pathname]);
 } 

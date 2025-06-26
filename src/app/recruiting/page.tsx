@@ -48,7 +48,7 @@ export default function HomePage() {
           {/* Dual CTA Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Players/Families Path */}
-            <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-cyan-400/30">
+            <div className="bg-black/40 backdrop-blur-sm rounded-md p-8 border border-cyan-400/30">
               <div className="mb-6">
                 <GraduationCap className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
                 <h3 className="font-orbitron text-2xl font-bold mb-2">FOR PLAYERS & FAMILIES</h3>
@@ -88,7 +88,7 @@ export default function HomePage() {
             </div>
 
             {/* Coaches Path */}
-            <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-orange-400/30">
+            <div className="bg-black/40 backdrop-blur-sm rounded-md p-8 border border-orange-400/30">
               <div className="mb-6">
                 <UserCheck className="w-16 h-16 text-orange-400 mx-auto mb-4" />
                 <h3 className="text-2xl font-orbitron font-bold mb-2">FOR COACHES & SCOUTS</h3>
@@ -369,7 +369,7 @@ export default function HomePage() {
       {/* Final CTA Section */}
       <section className="bg-gradient-to-r from-cyan-500 via-purple-600 to-orange-500 text-white py-20">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">READY TO GET STARTED?</h2>
+          <h2 className="font-orbitron text-4xl md:text-6xl font-black mb-6 cyber-text">READY TO GET STARTED?</h2>
           <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto">
             Join the platform that&apos;s revolutionizing esports recruitment and player development
           </p>

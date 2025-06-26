@@ -53,21 +53,23 @@ export default function FAQSection() {
 
         <div className="max-w-4xl mx-auto space-y-4">
           {faqs.map((faq, index) => (
-            <Collapsible key={index} open={openFaq === index} onOpenChange={() => toggleFaq(index)}>
-              <CollapsibleTrigger className="w-full cursor-pointer">
-                <div className="flex items-center justify-between p-6 bg-gray-800 hover:bg-gray-700 transition-colors border-b border-gray-600">
-                  <h3 className="font-orbitron text-white text-lg font-semibold text-left">{faq.question}</h3>
-                  <ChevronDown
-                    className={`w-5 h-5 text-cyan-400 transition-transform ${openFaq === index ? "rotate-180" : ""}`}
-                  />
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="p-6 bg-gray-800 border-b border-gray-600">
-                  <p className="text-gray-300 font-rajdhani leading-relaxed">{faq.answer}</p>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            <div key={index} className="faq-rainbow-border">
+              <Collapsible open={openFaq === index} onOpenChange={() => toggleFaq(index)}>
+                <CollapsibleTrigger className="w-full cursor-pointer">
+                  <div className="flex items-center justify-between p-6 bg-gray-800 hover:bg-gray-700 transition-colors border-b border-gray-600">
+                    <h3 className="font-orbitron text-white text-lg font-semibold text-left">{faq.question}</h3>
+                    <ChevronDown
+                      className={`w-5 h-5 text-cyan-400 transition-transform ${openFaq === index ? "rotate-180" : ""}`}
+                    />
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-6 bg-gray-800 border-b border-gray-600">
+                    <p className="text-gray-300 font-rajdhani leading-relaxed">{faq.answer}</p>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
           ))}
         </div>
       </div>
