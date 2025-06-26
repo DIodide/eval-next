@@ -51,6 +51,7 @@ import { z } from "zod";
 
 type CombineStatus = "UPCOMING" | "REGISTRATION_OPEN" | "REGISTRATION_CLOSED" | "IN_PROGRESS" | "COMPLETED";
 type EventType = "ONLINE" | "IN_PERSON" | "HYBRID";
+type RegistrationStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED";
 
 // Validation schema matching the API
 const createCombineSchema = z.object({
@@ -80,7 +81,7 @@ type CreateCombineData = z.infer<typeof createCombineSchema>;
 // Registration type for the data table
 type Registration = {
   id: string;
-  status: string;
+  status: RegistrationStatus;
   qualified: boolean | null;
   registered_at: Date;
   player: {
@@ -93,6 +94,17 @@ type Registration = {
   };
 };
 
+// Registration statistics type
+type RegistrationStats = {
+  PENDING?: number;
+  CONFIRMED?: number;
+  WAITLISTED?: number;
+  DECLINED?: number;
+  CANCELLED?: number;
+  activeRegistrations: number;
+  totalRegistrations: number;
+};
+
 export default function AdminCombinesPage() {
   const { toast } = useToast();
   
@@ -102,6 +114,7 @@ export default function AdminCombinesPage() {
   const [gameFilter, setGameFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<EventType | "ALL">("ALL");
   const [yearFilter, setYearFilter] = useState<string>("ALL");
+  const [registrationStatusFilter, setRegistrationStatusFilter] = useState<RegistrationStatus | "ALL">("ALL");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedCombine, setSelectedCombine] = useState<string | null>(null);
   const [showOutputPanel, setShowOutputPanel] = useState(false);
@@ -170,6 +183,12 @@ export default function AdminCombinesPage() {
   const { data: editingCombineData, refetch: refetchEditingCombine } = api.combines.getByIdForAdmin.useQuery(
     { id: editingCombine! },
     { enabled: !!editingCombine }
+  );
+
+  // Get registration statistics for selected combine
+  const { data: registrationStats } = api.combines.getRegistrationStats.useQuery(
+    { combine_id: selectedCombine! },
+    { enabled: !!selectedCombine }
   );
   
   const createCombineMutation = api.combines.create.useMutation({
@@ -272,11 +291,18 @@ export default function AdminCombinesPage() {
   });
 
   const removeRegistrationMutation = api.combines.removeRegistration.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({ 
         title: "Success", 
         description: "Registration removed successfully!" 
       });
+      setOutputData({
+        lastOperation: "Remove Registration",
+        success: true,
+        data: data,
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true);
       void refetchEditingCombine();
       void refetchCombines();
     },
@@ -286,6 +312,44 @@ export default function AdminCombinesPage() {
         description: error.message || "Failed to remove registration",
         variant: "destructive" 
       });
+      setOutputData({
+        lastOperation: "Remove Registration",
+        success: false,
+        error: error.message || "Failed to remove registration",
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true);
+    }
+  });
+
+  const deleteCombineMutation = api.combines.delete.useMutation({
+    onSuccess: (data) => {
+      toast({ 
+        title: "Success", 
+        description: "Combine deleted successfully!" 
+      });
+      setOutputData({
+        lastOperation: "Delete Combine",
+        success: true,
+        data: data,
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true);
+      void refetchCombines();
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to delete combine",
+        variant: "destructive" 
+      });
+      setOutputData({
+        lastOperation: "Delete Combine",
+        success: false,
+        error: error.message || "Failed to delete combine",
+        timestamp: new Date()
+      });
+      setShowOutputPanel(true);
     }
   });
 
@@ -440,10 +504,9 @@ export default function AdminCombinesPage() {
     createCombineMutation.mutate(createForm);
   };
 
-  const handleDeleteCombine = (combineId: string) => {
-    if (confirm("Are you sure you want to delete this combine? This action cannot be undone.")) {
-      // Add delete mutation when needed
-      console.log("Delete combine:", combineId);
+  const handleDeleteCombine = (combineId: string, combineTitle?: string) => {
+    if (confirm(`Are you sure you want to delete "${combineTitle ?? 'this combine'}"? This action cannot be undone.`)) {
+      deleteCombineMutation.mutate({ id: combineId });
     }
   };
 
@@ -547,8 +610,8 @@ export default function AdminCombinesPage() {
     });
   };
 
-  const handleRemoveRegistration = (registrationId: string) => {
-    if (confirm("Are you sure you want to remove this registration? This action cannot be undone.")) {
+  const handleRemoveRegistration = (registrationId: string, playerName?: string) => {
+    if (confirm(`Are you sure you want to remove ${playerName ? `${playerName}'s` : 'this'} registration? This action cannot be undone.`)) {
       removeRegistrationMutation.mutate({ registration_id: registrationId });
     }
   };
@@ -666,18 +729,19 @@ export default function AdminCombinesPage() {
       header: "Status",
       cell: ({ row }) => {
         const registration = row.original;
+        const getStatusColor = (status: RegistrationStatus) => {
+          switch (status) {
+            case "CONFIRMED": return "bg-green-600 text-white";
+            case "PENDING": return "bg-yellow-600 text-white";
+            case "DECLINED": return "bg-red-600 text-white";
+            case "CANCELLED": return "bg-gray-600 text-gray-200 line-through";
+            case "WAITLISTED": return "bg-orange-600 text-white";
+            default: return "bg-gray-600 text-white";
+          }
+        };
+        
         return (
-          <Badge 
-            className={
-              registration.status === "CONFIRMED" 
-                ? "bg-green-600 text-white" 
-                : registration.status === "PENDING"
-                ? "bg-yellow-600 text-white"
-                : registration.status === "DECLINED"
-                ? "bg-red-600 text-white"
-                : "bg-gray-600 text-white"
-            }
-          >
+          <Badge className={getStatusColor(registration.status)}>
             {registration.status}
           </Badge>
         );
@@ -830,7 +894,7 @@ export default function AdminCombinesPage() {
                 )}
                 <DropdownMenuSeparator className="bg-gray-700" />
                 <DropdownMenuItem
-                  onClick={() => handleRemoveRegistration(registration.id)}
+                  onClick={() => handleRemoveRegistration(registration.id, `${registration.player.first_name} ${registration.player.last_name}`)}
                   className="text-red-300 focus:text-red-100 focus:bg-gray-700"
                   disabled={removeRegistrationMutation.isPending}
                 >
@@ -1226,14 +1290,14 @@ export default function AdminCombinesPage() {
         </Dialog>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {/* Registration Overview Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-gray-300">Total Combines</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{mockCombines.length}</div>
+            <div className="text-2xl font-bold text-white">{combinesData?.total ?? 0}</div>
           </CardContent>
         </Card>
         <Card className="bg-gray-800 border-gray-700">
@@ -1242,7 +1306,7 @@ export default function AdminCombinesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-400">
-              {mockCombines.filter(c => c.status === "REGISTRATION_OPEN").length}
+              {combines.filter(c => c.status === "REGISTRATION_OPEN").length}
             </div>
           </CardContent>
         </Card>
@@ -1252,7 +1316,17 @@ export default function AdminCombinesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-400">
-              {mockCombines.filter(c => c.status === "UPCOMING").length}
+              {combines.filter(c => c.status === "UPCOMING").length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-gray-300">Active Registrations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-400">
+              {combines.reduce((total, combine) => total + (combine.registered_spots ?? 0), 0)}
             </div>
           </CardContent>
         </Card>
@@ -1262,7 +1336,7 @@ export default function AdminCombinesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {mockCombines.reduce((total, combine) => total + combine._count.registrations, 0)}
+              {combines.reduce((total, combine) => total + combine._count.registrations, 0)}
             </div>
           </CardContent>
         </Card>
@@ -1271,7 +1345,7 @@ export default function AdminCombinesPage() {
             <CardTitle className="text-sm text-gray-300">Filtered Results</CardTitle>
           </CardHeader>
           <CardContent>
-                            <div className="text-2xl font-bold text-purple-400">{combines.length}</div>
+            <div className="text-2xl font-bold text-purple-400">{combines.length}</div>
           </CardContent>
         </Card>
       </div>
@@ -1285,7 +1359,7 @@ export default function AdminCombinesPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div>
               <Label htmlFor="search" className="text-gray-300">Search</Label>
               <div className="relative">
@@ -1362,6 +1436,23 @@ export default function AdminCombinesPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label htmlFor="registration-status-filter" className="text-gray-300">Registration Status</Label>
+              <Select value={registrationStatusFilter} onValueChange={(value: RegistrationStatus | "ALL") => setRegistrationStatusFilter(value)}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectItem value="ALL" className="text-white hover:bg-gray-700">All Statuses</SelectItem>
+                  <SelectItem value="PENDING" className="text-white hover:bg-gray-700">🟡 Pending</SelectItem>
+                  <SelectItem value="CONFIRMED" className="text-white hover:bg-gray-700">🟢 Confirmed</SelectItem>
+                  <SelectItem value="WAITLISTED" className="text-white hover:bg-gray-700">🟠 Waitlisted</SelectItem>
+                  <SelectItem value="DECLINED" className="text-white hover:bg-gray-700">🔴 Declined</SelectItem>
+                  <SelectItem value="CANCELLED" className="text-white hover:bg-gray-700">⚫ Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1414,7 +1505,14 @@ export default function AdminCombinesPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {combine._count.registrations}/{combine.max_spots} registered
+                        {(() => {
+                          const activeCount = combine.registered_spots ?? 0;
+                          const totalCount = combine._count.registrations;
+                          if (activeCount !== totalCount) {
+                            return `${activeCount}/${combine.max_spots} active (${totalCount} total)`;
+                          }
+                          return `${activeCount}/${combine.max_spots} registered`;
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -1437,11 +1535,21 @@ export default function AdminCombinesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
-                      onClick={() => handleDeleteCombine(combine.id)}
-                      disabled={combine._count.registrations > 0}
+                      className={combine._count.registrations > 0 
+                        ? "border-gray-500 text-gray-500 cursor-not-allowed" 
+                        : "border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                      }
+                      onClick={() => handleDeleteCombine(combine.id, combine.title)}
+                      disabled={combine._count.registrations > 0 || deleteCombineMutation.isPending}
+                      title={combine._count.registrations > 0 
+                        ? `Cannot delete combine with ${combine._count.registrations} registrations` 
+                        : "Delete combine"
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
+                      {deleteCombineMutation.isPending && (
+                        <span className="ml-1 hidden sm:inline">Deleting...</span>
+                      )}
                     </Button>
                   </div>
                   </div>
