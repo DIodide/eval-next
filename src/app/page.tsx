@@ -45,10 +45,10 @@ const testimonials = [
     avatar: "/placeholder.svg?height=60&width=60",
   },
   {
-    name: "Placeholder",
-    role: "Placeholder",
-    school: "Placeholder",
-    quote: "The combines on EVAL pushed me to improve my game. Now I&apos;m competing at the highest collegiate level.",
+    name: "Nikolai Kostev",
+    role: "Valorant Player",
+    school: "Midtown High School",
+    quote: "EVAL has opened up so many opportunities for me to get scholarships… thanks to EVAL, gaming in college can be my future!"
     avatar: "/placeholder.svg?height=60&width=60",
   },
 ]
