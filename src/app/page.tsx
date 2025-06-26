@@ -90,7 +90,8 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center text-center text-white">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/80 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5 z-10" />
+        <div className="absolute inset-0 bg-black/66 z-5" />
         {/* <Image
           src="/eval/valorant_champs.jpg?height=1080&width=1920"
           alt="Esports background"
