@@ -13,7 +13,8 @@ import {
   Home,
   ArrowLeft,
   Activity,
-  ClipboardList
+  ClipboardList,
+  Gamepad2
 } from "lucide-react";
 
 const adminRoutes = [
@@ -46,6 +47,11 @@ const adminRoutes = [
     href: "/admin/test-tryouts",
     label: "Test Tryouts",
     icon: Trophy,
+  },
+  {
+    href: "/admin/test-riot-oauth",
+    label: "Test Riot OAuth",
+    icon: Gamepad2,
   },
   {
     href: "/admin/combines",
