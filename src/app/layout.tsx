@@ -8,6 +8,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/app/_components/Navbar";
 import Footer from "@/app/_components/Footer";
 import BackgroundManager from "@/app/_components/BackgroundManager";
+import { PostHogProvider } from "@/app/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { dark, neobrutalism } from "@clerk/themes";
 
@@ -46,6 +47,7 @@ export default function RootLayout({
             colorPrimary: '#719bf0'
           }
         }}>
+          <PostHogProvider>
           <TRPCReactProvider>
             <BackgroundManager />
             <Navbar />
@@ -55,6 +57,7 @@ export default function RootLayout({
             <Footer />
             <Toaster richColors position="bottom-left" />
           </TRPCReactProvider>
+          </PostHogProvider>
         </ClerkProvider>
         <Analytics />
       </body>
