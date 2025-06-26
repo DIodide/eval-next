@@ -1,0 +1,37 @@
+User-agent: *
+
+# Allow public pages
+Allow: /
+Allow: /about/
+Allow: /pricing/
+Allow: /recruiting/
+Allow: /tryouts/
+Allow: /rankings/
+Allow: /profiles/player/
+Allow: /profiles/school/
+Allow: /cookie-policy/
+Allow: /privacy-policy/
+Allow: /tos/
+Allow: /terms/
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+
+# Disallow specific file types that shouldn't be indexed
+Disallow: /*.json$
+Disallow: /*.pdf$
+Disallow: /*?*
+
+# Allow crawling of static assets
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.gif$
+Allow: /*.svg$
+Allow: /*.webp$
+
+# Sitemap location
+Sitemap: https://evalgaming.com/sitemap.xml
