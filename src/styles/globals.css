@@ -42,7 +42,7 @@
 }
 
 /* Mobile-optimized background classes */
-.home-background-mobile {
+/* .home-background-mobile {
   background-image: url('/eval/valorant_champs.png');
   background-color: #0f0f1a;
   background-position: center top;
@@ -50,9 +50,9 @@
   background-size: 100vw auto;
   background-attachment: scroll;
   min-height: 100vh;
-}
+} */
 
-.global-background-mobile {
+/* .global-background-mobile {
   background-image: url('/eval/recruitment_bg2.png');
   background-color: #0f0f1a;
   background-position: center top;
@@ -70,7 +70,7 @@
   background-size: 100vw auto;
   background-attachment: scroll;
   min-height: 100vh;
-}
+} */
 
 /* Hide desktop backgrounds on mobile */
 @media (max-width: 768px) {
