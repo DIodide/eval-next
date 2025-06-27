@@ -371,6 +371,59 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Discord Community Section */}
+      <section className="bg-gradient-to-br bg-black/95 py-20">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Left Content */}
+              <div className="text-left">
+                <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-6 cyber-text">
+                  JOIN OUR DISCORD
+                </h2>
+                <p className="text-xl text-gray-300 mb-8 font-rajdhani leading-relaxed">
+                  Connect with thousands of players, coaches, and esports enthusiasts in our vibrant Discord community. 
+                  Get real-time updates, participate in discussions, and stay ahead of the competition.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
+                    <p className="text-gray-300 font-rajdhani">Live tournament updates and announcements</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
+                    <p className="text-gray-300 font-rajdhani">Direct access to EVAL team and coaches</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
+                    <p className="text-gray-300 font-rajdhani">Exclusive opportunities and early access</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
+                    <p className="text-gray-300 font-rajdhani">Community events and scrimmages</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Discord Widget */}
+              <div className="flex justify-center lg:justify-end">
+                <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 hover:shadow-xl hover:shadow-purple-400/10 transition-all">
+                  <iframe 
+                    src="https://discord.com/widget?id=1208123255592849438&theme=dark" 
+                    width="350" 
+                    height="500" 
+                    allowTransparency={true}
+                    frameBorder="0" 
+                    sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+                    className="rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <FAQSection className="bg-gray-900/99" />
 
