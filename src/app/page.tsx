@@ -5,27 +5,44 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, User, Quote, GraduationCap, X } from "lucide-react"
+import { User, Quote, GraduationCap, Calendar } from "lucide-react"
 import FAQSection from "./_components/FAQSection"
 import { FlipWords } from "@/components/ui/flip-words"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { SignUpButton, SignInButton, useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
+import { api } from "@/trpc/react"
 
-// Mock data for ranking previews
-const collegeTriouts = [
-  { id: 1, title: "Princeton Esports Club VALORANT", school: "Princeton", date: "Dec 15", spots: "5 left" },
-  { id: 2, title: "Princeton Esports Club Overwatch 2", school: "Princeton", date: "Dec 20", spots: "12 left" },
-  { id: 3, title: "Princeton Esports Club Rocket League", school: "Princeton", date: "Jan 5", spots: "8 left" },
-  { id: 4, title: "Princeton Esports Club Smash Ultimate", school: "Princeton", date: "Dec 18", spots: "6 left" },
-]
+// Helper function to calculate spots remaining
+const getSpotsRemaining = (maxSpots: number, registeredSpots: number) => {
+  const remaining = maxSpots - registeredSpots
+  if (remaining <= 0) return "Full"
+  return `${remaining} left`
+}
 
-const evalCombines = [
-  { id: 1, title: "EVAL Rocket League Combine", game: "VALORANT", prize: "$300", status: "Open" },
-  { id: 2, title: "EVAL Valorant Combine", game: "Rocket League", prize: "$500", status: "Open" },
-  { id: 3, title: "EVAL Smash Ultimate Combine Day 1", game: "Overwatch 2", prize: "$100", status: "Open" },
-  { id: 4, title: "EVAL Smash Ultimate Combine Day 2", game: "Rocket League", prize: "$100", status: "Open" },
-]
+// Helper function to format date more concisely
+const formatCompactDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(new Date(date))
+}
+
+// Game icon mapping
+const gameIcons = {
+  "VALORANT": "/valorant/logos/Valorant Logo Red Border.jpg",
+  "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png", 
+  "Super Smash Bros. Ultimate": "/smash/logos/Smash Ball White Logo.png",
+  "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
+} as const
+
+// Helper function to get game icon
+const getGameIcon = (gameName: string) => {
+  return gameIcons[gameName as keyof typeof gameIcons] ?? "/eval/logos/emblem.png"
+}
+
+
 
 const testimonials = [
   {
@@ -58,6 +75,9 @@ export default function HomePage() {
   const router = useRouter()
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
+  // Fetch real data from API
+  const { data: upcomingTryouts = [] } = api.tryouts.getUpcomingForHomepage.useQuery({ limit: 3 })
+  const { data: upcomingCombines = [] } = api.combines.getUpcomingForHomepage.useQuery({ limit: 3 })
 
   const handleUserTypeSelect = (userType: 'player' | 'coach') => {
     setSelectedUserType(userType)
@@ -177,94 +197,133 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Ranking Previews Section */}
-      <section className="bg-black/95 py-20">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">
-              RANKING PREVIEWS
-            </h2>
-            <p className="text-xl text-gray-300 font-rajdhani">Discover top opportunities and elite competition</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
-            {/* College Tryouts */}
-            <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-md p-8 border border-cyan-400/20">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-orbitron text-2xl text-cyan-400 font-bold tracking-wide">COLLEGE TRYOUTS</h3>
-                <Link href="/tryouts/college">
-                  <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold shadow-lg shadow-cyan-400/25">
-                    VIEW MORE
-                  </Button>
-                </Link>
-              </div>
-              <div className="space-y-4">
-                {collegeTriouts.map((tryout) => (
-                  <Card
-                    key={tryout.id}
-                    className="bg-gray-800/80 backdrop-blur-sm border-gray-700 hover:border-cyan-400/50 transition-all hover:shadow-lg hover:shadow-cyan-400/10"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-black" />
-                          </div>
-                          <div>
-                            <h4 className="font-orbitron text-white font-semibold text-sm">{tryout.title}</h4>
-                            <p className="text-gray-400 font-rajdhani text-xs">{tryout.school}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-cyan-400 font-orbitron text-sm font-bold">{tryout.date}</p>
-                          <p className="text-gray-400 font-rajdhani text-xs">{tryout.spots}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {/* Upcoming Tournaments Section */}
+        <section className="bg-black/95 py-20">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">
+                UPCOMING TOURNAMENTS
+              </h2>
+              <p className="text-xl text-gray-300 font-rajdhani">Don&apos;t miss out on these exciting opportunities to compete and get recruited</p>
             </div>
 
-            {/* EVAL Combines */}
-            <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-md p-8 border border-purple-400/20">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-orbitron text-2xl text-purple-400 font-bold tracking-wide">EVAL COMBINES</h3>
-                <Link href="/tryouts/combines">
-                  <Button className="bg-purple-400 hover:bg-purple-500 text-black font-orbitron font-bold shadow-lg shadow-purple-400/25">
-                    VIEW MORE
-                  </Button>
-                </Link>
+                      <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 max-w-7xl mx-auto">
+              {/* College Tryouts */}
+              {/* <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-md p-8 border border-cyan-400/20">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-orbitron text-2xl text-cyan-400 font-bold tracking-wide">COLLEGE TRYOUTS</h3>
+                  </div>
+                  <Link href="/tryouts/college">
+                    <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold shadow-lg shadow-cyan-400/25">
+                      VIEW MORE
+                    </Button>
+                  </Link>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  {upcomingTryouts.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 font-rajdhani">No upcoming tryouts available</p>
+                    </div>
+                  ) : (
+                    upcomingTryouts.map((tryout) => (
+                      <Link key={tryout.id} href={`/tryouts/college/${tryout.id}`}>
+                        <Card className="bg-gray-800/80 backdrop-blur-sm border-gray-700 hover:border-cyan-400/50 hover:bg-gray-800/90 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/20 cursor-pointer transform hover:scale-[1.02]">
+                          <CardContent className="p-5">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <Image
+                                  src={getGameIcon(tryout.game.name)}
+                                  alt={tryout.game.name}
+                                  width={48}
+                                  height={48}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-orbitron text-white font-semibold truncate mb-1">{tryout.title}</h4>
+                                <p className="text-gray-400 font-rajdhani text-sm mb-2">{tryout.school.name}</p>
+                                <div className="flex items-center space-x-1">
+                                  <Calendar className="w-4 h-4 text-cyan-400" />
+                                  <span className="text-cyan-400 font-rajdhani text-sm">
+                                    {formatCompactDate(tryout.date)}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Badge className="bg-gradient-to-r from-green-400 to-green-500 text-black font-orbitron text-xs font-bold">
+                                  {getSpotsRemaining(tryout.max_spots, tryout.registered_spots)}
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div> */}
+
+                          {/* EVAL Combines */}
+              <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-md p-8 border border-purple-400/20">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-orbitron text-2xl text-purple-400 font-bold tracking-wide">EVAL COMBINES</h3>
+                  </div>
+                  <Link href="/tryouts/combines">
+                    <Button className="bg-purple-400 hover:bg-purple-500 text-black font-orbitron font-bold shadow-lg shadow-purple-400/25">
+                      VIEW MORE
+                    </Button>
+                  </Link>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  {upcomingCombines.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 font-rajdhani">No upcoming combines available</p>
+                    </div>
+                  ) : (
+                    upcomingCombines.map((combine) => (
+                      <Link key={combine.id} href={`/tryouts/combines/${combine.id}`}>
+                        <Card className="bg-gray-800/80 backdrop-blur-sm border-gray-700 hover:border-purple-400/50 hover:bg-gray-800/90 transition-all duration-300 hover:shadow-lg hover:shadow-purple-400/20 cursor-pointer transform hover:scale-[1.02]">
+                          <CardContent className="p-5">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <Image
+                                  src={getGameIcon(combine.game.name)}
+                                  alt={combine.game.name}
+                                  width={48}
+                                  height={48}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-orbitron text-white font-semibold truncate mb-1">{combine.title}</h4>
+                                <p className="text-gray-400 font-rajdhani text-sm mb-2">{combine.game.name}</p>
+                                <div className="flex items-center space-x-1">
+                                  <Calendar className="w-4 h-4 text-purple-400" />
+                                  <span className="text-purple-400 font-rajdhani text-sm">
+                                    {formatCompactDate(combine.date)}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right flex flex-col items-end space-y-2">
+                                <div className="text-purple-400 font-orbitron font-bold text-sm">{combine.prize_pool}</div>
+                                <Button 
+                                  size="sm" 
+                                  className="bg-purple-500 hover:bg-purple-600 text-white font-orbitron text-xs px-4 py-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  JOIN COMBINE
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="space-y-4">
-                {evalCombines.map((combine) => (
-                  <Card
-                    key={combine.id}
-                    className="bg-gray-800/80 backdrop-blur-sm border-gray-700 hover:border-purple-400/50 transition-all hover:shadow-lg hover:shadow-purple-400/10"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-md flex items-center justify-center">
-                            <Trophy className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-orbitron text-white font-semibold text-sm">{combine.title}</h4>
-                            <p className="text-gray-400 font-rajdhani text-xs">{combine.game}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-purple-400 font-orbitron text-sm font-bold">{combine.prize}</p>
-                          <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-orbitron text-xs font-bold">
-                            {combine.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </section>

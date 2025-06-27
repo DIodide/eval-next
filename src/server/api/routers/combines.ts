@@ -1154,6 +1154,52 @@ export const combinesRouter = createTRPCRouter({
       }
     }),
 
+  // Get upcoming combines for homepage (lightweight)
+  getUpcomingForHomepage: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(10).default(3),
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const combines = await withRetry(() =>
+          ctx.db.combine.findMany({
+            where: {
+              date: { gte: new Date() }, // Only upcoming
+              status: { in: ['REGISTRATION_OPEN', 'UPCOMING'] }, // Only open or upcoming combines
+            },
+            select: {
+              id: true,
+              title: true,
+              date: true,
+              time_start: true,
+              time_end: true,
+              max_spots: true,
+              registered_spots: true,
+              prize_pool: true,
+              status: true,
+              game: {
+                select: {
+                  id: true,
+                  name: true,
+                  short_name: true,
+                },
+              },
+            },
+            orderBy: { date: 'asc' },
+            take: input.limit,
+          })
+        );
+
+        return combines;
+      } catch (error) {
+        console.error('Error fetching upcoming combines for homepage:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch upcoming combines',
+        });
+      }
+    }),
+
   // Get combine details for admin (includes registration details)
   getByIdForAdmin: adminProcedure
     .input(z.object({ id: z.string().uuid() }))

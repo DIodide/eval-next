@@ -699,6 +699,56 @@ export const tryoutsRouter = createTRPCRouter({
       }
     }),
 
+  // Get upcoming tryouts for homepage (lightweight)
+  getUpcomingForHomepage: publicProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(10).default(3),
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const tryouts = await withRetry(() =>
+          ctx.db.tryout.findMany({
+            where: {
+              status: 'PUBLISHED',
+              date: { gte: new Date() }, // Only upcoming
+            },
+            select: {
+              id: true,
+              title: true,
+              date: true,
+              time_start: true,
+              time_end: true,
+              max_spots: true,
+              registered_spots: true,
+              game: {
+                select: {
+                  id: true,
+                  name: true,
+                  short_name: true,
+                },
+              },
+              school: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: { date: 'asc' },
+            take: input.limit,
+          })
+        );
+
+        return tryouts;
+      } catch (error) {
+        console.error('Error fetching upcoming tryouts for homepage:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch upcoming tryouts',
+        });
+      }
+    }),
+
   // Get all games for form dropdowns
   getGames: publicProcedure
     .query(async ({ ctx }) => {
