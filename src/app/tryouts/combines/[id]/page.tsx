@@ -156,7 +156,7 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
   const spotsLeft = combine.max_spots - combine.registered_spots
 
   return (
-    <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20">
+    <Card className="glass-morphism border-white/20 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20 hover:scale-105">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3 flex-1 mr-4">
@@ -231,42 +231,46 @@ function RelatedCombinesCarousel({ combines }: { combines: CombineCardProps['com
 
   return (
     <div className="mt-16">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="font-orbitron text-2xl font-bold text-white tracking-wide">
-          Related Combines
-        </h2>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={prevSlide}
-            disabled={currentIndex === 0}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={nextSlide}
-            disabled={currentIndex >= maxIndex}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+      <div className="glass-morphism border-white/20 rounded-2xl p-8 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="font-orbitron text-3xl font-bold text-white tracking-wide">
+            Related Combines
+          </h2>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={prevSlide}
+              disabled={currentIndex === 0}
+              className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={nextSlide}
+              disabled={currentIndex >= maxIndex}
+              className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="overflow-hidden">
-        <div
-          className="flex space-x-6 transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
-        >
-          {combines.map((combine) => (
-            <div key={combine.id} className="min-w-[calc(100%/3-1rem)]">
-              <RelatedCombineCard combine={combine} />
-            </div>
-          ))}
+        <div className="overflow-hidden">
+          <div
+            className="flex space-x-6 transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
+          >
+            {combines.map((combine) => (
+              <div key={combine.id} className="min-w-[calc(100%/3-1rem)]">
+                <Link href={`/tryouts/combines/${combine.id}`}>
+                  <RelatedCombineCard combine={combine} />
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -401,11 +405,14 @@ export default function CombineDetailPage() {
 
   if (isLoadingCombine) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-        <div className="container mx-auto px-6 py-12">
-          <div className="flex items-center justify-center py-32">
-            <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400" />
-            <span className="ml-3 text-gray-400 font-rajdhani">Loading combine details...</span>
+      <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative container mx-auto px-4 sm:px-6 py-12">
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20">
+              <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400 mx-auto mb-4" />
+              <span className="text-white font-rajdhani text-lg">Loading combine details...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -414,21 +421,25 @@ export default function CombineDetailPage() {
 
   if (combineError || !combine) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-        <div className="container mx-auto px-6 py-12">
-          <div className="text-center py-32">
-            <h1 className="text-2xl font-orbitron font-bold text-white mb-4">
-              Combine Not Found
-            </h1>
-            <p className="text-gray-400 mb-8">
-              The combine you&apos;re looking for doesn&apos;t exist or has been removed.
-            </p>
-            <Link href="/tryouts/combines">
-              <Button className="bg-cyan-400 hover:bg-cyan-500 text-black">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Combines
-              </Button>
-            </Link>
+      <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative container mx-auto px-4 sm:px-6 py-12">
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20 max-w-md">
+              <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+              <h1 className="text-2xl font-orbitron font-bold text-white mb-4">
+                Combine Not Found
+              </h1>
+              <p className="text-gray-400 mb-8">
+                The combine you&apos;re looking for doesn&apos;t exist or has been removed.
+              </p>
+              <Link href="/tryouts/combines">
+                <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Combines
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -443,16 +454,34 @@ export default function CombineDetailPage() {
   const canRegister = !isPastCombine && spotsLeft > 0 && !existingRegistration && user && !combine.invite_only
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-      <div className="container mx-auto px-6 py-12">
-        {/* Back Button */}
-        <div className="mb-8">
-          <Link href="/tryouts/combines">
-            <Button variant="ghost" className="text-gray-400 hover:bg-transparent hover:text-cyan-300">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Combines
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      {/* Floating Accent Elements */}
+      <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl" />
+      <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
+      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" />
+      
+      <div className="relative container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Compact Header with Rainbow Divider */}
+        <div className="text-center mb-12">
+          <Link href="/tryouts/combines" className="inline-flex items-center text-gray-400 hover:text-cyan-300 transition-colors mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            <span className="font-rajdhani">Back to Combines</span>
           </Link>
+          
+          <h1 className="font-orbitron font-black text-4xl sm:text-5xl text-white mb-4 tracking-wider">
+            COMBINE DETAILS
+          </h1>
+          
+          {/* Rainbow Divider */}
+          <div className="flex justify-center items-center space-x-0 w-full max-w-md mx-auto">
+            <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -460,7 +489,7 @@ export default function CombineDetailPage() {
           <div className="lg:col-span-2 space-y-8">
             
             {/* Header Card */}
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="glass-morphism border-white/20 hover:border-cyan-400/30 transition-all duration-300">
               <CardContent className="p-8">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center space-x-4 flex-1">
@@ -534,7 +563,7 @@ export default function CombineDetailPage() {
 
                 {/* Registration Status or Button */}
                 {existingRegistration ? (
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <div className="glass-morphism border-white/20 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(existingRegistration.status)}
@@ -570,7 +599,7 @@ export default function CombineDetailPage() {
                               Cancel
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+                          <DialogContent className="glass-morphism border-white/20 text-white max-w-md">
                             <DialogHeader>
                               <DialogTitle className="font-orbitron text-red-300">Cancel Registration</DialogTitle>
                               <DialogDescription className="text-gray-400">
@@ -595,7 +624,7 @@ export default function CombineDetailPage() {
                                     setCancelDialogOpen(false)
                                     setRegistrationError("")
                                   }}
-                                  className="border-gray-600 text-black hover:bg-gray-700"
+                                  className="glass-morphism border-white/20 text-white hover:border-gray-300/40"
                                 >
                                   Keep Registration
                                 </Button>
@@ -628,7 +657,7 @@ export default function CombineDetailPage() {
                               Sign Up
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+                          <DialogContent className="glass-morphism border-white/20 text-white max-w-md">
                             <DialogHeader>
                               <DialogTitle className="font-orbitron text-cyan-300">Choose Account Type</DialogTitle>
                               <DialogDescription className="text-gray-400">
@@ -662,9 +691,9 @@ export default function CombineDetailPage() {
                               </div>
                               
                               <div className="flex justify-end gap-3">
-                                <Button variant="outline" onClick={resetAndCloseModal} className="border-gray-600 text-black hover:bg-gray-700">
-                                  Cancel
-                                </Button>
+                                                          <Button variant="outline" onClick={resetAndCloseModal} className="glass-morphism border-white/20 text-white hover:border-gray-300/40">
+                            Cancel
+                          </Button>
                                 <SignUpButton 
                                   mode="modal"
                                   forceRedirectUrl={selectedUserType === 'player' ? '/sign-up/players' : '/sign-up/schools'}
@@ -712,7 +741,7 @@ export default function CombineDetailPage() {
                         REGISTER NOW
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+                    <DialogContent className="glass-morphism border-white/20 text-white max-w-md">
                       <DialogHeader>
                         <DialogTitle className="font-orbitron text-cyan-300">Register for Combine</DialogTitle>
                         <DialogDescription className="text-gray-400">
@@ -729,7 +758,7 @@ export default function CombineDetailPage() {
                           </div>
                         )}
                         
-                        <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="glass-morphism border-white/10 rounded-lg p-4">
                           <p className="text-gray-300 text-sm mb-2">You&apos;re registering for:</p>
                           <p className="text-white font-medium">{combine.title} {combine.year}</p>
                           <p className="text-gray-400 text-sm">{formatDate(combine.date)}</p>
@@ -742,7 +771,7 @@ export default function CombineDetailPage() {
                               setRegistrationDialogOpen(false)
                               setRegistrationError("")
                             }}
-                            className="border-gray-600 text-black hover:bg-gray-700"
+                            className="glass-morphism border-white/20 text-white hover:border-gray-300/40"
                           >
                             Cancel
                           </Button>
@@ -761,7 +790,7 @@ export default function CombineDetailPage() {
                     </DialogContent>
                   </Dialog>
                 ) : isPastCombine ? (
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <div className="glass-morphism border-white/20 rounded-lg p-4">
                     <p className="text-gray-400 text-center">This combine has already occurred</p>
                   </div>
                 ) : spotsLeft === 0 ? (
@@ -776,7 +805,7 @@ export default function CombineDetailPage() {
             </Card>
 
             {/* Description Card */}
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="glass-morphism border-white/20 hover:border-purple-400/30 transition-all duration-300">
               <CardHeader>
                 <CardTitle className="font-orbitron text-xl text-white">
                   About This {combine.invite_only ? "Invitational" : "Combine"}
@@ -801,7 +830,7 @@ export default function CombineDetailPage() {
 
           {/* Sidebar */}
           <div>
-            <Card className="bg-gray-900 border-gray-800 sticky top-6">
+            <Card className="glass-morphism border-white/20 hover:border-orange-400/30 transition-all duration-300 sticky top-6">
               <CardContent className="p-6">
                 <div
                   className={`w-full aspect-square bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center mb-6`}

@@ -202,8 +202,7 @@ export default function LeaguesRankingPage() {
             <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500"></div>
             <div className="w-6 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
             <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-orange-500"></div>
-            <div className="w-6 h-0.5 bg-gradient-to-r from-orange-500 to-purple-500"></div>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-transparent"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-orange-500 to-transparent"></div>
           </div>
           
           <p className="text-lg text-gray-300 max-w-3xl mx-auto font-medium">

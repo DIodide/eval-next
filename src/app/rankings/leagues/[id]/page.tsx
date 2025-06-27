@@ -77,13 +77,13 @@ export default function LeagueDetailPage() {
             <div className="w-20 h-20 bg-gradient-to-r from-red-500/20 to-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Trophy className="w-10 h-10 text-red-400" />
             </div>
-            <h1 className="font-orbitron text-4xl font-bold text-white mb-4">League Not Found</h1>
+          <h1 className="font-orbitron text-4xl font-bold text-white mb-4">League Not Found</h1>
             <p className="text-gray-300 mb-8 font-medium text-lg">The league you&apos;re looking for doesn&apos;t exist.</p>
-            <Link href="/rankings/leagues">
+          <Link href="/rankings/leagues">
               <Button className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron rounded-full px-8 py-3 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cyan-400/25">
                 Back to Leagues
               </Button>
-            </Link>
+          </Link>
           </div>
         </div>
       </div>
@@ -121,21 +121,21 @@ export default function LeagueDetailPage() {
         {/* League Header */}
         <div className="mb-12">
           <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/30 backdrop-blur-md rounded-lg p-8 border border-white/10 shadow-2xl">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
               <div className={`w-28 h-28 bg-gradient-to-br ${gameColor} rounded-2xl flex items-center justify-center shadow-xl`}>
                 <Trophy className="w-14 h-14 text-white" />
-              </div>
+            </div>
 
-              <div className="flex-1">
+            <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   <h1 className="font-orbitron text-3xl md:text-4xl font-black text-white tracking-wide">{league.name}</h1>
                   <Badge className={`${tierColor} font-orbitron font-bold shadow-lg`}>{league.tier}</Badge>
                   <Badge className={`${statusColor} font-orbitron font-bold shadow-lg`}>{league.status}</Badge>
-                </div>
+              </div>
 
                 <p className="text-lg text-gray-300 mb-6 font-medium leading-relaxed">{league.description}</p>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-white/5 backdrop-blur-md rounded-md p-4 border border-white/10 hover:border-cyan-400/30 hover:bg-white/10 transition-all duration-300">
                     <div className="flex items-center space-x-2 mb-2">
                       <Users className="w-5 h-5 text-cyan-400" />
@@ -148,7 +148,7 @@ export default function LeagueDetailPage() {
                     <div className="flex items-center space-x-2 mb-2">
                       <User className="w-5 h-5 text-purple-400" />
                       <span className="text-white font-orbitron text-sm font-bold">Players</span>
-                    </div>
+                </div>
                     <p className="text-2xl font-black text-purple-400 font-orbitron">{league.player_participants?.length ?? 0}</p>
                   </div>
 
@@ -156,7 +156,7 @@ export default function LeagueDetailPage() {
                     <div className="flex items-center space-x-2 mb-2">
                       <MapPin className="w-5 h-5 text-orange-400" />
                       <span className="text-white font-orbitron text-sm font-bold">Region</span>
-                    </div>
+                </div>
                     <p className="text-sm text-gray-300 font-medium">{league.state ?? league.region}</p>
                   </div>
 
@@ -164,7 +164,7 @@ export default function LeagueDetailPage() {
                     <div className="flex items-center space-x-2 mb-2">
                       <Award className="w-5 h-5 text-cyan-400" />
                       <span className="text-white font-orbitron text-sm font-bold">Game</span>
-                    </div>
+                </div>
                     <p className="text-sm text-gray-300 font-medium">{league.game?.name}</p>
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export default function LeagueDetailPage() {
                 {leaderboardLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="w-12 h-12 bg-gradient-to-r from-cyan-400/20 to-cyan-500/20 rounded-full flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+                    <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
                     </div>
                     <span className="ml-3 text-gray-300 font-medium">Loading teams...</span>
                   </div>
@@ -233,7 +233,7 @@ export default function LeagueDetailPage() {
                             <h3 className="font-orbitron text-white font-bold group-hover:text-cyan-200 transition-colors">{team.team_name}</h3>
                             <p className="text-gray-400 font-medium text-sm">{team.school_name}</p>
                             <p className="text-gray-500 font-medium text-xs">{team.school_location}</p>
-                          </div>
+                        </div>
 
                           <div className="col-span-2 text-center">
                             <p className="text-gray-300 font-medium">
@@ -270,8 +270,8 @@ export default function LeagueDetailPage() {
                                 <div className="text-center">
                                   <p className="text-gray-400 text-xs font-medium">POINTS</p>
                                   <p className="text-cyan-400 font-orbitron font-black text-sm">{team.points}</p>
-                                </div>
-                                <div className="text-center">
+                          </div>
+                          <div className="text-center">
                                   <p className="text-gray-400 text-xs font-medium">MEMBERS</p>
                                   <p className="text-gray-300 font-medium text-sm">{team.members.length}</p>
                                 </div>
@@ -344,7 +344,7 @@ export default function LeagueDetailPage() {
 
                           <div className="col-span-2 text-center">
                             <p className="text-purple-400 font-orbitron font-black">{player.eval_score?.toFixed(1) ?? 'N/A'}</p>
-                          </div>
+                        </div>
 
                           <div className="col-span-2 text-center">
                             <p className="text-gray-300 font-medium">{player.wins}-{player.losses}</p>
@@ -386,7 +386,7 @@ export default function LeagueDetailPage() {
                                   <p className="text-gray-400 text-xs font-medium">GAMES</p>
                                   <p className="text-gray-300 font-medium text-sm">{player.games_played}</p>
                                 </div>
-                                <div className="text-center">
+                            <div className="text-center">
                                   <p className="text-gray-400 text-xs font-medium">ROLE</p>
                                   <p className="text-gray-300 font-medium text-xs">{player.role ?? '-'}</p>
                                 </div>

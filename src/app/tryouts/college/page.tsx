@@ -254,58 +254,82 @@ function TryoutsPageContent() {
                           freeOnly
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-      <div className="container mx-auto px-6 py-12">
-        {/* Header Section */}
+    <div className="min-h-screen bg-gray-900/60 text-white relative overflow-hidden">
+      {/* Background accent elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5" />
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-cyan-500/8 to-transparent rounded-full blur-2xl"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-orange-500/8 to-transparent rounded-full blur-xl"></div>
+      
+      <div className="container mx-auto px-6 py-16 relative z-10">
+        {/* Compact Header */}
         <div className="text-center mb-12">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
-            TRYOUTS
-          </h1>
-          <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-3xl mx-auto">
-            Discover and register for esports tryouts at top colleges and universities
+          <div className="mb-4">
+            <h1 className="font-orbitron text-3xl md:text-5xl font-black text-white text-center">
+              COLLEGE TRYOUTS
+            </h1>
+          </div>
+          
+          {/* Compact Rainbow Divider */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500"></div>
+            <div className="w-6 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          </div>
+          
+          <p className="text-lg text-gray-300 max-w-3xl mx-auto font-medium">
+            Discover and register for esports tryouts at top colleges and universities across the country.
           </p>
+          
           {user && (
-            <p className="text-sm text-blue-400 mb-4">
-              Logged in as: {user.emailAddresses[0]?.emailAddress}
-            </p>
+            <div className="mt-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-full px-4 py-2 border border-blue-400/30 max-w-fit mx-auto">
+              <p className="text-sm text-blue-300 font-medium">
+                Logged in as: {user.emailAddresses[0]?.emailAddress}
+              </p>
+            </div>
           )}
 
           {/* Cache Status Indicator */}
           {tryoutsResponse && (
-            <div className="text-xs text-gray-500 mb-4 flex items-center justify-center gap-2">
+            <div className="mt-4 text-xs text-gray-400 flex items-center justify-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400"></div>
-              <span>Data cached • Client-side filtering • No network requests on filter changes</span>
+              <span>Real-time data • Smart caching • Instant filtering</span>
             </div>
           )}
-
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto relative">
-            <Input
-              type="text"
-              placeholder="Search tryouts, schools, or games..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white pl-12 pr-4 py-4 rounded-full text-lg font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          </div>
         </div>
 
-        {/* Filters Section */}
-        <Card className="bg-gray-900 border-gray-800 p-6 mb-12">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 mb-4">
-              <FilterIcon className="h-5 w-5 text-cyan-400" />
-              <h2 className="text-lg font-orbitron font-bold text-white">Filters</h2>
-              <div className="flex-1"></div>
+        {/* Enhanced Search and Filters */}
+        <div className="mb-12">
+          <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/40 backdrop-blur-sm rounded-3xl p-8 border border-gray-600/40 shadow-2xl">
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative max-w-2xl mx-auto">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Search tryouts, schools, or games..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 bg-gray-700/50 border-gray-500/50 text-white placeholder-gray-400 font-medium focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 rounded-xl py-3 text-lg"
+                />
+              </div>
+            </div>
+
+            {/* Filters Section */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <FilterIcon className="h-5 w-5 text-cyan-400" />
+                <h2 className="text-lg font-orbitron font-bold text-white">FILTERS</h2>
+              </div>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => clearFilters()}
-                className={`flex items-center gap-2 ${
+                className={`flex items-center gap-2 transition-all duration-300 ${
                   hasActiveFilters 
-                    ? "text-cyan-400 hover:text-white hover:bg-cyan-900/20 border border-cyan-400/20" 
-                    : "text-gray-400 hover:text-white hover:bg-gray-800"
+                    ? "text-cyan-400 hover:text-white hover:bg-cyan-400/20 border-cyan-400/50 shadow-lg shadow-cyan-400/25" 
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50 border-gray-500/50"
                 }`}
                 disabled={!hasActiveFilters}
               >
@@ -322,15 +346,15 @@ function TryoutsPageContent() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Game Filter */}
               <div>
-                <Label className="text-gray-400 font-rajdhani mb-2">Game</Label>
+                <Label className="text-gray-300 font-medium mb-2 block">Game</Label>
                 <Select value={gameFilter} onValueChange={setGameFilter}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectTrigger className="bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-cyan-400/50 transition-colors">
                     <SelectValue placeholder="All Games" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="all" className="text-white">All Games</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-cyan-400/20">All Games</SelectItem>
                     {availableGames?.map((game) => (
-                      <SelectItem key={game.id} value={game.id} className="text-white">
+                      <SelectItem key={game.id} value={game.id} className="text-white font-medium focus:bg-cyan-400/20">
                         {game.name}
                       </SelectItem>
                     ))}
@@ -340,31 +364,31 @@ function TryoutsPageContent() {
 
               {/* Type Filter */}
               <div>
-                <Label className="text-gray-400 font-rajdhani mb-2">Type</Label>
+                <Label className="text-gray-300 font-medium mb-2 block">Type</Label>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectTrigger className="bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-purple-400/50 transition-colors">
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="all" className="text-white">All Types</SelectItem>
-                    <SelectItem value="ONLINE" className="text-white">Online</SelectItem>
-                    <SelectItem value="IN_PERSON" className="text-white">In-Person</SelectItem>
-                    <SelectItem value="HYBRID" className="text-white">Hybrid</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-purple-400/20">All Types</SelectItem>
+                    <SelectItem value="ONLINE" className="text-white font-medium focus:bg-purple-400/20">Online</SelectItem>
+                    <SelectItem value="IN_PERSON" className="text-white font-medium focus:bg-purple-400/20">In-Person</SelectItem>
+                    <SelectItem value="HYBRID" className="text-white font-medium focus:bg-purple-400/20">Hybrid</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* State Filter */}
               <div>
-                <Label className="text-gray-400 font-rajdhani mb-2">State</Label>
+                <Label className="text-gray-300 font-medium mb-2 block">State</Label>
                 <Select value={stateFilter} onValueChange={setStateFilter}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectTrigger className="bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-orange-400/50 transition-colors">
                     <SelectValue placeholder="All States" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="all" className="text-white">All States</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-orange-400/20">All States</SelectItem>
                     {availableStates.map((state) => (
-                      <SelectItem key={state} value={state} className="text-white">
+                      <SelectItem key={state} value={state} className="text-white font-medium focus:bg-orange-400/20">
                         {state}
                       </SelectItem>
                     ))}
@@ -373,28 +397,28 @@ function TryoutsPageContent() {
               </div>
 
               {/* Additional Filters */}
-              <div className="space-y-2">
-                <Label className="text-gray-400 font-rajdhani">Options</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
+              <div className="space-y-3">
+                <Label className="text-gray-300 font-medium block">Options</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="checkbox"
                       id="freeOnly"
                       checked={freeOnly}
                       onChange={(e) => setFreeOnly(e.target.checked)}
-                      className="rounded bg-gray-800 border-gray-700"
+                      className="w-4 h-4 rounded bg-gray-700 border-gray-500 text-cyan-400 focus:ring-cyan-400 focus:ring-2"
                     />
-                    <label htmlFor="freeOnly" className="text-white text-sm">Free only</label>
+                    <label htmlFor="freeOnly" className="text-white text-sm font-medium">Free only</label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="checkbox"
                       id="upcomingOnly"
                       checked={upcomingOnly}
                       onChange={(e) => setUpcomingOnly(e.target.checked)}
-                      className="rounded bg-gray-800 border-gray-700"
+                      className="w-4 h-4 rounded bg-gray-700 border-gray-500 text-cyan-400 focus:ring-cyan-400 focus:ring-2"
                     />
-                    <label htmlFor="upcomingOnly" className="text-white text-sm">Upcoming only</label>
+                    <label htmlFor="upcomingOnly" className="text-white text-sm font-medium">Upcoming only</label>
                   </div>
                 </div>
               </div>
@@ -402,66 +426,79 @@ function TryoutsPageContent() {
 
             {/* Results Summary */}
             {tryoutsResponse && allTryoutsResponse && (
-              <div className="text-sm text-gray-400">
-                Showing {tryoutsResponse.tryouts.length} of {allTryoutsResponse.tryouts.length} tryouts
-                {tryoutsResponse.tryouts.length !== allTryoutsResponse.tryouts.length && (
-                  <span className="text-cyan-400"> (filtered)</span>
-                )}
+              <div className="mt-6 pt-6 border-t border-gray-600/40">
+                <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full px-4 py-2 border border-gray-600/40 max-w-fit">
+                  <p className="text-gray-300 font-medium text-sm">
+                    Showing {tryoutsResponse.tryouts.length} of {allTryoutsResponse.tryouts.length} tryouts
+                    {tryoutsResponse.tryouts.length !== allTryoutsResponse.tryouts.length && (
+                      <span className="text-cyan-400"> (filtered)</span>
+                    )}
+                  </p>
+                </div>
               </div>
             )}
           </div>
-        </Card>
+        </div>
 
         {/* Loading State */}
         {isLoadingTryouts && (
-          <Card className="bg-gray-900 border-gray-800 p-12">
-            <div className="flex items-center justify-center space-x-3">
-              <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400" />
-              <span className="text-gray-400 text-lg">Loading tryouts...</span>
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-400/20 to-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400" />
+              </div>
+              <p className="text-gray-300 font-medium">Loading tryouts...</p>
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Error State */}
         {tryoutsError && (
-          <Card className="bg-gray-900 border-gray-800 p-12">
-            <div className="text-center space-y-4">
-              <XCircleIcon className="w-16 h-16 text-red-400 mx-auto" />
-              <h3 className="text-xl font-semibold text-white">Error Loading Tryouts</h3>
-              <p className="text-red-400 max-w-md mx-auto">{tryoutsError.message}</p>
+          <div className="text-center py-20">
+            <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/40 rounded-3xl p-12 border border-gray-600/40 backdrop-blur-sm max-w-2xl mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-r from-red-500/20 to-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <XCircleIcon className="w-10 h-10 text-red-400" />
+              </div>
+              <h3 className="font-orbitron text-2xl font-bold text-white mb-4">Error Loading Tryouts</h3>
+              <p className="text-gray-300 mb-8 font-medium text-lg">{tryoutsError.message}</p>
               <Button 
                 onClick={() => void refetchTryouts()} 
-                className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron"
+                className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron rounded-full px-8 py-3 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cyan-400/25"
               >
                 Try Again
               </Button>
             </div>
-          </Card>
-        )}
+          </div>
+                 )}
 
         {/* Tryouts Content with Carousels */}
         {!isLoadingTryouts && !tryoutsError && (
           <>
             {Object.keys(tryoutsByGame).length === 0 ? (
               /* Empty State */
-              <Card className="bg-gray-900 border-gray-800 p-12">
-                <div className="text-center space-y-6">
-                  <GamepadIcon className="w-20 h-20 text-gray-400 mx-auto" />
-                  <h3 className="text-2xl font-orbitron font-bold text-white">No Tryouts Found</h3>
-                  <p className="text-gray-400 max-w-md mx-auto">
-                    No tryouts match your current filters. Try adjusting your search criteria or check back later for new opportunities.
+              <div className="text-center py-20">
+                <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/40 rounded-3xl p-12 border border-gray-600/40 backdrop-blur-sm max-w-2xl mx-auto">
+                  <div className="w-20 h-20 bg-gradient-to-r from-gray-600/40 to-gray-700/40 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <GamepadIcon className="w-10 h-10 text-gray-500" />
+                  </div>
+                  <h3 className="font-orbitron text-2xl font-bold text-white mb-4">No Tryouts Found</h3>
+                  <p className="text-gray-400 font-medium text-lg mb-6">
+                    {hasActiveFilters 
+                      ? "No tryouts match your search criteria. Try adjusting your filters."
+                      : "No tryouts are currently available. Check back later for new opportunities."
+                    }
                   </p>
                   <Button 
                     onClick={() => clearFilters(true)}
-                    className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron"
+                    className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron rounded-full px-8 py-3 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cyan-400/25"
                   >
                     Reset Filters
                   </Button>
                 </div>
-              </Card>
+              </div>
             ) : (
               /* Game Carousels */
-              <div className="space-y-8">
+              <div className="space-y-12">
                 {Object.entries(tryoutsByGame).map(([gameName, tryouts]) => (
                   <GameCarousel key={gameName} game={gameName as GameType} tryouts={tryouts} />
                 ))}
@@ -472,21 +509,21 @@ function TryoutsPageContent() {
 
         {/* CTA Section */}
         {!isLoadingTryouts && !tryoutsError && Object.keys(tryoutsByGame).length > 0 && (
-          <div className="text-center mt-20 py-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl">
+          <div className="px-4 text-center mt-20 py-16 bg-gradient-to-br from-gray-800/60 to-gray-900/40 backdrop-blur-sm rounded-3xl border border-gray-600/40 shadow-2xl hover:border-cyan-400/30 hover:bg-gray-800/60 transition-all duration-300">
             <h2 className="font-orbitron text-3xl font-bold text-white mb-4 tracking-wide">
               CAN&apos;T FIND WHAT YOU&apos;RE LOOKING FOR?
             </h2>
-            <p className="text-gray-300 mb-8 font-rajdhani text-lg">
-              Check out your dashboard to manage your applications and discover more opportunities
+            <p className="text-gray-300 mb-8 font-medium text-lg max-w-3xl mx-auto">
+              Check out your dashboard to manage your applications and discover more opportunities across the platform
             </p>
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
               <Link href="/dashboard/player/tryouts">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-orbitron font-bold px-8 py-3 tracking-wider">
+                <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-orbitron font-bold px-8 py-3 tracking-wider rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-400/25">
                   MY DASHBOARD
                 </Button>
               </Link>
               <Link href="/rankings/leagues">
-                <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider">
+                <Button variant="outline" className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400 hover:text-black hover:border-cyan-400 font-orbitron font-bold px-8 py-3 tracking-wider rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cyan-400/25">
                   VIEW RANKINGS
                 </Button>
               </Link>

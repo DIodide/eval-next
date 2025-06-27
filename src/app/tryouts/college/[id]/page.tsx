@@ -249,11 +249,14 @@ export default function TryoutDetailPage() {
 
   if (isLoadingTryout) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-        <div className="container mx-auto px-6 py-12">
-          <div className="flex items-center justify-center py-32">
-            <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400" />
-            <span className="ml-3 text-gray-400 font-rajdhani">Loading tryout details...</span>
+      <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative container mx-auto px-4 sm:px-6 py-12">
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20">
+              <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400 mx-auto mb-4" />
+              <span className="text-white font-rajdhani text-lg">Loading tryout details...</span>
+            </div>
           </div>
         </div>
       </div>
@@ -262,21 +265,25 @@ export default function TryoutDetailPage() {
 
   if (tryoutError || !tryout) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-        <div className="container mx-auto px-6 py-12">
-          <div className="text-center py-32">
-            <h1 className="text-2xl font-orbitron font-bold text-white mb-4">
-              Tryout Not Found
-            </h1>
-            <p className="text-gray-400 mb-8">
-              The tryout you&apos;re looking for doesn&apos;t exist or has been removed.
-            </p>
-            <Link href="/tryouts/college">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Tryouts
-              </Button>
-            </Link>
+      <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative container mx-auto px-4 sm:px-6 py-12">
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20 max-w-md">
+              <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+              <h1 className="text-2xl font-orbitron font-bold text-white mb-4">
+                Tryout Not Found
+              </h1>
+              <p className="text-gray-400 mb-8">
+                The tryout you&apos;re looking for doesn&apos;t exist or has been removed.
+              </p>
+              <Link href="/tryouts/college">
+                <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Tryouts
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -290,106 +297,260 @@ export default function TryoutDetailPage() {
   const canRegister = !isPastTryout && !isDeadlinePassed && spotsLeft > 0 && !existingRegistration && user
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-      <div className="container mx-auto px-6 py-12">
-        {/* Back Button */}
-        <div className="mb-8">
-          <Link href="/tryouts/college">
-            <Button variant="ghost" className="text-gray-400 hover:bg-transparent hover:text-blue-300">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Tryouts
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      {/* Floating Accent Elements */}
+      <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl" />
+      <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
+      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" />
+      
+      <div className="relative container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Compact Header with Rainbow Divider */}
+        <div className="text-center mb-12">
+          <Link href="/tryouts/college" className="inline-flex items-center text-gray-400 hover:text-cyan-300 transition-colors mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            <span className="font-rajdhani">Back to Tryouts</span>
           </Link>
+          
+          <h1 className="font-orbitron font-black text-4xl sm:text-5xl text-white mb-4 tracking-wider">
+            TRYOUT DETAILS
+          </h1>
+          
+          {/* Rainbow Divider */}
+          <div className="flex justify-center items-center space-x-0 w-full max-w-md mx-auto">
+            <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="max-w-5xl mx-auto space-y-8">
             
             {/* Header Card */}
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="glass-morphism border-white/20 hover:border-cyan-400/30 transition-all duration-300">
               <CardContent className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center">
+                {/* Tryout Header */}
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                  <div className="flex items-center space-x-6 mb-4 lg:mb-0">
+                    <div className="w-20 h-20 glass-morphism rounded-full flex items-center justify-center border-white/20 shadow-lg">
                       <Image 
                         src={gameIcons[gameName]} 
                         alt={tryout.game.name} 
-                        width={40} 
-                        height={40} 
+                        width={48} 
+                        height={48} 
                         className="object-contain"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h1 className="font-orbitron font-black text-3xl text-white mb-2 cyber-text">
+                    <div>
+                      <h1 className="font-orbitron font-black text-3xl lg:text-4xl text-white mb-2 cyber-text">
                         {tryout.title}
                       </h1>
-                      <p className="text-xl text-gray-300 font-rajdhani">
-                        {tryout.school.name}
-                      </p>
-                      <p className="text-gray-400 font-rajdhani">
-                        {tryout.school.location}, {tryout.school.state}
-                      </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
+                        <p className="text-xl text-gray-300 font-rajdhani font-semibold">
+                          {tryout.school.name}
+                        </p>
+                        <div className="hidden sm:block w-1 h-1 bg-gray-500 rounded-full"></div>
+                        <p className="text-gray-400 font-rajdhani">
+                          {tryout.school.location}, {tryout.school.state}
+                        </p>
+                        <div className="hidden sm:block w-1 h-1 bg-gray-500 rounded-full"></div>
+                        <p className="text-gray-400 font-rajdhani">
+                          {tryout.school.type}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
+                  
+                  {/* Price and Availability */}
+                  <div className="flex flex-col items-start lg:items-end space-y-2">
                     <Badge
                       variant={tryout.price === "Free" ? "secondary" : "outline"}
                       className={`${
                         tryout.price === "Free" 
-                          ? "bg-green-600 text-white" 
-                          : "border-cyan-400 text-cyan-400"
-                      } font-orbitron text-lg px-4 py-2 mb-2`}
+                          ? "bg-green-600 text-white shadow-lg shadow-green-500/25" 
+                          : "border-cyan-400 text-cyan-400 shadow-lg shadow-cyan-500/25"
+                      } font-orbitron text-lg px-6 py-2`}
                     >
                       {tryout.price}
                     </Badge>
-                    <div className="text-sm text-gray-400">
-                      {spotsLeft > 0 ? (
-                        <span className="text-green-400">{spotsLeft} spots left</span>
-                      ) : (
-                        <span className="text-red-400">Full</span>
-                      )}
+                    <div className="flex items-center space-x-2">
+                      <Users className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-400">
+                        {spotsLeft > 0 ? (
+                          <span className="text-green-400 font-medium">{spotsLeft} of {tryout.max_spots} spots available</span>
+                        ) : (
+                          <span className="text-red-400 font-medium">All {tryout.max_spots} spots filled</span>
+                        )}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Key Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{formatDate(tryout.date)}</p>
-                      <p className="text-gray-400 text-sm">{formatTime(tryout.time_start, tryout.time_end)}</p>
+                {/* Critical Information Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                  {/* Date & Time */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-cyan-400/30 transition-all duration-300">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Calendar className="w-5 h-5 text-cyan-400" />
+                      <span className="font-orbitron text-cyan-400 text-sm font-semibold">WHEN</span>
                     </div>
+                    <p className="text-white font-semibold text-lg mb-1">{formatDate(tryout.date)}</p>
+                    <p className="text-gray-300 font-medium">{formatTime(tryout.time_start, tryout.time_end)}</p>
+                    {tryout.registration_deadline && (
+                      <div className="mt-2 pt-2 border-t border-white/10">
+                        <p className="text-orange-400 text-sm font-medium">
+                          Registration closes: {formatDate(tryout.registration_deadline)}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{tryout.type}</p>
-                      <p className="text-gray-400 text-sm">{tryout.school.location}, {tryout.school.state} ◦ NA {tryout.school.region}</p>
-                      <p className="text-gray-400 text-sm">{tryout.location}</p>
+
+                  {/* Location & Format */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-purple-400/30 transition-all duration-300">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <MapPin className="w-5 h-5 text-purple-400" />
+                      <span className="font-orbitron text-purple-400 text-sm font-semibold">WHERE</span>
                     </div>
+                    <p className="text-white font-semibold text-lg mb-1">{tryout.type}</p>
+                    <p className="text-gray-300 font-medium">{tryout.location}</p>
+                    <p className="text-gray-400 text-sm">{tryout.school.location}, {tryout.school.state}</p>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{tryout.max_spots} Total Spots</p>
-                      <p className="text-gray-400 text-sm">{tryout.registered_spots} registered</p>
+
+                                     {/* Game */}
+                   <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-orange-400/30 transition-all duration-300">
+                     <div className="flex items-center space-x-3 mb-2">
+                       <GraduationCap className="w-5 h-5 text-orange-400" />
+                       <span className="font-orbitron text-orange-400 text-sm font-semibold">GAME</span>
+                     </div>
+                     <p className="text-white font-semibold text-lg mb-1">{tryout.game.name}</p>
+                     <p className="text-gray-300 text-sm">Collegiate Esports Tryout</p>
+                   </div>
+                </div>
+
+                {/* Tryout Summary */}
+                <div className="glass-morphism border-white/10 rounded-lg p-6 mb-6">
+                  <h3 className="font-orbitron text-white text-lg font-semibold mb-3 flex items-center">
+                    <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3"></span>
+                    ABOUT THIS TRYOUT
+                  </h3>
+                  <p className="text-gray-300 font-rajdhani text-lg leading-relaxed mb-4">
+                    {tryout.description}
+                  </p>
+                  {tryout.long_description && tryout.long_description !== tryout.description && (
+                    <div className="pt-4 border-t border-white/10">
+                      <p className="text-gray-400 font-rajdhani leading-relaxed">
+                        {tryout.long_description}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <GraduationCap className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{tryout.school.name}</p>
-                      <p className="text-gray-400 text-sm">{tryout.school.type}</p>
-                      {tryout.school.website && <Link href={tryout.school.website} className="text-sm text-cyan-500 hover:text-cyan-400 hover:underline ">{tryout.school.website}</Link>}
+                  )}
+                  
+                  {/* Organizer Information Inline */}
+                  {tryout.organizer && (
+                    <div className="pt-4 border-t border-white/10">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <div className="flex items-center space-x-2">
+                          <User className="w-4 h-4 text-cyan-400" />
+                          <span className="text-gray-400 text-sm">Organized by</span>
+                          <span className="text-white font-medium">
+                            {tryout.organizer.first_name} {tryout.organizer.last_name}
+                          </span>
+                        </div>
+                        {tryout.organizer.email && (
+                          <a 
+                            href={`mailto:${tryout.organizer.email}`}
+                            className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors flex items-center space-x-1"
+                          >
+                            <Mail className="w-4 h-4" />
+                            <span>Contact Organizer</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Requirements & Registration Progress */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Requirements */}
+                  {(tryout.min_gpa ?? tryout.class_years.length > 0 ?? tryout.required_roles.length > 0) && (
+                    <div className="glass-morphism border-white/10 rounded-lg p-6">
+                      <h3 className="font-orbitron text-orange-400 text-lg font-semibold mb-4 flex items-center">
+                        <span className="w-2 h-2 bg-orange-400 rounded-full mr-3"></span>
+                        REQUIREMENTS
+                      </h3>
+                      <div className="space-y-3">
+                        {tryout.min_gpa && (
+                          <div className="flex items-center space-x-3">
+                            <GraduationCap className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                            <div>
+                              <span className="text-white font-medium">Minimum GPA: </span>
+                              <span className="text-gray-300">{tryout.min_gpa.toString()}</span>
+                            </div>
+                          </div>
+                        )}
+                        {tryout.class_years.length > 0 && (
+                          <div className="flex items-center space-x-3">
+                            <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                            <div>
+                              <span className="text-white font-medium">Eligible Class Years: </span>
+                              <span className="text-gray-300">{tryout.class_years.join(", ")}</span>
+                            </div>
+                          </div>
+                        )}
+                        {tryout.required_roles.length > 0 && (
+                          <div className="flex items-center space-x-3">
+                            <Users className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                            <div>
+                              <span className="text-white font-medium">Required Roles: </span>
+                              <span className="text-gray-300">{tryout.required_roles.join(", ")}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Registration Progress */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-6">
+                    <h3 className="font-orbitron text-purple-400 text-lg font-semibold mb-4 flex items-center">
+                      <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+                      REGISTRATION STATUS
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300 font-medium">Registered Players</span>
+                        <span className="text-white font-semibold">{tryout.registered_spots}/{tryout.max_spots}</span>
+                      </div>
+                      <div className="w-full bg-gray-700/50 rounded-full h-3">
+                        <div 
+                          className={`h-3 rounded-full transition-all duration-500 ${
+                            spotsLeft > 5 ? 'bg-green-500' : 
+                            spotsLeft > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${(tryout.registered_spots / tryout.max_spots) * 100}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className={`font-medium ${
+                          spotsLeft > 5 ? 'text-green-400' : 
+                          spotsLeft > 0 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {spotsLeft > 0 ? `${spotsLeft} spots remaining` : 'Tryout is full'}
+                        </span>
+                        <span className="text-gray-400">
+                          {Math.round((tryout.registered_spots / tryout.max_spots) * 100)}% filled
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Registration Status or Button */}
                 {existingRegistration ? (
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <div className="glass-morphism border-white/20 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(existingRegistration.status)}
@@ -408,7 +569,7 @@ export default function TryoutDetailPage() {
                             <Button 
                               variant="outline"
                               size="sm"
-                              className="bg-red-700 border-red-700 text-white hover:bg-red-600 hover:text-white hover:border-red-600 font-rajdhani"
+                              className="bg-red-600 border-red-600 text-white hover:bg-red-700 hover:border-red-700 font-rajdhani shadow-lg shadow-red-500/25 hover:shadow-red-500/40 transition-all duration-300"
                               disabled={cancelRegistrationMutation.isPending}
                             >
                               {cancelRegistrationMutation.isPending ? (
@@ -419,7 +580,7 @@ export default function TryoutDetailPage() {
                               Cancel
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
+                          <DialogContent className="glass-morphism border-white/20 text-white max-w-md">
                             <DialogHeader>
                               <DialogTitle className="font-orbitron text-red-300">Cancel Registration</DialogTitle>
                               <DialogDescription className="text-gray-400">
@@ -429,7 +590,7 @@ export default function TryoutDetailPage() {
                             <div className="space-y-4">
                               {/* Cancel Error */}
                               {registrationError && (
-                                <div className="bg-red-500/10 border border-red-400/30 rounded-lg p-3">
+                                <div className="glass-morphism border-red-400/30 rounded-lg p-3 bg-red-500/10">
                                   <div className="flex items-center space-x-2">
                                     <XCircle className="w-4 h-4 text-red-300 flex-shrink-0" />
                                     <p className="text-red-300 text-sm">{registrationError}</p>
@@ -444,14 +605,14 @@ export default function TryoutDetailPage() {
                                     setCancelDialogOpen(false)
                                     setRegistrationError("")
                                   }}
-                                  className="bg-white border-gray-600 text-black hover:bg-gray-300"
+                                  className="glass-morphism border-white/30 text-white hover:border-white/50 hover:bg-white/10"
                                 >
                                   Keep Registration
                                 </Button>
                                 <Button 
                                   onClick={handleCancelRegistration}
                                   disabled={cancelRegistrationMutation.isPending}
-                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg shadow-red-500/25"
                                 >
                                   {cancelRegistrationMutation.isPending ? (
                                     <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
@@ -469,7 +630,7 @@ export default function TryoutDetailPage() {
                   <div className="space-y-4">
                     {/* Error Message */}
                     {registrationError && (
-                      <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
+                      <div className="glass-morphism border-red-400/30 rounded-lg p-4 bg-red-500/10">
                         <div className="flex items-center space-x-2">
                           <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                           <p className="text-red-400 text-sm">{registrationError}</p>
@@ -482,13 +643,13 @@ export default function TryoutDetailPage() {
                         <Dialog open={registrationDialogOpen} onOpenChange={setRegistrationDialogOpen}>
                           <DialogTrigger asChild>
                             <Button 
-                              className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron text-lg px-8 py-3"
+                              className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron text-lg px-8 py-3 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:scale-105 transition-all duration-300"
                               size="lg"
                             >
                               REGISTER NOW
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-md">
+                          <DialogContent className="glass-morphism border-white/20 text-white max-w-md">
                             <DialogHeader>
                               <DialogTitle className="font-orbitron">Register for Tryout</DialogTitle>
                               <DialogDescription className="text-gray-400">
@@ -498,7 +659,7 @@ export default function TryoutDetailPage() {
                             <div className="space-y-4">
                               {/* Registration Error in Dialog */}
                               {registrationError && (
-                                <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                                <div className="glass-morphism border-red-400/30 rounded-lg p-3 bg-red-500/10">
                                   <div className="flex items-center space-x-2">
                                     <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
                                     <p className="text-red-400 text-sm">{registrationError}</p>
@@ -514,7 +675,7 @@ export default function TryoutDetailPage() {
                                   id="notes"
                                   value={registrationNotes}
                                   onChange={(e) => setRegistrationNotes(e.target.value)}
-                                  className="bg-gray-800 border-gray-700 text-white"
+                                  className="glass-morphism border-white/20 text-white placeholder-gray-400 focus:border-cyan-400/50"
                                   placeholder="Tell the organizer anything they should know..."
                                   rows={3}
                                 />
@@ -526,14 +687,14 @@ export default function TryoutDetailPage() {
                                     setRegistrationDialogOpen(false)
                                     setRegistrationError("")
                                   }}
-                                  className="border-gray-600 text-gray-300"
+                                  className="glass-morphism border-white/30 text-white hover:border-white/50 hover:bg-white/10"
                                 >
                                   Cancel
                                 </Button>
                                 <Button 
                                   onClick={handleRegister}
                                   disabled={registerMutation.isPending}
-                                  className="bg-cyan-600 hover:bg-cyan-700"
+                                  className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 shadow-lg shadow-cyan-500/25"
                                 >
                                   {registerMutation.isPending ? (
                                     <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
@@ -549,7 +710,7 @@ export default function TryoutDetailPage() {
                           {!user ? (
                             <Button 
                               onClick={() => setShowSignUpModal(true)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-orbitron text-lg px-8 py-3"
+                              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-orbitron text-lg px-8 py-3 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300"
                               size="lg"
                             >
                               <UserCheck className="w-5 h-5 mr-2" />
@@ -605,170 +766,43 @@ export default function TryoutDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Description */}
-            <Card className="bg-gray-900 border-gray-800">
-              <CardHeader>
-                <CardTitle className="font-orbitron text-white">About This Tryout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 font-rajdhani leading-relaxed text-lg">
-                  {tryout.long_description}
-                  <br />
-                  <br />
-                  {tryout.description}
-                </p>
-              </CardContent>
-            </Card>
 
-            {/* Requirements */}
-            {(tryout.min_gpa ?? tryout.class_years.length > 0 ?? tryout.required_roles.length > 0) && (
-              <Card className="bg-gray-900 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="font-orbitron text-white">Requirements</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {tryout.min_gpa && (
-                    <div className="flex items-center space-x-3">
-                      <GraduationCap className="w-5 h-5 text-cyan-400" />
-                      <span className="text-gray-300">Minimum GPA: {tryout.min_gpa.toString()}</span>
-                    </div>
-                  )}
-                  {tryout.class_years.length > 0 && (
-                    <div className="flex items-center space-x-3">
-                      <Calendar className="w-5 h-5 text-cyan-400" />
-                      <span className="text-gray-300">
-                        Class Years: {tryout.class_years.join(", ")}
-                      </span>
-                    </div>
-                  )}
-                  {tryout.required_roles.length > 0 && (
-                    <div className="flex items-center space-x-3">
-                      <Users className="w-5 h-5 text-cyan-400" />
-                      <span className="text-gray-300">
-                        Required Roles: {tryout.required_roles.join(", ")}
-                      </span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            
-            {/* Organizer Info */}
-            {tryout.organizer && (
-              <Card className="bg-gray-900 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="font-orbitron text-white">Organizer</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-lg font-medium text-white">
-                      {tryout.organizer.first_name} {tryout.organizer.last_name}
-                    </p>
-                    {tryout.organizer.email && (
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <a 
-                          href={`mailto:${tryout.organizer.email}`}
-                          className="text-cyan-400 hover:text-cyan-300 text-sm"
-                        >
-                          {tryout.organizer.email}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Quick Stats */}
-            <Card className="bg-gray-900 border-gray-800">
-              <CardHeader>
-                <CardTitle className="font-orbitron text-white">Quick Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Total Spots</span>
-                  <span className="text-white font-medium">{tryout.max_spots}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Registered</span>
-                  <span className="text-white font-medium">{tryout.registered_spots}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Available</span>
-                  <span className={`font-medium ${spotsLeft > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {spotsLeft}
-                  </span>
-                </div>
-                {tryout.registration_deadline && (
-                  <div className="pt-2 border-t border-gray-700">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Deadline</span>
-                      <span className="text-white font-medium text-sm">
-                        {formatDate(tryout.registration_deadline)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* School Info */}
-            <Card className="bg-gray-900 border-gray-800">
-              <CardHeader>
-                <CardTitle className="font-orbitron text-white">School Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-lg font-medium text-white">{tryout.school.name}</p>
-                  <p className="text-gray-400">{tryout.school.type}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-300">{tryout.school.location}, {tryout.school.state}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
         {/* More Tryouts Section */}
         {relatedTryouts.length > 0 && (
           <div className="mt-16">
-            <div className="mb-8">
-              <h2 className="font-orbitron text-2xl font-bold text-white mb-2">
-                More {tryout.game.name} Tryouts
-              </h2>
-              <p className="text-gray-400 font-rajdhani">
-                Discover other {tryout.game.name} tryouts happening soon
-              </p>
-            </div>
-
-            {/* Horizontal Scrollable Cards */}
-            <div className="relative">
-              <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-                {relatedTryouts.map((relatedTryout) => (
-                  <div key={relatedTryout.id} className="flex-shrink-0">
-                    <TryoutCard tryout={relatedTryout} />
-                  </div>
-                ))}
+            <div className="glass-morphism border-white/20 rounded-2xl p-8">
+              <div className="mb-8 text-center">
+                <h2 className="font-orbitron text-2xl sm:text-3xl font-bold text-white mb-2">
+                  More {tryout.game.name} Tryouts
+                </h2>
+                <p className="text-gray-400 font-rajdhani text-lg">
+                  Discover other {tryout.game.name} tryouts happening soon
+                </p>
               </div>
-            </div>
 
-            {/* View All Button */}
-            <div className="text-center mt-8">
-              <Link href={`/tryouts/college?game=${encodeURIComponent(tryout.game.name)}`}>
-                <Button 
-                  variant="outline" 
-                  className="bg-blue-700 border-blue-700 text-white hover:bg-blue-600 hover:text-white hover:border-blue-600 font-orbitron"
-                >
-                  View All {tryout.game.name} Tryouts
-                </Button>
-              </Link>
+              {/* Horizontal Scrollable Cards */}
+              <div className="relative">
+                <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                  {relatedTryouts.map((relatedTryout) => (
+                    <div key={relatedTryout.id} className="flex-shrink-0">
+                      <TryoutCard tryout={relatedTryout} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* View All Button */}
+              <div className="text-center mt-8">
+                <Link href={`/tryouts/college?game=${encodeURIComponent(tryout.game.name)}`}>
+                  <Button 
+                    className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-orbitron px-8 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  >
+                    View All {tryout.game.name} Tryouts
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -776,7 +810,7 @@ export default function TryoutDetailPage() {
 
       {/* Sign Up Modal */}
       <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
-        <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
+        <DialogContent className="sm:max-w-lg glass-morphism border-white/20 text-white">
           <DialogHeader className="relative">
             <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
           </DialogHeader>

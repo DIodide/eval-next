@@ -33,6 +33,7 @@ import {
   Clock
 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { api } from "@/trpc/react"
 
 // Map database game names to UI game names
@@ -53,13 +54,13 @@ const gameColors = {
   "Smash Ultimate": "from-green-500 to-green-700",
 }
 
-// Game icons
-const gameIcons = {
-  VALORANT: "🎯",
-  "Overwatch 2": "⚡",
-  "Rocket League": "🚀",
-  "League of Legends": "⚔️",
-  "Smash Ultimate": "🎮",
+// Game icon paths
+const gameIconPaths = {
+  VALORANT: "/valorant/logos/Valorant Logo Red Border.jpg",
+  "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png", 
+  "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
+  "League of Legends": "/rocket-league/logos/Rocket League Emblem.png", // Fallback
+  "Smash Ultimate": "/smash/logos/Smash Ball White Logo.png",
 }
 
 const formatDate = (date: Date) => {
@@ -118,9 +119,9 @@ function InvitationalCard({ combine }: CombineCardProps) {
 
   return (
     <Link href={`/tryouts/combines/${combine.id}`} className="block h-full">
-      <Card
-        className={`border-gray-700 p-2 hover:border-cyan-400/50 transition-all duration-300 h-full group ${bgColor}`}
-      >
+          <Card
+      className={`glass-morphism border-white/20 p-2 hover:border-cyan-400/50 hover:scale-105 transition-all duration-300 h-full group ${bgColor}`}
+    >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex items-start justify-between mb-3">
             <div>
@@ -171,9 +172,9 @@ function CombineCard({ combine }: CombineCardProps) {
 
   return (
     <Link href={`/tryouts/combines/${combine.id}`} className="block h-full">
-      <Card
-        className={`border-gray-700 hover:border-cyan-400/50 transition-all duration-300 h-full group ${bgColor}`}
-      >
+          <Card
+      className={`glass-morphism border-white/20 hover:border-cyan-400/50 hover:scale-105 transition-all duration-300 h-full group ${bgColor}`}
+    >
         <CardContent className="p-4 h-full flex flex-col">
           <div className="flex items-start justify-between mb-3">
             <div>
@@ -221,8 +222,8 @@ interface GameCarouselProps {
 }
 
 function GameCarousel({ game, combines }: GameCarouselProps) {
-  const gameColor = gameColors[game as keyof typeof gameColors] || "from-gray-500 to-gray-700"
-  const gameIcon = gameIcons[game as keyof typeof gameIcons] || "🎮"
+  const gameColor = gameColors[game as keyof typeof gameColors] ?? "from-gray-500 to-gray-700"
+  const gameIconPath = gameIconPaths[game as keyof typeof gameIconPaths] ?? "/smash/logos/Smash Ball White Logo.png"
   const [currentIndex, setCurrentIndex] = useState(0)
   const itemsPerView = 3
   const maxIndex = Math.max(0, combines.length - itemsPerView)
@@ -248,10 +249,14 @@ function GameCarousel({ game, combines }: GameCarouselProps) {
     <div className="mb-12">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
-          <div
-            className={`w-16 h-16 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center text-2xl`}
-          >
-            {gameIcon}
+          <div className="w-16 h-16 rounded-lg flex items-center justify-center p-2">
+            <Image
+              src={gameIconPath}
+              alt={`${game} logo`}
+              width={48}
+              height={48}
+              className="object-contain w-full h-full"
+            />
           </div>
           <h2 className="font-orbitron text-2xl font-bold text-white tracking-wide">{game}</h2>
         </div>
@@ -261,7 +266,7 @@ function GameCarousel({ game, combines }: GameCarouselProps) {
             size="sm"
             onClick={prevSlide}
             disabled={currentIndex === 0}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400"
+            className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -270,7 +275,7 @@ function GameCarousel({ game, combines }: GameCarouselProps) {
             size="sm"
             onClick={nextSlide}
             disabled={currentIndex >= maxIndex}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400"
+            className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -433,10 +438,13 @@ function CombinesPageContent() {
   // Loading state
   if (isLoadingCombines) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
-        <div className="text-center">
-          <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
-          <p className="text-white font-rajdhani">Loading combines...</p>
+      <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative flex items-center justify-center min-h-screen">
+          <div className="glass-morphism rounded-2xl p-8 text-center border-white/20">
+            <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
+            <p className="text-white font-rajdhani text-lg">Loading combines...</p>
+          </div>
         </div>
       </div>
     )
@@ -445,65 +453,84 @@ function CombinesPageContent() {
   // Error state
   if (combinesError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircleIcon className="w-8 h-8 text-red-400 mx-auto mb-4" />
-          <p className="text-white font-rajdhani mb-4">Failed to load combines. Please try again.</p>
-          <Button onClick={() => void refetchCombines()} className="bg-cyan-400 hover:bg-cyan-500 text-black">
-            Retry
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative flex items-center justify-center min-h-screen">
+          <div className="glass-morphism rounded-2xl p-8 text-center border-white/20 max-w-md">
+            <AlertCircleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <p className="text-white font-rajdhani mb-4 text-lg">Failed to load combines. Please try again.</p>
+            <Button onClick={() => void refetchCombines()} className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron">
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-      <div className="container mx-auto px-6 py-12">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-2 text-sm text-gray-400 font-rajdhani">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      {/* Floating Accent Elements */}
+      <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl" />
+      <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
+      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" />
+      
+      <div className="relative container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Compact Header with Rainbow Divider */}
+        <div className="text-center mb-12">
+          <div className="flex items-center space-x-2 text-sm text-gray-400 font-rajdhani mb-6 justify-center">
             <span>Tryouts</span>
             <ChevronRight className="w-4 h-4" />
             <span className="text-cyan-400">EVAL Combines</span>
           </div>
-        </div>
-
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
+          
+          <h1 className="font-orbitron font-black text-4xl sm:text-5xl text-white mb-4 tracking-wider">
             EVAL COMBINES
           </h1>
-          <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-4xl mx-auto">
+          
+          {/* Rainbow Divider */}
+          <div className="flex justify-center items-center space-x-0 w-full max-w-md mx-auto mb-6">
+            <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+            <div className="h-1 flex-1 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          </div>
+          
+          <p className="text-lg sm:text-xl text-gray-300 font-rajdhani max-w-4xl mx-auto">
             Elite invitation-only tournaments featuring the best players in competitive esports. Earn your spot through
             exceptional performance and rankings.
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto relative mb-8">
-          <Input
-            type="text"
-            placeholder="Search combines, games, or locations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-gray-800 border-gray-700 text-white pl-12 pr-4 py-4 rounded-full text-lg font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
-          />
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-        </div>
+        {/* Search and Filters */}
+        <div className="glass-morphism border-white/20 rounded-2xl p-6 sm:p-8 mb-12 backdrop-blur-sm">
+          {/* Search Bar */}
+          <div className="max-w-2xl mx-auto relative mb-8">
+            <Input
+              type="text"
+              placeholder="Search combines, games, or locations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="glass-morphism border-white/20 text-white pl-12 pr-4 py-4 rounded-full text-lg font-rajdhani focus:border-cyan-400 focus:ring-cyan-400 placeholder-gray-400"
+            />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 items-center justify-center mb-12">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 items-center justify-center">
           <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-cyan-400" />
             <span className="text-white font-orbitron text-sm">Filters:</span>
           </div>
 
           <Select value={selectedGame} onValueChange={setSelectedGame}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+            <SelectTrigger className="w-40 glass-morphism border-cyan-400/50 text-white font-rajdhani hover:border-cyan-400 transition-all">
               <SelectValue placeholder="All Games" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
+            <SelectContent className="glass-morphism border-white/20">
               <SelectItem value="all" className="text-white font-rajdhani">
                 All Games
               </SelectItem>
@@ -516,10 +543,10 @@ function CombinesPageContent() {
           </Select>
 
           <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+            <SelectTrigger className="w-40 glass-morphism border-purple-400/50 text-white font-rajdhani hover:border-purple-400 transition-all">
               <SelectValue placeholder="All Regions" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
+            <SelectContent className="glass-morphism border-white/20">
               <SelectItem value="all" className="text-white font-rajdhani">
                 All Regions
               </SelectItem>
@@ -539,10 +566,10 @@ function CombinesPageContent() {
           </Select>
 
           <Select value={inviteOnly === undefined ? "all" : inviteOnly ? "invite" : "open"} onValueChange={(value) => setInviteOnly(value === "all" ? undefined : value === "invite")}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+            <SelectTrigger className="w-40 glass-morphism border-orange-400/50 text-white font-rajdhani hover:border-orange-400 transition-all">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
+            <SelectContent className="glass-morphism border-white/20">
               <SelectItem value="all" className="text-white font-rajdhani">
                 All Types
               </SelectItem>
@@ -556,10 +583,10 @@ function CombinesPageContent() {
           </Select>
 
           <Select value={upcomingOnly ? "upcoming" : "all"} onValueChange={(value) => setUpcomingOnly(value === "upcoming")}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+            <SelectTrigger className="w-40 glass-morphism border-cyan-400/50 text-white font-rajdhani hover:border-cyan-400 transition-all">
               <SelectValue placeholder="All Times" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
+            <SelectContent className="glass-morphism border-white/20">
               <SelectItem value="upcoming" className="text-white font-rajdhani">
                 Upcoming Only
               </SelectItem>
@@ -572,7 +599,7 @@ function CombinesPageContent() {
           <Button
             variant="outline"
             onClick={() => clearFilters()}
-            className="border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
+            className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-105 transition-all font-rajdhani"
           >
             Clear Filters
           </Button>
@@ -580,10 +607,11 @@ function CombinesPageContent() {
           <Button
             variant="outline"
             onClick={() => void refetchCombines()}
-            className="border-cyan-600 text-cyan-400 hover:border-cyan-400 hover:text-cyan-400 font-rajdhani"
+            className="glass-morphism border-cyan-400/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-105 transition-all font-rajdhani"
           >
             Refresh
           </Button>
+          </div>
         </div>
 
         {/* Status Banner */}
@@ -609,12 +637,13 @@ function CombinesPageContent() {
 
         {/* No results message */}
         {Object.keys(combinesByGame).length === 0 && (
-          <div className="text-center py-16">
+          <div className="glass-morphism border-white/20 rounded-2xl p-8 text-center">
+            <AlertCircleIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-400 font-rajdhani text-lg mb-4">No combines found matching your criteria.</p>
             <Button
               variant="outline"
               onClick={() => clearFilters(true)}
-              className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
+              className="glass-morphism border-cyan-400/50 text-cyan-400 hover:bg-cyan-400 hover:text-black hover:scale-105 transition-all"
             >
               Clear All Filters
             </Button>
@@ -622,24 +651,24 @@ function CombinesPageContent() {
         )}
 
         {/* Call to Action */}
-        <div className="text-center mt-20 py-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl">
-          <h2 className="font-orbitron text-3xl font-bold text-white mb-4 tracking-wide">
+        <div className="px-4 text-center mt-20 py-16 glass-morphism border-white/20 rounded-2xl backdrop-blur-sm hover:border-cyan-400/30 transition-all duration-300">
+          <h2 className="font-orbitron text-2xl sm:text-3xl font-bold text-white mb-4 tracking-wide">
             Ready to Compete at the Highest Level?
           </h2>
-          <p className="text-gray-300 mb-8 font-rajdhani text-lg max-w-3xl mx-auto">
+          <p className="text-gray-300 mb-8 font-rajdhani text-base sm:text-lg max-w-3xl mx-auto">
             Start building your profile today. Showcase your skills, climb the rankings, and earn your invitation to
             EVAL&apos;s most prestigious tournaments.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
             <Link href="/dashboard/player/profile">
-              <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto">
+              <Button className="bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto hover:scale-105 transition-all">
                 CREATE PROFILE
               </Button>
             </Link>
             <Link href="/rankings/combines">
               <Button
                 variant="outline"
-                className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto"
+                className="glass-morphism border-cyan-400/50 text-cyan-400 hover:bg-cyan-400 hover:text-black font-orbitron font-bold px-8 py-3 tracking-wider w-full sm:w-auto hover:scale-105 transition-all"
               >
                 VIEW RANKINGS
               </Button>
