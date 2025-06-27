@@ -68,11 +68,18 @@ export default function PricingPage() {
       <div className="relative z-10 container mx-auto px-6 py-12">
         {/* Compact Header */}
         <div className="text-center mb-12">
-          <h1 className="font-orbitron text-3xl md:text-4xl font-black text-white mb-4 cyber-text glow-text">
+          <h1 className="font-orbitron text-3xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
             PRICING PLANS
           </h1>
-          <div className="w-32 h-1 bg-gradient-to-r from-transparent via-cyan-400 via-purple-400 via-orange-400 to-transparent mx-auto mb-4"></div>
-          
+
+          {/* Compact Rainbow Divider */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-eval-cyan"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-cyan to-eval-purple"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-purple to-eval-orange"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-eval-orange to-transparent"></div>
+          </div>
+
           <p className="text-lg text-gray-300 mb-6 font-rajdhani max-w-2xl mx-auto">
             Choose the perfect plan to elevate your esports journey
           </p>

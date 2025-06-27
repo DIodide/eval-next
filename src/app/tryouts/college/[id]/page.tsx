@@ -33,7 +33,13 @@ import {
   XCircle,
   UserCheck,
   User,
-  X
+  X,
+  ExternalLink,
+  MessageCircle,
+  Building,
+  Share2,
+  Copy,
+  DollarSign
 } from "lucide-react"
 import { api } from "@/trpc/react"
 import { gameIcons } from "@/app/tryouts/_components/GameCarousel"
@@ -318,17 +324,17 @@ export default function TryoutDetailPage() {
             TRYOUT DETAILS
           </h1>
           
-          {/* Rainbow Divider */}
-          <div className="flex justify-center items-center space-x-0 w-full max-w-md mx-auto">
-            <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-orange-500 to-transparent"></div>
-          </div>
+          {/* Compact Rainbow Divider */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-eval-cyan"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-cyan to-eval-purple"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-purple to-eval-orange"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-eval-orange to-transparent"></div>
+          </div>  
         </div>
 
         <div className="max-w-5xl mx-auto space-y-8">
-            
+          
             {/* Header Card */}
             <Card className="glass-morphism border-white/20 hover:border-cyan-400/30 transition-all duration-300">
               <CardContent className="p-8">
@@ -364,33 +370,30 @@ export default function TryoutDetailPage() {
                     </div>
                   </div>
                   
-                  {/* Price and Availability */}
-                  <div className="flex flex-col items-start lg:items-end space-y-2">
-                    <Badge
-                      variant={tryout.price === "Free" ? "secondary" : "outline"}
-                      className={`${
-                        tryout.price === "Free" 
-                          ? "bg-green-600 text-white shadow-lg shadow-green-500/25" 
-                          : "border-cyan-400 text-cyan-400 shadow-lg shadow-cyan-500/25"
-                      } font-orbitron text-lg px-6 py-2`}
+                  {/* Share Button */}
+                  <div className="flex items-center cursor-pointer">
+                    <button 
+                      onClick={() => {
+                        void navigator.clipboard.writeText(window.location.href).then(() => {
+                          toast.success("Link copied!", {
+                            description: "Tryout link has been copied to your clipboard",
+                          })
+                        }).catch(() => {
+                          toast.error("Failed to copy link", {
+                            description: "Please try again or copy the URL manually",
+                          })
+                        })
+                      }}
+                      className="flex items-center space-x-2 glass-morphism border-white/20 hover:border-cyan-400/50 text-cyan-400 hover:text-cyan-300 rounded-lg px-4 py-2 transition-all duration-300 transform hover:scale-105 group"
                     >
-                      {tryout.price}
-                    </Badge>
-                    <div className="flex items-center space-x-2">
-                      <Users className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-400">
-                        {spotsLeft > 0 ? (
-                          <span className="text-green-400 font-medium">{spotsLeft} of {tryout.max_spots} spots available</span>
-                        ) : (
-                          <span className="text-red-400 font-medium">All {tryout.max_spots} spots filled</span>
-                        )}
-                      </span>
-                    </div>
+                      <Share2 className="cursor-pointer w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span className="cursor-pointer font-medium">Share</span>
+                    </button>
                   </div>
                 </div>
 
                 {/* Critical Information Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Date & Time */}
                   <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-cyan-400/30 transition-all duration-300">
                     <div className="flex items-center space-x-3 mb-2">
@@ -418,22 +421,11 @@ export default function TryoutDetailPage() {
                     <p className="text-gray-300 font-medium">{tryout.location}</p>
                     <p className="text-gray-400 text-sm">{tryout.school.location}, {tryout.school.state}</p>
                   </div>
-
-                                     {/* Game */}
-                   <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-orange-400/30 transition-all duration-300">
-                     <div className="flex items-center space-x-3 mb-2">
-                       <GraduationCap className="w-5 h-5 text-orange-400" />
-                       <span className="font-orbitron text-orange-400 text-sm font-semibold">GAME</span>
-                     </div>
-                     <p className="text-white font-semibold text-lg mb-1">{tryout.game.name}</p>
-                     <p className="text-gray-300 text-sm">Collegiate Esports Tryout</p>
-                   </div>
                 </div>
 
                 {/* Tryout Summary */}
                 <div className="glass-morphism border-white/10 rounded-lg p-6 mb-6">
-                  <h3 className="font-orbitron text-white text-lg font-semibold mb-3 flex items-center">
-                    <span className="w-2 h-2 bg-cyan-400 rounded-full mr-3"></span>
+                  <h3 className="font-orbitron text-white text-lg font-semibold mb-3">
                     ABOUT THIS TRYOUT
                   </h3>
                   <p className="text-gray-300 font-rajdhani text-lg leading-relaxed mb-4">
@@ -447,10 +439,11 @@ export default function TryoutDetailPage() {
                     </div>
                   )}
                   
-                  {/* Organizer Information Inline */}
+                  {/* Organizer Information and School Actions */}
                   {tryout.organizer && (
-                    <div className="pt-4 border-t border-white/10">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                    <div className="pt-4 border-t border-white/10 space-y-4">
+                      {/* Organizer Info */}
+                      <div className="flex flex-col space-y-2">
                         <div className="flex items-center space-x-2">
                           <User className="w-4 h-4 text-cyan-400" />
                           <span className="text-gray-400 text-sm">Organized by</span>
@@ -459,13 +452,40 @@ export default function TryoutDetailPage() {
                           </span>
                         </div>
                         {tryout.organizer.email && (
-                          <a 
-                            href={`mailto:${tryout.organizer.email}`}
-                            className="text-cyan-400 hover:text-cyan-300 text-sm transition-colors flex items-center space-x-1"
+                          <div className="flex items-center space-x-2 pl-6">
+                            <Mail className="w-3 h-3 text-gray-400" />
+                            <span className="text-gray-300 text-sm">{tryout.organizer.email}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* School Actions */}
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        {/* View School Profile */}
+                        <Link 
+                          href={`/profiles/school/${tryout.school.id}`}
+                          className="flex items-center justify-center space-x-2 glass-morphism border-white/20 hover:border-cyan-400/50 text-cyan-400 hover:text-cyan-300 rounded-lg px-4 py-2 transition-all duration-300 transform hover:scale-105 group"
+                        >
+                          <Building className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">View School Profile</span>
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </Link>
+
+                        {/* Message Coach */}
+                        {user && (
+                          <button 
+                            onClick={() => {
+                              // For now, we'll show a toast indicating this feature is coming soon
+                              // In the future, this would open a messaging dialog or navigate to messages
+                              toast.info("Feature coming soon", {
+                                description: "Direct messaging will be available in a future update",
+                              });
+                            }}
+                            className="flex items-center justify-center space-x-2 glass-morphism border-white/20 hover:border-purple-400/50 text-purple-400 hover:text-purple-300 rounded-lg px-4 py-2 transition-all duration-300 transform hover:scale-105 group"
                           >
-                            <Mail className="w-4 h-4" />
-                            <span>Contact Organizer</span>
-                          </a>
+                            <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            <span className="font-medium">Message Coach</span>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -475,48 +495,59 @@ export default function TryoutDetailPage() {
                 {/* Requirements & Registration Progress */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   {/* Requirements */}
-                  {(tryout.min_gpa ?? tryout.class_years.length > 0 ?? tryout.required_roles.length > 0) && (
-                    <div className="glass-morphism border-white/10 rounded-lg p-6">
-                      <h3 className="font-orbitron text-orange-400 text-lg font-semibold mb-4 flex items-center">
-                        <span className="w-2 h-2 bg-orange-400 rounded-full mr-3"></span>
-                        REQUIREMENTS
-                      </h3>
-                      <div className="space-y-3">
-                        {tryout.min_gpa && (
-                          <div className="flex items-center space-x-3">
-                            <GraduationCap className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                            <div>
-                              <span className="text-white font-medium">Minimum GPA: </span>
-                              <span className="text-gray-300">{tryout.min_gpa.toString()}</span>
-                            </div>
-                          </div>
-                        )}
-                        {tryout.class_years.length > 0 && (
-                          <div className="flex items-center space-x-3">
-                            <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                            <div>
-                              <span className="text-white font-medium">Eligible Class Years: </span>
-                              <span className="text-gray-300">{tryout.class_years.join(", ")}</span>
-                            </div>
-                          </div>
-                        )}
-                        {tryout.required_roles.length > 0 && (
-                          <div className="flex items-center space-x-3">
-                            <Users className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                            <div>
-                              <span className="text-white font-medium">Required Roles: </span>
-                              <span className="text-gray-300">{tryout.required_roles.join(", ")}</span>
-                            </div>
-                          </div>
-                        )}
+                  <div className="glass-morphism border-white/10 rounded-lg p-6">
+                    <h3 className="font-orbitron text-orange-400 text-lg font-semibold mb-4">
+                      REQUIREMENTS
+                    </h3>
+                    <div className="space-y-3">
+                      {/* Price */}
+                      <div className="flex items-center space-x-3">
+                        <DollarSign className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                        <div>
+                          <span className="text-white font-medium">Registration Fee: </span>
+                          <span className={`font-semibold ${
+                            tryout.price === "Free" || tryout.price === "$0" || tryout.price === "0" 
+                              ? "text-green-400" 
+                              : "text-gray-300"
+                          }`}>
+                            {tryout.price === "Free" || tryout.price === "$0" || tryout.price === "0" ? "FREE" : tryout.price}
+                          </span>
+                        </div>
                       </div>
+                      
+                      {tryout.min_gpa && (
+                        <div className="flex items-center space-x-3">
+                          <GraduationCap className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                          <div>
+                            <span className="text-white font-medium">Minimum GPA: </span>
+                            <span className="text-gray-300">{tryout.min_gpa.toString()}</span>
+                          </div>
+                        </div>
+                      )}
+                      {tryout.class_years.length > 0 && (
+                        <div className="flex items-center space-x-3">
+                          <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                          <div>
+                            <span className="text-white font-medium">Eligible Class Years: </span>
+                            <span className="text-gray-300">{tryout.class_years.join(", ")}</span>
+                          </div>
+                        </div>
+                      )}
+                      {tryout.required_roles.length > 0 && (
+                        <div className="flex items-center space-x-3">
+                          <Users className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                          <div>
+                            <span className="text-white font-medium">Required Roles: </span>
+                            <span className="text-gray-300">{tryout.required_roles.join(", ")}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   {/* Registration Progress */}
                   <div className="glass-morphism border-white/10 rounded-lg p-6">
-                    <h3 className="font-orbitron text-purple-400 text-lg font-semibold mb-4 flex items-center">
-                      <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+                    <h3 className="font-orbitron text-purple-400 text-lg font-semibold mb-4">
                       REGISTRATION STATUS
                     </h3>
                     <div className="space-y-4">
