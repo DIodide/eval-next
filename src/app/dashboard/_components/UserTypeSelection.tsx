@@ -63,7 +63,7 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 items-center justify-center p-6 pb-[20vh] mb-20">
+    <div className="flex min-h-screen bg-gray-900 items-center justify-center p-6">
       <Card className="w-full max-w-2xl bg-gray-800 border-gray-700">
         <CardHeader className="text-center pb-8">
           <CardTitle className="text-3xl font-orbitron font-bold text-white mb-4">
@@ -156,7 +156,7 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
           )}
 
           {/* Continue Button */}
-          <div className="pt-4">
+          <div className="pt-4 z-[300] pb-[40vh]">
             {selectedUserType ? (
               <Button
                 onClick={handleSubmit}
@@ -177,7 +177,7 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
                 disabled
                 className="w-full bg-gray-700 text-gray-500 rounded-lg py-4 font-orbitron font-medium cursor-not-allowed text-lg"
               >
-                SELECT AN ACCOUNT TYPE TO CONTINUE
+                SELECT ACCOUNT TYPE
               </Button>
             )}
           </div>
