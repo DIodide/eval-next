@@ -251,76 +251,116 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-gray-900/85 text-white py-20 border-t border-gray-100/35">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-16">HOW IT WORKS</h2>
+      <section className="bg-gray-900/85 text-white py-20 border-t border-gray-100/35 relative overflow-hidden">
+        {/* Background accent elements */}
+        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-full blur-xl"></div>
+        <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-orange-500/10 to-transparent rounded-full blur-xl"></div>
+        
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <div className="mb-16">
+            <h2 className="font-orbitron text-4xl md:text-6xl font-black mb-4 bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+              HOW IT WORKS
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-orange-500 mx-auto mb-6"></div>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto font-medium">
+              Your pathway to esports excellence starts here
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-7xl mx-auto">
             {/* Player Journey */}
-            <div>
-              <h3 className="text-2xl font-bold mb-8 text-cyan-400">PLAYER JOURNEY</h3>
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-cyan-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                    1
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold mb-1">Create Your Profile</h4>
-                    <p className="text-gray-400 text-sm">Set up your player profile with game stats and achievements</p>
+            <div className="relative">
+              <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-2xl p-8 border border-cyan-400/20 backdrop-blur-sm">
+                <div className="flex items-center justify-center mb-8">
+                  <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black rounded-2xl px-6 py-3 font-orbitron font-bold text-lg shadow-sm shadow-cyan-400/25">
+                    PLAYER JOURNEY
                   </div>
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="bg-cyan-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                    2
+                
+                <div className="space-y-8">
+                  <div className="flex items-start space-x-6 group">
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg shadow-cyan-400/25 group-hover:scale-110 transition-transform duration-300">
+                        1
+                      </div>
+                      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gradient-to-b from-cyan-400/50 to-transparent"></div>
+                    </div>
+                    <div className="text-left pt-2">
+                      <h4 className="font-orbitron font-bold mb-2 text-white text-lg">Create Your Profile</h4>
+                      <p className="text-gray-300 leading-relaxed">Set up your comprehensive player profile with game stats, achievements, and showcase your gaming journey</p>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold mb-1">Compete & Improve</h4>
-                    <p className="text-gray-400 text-sm">Participate in combines and track your performance</p>
+                  
+                  <div className="flex items-start space-x-6 group">
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg shadow-cyan-400/25 group-hover:scale-110 transition-transform duration-300">
+                        2
+                      </div>
+                      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gradient-to-b from-cyan-400/50 to-transparent"></div>
+                    </div>
+                    <div className="text-left pt-2">
+                      <h4 className="font-orbitron font-bold mb-2 text-white text-lg">Compete & Improve</h4>
+                      <p className="text-gray-300 leading-relaxed">Participate in elite combines, track your performance metrics, and continuously level up your skills</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start space-x-4">
-                  <div className="bg-cyan-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                    3
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold mb-1">Get Discovered</h4>
-                    <p className="text-gray-400 text-sm">
-                      College scouts find and recruit you based on your performance
-                    </p>
+                  
+                  <div className="flex items-start space-x-6 group">
+                    <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg shadow-cyan-400/25 group-hover:scale-110 transition-transform duration-300">
+                      3
+                    </div>
+                    <div className="text-left pt-2">
+                      <h4 className="font-orbitron font-bold mb-2 text-white text-lg">Get Discovered</h4>
+                      <p className="text-gray-300 leading-relaxed">College scouts discover and recruit you based on your outstanding performance and potential</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Coach Journey */}
-            <div>
-              <h3 className="text-2xl font-bold mb-8 text-orange-400">COACH JOURNEY</h3>
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-orange-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                    1
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold mb-1">Set Up Scouting</h4>
-                    <p className="text-gray-400 text-sm">Define your recruitment criteria and preferences</p>
+            <div className="relative">
+              <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 rounded-2xl p-8 border border-orange-400/20 backdrop-blur-sm">
+                <div className="flex items-center justify-center mb-8">
+                  <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-black rounded-2xl px-6 py-3 font-orbitron font-bold text-lg shadow-sm shadow-orange-400/25">
+                    COACH JOURNEY
                   </div>
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="bg-orange-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                    2
+                
+                <div className="space-y-8">
+                  <div className="flex items-start space-x-6 group">
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg shadow-orange-400/25 group-hover:scale-110 transition-transform duration-300">
+                        1
+                      </div>
+                      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gradient-to-b from-orange-400/50 to-transparent"></div>
+                    </div>
+                    <div className="text-left pt-2">
+                      <h4 className="font-orbitron font-bold mb-2 text-white text-lg">Set Up Scouting</h4>
+                      <p className="text-gray-300 leading-relaxed">Define your recruitment criteria, preferences, and establish your scouting parameters for optimal talent discovery</p>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold mb-1">Analyze Players</h4>
-                    <p className="text-gray-400 text-sm">Review detailed analytics and performance data</p>
+                  
+                  <div className="flex items-start space-x-6 group">
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg shadow-orange-400/25 group-hover:scale-110 transition-transform duration-300">
+                        2
+                      </div>
+                      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gradient-to-b from-orange-400/50 to-transparent"></div>
+                    </div>
+                    <div className="text-left pt-2">
+                      <h4 className="font-orbitron font-bold mb-2 text-white text-lg">Analyze Players</h4>
+                      <p className="text-gray-300 leading-relaxed">Review comprehensive analytics, performance data, and detailed insights to identify top-tier talent</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start space-x-4">
-                  <div className="bg-orange-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0">
-                    3
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold mb-1">Recruit Talent</h4>
-                    <p className="text-gray-400 text-sm">Connect with players and build your championship roster</p>
+                  
+                  <div className="flex items-start space-x-6 group">
+                    <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-lg shadow-orange-400/25 group-hover:scale-110 transition-transform duration-300">
+                      3
+                    </div>
+                    <div className="text-left pt-2">
+                      <h4 className="font-orbitron font-bold mb-2 text-white text-lg">Recruit Talent</h4>
+                      <p className="text-gray-300 leading-relaxed">Connect directly with players, engage with families, and build your championship-winning roster</p>
+                    </div>
                   </div>
                 </div>
               </div>
