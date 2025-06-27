@@ -17,6 +17,7 @@ import { useUser } from "@clerk/nextjs"
 import { SignInButton, SignUpButton } from "@clerk/nextjs"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -61,22 +62,19 @@ const gameNameMap: Record<string, string> = {
   "League of Legends": "League of Legends"
 }
 
-// Game colors for UI consistency
-const gameColors = {
-  VALORANT: "from-red-500 to-red-700",
-  "Overwatch 2": "from-orange-500 to-orange-700",
-  "Rocket League": "from-blue-500 to-blue-700",
-  "League of Legends": "from-purple-500 to-purple-700",
-  "Smash Ultimate": "from-green-500 to-green-700",
-}
 
-// Game icons
+
+// Game icons - using actual game logos
 const gameIcons = {
-  VALORANT: "🎯",
-  "Overwatch 2": "⚡",
-  "Rocket League": "🚀",
-  "League of Legends": "⚔️",
-  "Smash Ultimate": "🎮",
+  "VALORANT": "/valorant/logos/Valorant Logo Red Border.jpg",
+  "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png", 
+  "Super Smash Bros. Ultimate": "/smash/logos/Smash Ball White Logo.png",
+  "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
+} as const
+
+// Helper function to get game icon
+const getGameIcon = (gameName: string) => {
+  return gameIcons[gameName as keyof typeof gameIcons] ?? "/eval/logos/emblem.png"
 }
 
 const formatDate = (date: Date) => {
@@ -228,8 +226,6 @@ interface CombineCardProps {
 
 function RelatedCombineCard({ combine }: CombineCardProps) {
   const gameName = gameNameMap[combine.game.name] ?? combine.game.name
-  const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
-  const gameIcon = gameIcons[gameName as keyof typeof gameIcons] || "🎮"
   const spotsLeft = combine.max_spots - combine.registered_spots
 
   return (
@@ -237,10 +233,14 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3 flex-1 mr-4">
-            <div
-              className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center transition-transform group-hover:scale-110`}
-            >
-              <span className="text-2xl">{gameIcon}</span>
+            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+              <Image
+                src={getGameIcon(combine.game.name)}
+                alt={combine.game.name}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex-1">
               <h3 className="font-orbitron font-bold text-white text-sm tracking-wide">
@@ -536,8 +536,6 @@ export default function CombineDetailPage() {
   }
 
   const gameName = gameNameMap[combine.game.name] ?? combine.game.name
-  const gameColor = gameColors[gameName as keyof typeof gameColors] || "from-gray-500 to-gray-700"
-  const gameIcon = gameIcons[gameName as keyof typeof gameIcons] || "🎮"
   const spotsLeft = combine.max_spots - combine.registered_spots
   const isPastCombine = new Date(combine.date) < new Date()
   const canRegister = !isPastCombine && spotsLeft > 0 && !existingRegistration && user && !combine.invite_only
@@ -582,8 +580,14 @@ export default function CombineDetailPage() {
                 {/* Combine Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
                   <div className="flex items-center space-x-6 mb-4 lg:mb-0">
-                    <div className="w-20 h-20 glass-morphism rounded-full flex items-center justify-center border-white/20 shadow-lg">
-                      <span className="text-4xl">{gameIcon}</span>
+                    <div className="w-20 h-20 glass-morphism rounded-full flex items-center justify-center border-white/20 shadow-lg overflow-hidden">
+                      <Image
+                        src={getGameIcon(combine.game.name)}
+                        alt={combine.game.name}
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <h1 className="font-orbitron font-black text-3xl lg:text-4xl text-white mb-2 cyber-text">
