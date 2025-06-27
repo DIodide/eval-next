@@ -370,28 +370,103 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-black/85 text-white py-20">
-        <div className="container mx-auto px-6 flex flex-col items-center justify-center">
-          <div className="text-6xl font-bold text-white mb-4">CLAIM YOUR SCHOLARSHIP TODAY</div>
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-8 text-center">
-            <div>
-              <h3 className="text-4xl font-bold text-cyan-400 mb-2">$50M+</h3>
-              <p className="text-gray-400">Scholarships Available</p>
+      <section className="bg-black/85 text-white py-20 relative overflow-hidden">
+        {/* Dynamic Background Elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-tl from-orange-500/8 via-purple-500/5 to-cyan-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-purple-500/3 to-transparent rounded-full blur-2xl"></div>
+        
+        <div className="container mx-auto px-6 flex flex-col items-center justify-center relative z-10">
+          {/* Enhanced Title Section */}
+          <div className="text-center mb-16">
+            <div className="mb-6">
+              <h2 className="font-orbitron text-4xl md:text-7xl font-black mb-4 bg-gradient-to-r from-cyan-400 via-white to-orange-400 bg-clip-text text-transparent leading-tight">
+                CLAIM YOUR
+              </h2>
+              <h2 className="font-orbitron text-4xl md:text-7xl font-black mb-6 bg-gradient-to-r from-orange-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent leading-tight">
+                SCHOLARSHIP TODAY
+              </h2>
             </div>
             
-            {/* <div>
-              <h3 className="text-4xl font-bold text-cyan-400 mb-2">10K+</h3>
-              <p className="text-gray-400">Active Players</p>
+            {/* Rainbow Divider */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="w-16 h-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
+              <div className="w-8 h-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+              <div className="w-12 h-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+              <div className="w-8 h-1 bg-gradient-to-r from-orange-500 to-purple-500"></div>
+              <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-transparent"></div>
             </div>
-            <div>
-              <h3 className="text-4xl font-bold text-orange-400 mb-2">500+</h3>
-              <p className="text-gray-400">Partner Colleges</p>
-            </div>
-            <div>
-              <h3 className="text-4xl font-bold text-orange-400 mb-2">1K+</h3>
-              <p className="text-gray-400">Active Coaches</p>
-            </div> */}
+            
+                         <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-medium leading-relaxed">
+               Unlock your potential and take the next step toward your esports future
+             </p>
           </div>
+
+          {/* Enhanced Stats Display */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            {/* Main Scholarship Stat */}
+            <div className="md:col-span-1 flex flex-col items-center group">
+              <div className="bg-gradient-to-br from-cyan-500/20 to-cyan-600/10 rounded-3xl p-8 border border-cyan-400/30 backdrop-blur-sm group-hover:border-cyan-400/50 transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-cyan-400/20 w-full">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-2xl font-bold text-black">$</span>
+                    </div>
+                  </div>
+                  <h3 className="font-orbitron text-5xl md:text-6xl font-black text-transparent bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text mb-3 group-hover:scale-105 transition-transform duration-300">
+                    50M+
+                  </h3>
+                  <p className="text-gray-300 font-medium text-lg">Scholarships Available</p>
+                  <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-400 to-transparent mx-auto mt-3"></div>
+                </div>
+              </div>
+            </div>
+
+                         {/* Supporting Stats */}
+             <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
+               <div className="bg-gradient-to-br from-purple-500/15 to-purple-600/5 rounded-2xl p-6 border border-purple-400/20 backdrop-blur-sm group hover:border-purple-400/40 transition-all duration-300">
+                 <div className="text-center">
+                   <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                     <BarChart3 className="w-6 h-6 text-black" />
+                   </div>
+                   <h4 className="font-orbitron text-2xl font-bold text-purple-400 mb-2">24/7</h4>
+                   <p className="text-gray-400 text-sm">Platform Access</p>
+                 </div>
+               </div>
+
+               <div className="bg-gradient-to-br from-orange-500/15 to-orange-600/5 rounded-2xl p-6 border border-orange-400/20 backdrop-blur-sm group hover:border-orange-400/40 transition-all duration-300">
+                 <div className="text-center">
+                   <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                     <Trophy className="w-6 h-6 text-black" />
+                   </div>
+                   <h4 className="font-orbitron text-2xl font-bold text-orange-400 mb-2">ALL</h4>
+                   <p className="text-gray-400 text-sm">Major Games Supported</p>
+                 </div>
+               </div>
+
+               <div className="bg-gradient-to-br from-cyan-500/15 to-cyan-600/5 rounded-2xl p-6 border border-cyan-400/20 backdrop-blur-sm group hover:border-cyan-400/40 transition-all duration-300">
+                 <div className="text-center">
+                   <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                     <TrendingUp className="w-6 h-6 text-black" />
+                   </div>
+                   <h4 className="font-orbitron text-xl font-bold text-cyan-400 mb-2">REAL-TIME</h4>
+                   <p className="text-gray-400 text-sm">Performance Analytics</p>
+                 </div>
+               </div>
+
+               <div className="bg-gradient-to-br from-purple-500/15 to-purple-600/5 rounded-2xl p-6 border border-purple-400/20 backdrop-blur-sm group hover:border-purple-400/40 transition-all duration-300">
+                 <div className="text-center">
+                   <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                     <MessageSquare className="w-6 h-6 text-black" />
+                   </div>
+                   <h4 className="font-orbitron text-xl font-bold text-purple-400 mb-2">INSTANT</h4>
+                   <p className="text-gray-400 text-sm">Communication Tools</p>
+                 </div>
+               </div>
+             </div>
+          </div>
+
+          
         </div>
       </section>
 
