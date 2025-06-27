@@ -687,7 +687,7 @@ function CombinesPageContent() {
         </div>
 
         {/* Status Banner */}
-        <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/30 rounded-lg p-6 max-w-4xl mx-auto mb-12">
+        {/* <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/30 rounded-lg p-6 max-w-4xl mx-auto mb-12">
           <div className="flex items-center justify-center space-x-3 mb-3">
             <Lock className="w-6 h-6 text-yellow-400" />
             <h3 className="font-orbitron text-xl text-white">EVAL Invitationals</h3>
@@ -696,7 +696,7 @@ function CombinesPageContent() {
             EVAL Invitationals are exclusive tournaments for top-performing players. Maintain high rankings and
             exceptional performance to receive invitations. Regular EVAL Combines are open to all players.
           </p>
-        </div>
+        </div> */}
 
         {/* Game Carousels */}
         <div className="space-y-16">
