@@ -191,11 +191,8 @@ export default function LeaguesRankingPage() {
       <div className="container mx-auto px-6 py-16 relative z-10">
         {/* Compact Header */}
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/20">
-              <Trophy className="w-5 h-5 text-cyan-300" />
-            </div>
-            <h1 className="font-orbitron text-3xl md:text-5xl font-black bg-gradient-to-r from-cyan-300 via-purple-300 to-orange-300 bg-clip-text text-transparent">
+          <div className="mb-4">
+            <h1 className="font-orbitron text-3xl md:text-5xl font-black text-white text-center">
               LEAGUE RANKINGS
             </h1>
           </div>
