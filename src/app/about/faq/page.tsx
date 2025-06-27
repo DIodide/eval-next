@@ -9,19 +9,24 @@ import Link from "next/link"
 
 const faqs = [
   {
-    question: "What is EVAL Gaming?",
+    question: "What is EVAL?",
     answer:
-      "EVAL Gaming is a platform that connects esports players with college scholarship opportunities. We provide tools for players to showcase their skills, track their performance, and get discovered by college coaches and recruiters.",
+      "EVAL is the premier platform connecting esports players with college scholarship opportunities through advanced analytics, combines, and recruitment tools.",
   },
   {
     question: "How much does it cost to use EVAL?",
     answer:
-      "EVAL offers a free tier that includes basic profile creation and limited features. We also have Eval+ ($3/month) and Eval++ ($10/month) plans with enhanced features like advanced analytics, unlimited clip uploads, and priority visibility to coaches.",
+      "EVAL offers a free tier with basic features, providing all you need to get recruited. Premium plans start at $30 per year for enhanced visibility and advanced analytics.",
   },
   {
     question: "What games does EVAL support?",
     answer:
-      "EVAL currently supports major esports titles including VALORANT, Overwatch 2, Rocket League, League of Legends, Counter-Strike 2, and Super Smash Bros. Ultimate. We're continuously adding support for more games based on community demand.",
+      "EVAL currently supports VALORANT, Rocket League, Overwatch 2, and Super Smash Bros. Ultimate, with more games being added regularly.",
+  },
+  {
+    question: "How do I get invited to EVAL Combines?",
+    answer:
+      "EVAL Combines are free to enter for all high school players, no invitation necessary. Maintain high rankings, demonstrate exceptional gameplay, and build community recognition to earn invitations to our EVAL Invitationals!",
   },
   {
     question: "How do I get noticed by college coaches?",
@@ -29,9 +34,9 @@ const faqs = [
       "To get noticed by coaches, maintain an active profile with updated stats, upload high-quality gameplay clips, participate in EVAL combines and tournaments, and consider upgrading to Eval+ or Eval++ for increased visibility and advanced features.",
   },
   {
-    question: "Can high school students use EVAL?",
+    question: "Can college students use EVAL?",
     answer:
-      "Yes! EVAL is specifically designed for high school students looking to pursue esports at the collegiate level. We work with high school leagues and provide age-appropriate features and safety measures.",
+      "Yes, absolutely! Although EVAL is specifically designed for high school students looking to pursue esports at the collegiate levels, college students are welcome to use EVAL to showcase their skills and use our advanced analytics to improve their game.",
   },
   {
     question: "How do tryouts work on EVAL?",
@@ -44,9 +49,9 @@ const faqs = [
       "EVAL connects players with various scholarship opportunities including full-ride scholarships, partial scholarships, and academic scholarships with esports components. We work with over 500 partner colleges offering more than $50M in available funding.",
   },
   {
-    question: "How do I upload gameplay clips?",
+    question: "How do I upload gameplay clips and VODs?",
     answer:
-      "You can upload gameplay clips directly to your profile through our web platform. Free users can upload 1 clip, Eval+ users can upload up to 10 clips, and Eval++ users have unlimited uploads. Clips should showcase your best plays and game sense.",
+      "You can upload gameplay clips and VODs directly to your profile through our web platform, linking to YouTube, Twitch, Medal, and more. Clips should showcase your best plays and game sense.",
   },
   {
     question: "Is my personal information safe on EVAL?",
@@ -77,7 +82,7 @@ export default function FAQPage() {
             FREQUENTLY ASKED QUESTIONS
           </h1>
           <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-3xl mx-auto">
-            Find answers to common questions about EVAL Gaming and our platform
+            Find answers to common questions about EVAL and our platform
           </p>
         </div>
 
@@ -88,7 +93,7 @@ export default function FAQPage() {
               <Card key={index} className="rounded-xs faq-rainbow-border bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
                 <Collapsible open={openItems.includes(index)} onOpenChange={() => toggleItem(index)}>
                   <CollapsibleTrigger className="w-full">
-                    <CardContent className="p-6">
+                    <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-left font-orbitron text-lg text-white font-semibold tracking-wide">
                           {faq.question}

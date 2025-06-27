@@ -310,7 +310,7 @@ export default function PricingPage() {
               <Card className="bg-gray-800 border-orange-400/50 hover:border-orange-400 transition-all duration-300 shadow-lg shadow-orange-400/10">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <CardTitle className="text-white font-orbitron text-2xl">Eval+</CardTitle>
+                    <CardTitle className="text-white font-orbitron text-2xl">EVAL Gold</CardTitle>
                     <Badge className="bg-orange-400 text-black font-orbitron">POPULAR</Badge>
                   </div>
                   <CardDescription className="text-gray-400 font-rajdhani">Enhanced recruiting tools</CardDescription>
@@ -323,7 +323,7 @@ export default function PricingPage() {
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Enhanced coach profile</span>
+                      <span className="text-gray-300">Enhanced school profile</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
@@ -335,7 +335,7 @@ export default function PricingPage() {
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Create up to 4 tryouts per month</span>
+                      <span className="text-gray-300">Scout at EVAL Combines</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
@@ -361,7 +361,7 @@ export default function PricingPage() {
               <Card className="bg-gray-800 border-purple-400/50 hover:border-purple-400 transition-all duration-300 shadow-lg shadow-purple-400/10">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <CardTitle className="text-white font-orbitron text-2xl">Eval++</CardTitle>
+                    <CardTitle className="text-white font-orbitron text-2xl">EVAL Platinum</CardTitle>
                     <Badge className="bg-purple-400 text-black font-orbitron">PREMIUM</Badge>
                   </div>
                   <CardDescription className="text-gray-400 font-rajdhani">
@@ -376,11 +376,11 @@ export default function PricingPage() {
                   <ul className="space-y-3 font-rajdhani">
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Premium coach profile with verification</span>
+                      <span className="text-gray-300">Premium verified coach profile</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Advanced talent search algorithm</span>
+                      <span className="text-gray-300">Recruitment consulting</span>
                     </li>
                     <li className="flex items-start">
                       <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
