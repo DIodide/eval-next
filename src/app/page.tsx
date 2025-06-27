@@ -279,53 +279,55 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            <div className="group text-center cursor-pointer">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-3xl p-8 border border-gray-700/50 backdrop-blur-sm hover:border-red-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-red-400/20 hover:-translate-y-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-8xl mx-auto">
+            <div className="flex items-center justify-center text-center group cursor-pointer hover:scale-110 transition-all duration-300">
                 <Image
                   src="/valorant/logos/Lockup Horizontal Off-White_cropped.png"
                   alt="VALORANT"
-                  width={200}
-                  height={80}
-                  className="w-full h-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                  width={5000}
+                  height={5000}
+                  className="transition-all duration-300"
                 />
-              </div>
+              {/* <h3 className="font-orbitron text-white font-bold group-hover:text-red-400 transition-colors">
+                VALORANT
+              </h3> */}
             </div>
-            
-            <div className="group text-center cursor-pointer">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-3xl p-8 border border-gray-700/50 backdrop-blur-sm hover:border-blue-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-400/20 hover:-translate-y-2">
-                <Image
+            <div className=" flex items-center justify-center mx-5 text-center group cursor-pointer hover:scale-110 transition-all duration-300">
+              <Image
                   src="/rocket-league/logos/Rocket League Black and White Logo.png"
                   alt="Rocket League"
-                  width={120}
-                  height={80}
-                  className="w-full h-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                  width={750}
+                  height={304}
+                  className="object-contain"
                 />
-              </div>
             </div>
-            
-            <div className="group text-center cursor-pointer">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-3xl p-8 border border-gray-700/50 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-400/20 hover:-translate-y-2">
+            <div className="text-center group cursor-pointer">
+              <div className=" rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-all duration-300 ">
                 <Image
                   src="/smash/logos/SSBU Logo white_trans.png"
                   alt="Super Smash Bros Ultimate"
-                  width={80}
-                  height={80}
-                  className="w-full h-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                  width={400}
+                  height={400}
+                  className="object-contain"
                 />
               </div>
+              {/* <h3 className="font-orbitron text-white font-bold group-hover:text-purple-400 transition-colors">
+                SMASH ULTIMATE
+              </h3> */}
             </div>
-            
-            <div className="group text-center cursor-pointer">
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-3xl p-8 border border-gray-700/50 backdrop-blur-sm hover:border-orange-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-orange-400/20 hover:-translate-y-2">
+            <div className="text-center group cursor-pointer flex justify-center items-center">
+              <div className=" rounded-2xl flex items-center justify-center mx-auto px-5 mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg ">
                 <Image
                   src="/overwatch/logos/Overwatch 2 Wordmark.png"
                   alt="Overwatch 2"
-                  width={160}
-                  height={80}
-                  className="w-full h-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                  width={500}
+                  height={500}
+                  className="object-contain"
                 />
               </div>
+              {/* <h3 className="font-orbitron text-white font-bold group-hover:text-orange-400 transition-colors">
+                OVERWATCH 2
+              </h3> */}
             </div>
           </div>
         </div>
