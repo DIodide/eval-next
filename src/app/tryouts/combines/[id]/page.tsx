@@ -233,7 +233,7 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
   const spotsLeft = combine.max_spots - combine.registered_spots
 
   return (
-    <Card className="glass-morphism border-white/20 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20 hover:scale-105 group">
+    <Card className="glass-morphism border-white/20 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20 group">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3 flex-1 mr-4">
@@ -342,7 +342,7 @@ function RelatedCombinesCarousel({ combines }: { combines: CombineCardProps['com
           >
             {combines.map((combine) => (
               <div key={combine.id} className="min-w-[calc(100%/3-1rem)]">
-                <Link href={`/tryouts/combines/${combine.id}`} className="block transition-transform hover:scale-105">
+                <Link href={`/tryouts/combines/${combine.id}`} className="block transition-transform ">
                   <RelatedCombineCard combine={combine} />
                 </Link>
               </div>
