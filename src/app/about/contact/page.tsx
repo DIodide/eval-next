@@ -158,37 +158,45 @@ export default function AboutContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+      {/* Hero Section with Contact Form */}
+      <section className="relative py-12 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-orange-500/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.1)_0%,transparent_50%)]" />
+        
+        <div className="container mx-auto px-6 relative z-10">
+          {/* Header */}
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-cyan-400/20 to-purple-400/20 rounded-full px-6 py-3 mb-6 border border-cyan-400/30">
+              <MessageSquare className="w-5 h-5 text-cyan-400" />
+              <span className="font-orbitron text-cyan-400 text-sm tracking-wider">CONTACT US</span>
+            </div>
+            
+            <h1 className="font-orbitron text-3xl md:text-5xl font-black text-white mb-4 cyber-text">
+              GET IN <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">TOUCH</span>
+            </h1>
+            
+            <p className="text-gray-300 font-rajdhani leading-relaxed">
+              Have questions about EVAL? Need support? We&apos;re here to help.
+            </p>
+          </div>
 
-      <div className="container mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
-            CONTACT US
-          </h1>
-          <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-3xl mx-auto">
-            Have questions about EVAL? We&apos;re here to help you on your esports journey.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
-          {/* Contact Form - Takes up 2/3 of the space */}
-          <div className="lg:col-span-2">
-            <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/30 transition-colors">
-              <CardHeader className="pb-6">
-                <CardTitle className="font-orbitron text-2xl text-white tracking-wide flex items-center">
-                  <MessageSquare className="w-6 h-6 text-cyan-400 mr-3" />
+          {/* Large Contact Form */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 hover:border-cyan-400/30 transition-all duration-300 backdrop-blur-sm">
+              <CardHeader className="pb-8">
+                <CardTitle className="font-orbitron text-3xl text-white tracking-wide text-center">
                   Send us a Message
                 </CardTitle>
-                <p className="text-gray-400 font-rajdhani">
+                <p className="text-gray-400 font-rajdhani text-center text-lg">
                   Fill out the form below and we&apos;ll get back to you as soon as possible.
                 </p>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+              <CardContent className="px-8 pb-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Name Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="firstName" className="text-white font-orbitron text-sm tracking-wide">
                         First Name *
                       </Label>
@@ -196,12 +204,12 @@ export default function AboutContactPage() {
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
+                        className="bg-gray-700/50 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400 h-12 text-lg"
                         placeholder="Enter your first name"
                         required
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="lastName" className="text-white font-orbitron text-sm tracking-wide">
                         Last Name *
                       </Label>
@@ -209,7 +217,7 @@ export default function AboutContactPage() {
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
+                        className="bg-gray-700/50 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400 h-12 text-lg"
                         placeholder="Enter your last name"
                         required
                       />
@@ -218,7 +226,7 @@ export default function AboutContactPage() {
 
                   {/* Email and Category */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="email" className="text-white font-orbitron text-sm tracking-wide">
                         Email Address *
                       </Label>
@@ -227,37 +235,43 @@ export default function AboutContactPage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
+                        className="bg-gray-700/50 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400 h-12 text-lg"
                         placeholder="your.email@example.com"
                         required
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="category" className="text-white font-orbitron text-sm tracking-wide">
                         Category *
                       </Label>
                       <Select onValueChange={(value: string) => handleInputChange("category", value)} required>
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400">
+                        <SelectTrigger className="bg-gray-700/50 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400 h-12 text-lg">
                           <SelectValue placeholder="Select your category" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-700 border-gray-600">
-                          <SelectItem value="player" className="text-white font-rajdhani focus:bg-gray-600">
+                        <SelectContent className="bg-gray-800 border-gray-600">
+                          <SelectItem value="player" className="text-white font-rajdhani focus:bg-gray-700">
                             Player
                           </SelectItem>
-                          <SelectItem value="coach" className="text-white font-rajdhani focus:bg-gray-600">
+                          <SelectItem value="coach" className="text-white font-rajdhani focus:bg-gray-700">
                             Coach
                           </SelectItem>
-                          <SelectItem value="league" className="text-white font-rajdhani focus:bg-gray-600">
+                          <SelectItem value="league" className="text-white font-rajdhani focus:bg-gray-700">
                             League
                           </SelectItem>
-                          <SelectItem value="organization" className="text-white font-rajdhani focus:bg-gray-600">
+                          <SelectItem value="organization" className="text-white font-rajdhani focus:bg-gray-700">
                             Organization
                           </SelectItem>
-                          <SelectItem value="parent" className="text-white font-rajdhani focus:bg-gray-600">
+                          <SelectItem value="parent" className="text-white font-rajdhani focus:bg-gray-700">
                             Parent/Guardian
                           </SelectItem>
-                          <SelectItem value="media" className="text-white font-rajdhani focus:bg-gray-600">
+                          <SelectItem value="media" className="text-white font-rajdhani focus:bg-gray-700">
                             Media/Press
+                          </SelectItem>
+                          <SelectItem value="partnership" className="text-white font-rajdhani focus:bg-gray-700">
+                            Partnership Inquiry
+                          </SelectItem>
+                          <SelectItem value="technical" className="text-white font-rajdhani focus:bg-gray-700">
+                            Technical Support
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -265,7 +279,7 @@ export default function AboutContactPage() {
                   </div>
 
                   {/* Subject */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Label htmlFor="subject" className="text-white font-orbitron text-sm tracking-wide">
                       Subject of Inquiry *
                     </Label>
@@ -273,14 +287,14 @@ export default function AboutContactPage() {
                       id="subject"
                       value={formData.subject}
                       onChange={(e) => handleInputChange("subject", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
+                      className="bg-gray-700/50 border-gray-600 text-white font-rajdhani focus:border-cyan-400 focus:ring-cyan-400 h-12 text-lg"
                       placeholder="Brief description of your inquiry"
                       required
                     />
                   </div>
 
                   {/* Message */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Label htmlFor="message" className="text-white font-orbitron text-sm tracking-wide">
                       Message *
                     </Label>
@@ -288,7 +302,7 @@ export default function AboutContactPage() {
                       id="message"
                       value={formData.message}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement> ) => handleInputChange("message", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white font-rajdhani min-h-[150px] focus:border-cyan-400 focus:ring-cyan-400"
+                      className="bg-gray-700/50 border-gray-600 text-white font-rajdhani min-h-[160px] focus:border-cyan-400 focus:ring-cyan-400 resize-none text-lg"
                       placeholder="Please provide details about your inquiry. The more information you provide, the better we can assist you."
                       required
                     />
@@ -298,13 +312,13 @@ export default function AboutContactPage() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-black font-orbitron font-bold py-3 tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-cyan-400 to-purple-400 hover:from-cyan-500 hover:to-purple-500 text-black font-orbitron font-bold py-4 text-xl tracking-wider disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-cyan-400/30 transition-all duration-300"
                   >
                     {isSubmitting ? (
                       "SENDING..."
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" />
+                        <Send className="w-6 h-6 mr-3" />
                         SEND MESSAGE
                       </>
                     )}
@@ -313,81 +327,46 @@ export default function AboutContactPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
 
-          {/* Contact Information Sidebar - Takes up 1/3 of the space */}
-          <div className="space-y-6">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <h3 className="font-orbitron text-xl text-white mb-6 tracking-wide">Get in Touch</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <Mail className="w-5 h-5 text-cyan-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-orbitron text-sm">Email</p>
-                      <p className="text-gray-300 font-rajdhani">support@evalgaming.com</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <Phone className="w-5 h-5 text-cyan-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-orbitron text-sm">Phone</p>
-                      <p className="text-gray-300 font-rajdhani">+1 (215) 678-1829</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="w-5 h-5 text-cyan-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-orbitron text-sm">Location</p>
-                      <p className="text-gray-300 font-rajdhani">
-                        Princeton University
-                        <br />
-                        Princeton, NJ 08544
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border-cyan-400/30">
-              <CardContent className="p-6">
-                <h3 className="font-orbitron text-white text-lg mb-3">Response Time</h3>
-                <p className="text-gray-300 font-rajdhani text-sm leading-relaxed">
-                  We typically respond to all inquiries within{" "}
-                  <span className="text-cyan-400 font-semibold">24 hours</span>. For urgent matters, please call us
-                  directly.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <h3 className="font-orbitron text-white text-lg mb-3">Office Hours</h3>
-                <div className="space-y-2 text-sm font-rajdhani">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Monday - Friday</span>
-                    <span className="text-white">9:00 AM - 6:00 PM EST</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Saturday</span>
-                    <span className="text-white">10:00 AM - 4:00 PM EST</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Sunday</span>
-                    <span className="text-white">Closed</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Footer Contact Info */}
+      <section className="py-12 bg-gradient-to-b from-gray-900/50 to-transparent">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="font-orbitron text-xl text-white mb-4">Other Ways to Reach Us</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div className="text-gray-300">
+                <Mail className="w-6 h-6 mx-auto mb-2 text-cyan-400" />
+                <p className="font-orbitron text-sm text-white mb-1">Email</p>
+                <a href="mailto:support@evalgaming.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                  support@evalgaming.com
+                </a>
+              </div>
+              <div className="text-gray-300">
+                <Phone className="w-6 h-6 mx-auto mb-2 text-purple-400" />
+                <p className="font-orbitron text-sm text-white mb-1">Phone</p>
+                <a href="tel:+12156781829" className="text-purple-400 hover:text-purple-300 transition-colors">
+                  +1 (215) 678-1829
+                </a>
+              </div>
+              <div className="text-gray-300">
+                <MapPin className="w-6 h-6 mx-auto mb-2 text-orange-400" />
+                <p className="font-orbitron text-sm text-white mb-1">Location</p>
+                <span className="text-orange-400">Princeton, NJ 08544</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Success/Error Modal */}
       <Dialog open={modalState.isOpen} onOpenChange={(open) => setModalState(prev => ({ ...prev, isOpen: open }))}>
-        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-md">
+        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-orbitron text-xl tracking-wide flex items-center gap-3">
+            <DialogTitle className="flex items-center gap-3 font-orbitron text-xl">
               {modalState.type === 'success' ? (
                 <CheckCircle className="w-6 h-6 text-green-400" />
               ) : (
@@ -395,25 +374,12 @@ export default function AboutContactPage() {
               )}
               {modalState.title}
             </DialogTitle>
-            <DialogDescription className="text-gray-300 font-rajdhani text-base leading-relaxed pt-2">
-              {modalState.message}
-            </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end pt-4">
-            <Button
-              onClick={() => setModalState(prev => ({ ...prev, isOpen: false }))}
-              className={`font-orbitron font-bold tracking-wider ${
-                modalState.type === 'success' 
-                  ? 'bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-black'
-                  : 'bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white'
-              }`}
-            >
-              CLOSE
-            </Button>
-          </div>
+          <DialogDescription className="text-gray-300 font-rajdhani leading-relaxed">
+            {modalState.message}
+          </DialogDescription>
         </DialogContent>
       </Dialog>
-
     </div>
   )
 }
