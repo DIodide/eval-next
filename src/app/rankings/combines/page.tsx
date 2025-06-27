@@ -138,46 +138,49 @@ function GameRankingCard({ game, players }: { game: string; players: Player[] })
   const gameIcon = gameIcons[game as keyof typeof gameIcons] || "🎮"
 
   return (
-    <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-3 mb-6">
+    <Card className="bg-gray-900/60 backdrop-blur-md border-white/10 hover:border-cyan-400/30 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-cyan-400/10 transition-all duration-300 group rounded-lg shadow-2xl">
+      <CardContent className="p-6 relative overflow-hidden">
+        {/* Subtle background accent */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <div className="flex items-center space-x-3 mb-6 relative z-10">
           <div
-            className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center text-xl`}
+            className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center text-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
           >
             {gameIcon}
           </div>
           <div>
-            <h3 className="font-orbitron text-xl font-bold text-white tracking-wide">{game}</h3>
-            <p className="text-gray-400 font-rajdhani text-sm">Top 10 Players</p>
+            <h3 className="font-orbitron text-xl font-bold text-white tracking-wide group-hover:text-cyan-200 transition-colors duration-300">{game}</h3>
+            <p className="text-gray-400 font-medium text-sm">Top 10 Players</p>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 relative z-10">
           {players.slice(0, 10).map((player) => (
             <div
               key={player.rank}
-              className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-between p-3 bg-gray-800/40 backdrop-blur-sm rounded-md border border-white/10 hover:border-cyan-400/30 hover:bg-gray-700/40 transition-all duration-300"
             >
               <div className="flex items-center space-x-3">
                 <div className="flex items-center justify-center w-8 h-8">{getRankIcon(player.rank)}</div>
                 <div>
                   <h4 className="font-orbitron text-white font-semibold text-sm">{player.username}</h4>
-                  <p className="text-gray-400 font-rajdhani text-xs">{player.school}</p>
+                  <p className="text-gray-400 font-medium text-xs">{player.school}</p>
                 </div>
               </div>
 
               <div className="text-right">
                 <p className="text-cyan-400 font-orbitron font-bold text-sm">{player.rating}</p>
-                <p className="text-gray-400 font-rajdhani text-xs">{player.state}</p>
+                <p className="text-gray-400 font-medium text-xs">{player.state}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-600">
+        <div className="mt-4 pt-4 border-t border-white/20 relative z-10">
           <Button
             variant="outline"
-            className="w-full border-cyan-400 text-cyan-black hover:bg-cyan-400 hover:text-black font-orbitron text-sm"
+            className="w-full bg-gray-800/40 backdrop-blur-md border-white/10 text-white hover:border-cyan-400/50 hover:bg-gray-700/40 font-orbitron text-sm transition-all duration-300"
             disabled={true}
           >
             FULL RANKINGS COMING SOON
@@ -197,30 +200,33 @@ export default function CombinesRankingPage() {
   const regions = ["West", "Southwest", "Northwest", "Midwest", "South", "Southeast", "Northeast"]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-      <div className="container mx-auto px-6 py-12">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-2 text-sm text-gray-400 font-rajdhani">
-            <span>Rankings</span>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-cyan-400">Combines</span>
-          </div>
-        </div>
-
-        {/* Header Section */}
+    <div className="min-h-screen bg-gray-900/60 text-white relative overflow-hidden">
+      {/* Background accent elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5" />
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-cyan-500/8 to-transparent rounded-full blur-2xl"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-orange-500/8 to-transparent rounded-full blur-xl"></div>
+      
+      <div className="container mx-auto px-6 py-16 relative z-10">
+        {/* Compact Header */}
         <div className="text-center mb-12">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
-            COMBINE RANKINGS
-          </h1>
-          <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-4xl mx-auto">
+          <div className="mb-4">
+            <h1 className="font-orbitron text-3xl md:text-5xl font-black text-white text-center">
+              COMBINE RANKINGS
+            </h1>
+          </div>
+          
+          {/* Rainbow divider */}
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-orange-400 mx-auto mb-6 rounded-full"></div>
+          
+          <p className="text-gray-300 text-lg max-w-3xl mx-auto font-medium">
             The best players across the country, ranked by their performance in EVAL combines and tournaments.
           </p>
         </div>
 
         {/* Search and Filters */}
         <div className="mb-12">
-          <div className="max-w-4xl mx-auto">
+          <div className="bg-gray-900/40 backdrop-blur-md rounded-lg p-6 border border-white/10 shadow-2xl max-w-4xl mx-auto">
             {/* Search Bar */}
             <div className="relative mb-6">
               <Input
@@ -228,7 +234,7 @@ export default function CombinesRankingPage() {
                 placeholder="Search players, schools, or regions..."
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement> ) => setSearchQuery(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white pl-12 pr-4 py-4 rounded-full text-lg font-rajdhani focus:border-cyan-400 focus:ring-cyan-400"
+                className="bg-gray-800/60 backdrop-blur-md border-white/10 text-white pl-12 pr-4 py-4 rounded-lg text-lg font-medium focus:border-cyan-400/50 focus:ring-cyan-400/30 placeholder:text-gray-400"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             </div>
@@ -237,19 +243,19 @@ export default function CombinesRankingPage() {
             <div className="flex flex-wrap gap-4 items-center justify-center">
               <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-cyan-400" />
-                <span className="text-white font-orbitron text-sm">Filters:</span>
+                <span className="text-white font-orbitron text-sm font-bold">FILTERS:</span>
               </div>
 
               <Select value={selectedGame} onValueChange={setSelectedGame}>
-                <SelectTrigger className="w-48 bg-gray-800 border-gray-700 text-white font-rajdhani">
+                <SelectTrigger className="w-48 bg-gray-800/60 backdrop-blur-md border-white/10 text-white font-medium hover:border-cyan-400/50 transition-colors">
                   <SelectValue placeholder="All Games" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all" className="text-white font-rajdhani">
+                <SelectContent className="bg-gray-900/95 backdrop-blur-md border-white/10">
+                  <SelectItem value="all" className="text-white font-medium hover:bg-white/10 focus:bg-white/10">
                     All Games
                   </SelectItem>
                   {games.map((game) => (
-                    <SelectItem key={game} value={game} className="text-white font-rajdhani">
+                    <SelectItem key={game} value={game} className="text-white font-medium hover:bg-white/10 focus:bg-white/10">
                       {game}
                     </SelectItem>
                   ))}
@@ -257,15 +263,15 @@ export default function CombinesRankingPage() {
               </Select>
 
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white font-rajdhani">
+                <SelectTrigger className="w-40 bg-gray-800/60 backdrop-blur-md border-white/10 text-white font-medium hover:border-purple-400/50 transition-colors">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all" className="text-white font-rajdhani">
+                <SelectContent className="bg-gray-900/95 backdrop-blur-md border-white/10">
+                  <SelectItem value="all" className="text-white font-medium hover:bg-white/10 focus:bg-white/10">
                     All Regions
                   </SelectItem>
                   {regions.map((region) => (
-                    <SelectItem key={region} value={region} className="text-white font-rajdhani">
+                    <SelectItem key={region} value={region} className="text-white font-medium hover:bg-white/10 focus:bg-white/10">
                       {region}
                     </SelectItem>
                   ))}
@@ -279,7 +285,7 @@ export default function CombinesRankingPage() {
                   setSelectedGame("all")
                   setSelectedRegion("all")
                 }}
-                className="border-gray-600 text-black hover:border-cyan-500 hover:text-cyan-600 font-rajdhani"
+                className="bg-gray-800/60 backdrop-blur-md border-white/10 text-white hover:border-orange-400/50 hover:bg-gray-700/60 font-medium transition-all duration-300"
               >
                 Clear Filters
               </Button>
@@ -289,34 +295,34 @@ export default function CombinesRankingPage() {
 
         {/* Featured Section */}
         <div className="mb-16">
-          <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/30 rounded-2xl p-8 text-center">
+          <div className="bg-gray-900/60 backdrop-blur-md border border-yellow-400/30 rounded-lg p-8 text-center shadow-2xl hover:border-yellow-400/50 transition-all duration-300">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <Crown className="w-8 h-8 text-yellow-400" />
-              <h2 className="font-orbitron text-2xl text-white">Top Performers</h2>
+              <h2 className="font-orbitron text-2xl text-white font-bold">TOP PERFORMERS</h2>
             </div>
-            <p className="text-gray-300 font-rajdhani mb-6">
+            <p className="text-gray-300 font-medium mb-6">
               These players have demonstrated exceptional skill across multiple EVAL combines and tournaments.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className="bg-gray-800/40 backdrop-blur-sm border border-white/10 rounded-md p-4 hover:border-yellow-400/30 hover:bg-gray-700/40 transition-all duration-300">
                 <Crown className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
-                <h3 className="font-orbitron text-white text-sm">ValorantKing</h3>
-                <p className="text-gray-400 font-rajdhani text-xs">VALORANT Champion</p>
+                <h3 className="font-orbitron text-white text-sm font-bold">ValorantKing</h3>
+                <p className="text-gray-400 font-medium text-xs">VALORANT Champion</p>
               </div>
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className="bg-gray-800/40 backdrop-blur-sm border border-white/10 rounded-md p-4 hover:border-blue-400/30 hover:bg-gray-700/40 transition-all duration-300">
                 <Trophy className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                <h3 className="font-orbitron text-white text-sm">RocketGod</h3>
-                <p className="text-gray-400 font-rajdhani text-xs">Rocket League MVP</p>
+                <h3 className="font-orbitron text-white text-sm font-bold">RocketGod</h3>
+                <p className="text-gray-400 font-medium text-xs">Rocket League MVP</p>
               </div>
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className="bg-gray-800/40 backdrop-blur-sm border border-white/10 rounded-md p-4 hover:border-purple-400/30 hover:bg-gray-700/40 transition-all duration-300">
                 <Star className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                <h3 className="font-orbitron text-white text-sm">LeagueKing</h3>
-                <p className="text-gray-400 font-rajdhani text-xs">LoL Prodigy</p>
+                <h3 className="font-orbitron text-white text-sm font-bold">LeagueKing</h3>
+                <p className="text-gray-400 font-medium text-xs">LoL Prodigy</p>
               </div>
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className="bg-gray-800/40 backdrop-blur-sm border border-white/10 rounded-md p-4 hover:border-orange-400/30 hover:bg-gray-700/40 transition-all duration-300">
                 <Award className="w-6 h-6 text-orange-400 mx-auto mb-2" />
-                <h3 className="font-orbitron text-white text-sm">OverwatchPro</h3>
-                <p className="text-gray-400 font-rajdhani text-xs">OW2 Legend</p>
+                <h3 className="font-orbitron text-white text-sm font-bold">OverwatchPro</h3>
+                <p className="text-gray-400 font-medium text-xs">OW2 Legend</p>
               </div>
             </div>
           </div>
@@ -332,19 +338,19 @@ export default function CombinesRankingPage() {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center mt-20 py-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl">
+        <div className="text-center mt-20 py-16 bg-gray-900/60 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl hover:border-cyan-400/30 hover:bg-gray-800/60 transition-all duration-300">
           <h2 className="font-orbitron text-3xl font-bold text-white mb-4 tracking-wide">
-            Ready to Climb the Rankings?
+            READY TO CLIMB THE RANKINGS?
           </h2>
-          <p className="text-gray-300 mb-8 font-rajdhani text-lg max-w-3xl mx-auto">
+          <p className="text-gray-300 mb-8 font-medium text-lg max-w-3xl mx-auto">
             Participate in EVAL combines and tournaments to showcase your skills and earn your place among the top
             players.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
             <Link href="/tryouts/combines">
-            <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold px-8 py-3 tracking-wider">
-              JOIN NEXT COMBINE
-            </Button>
+              <Button className="bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-black font-orbitron font-bold px-8 py-3 tracking-wider shadow-lg hover:shadow-xl transition-all duration-300">
+                JOIN NEXT COMBINE
+              </Button>
             </Link>
           </div>
         </div>
