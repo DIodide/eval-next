@@ -15,10 +15,10 @@ const founders = [
   },
   {
     name: "Ryan Divan",
-    role: "Founder, CTO",
+    role: "Founder, COO",
     image: "/team/headshots/ryan-head.jpeg?height=200&width=200",
     quote:
-      "Gaming has always been about community. We're building technology that brings players together and creates opportunities for the next generation.",
+      "I've been an esports athlete throughout high school and I know how hard it is to get noticed. Through EVAL, I want to help high schoolers get recruited and get the opportunities they deserve.",
   },
   {
     name: "Erika Yeung",

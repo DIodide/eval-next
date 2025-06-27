@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils"
 
 const faqs = [
   {
-    question: "What is EVAL Gaming?",
+    question: "What is EVAL?",
     answer:
-      "EVAL Gaming is the premier platform connecting esports players with college scholarship opportunities through advanced analytics, combines, and recruitment tools.",
+      "EVAL is the premier platform connecting esports players with college scholarship opportunities through advanced analytics, combines, and recruitment tools.",
   },
   {
     question: "How much does it cost to use EVAL?",
     answer:
-      "EVAL offers a free tier with basic features. Premium plans start at $3/month for enhanced visibility and advanced analytics.",
+      "EVAL offers a free tier with basic features, providing all you need to get recruited. Premium plans start at $30 per year for enhanced visibility and advanced analytics.",
   },
   {
     question: "What games does EVAL support?",
@@ -24,12 +24,12 @@ const faqs = [
   {
     question: "How do I get invited to EVAL Combines?",
     answer:
-      "EVAL Combines are invitation-only events for top performers. Maintain high rankings, demonstrate exceptional gameplay, and build community recognition to earn invitations.",
+      "EVAL Combines are free to enter for all high school players, no invitation necessary. Maintain high rankings, demonstrate exceptional gameplay, and build community recognition to earn invitations to our EVAL Invitationals!",
   },
   {
-    question: "Can high school students use EVAL?",
+    question: "Can college students use EVAL?",
     answer:
-      "Yes! EVAL is specifically designed for high school students looking to pursue esports at the collegiate level with age-appropriate features and safety measures.",
+      "Yes! Although EVAL is specifically designed for high school students looking to pursue esports at the collegiate levels, college students are welcome to use EVAL to showcase their skills and use our advanced analytics to improve their game.",
   },
 ]
 
@@ -49,7 +49,7 @@ export default function FAQSection(props: { className: string }) {
             <br />
             <span className="text-cyan-400">QUESTIONS</span>
           </h2>
-          <p className="text-xl text-gray-300 font-rajdhani">Everything you need to know about EVAL Gaming</p>
+          <p className="text-xl text-gray-300 font-rajdhani">Everything you need to know about EVAL</p>
         </div>
 
         <div className="max-w-4xl mx-auto space-y-4">
