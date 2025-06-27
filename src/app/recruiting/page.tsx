@@ -14,7 +14,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center text-center text-white">
+      <section className="py-5 relative min-h-screen flex items-center justify-center text-center text-white md:h-screen">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 via-purple-500/10 to-orange-500/15 z-10" />
         <div className="absolute inset-0 bg-black/66 z-5" />
         {/* <Image
@@ -25,7 +25,7 @@ export default function HomePage() {
           priority
         /> */}
         <div className="relative z-20 max-w-6xl mx-auto px-6">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-bold mb-6">
+          <h1 className="font-orbitron text-4xl md:text-7xl md:mb-10 font-bold mb-6">
             THE BRIDGE BETWEEN
             <br />
             <span className="text-cyan-400">TALENT</span> AND <span className="text-cyan-400">OPPORTUNITY</span>
