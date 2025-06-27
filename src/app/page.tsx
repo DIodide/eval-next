@@ -382,7 +382,7 @@ export default function HomePage() {
                   JOIN OUR DISCORD
                 </h2>
                 <p className="text-xl text-gray-300 mb-8 font-rajdhani leading-relaxed">
-                  Connect with thousands of players, coaches, and esports enthusiasts in our vibrant Discord community. 
+                  Connect with a community of players, coaches, and esports enthusiasts in our vibrant Discord community. 
                   Get real-time updates, participate in discussions, and stay ahead of the competition.
                 </p>
                 <div className="space-y-4">
