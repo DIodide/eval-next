@@ -60,6 +60,7 @@ import type { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { getUserTimezoneAbbreviation, convertLocalTimeToUTC } from "@/lib/time-utils";
 
 // TypeScript interfaces matching the API response
 interface Player {
@@ -386,6 +387,8 @@ function CreateTryoutDialog({
       date: formData.date!,
       registration_deadline: formData.registration_deadline,
       min_gpa: formData.min_gpa ? parseFloat(formData.min_gpa) : undefined,
+      time_start: formData.time_start ? convertLocalTimeToUTC(formData.date!, formData.time_start) : undefined,
+      time_end: formData.time_end ? convertLocalTimeToUTC(formData.date!, formData.time_end) : undefined,
     };
     
     createTryoutMutation.mutate(submitData);
@@ -656,7 +659,9 @@ function CreateTryoutDialog({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="time_start" className="text-white font-rajdhani text-sm">Start Time</Label>
+                  <Label htmlFor="time_start" className="text-white font-rajdhani text-sm">
+                    Start Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                  </Label>
                   <Input
                     id="time_start"
                     type="time"
@@ -664,9 +669,12 @@ function CreateTryoutDialog({
                     onChange={(e) => handleFieldChange('time_start', e.target.value)}
                     className="bg-gray-800 border-gray-700 text-white mt-1"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
                 </div>
                 <div>
-                  <Label htmlFor="time_end" className="text-white font-rajdhani text-sm">End Time</Label>
+                  <Label htmlFor="time_end" className="text-white font-rajdhani text-sm">
+                    End Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                  </Label>
                   <Input
                     id="time_end"
                     type="time"
@@ -674,6 +682,7 @@ function CreateTryoutDialog({
                     onChange={(e) => handleFieldChange('time_end', e.target.value)}
                     className="bg-gray-800 border-gray-700 text-white mt-1"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
                 </div>
               </div>
 
@@ -1153,6 +1162,8 @@ function EditTryoutDialog({
       date: formData.date!,
       registration_deadline: formData.registration_deadline,
       min_gpa: formData.min_gpa ? parseFloat(formData.min_gpa) : undefined,
+      time_start: formData.time_start ? convertLocalTimeToUTC(formData.date!, formData.time_start) : undefined,
+      time_end: formData.time_end ? convertLocalTimeToUTC(formData.date!, formData.time_end) : undefined,
     };
     
     updateTryoutMutation.mutate(submitData);
@@ -1421,7 +1432,9 @@ function EditTryoutDialog({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-time-start" className="text-white font-rajdhani text-sm">Start Time</Label>
+                  <Label htmlFor="edit-time-start" className="text-white font-rajdhani text-sm">
+                    Start Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                  </Label>
                   <Input
                     id="edit-time-start"
                     type="time"
@@ -1429,9 +1442,12 @@ function EditTryoutDialog({
                     onChange={(e) => handleFieldChange('time_start', e.target.value)}
                     className="bg-gray-800 border-gray-700 text-white mt-1"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
                 </div>
                 <div>
-                  <Label htmlFor="edit-time-end" className="text-white font-rajdhani text-sm">End Time</Label>
+                  <Label htmlFor="edit-time-end" className="text-white font-rajdhani text-sm">
+                    End Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                  </Label>
                   <Input
                     id="edit-time-end"
                     type="time"
@@ -1439,6 +1455,7 @@ function EditTryoutDialog({
                     onChange={(e) => handleFieldChange('time_end', e.target.value)}
                     className="bg-gray-800 border-gray-700 text-white mt-1"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
                 </div>
               </div>
 

@@ -10,6 +10,19 @@ import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";
 import { type Combine, type EventType } from "@prisma/client";
 
+// Helper function to extract time from UTC ISO string
+// This is needed because frontend sends UTC ISO strings but we store times as strings
+const extractTimeFromISO = (isoString?: string) => {
+  if (!isoString) return undefined;
+  try {
+    const date = new Date(isoString);
+    return date.toISOString().split('T')[1]?.split('.')[0]; // Extract HH:MM:SS
+  } catch {
+    // If it's not an ISO string, assume it's already a time string
+    return isoString;
+  }
+};
+
 // Input validation schemas
 const combineFiltersSchema = z.object({
   game_id: z.string().uuid().optional(),
@@ -918,6 +931,10 @@ export const combinesRouter = createTRPCRouter({
       }
     }),
 
+  // Helper function to extract time from UTC ISO string
+  // This is needed because frontend sends UTC ISO strings but we store times as strings
+  
+
   // Create a new combine (admin only)
   create: adminProcedure
     .input(createCombineSchema)
@@ -944,6 +961,8 @@ export const combinesRouter = createTRPCRouter({
           });
         }
 
+
+
         const combine = await ctx.db.combine.create({
           data: {
             title: input.title,
@@ -952,8 +971,8 @@ export const combinesRouter = createTRPCRouter({
             game_id: input.game_id,
             coach_id: null,
             date: input.date,
-            time_start: input.time_start,
-            time_end: input.time_end,
+            time_start: extractTimeFromISO(input.time_start),
+            time_end: extractTimeFromISO(input.time_end),
             location: input.location,
             type: input.type as EventType,
             year: input.year,
@@ -1043,9 +1062,18 @@ export const combinesRouter = createTRPCRouter({
           });
         }
 
+        // Process time fields if they're being updated
+        const processedUpdateData = { ...updateData };
+        if (updateData.time_start) {
+          processedUpdateData.time_start = extractTimeFromISO(updateData.time_start);
+        }
+        if (updateData.time_end) {
+          processedUpdateData.time_end = extractTimeFromISO(updateData.time_end);
+        }
+
         const combine = await ctx.db.combine.update({
           where: { id },
-          data: updateData,
+          data: processedUpdateData,
           include: {
             game: {
               select: {

@@ -48,6 +48,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { z } from "zod";
+import { getUserTimezoneAbbreviation, convertLocalTimeToUTC } from "@/lib/time-utils";
 
 type CombineStatus = "UPCOMING" | "REGISTRATION_OPEN" | "REGISTRATION_CLOSED" | "IN_PROGRESS" | "COMPLETED";
 type EventType = "ONLINE" | "IN_PERSON" | "HYBRID";
@@ -501,7 +502,14 @@ export default function AdminCombinesPage() {
       return;
     }
 
-    createCombineMutation.mutate(createForm);
+    // Convert local times to UTC before submitting
+    const formDataWithUTC = {
+      ...createForm,
+      time_start: createForm.time_start ? convertLocalTimeToUTC(createForm.date, createForm.time_start) : undefined,
+      time_end: createForm.time_end ? convertLocalTimeToUTC(createForm.date, createForm.time_end) : undefined,
+    };
+
+    createCombineMutation.mutate(formDataWithUTC);
   };
 
   const handleDeleteCombine = (combineId: string, combineTitle?: string) => {
@@ -1248,7 +1256,9 @@ export default function AdminCombinesPage() {
               </div>
 
               <div>
-                <Label htmlFor="time_start" className="text-gray-300">Start Time</Label>
+                <Label htmlFor="time_start" className="text-gray-300">
+                  Start Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                </Label>
                 <Input
                   id="time_start"
                   type="time"
@@ -1256,10 +1266,13 @@ export default function AdminCombinesPage() {
                   value={createForm.time_start ?? ""}
                   onChange={(e) => handleFieldChange('time_start', e.target.value)}
                 />
+                <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
               </div>
 
               <div>
-                <Label htmlFor="time_end" className="text-gray-300">End Time</Label>
+                <Label htmlFor="time_end" className="text-gray-300">
+                  End Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                </Label>
                 <Input
                   id="time_end"
                   type="time"
@@ -1267,6 +1280,7 @@ export default function AdminCombinesPage() {
                   value={createForm.time_end ?? ""}
                   onChange={(e) => handleFieldChange('time_end', e.target.value)}
                 />
+                <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
               </div>
             </div>
 

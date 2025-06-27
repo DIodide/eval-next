@@ -154,4 +154,92 @@ export const formatRelativeTime = (date: Date): string => {
       return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`
     }
   }
+}
+
+/**
+ * Get the user's current timezone name for display
+ */
+export const getUserTimezone = (): string => {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone
+}
+
+/**
+ * Get a human-readable timezone abbreviation (e.g., "PST", "EST")
+ */
+export const getUserTimezoneAbbreviation = (): string => {
+  const timeZone = getUserTimezone()
+  const date = new Date()
+  
+  // Get the short timezone name
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZoneName: 'short',
+    timeZone
+  })
+  
+  const parts = formatter.formatToParts(date)
+  const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value
+  
+  return timeZoneName ?? timeZone
+}
+
+/**
+ * Convert local time input to UTC for database storage
+ * 
+ * @param date - The date for the event (Date object)
+ * @param timeString - Time string in HH:MM format (24-hour)
+ * @returns ISO string representing the UTC datetime
+ */
+export const convertLocalTimeToUTC = (date: Date, timeString: string): string => {
+  if (!timeString) return ''
+  
+  const timeParts = timeString.split(':')
+  const hours = parseInt(timeParts[0] ?? '0', 10)
+  const minutes = parseInt(timeParts[1] ?? '0', 10)
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    throw new Error('Invalid time format. Expected HH:MM')
+  }
+  
+  // Create a new date object with the provided date and time in user's timezone
+  const localDateTime = new Date(date)
+  localDateTime.setHours(hours, minutes, 0, 0)
+  
+  // Return as UTC ISO string (this automatically converts from local to UTC)
+  return localDateTime.toISOString()
+}
+
+/**
+ * Convert UTC datetime back to local time string for form editing
+ * 
+ * @param utcDate - The UTC date from database
+ * @param utcTimeString - The time part (could be ISO string or time string)
+ * @returns Local time string in HH:MM format
+ */
+export const convertUTCToLocalTimeString = (utcDate: Date, utcTimeString?: string | null): string => {
+  if (!utcTimeString) return ''
+  
+  try {
+    let utcDateTime: Date
+    
+    if (utcTimeString.includes('T')) {
+      // It's an ISO string
+      utcDateTime = new Date(utcTimeString)
+    } else {
+      // It's a time string, combine with date
+      const timeParts = utcTimeString.split(':')
+      const hours = parseInt(timeParts[0] ?? '0', 10)
+      const minutes = parseInt(timeParts[1] ?? '0', 10)
+      utcDateTime = new Date(utcDate)
+      utcDateTime.setUTCHours(hours, minutes, 0, 0)
+    }
+    
+    // Convert to local time and format as HH:MM
+    const localHours = utcDateTime.getHours().toString().padStart(2, '0')
+    const localMinutes = utcDateTime.getMinutes().toString().padStart(2, '0')
+    
+    return `${localHours}:${localMinutes}`
+  } catch (error) {
+    console.error('Error converting UTC time to local:', error)
+    return ''
+  }
 } 
