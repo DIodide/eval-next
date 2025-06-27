@@ -553,11 +553,11 @@ function CombinesPageContent() {
       <div className="relative container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Compact Header with Rainbow Divider */}
         <div className="text-center mb-12">
-          <div className="flex items-center space-x-2 text-sm text-gray-400 font-rajdhani mb-6 justify-center">
+          {/* <div className="flex items-center space-x-2 text-sm text-gray-400 font-rajdhani mb-6 justify-center">
             <span>Tryouts</span>
             <ChevronRight className="w-4 h-4" />
             <span className="text-cyan-400 cyber-text">EVAL Combines</span>
-          </div>
+          </div> */}
           
           <h1 className="font-orbitron font-black text-4xl sm:text-6xl text-white mb-4">
             EVAL COMBINES
