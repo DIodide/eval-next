@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, Users, Trophy, MapPin, Calendar, ChevronRight, Loader2 } from "lucide-react"
+import { Search, Filter, Users, Trophy, MapPin, Calendar, ChevronRight, Loader2, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { api } from "@/trpc/react"
 
@@ -76,16 +76,19 @@ function LeagueCard({ league }: { league: League }) {
 
   return (
     <Link href={`/rankings/leagues/${league.id}`}>
-      <Card className="bg-gray-800 border-gray-700 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/20 cursor-pointer h-full">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-4">
+      <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/60 border-gray-600/50 backdrop-blur-sm hover:border-cyan-400/60 transition-all duration-500 hover:shadow-xl hover:shadow-cyan-400/25 hover:transform hover:scale-[1.02] cursor-pointer h-full group">
+        <CardContent className="p-6 relative overflow-hidden">
+          {/* Subtle background accent */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <div className="flex items-start justify-between mb-4 relative z-10">
             <div className="flex items-center space-x-3">
-              <div className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center`}>
+              <div className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
                 <Trophy className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white text-lg tracking-wide">{league.short_name}</h3>
-                <p className="text-gray-400 text-sm font-rajdhani">{league.game?.name}</p>
+                <h3 className="font-orbitron font-bold text-white text-lg tracking-wide group-hover:text-cyan-200 transition-colors duration-300">{league.short_name}</h3>
+                <p className="text-gray-400 text-sm font-medium">{league.game?.name}</p>
               </div>
             </div>
             <div className="flex flex-col gap-1">
@@ -94,31 +97,33 @@ function LeagueCard({ league }: { league: League }) {
             </div>
           </div>
 
-          <h4 className="font-orbitron text-white text-sm mb-2 tracking-wide">{league.name}</h4>
-          <p className="text-gray-300 text-sm mb-4 font-rajdhani">{league.description ?? "Competitive esports league"}</p>
+          <div className="relative z-10">
+            <h4 className="font-orbitron text-white text-sm mb-2 tracking-wide group-hover:text-cyan-100 transition-colors duration-300">{league.name}</h4>
+            <p className="text-gray-300 text-sm mb-4 font-medium">{league.description ?? "Competitive esports league"}</p>
 
-          <div className="space-y-2 mb-4">
-            <div className="flex items-center space-x-2 text-sm">
-              <MapPin className="w-4 h-4 text-cyan-400" />
-              <span className="text-gray-300 font-rajdhani">{league.state ?? league.region}</span>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center space-x-2 text-sm">
+                <MapPin className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
+                <span className="text-gray-300 font-medium">{league.state ?? league.region}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <Users className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors duration-300" />
+                <span className="text-gray-300 font-medium">
+                  {league.teams.length} teams • {league.player_participants.length} players
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <Calendar className="w-4 h-4 text-orange-400 group-hover:text-orange-300 transition-colors duration-300" />
+                <span className="text-gray-300 font-medium">{league.season}</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2 text-sm">
-              <Users className="w-4 h-4 text-cyan-400" />
-              <span className="text-gray-300 font-rajdhani">
-                {league.teams.length} teams • {league.player_participants.length} players
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 text-sm">
-              <Calendar className="w-4 h-4 text-cyan-400" />
-              <span className="text-gray-300 font-rajdhani">{league.season}</span>
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-gray-400 font-rajdhani">
-              {league.schools.length} schools participating
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-gray-400 font-medium">
+                {league.schools.length} schools participating
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-cyan-300 group-hover:transform group-hover:translate-x-1 transition-all duration-300" />
             </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
           </div>
         </CardContent>
       </Card>
@@ -155,42 +160,63 @@ export default function LeaguesRankingPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen">
-        <div className="container mx-auto px-6 py-12 text-center">
-          <h1 className="font-orbitron text-4xl font-bold text-white mb-4">Error Loading Leagues</h1>
-          <p className="text-gray-300 mb-8 font-rajdhani">Failed to load league data. Please try again later.</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron"
-          >
-            Retry
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900/60 to-black flex items-center justify-center">
+        <div className="container mx-auto px-6 text-center">
+          <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/40 rounded-3xl p-12 border border-gray-600/40 backdrop-blur-sm max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-gradient-to-r from-red-500/20 to-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Trophy className="w-10 h-10 text-red-400" />
+            </div>
+            <h1 className="font-orbitron text-4xl font-bold text-white mb-4">Error Loading Leagues</h1>
+            <p className="text-gray-300 mb-8 font-medium text-lg">Failed to load league data. Please try again later.</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron rounded-full px-8 py-3 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cyan-400/25"
+            >
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
-      <div className="container mx-auto px-6 py-12">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-900/60 text-white relative overflow-hidden">
+      {/* Background accent elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5" />
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-cyan-500/8 to-transparent rounded-full blur-2xl"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-orange-500/8 to-transparent rounded-full blur-xl"></div>
+      
+      <div className="container mx-auto px-6 py-16 relative z-10">
+        {/* Compact Header */}
         <div className="text-center mb-12">
-          <div className="mb-6">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Trophy className="w-8 h-8 text-cyan-400" />
-              <h1 className="font-orbitron text-4xl md:text-5xl font-bold text-white tracking-wide">
-                LEAGUE RANKINGS
-              </h1>
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/20">
+              <Trophy className="w-5 h-5 text-cyan-300" />
             </div>
-            <p className="text-xl text-gray-300 font-rajdhani max-w-3xl mx-auto">
-              Explore competitive esports leagues across the country. Find the best teams, players, and schools competing at the highest level.
-            </p>
+            <h1 className="font-orbitron text-3xl md:text-5xl font-black bg-gradient-to-r from-cyan-300 via-purple-300 to-orange-300 bg-clip-text text-transparent">
+              LEAGUE RANKINGS
+            </h1>
           </div>
+          
+          {/* Compact Rainbow Divider */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500"></div>
+            <div className="w-6 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+            <div className="w-6 h-0.5 bg-gradient-to-r from-orange-500 to-purple-500"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-transparent"></div>
+          </div>
+          
+          <p className="text-lg text-gray-300 max-w-3xl mx-auto font-medium">
+            Explore competitive esports leagues across the country. Find the best teams, players, and schools competing at the highest level.
+          </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+        <div className="mb-12">
+          <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/40 backdrop-blur-sm rounded-3xl p-8 border border-gray-600/40 shadow-2xl">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -199,20 +225,20 @@ export default function LeaguesRankingPage() {
                     placeholder="Search leagues, regions, or states..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400 font-rajdhani focus:border-cyan-400"
+                    className="pl-10 bg-gray-700/50 border-gray-500/50 text-white placeholder-gray-400 font-medium focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Select value={selectedGame} onValueChange={setSelectedGame}>
-                  <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-white font-rajdhani">
+                  <SelectTrigger className="w-full sm:w-40 bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-cyan-400/50 transition-colors">
                     <SelectValue placeholder="Game" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="all" className="text-white font-rajdhani">All Games</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-cyan-400/20">All Games</SelectItem>
                     {games.map((game) => (
-                      <SelectItem key={game.id} value={game.id} className="text-white font-rajdhani">
+                      <SelectItem key={game.id} value={game.id} className="text-white font-medium focus:bg-cyan-400/20">
                         {game.name}
                       </SelectItem>
                     ))}
@@ -220,38 +246,38 @@ export default function LeaguesRankingPage() {
                 </Select>
 
                 <Select value={selectedTier} onValueChange={setSelectedTier}>
-                  <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-white font-rajdhani">
+                  <SelectTrigger className="w-full sm:w-40 bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-purple-400/50 transition-colors">
                     <SelectValue placeholder="Tier" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="all" className="text-white font-rajdhani">All Tiers</SelectItem>
-                    <SelectItem value="ELITE" className="text-white font-rajdhani">Elite</SelectItem>
-                    <SelectItem value="PROFESSIONAL" className="text-white font-rajdhani">Professional</SelectItem>
-                    <SelectItem value="COMPETITIVE" className="text-white font-rajdhani">Competitive</SelectItem>
-                    <SelectItem value="DEVELOPMENTAL" className="text-white font-rajdhani">Developmental</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-purple-400/20">All Tiers</SelectItem>
+                    <SelectItem value="ELITE" className="text-white font-medium focus:bg-purple-400/20">Elite</SelectItem>
+                    <SelectItem value="PROFESSIONAL" className="text-white font-medium focus:bg-purple-400/20">Professional</SelectItem>
+                    <SelectItem value="COMPETITIVE" className="text-white font-medium focus:bg-purple-400/20">Competitive</SelectItem>
+                    <SelectItem value="DEVELOPMENTAL" className="text-white font-medium focus:bg-purple-400/20">Developmental</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-white font-rajdhani">
+                  <SelectTrigger className="w-full sm:w-40 bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-orange-400/50 transition-colors">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="all" className="text-white font-rajdhani">All Status</SelectItem>
-                    <SelectItem value="ACTIVE" className="text-white font-rajdhani">Active</SelectItem>
-                    <SelectItem value="UPCOMING" className="text-white font-rajdhani">Upcoming</SelectItem>
-                    <SelectItem value="COMPLETED" className="text-white font-rajdhani">Completed</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-orange-400/20">All Status</SelectItem>
+                    <SelectItem value="ACTIVE" className="text-white font-medium focus:bg-orange-400/20">Active</SelectItem>
+                    <SelectItem value="UPCOMING" className="text-white font-medium focus:bg-orange-400/20">Upcoming</SelectItem>
+                    <SelectItem value="COMPLETED" className="text-white font-medium focus:bg-orange-400/20">Completed</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedState} onValueChange={setSelectedState}>
-                  <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-white font-rajdhani">
+                  <SelectTrigger className="w-full sm:w-40 bg-gray-700/50 border-gray-500/50 text-white font-medium hover:border-cyan-400/50 transition-colors">
                     <SelectValue placeholder="State" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="all" className="text-white font-rajdhani">All States</SelectItem>
+                  <SelectContent className="bg-gray-800 border-gray-600 backdrop-blur-sm">
+                    <SelectItem value="all" className="text-white font-medium focus:bg-cyan-400/20">All States</SelectItem>
                     {states.map((state) => (
-                      <SelectItem key={state} value={state} className="text-white font-rajdhani">
+                      <SelectItem key={state} value={state} className="text-white font-medium focus:bg-cyan-400/20">
                         {state}
                       </SelectItem>
                     ))}
@@ -266,16 +292,25 @@ export default function LeaguesRankingPage() {
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
-              <p className="text-gray-300 font-rajdhani">Loading leagues...</p>
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-400/20 to-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+              </div>
+              <p className="text-gray-300 font-medium">Loading leagues...</p>
             </div>
           </div>
         ) : (
           <>
-            <div className="mb-6">
-              <p className="text-gray-400 font-rajdhani">
-                Showing {filteredLeagues.length} of {leagues?.length ?? 0} leagues
-              </p>
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                <h2 className="font-orbitron text-2xl font-bold text-white">
+                  ACTIVE LEAGUES
+                </h2>
+                <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full px-4 py-2 border border-gray-600/40">
+                  <p className="text-gray-300 font-medium text-sm">
+                    {filteredLeagues.length} of {leagues?.length ?? 0} leagues
+                  </p>
+                </div>
+              </div>
             </div>
 
             {filteredLeagues.length > 0 ? (
@@ -285,29 +320,33 @@ export default function LeaguesRankingPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="font-orbitron text-xl text-white mb-2">No Leagues Found</h3>
-                <p className="text-gray-400 font-rajdhani">
-                  {searchQuery 
-                    ? "No leagues match your search criteria. Try adjusting your filters."
-                    : "No leagues are currently available."
-                  }
-                </p>
-                {searchQuery && (
-                  <Button
-                    onClick={() => {
-                      setSearchQuery("")
-                      setSelectedGame("all")
-                      setSelectedTier("all")
-                      setSelectedStatus("all")
-                      setSelectedState("all")
-                    }}
-                    className="mt-4 bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron"
-                  >
-                    Clear Filters
-                  </Button>
-                )}
+              <div className="text-center py-20">
+                <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/40 rounded-3xl p-12 border border-gray-600/40 backdrop-blur-sm">
+                  <div className="w-20 h-20 bg-gradient-to-r from-gray-600/40 to-gray-700/40 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="w-10 h-10 text-gray-500" />
+                  </div>
+                  <h3 className="font-orbitron text-2xl font-bold text-white mb-4">No Leagues Found</h3>
+                  <p className="text-gray-400 font-medium text-lg mb-6">
+                    {searchQuery 
+                      ? "No leagues match your search criteria. Try adjusting your filters."
+                      : "No leagues are currently available."
+                    }
+                  </p>
+                  {searchQuery && (
+                    <Button
+                      onClick={() => {
+                        setSearchQuery("")
+                        setSelectedGame("all")
+                        setSelectedTier("all")
+                        setSelectedStatus("all")
+                        setSelectedState("all")
+                      }}
+                      className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron rounded-full px-8 py-3 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cyan-400/25"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </>
