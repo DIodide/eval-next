@@ -71,6 +71,77 @@ const formatDate = (date: Date) => {
   }).format(new Date(date))
 }
 
+// Enhanced time formatting with timezone conversion
+const formatDateTimeInLocalTimezone = (
+  utcDate: Date, 
+  timeStart?: string | null, 
+  timeEnd?: string | null,
+  options: {
+    showDate?: boolean;
+    showTime?: boolean;
+    showTimezone?: boolean;
+  } = { showDate: true, showTime: true, showTimezone: true }
+) => {
+  if (!timeStart) {
+    if (options.showDate && options.showTime) {
+      return `${formatDate(utcDate)} • Time TBA`
+    }
+    return options.showDate ? formatDate(utcDate) : "Time TBA"
+  }
+
+  // Create a Date object by combining the UTC date with the time
+  const timeParts = timeStart.split(':')
+  const startHours = parseInt(timeParts[0] ?? '0', 10)
+  const startMinutes = parseInt(timeParts[1] ?? '0', 10)
+  
+  // Create UTC datetime by combining date and time
+  const utcDateTime = new Date(utcDate)
+  utcDateTime.setUTCHours(startHours, startMinutes, 0, 0)
+  
+  const formatOptions: Intl.DateTimeFormatOptions = {}
+  
+  if (options.showDate) {
+    formatOptions.weekday = 'long'
+    formatOptions.year = 'numeric'
+    formatOptions.month = 'long'
+    formatOptions.day = 'numeric'
+  }
+  
+  if (options.showTime) {
+    formatOptions.hour = '2-digit'
+    formatOptions.minute = '2-digit'
+    if (options.showTimezone) {
+      formatOptions.timeZoneName = 'short'
+    }
+  }
+
+  const localStart = new Intl.DateTimeFormat('en-US', formatOptions).format(utcDateTime)
+
+  // Handle end time if provided
+  if (timeEnd) {
+    const endTimeParts = timeEnd.split(':')
+    const endHours = parseInt(endTimeParts[0] ?? '0', 10)
+    const endMinutes = parseInt(endTimeParts[1] ?? '0', 10)
+    const utcEndDateTime = new Date(utcDate)
+    utcEndDateTime.setUTCHours(endHours, endMinutes, 0, 0)
+    
+    const localEnd = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      ...(options.showTimezone ? { timeZoneName: 'short' } : {})
+    }).format(utcEndDateTime)
+
+    if (options.showDate) {
+      return `${localStart} - ${localEnd.split(' ').slice(-2).join(' ')}`
+    } else {
+      return `${localStart} - ${localEnd}`
+    }
+  }
+
+  return localStart
+}
+
+// Legacy function for backward compatibility
 const formatTime = (timeStart?: string, timeEnd?: string) => {
   if (!timeStart) return "Time TBA"
   if (!timeEnd) return timeStart
@@ -140,7 +211,7 @@ function InvitationalCard({ combine }: CombineCardProps) {
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <Clock className="w-4 h-4 text-green-400" />
-              <span className="text-gray-200 font-rajdhani">{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</span>
+              <span className="text-gray-200 font-rajdhani">{formatDateTimeInLocalTimezone(combine.date, combine.time_start, combine.time_end, { showDate: false, showTime: true, showTimezone: true })}</span>
             </div>
 
             <div className="flex items-center space-x-2 text-sm">
@@ -198,7 +269,7 @@ function CombineCard({ combine }: CombineCardProps) {
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <Clock className="w-4 h-4 text-green-400" />
-              <span className="text-gray-200 font-rajdhani">{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</span>
+              <span className="text-gray-200 font-rajdhani">{formatDateTimeInLocalTimezone(combine.date, combine.time_start, combine.time_end, { showDate: false, showTime: true, showTimezone: true })}</span>
             </div>
           </div>
 

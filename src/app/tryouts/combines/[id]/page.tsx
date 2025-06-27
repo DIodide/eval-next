@@ -43,9 +43,14 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Share2,
+  Copy,
+  Mail,
+  Building
 } from "lucide-react"
 import { api } from "@/trpc/react"
+import { toast } from "sonner"
 
 // Map database game names to UI game names
 const gameNameMap: Record<string, string> = {
@@ -83,6 +88,78 @@ const formatDate = (date: Date) => {
   }).format(new Date(date))
 }
 
+// Enhanced time formatting with timezone conversion
+const formatDateTimeInLocalTimezone = (
+  utcDate: Date, 
+  timeStart?: string | null, 
+  timeEnd?: string | null,
+  options: {
+    showDate?: boolean;
+    showTime?: boolean;
+    showTimezone?: boolean;
+  } = { showDate: true, showTime: true, showTimezone: true }
+) => {
+  if (!timeStart) {
+    if (options.showDate && options.showTime) {
+      return `${formatDate(utcDate)} • Time TBA`
+    }
+    return options.showDate ? formatDate(utcDate) : "Time TBA"
+  }
+
+  // Create a Date object by combining the UTC date with the time
+  // We assume the time is stored in UTC and needs to be converted to local
+  const timeParts = timeStart.split(':')
+  const startHours = parseInt(timeParts[0] ?? '0', 10)
+  const startMinutes = parseInt(timeParts[1] ?? '0', 10)
+  
+  // Create UTC datetime by combining date and time
+  const utcDateTime = new Date(utcDate)
+  utcDateTime.setUTCHours(startHours, startMinutes, 0, 0)
+  
+  const formatOptions: Intl.DateTimeFormatOptions = {}
+  
+  if (options.showDate) {
+    formatOptions.weekday = 'long'
+    formatOptions.year = 'numeric'
+    formatOptions.month = 'long'
+    formatOptions.day = 'numeric'
+  }
+  
+  if (options.showTime) {
+    formatOptions.hour = '2-digit'
+    formatOptions.minute = '2-digit'
+    if (options.showTimezone) {
+      formatOptions.timeZoneName = 'short'
+    }
+  }
+
+  const localStart = new Intl.DateTimeFormat('en-US', formatOptions).format(utcDateTime)
+
+  // Handle end time if provided
+  if (timeEnd) {
+    const endTimeParts = timeEnd.split(':')
+    const endHours = parseInt(endTimeParts[0] ?? '0', 10)
+    const endMinutes = parseInt(endTimeParts[1] ?? '0', 10)
+    const utcEndDateTime = new Date(utcDate)
+    utcEndDateTime.setUTCHours(endHours, endMinutes, 0, 0)
+    
+    const localEnd = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      ...(options.showTimezone ? { timeZoneName: 'short' } : {})
+    }).format(utcEndDateTime)
+
+    if (options.showDate) {
+      return `${localStart} - ${localEnd.split(' ').slice(-2).join(' ')}`
+    } else {
+      return `${localStart} - ${localEnd}`
+    }
+  }
+
+  return localStart
+}
+
+// Keep legacy function for backward compatibility but mark as deprecated
 const formatTime = (timeStart?: string, timeEnd?: string) => {
   if (!timeStart) return "Time TBA"
   if (!timeEnd) return timeStart
@@ -156,12 +233,12 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
   const spotsLeft = combine.max_spots - combine.registered_spots
 
   return (
-    <Card className="glass-morphism border-white/20 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20 hover:scale-105">
+    <Card className="glass-morphism border-white/20 hover:border-cyan-400/50 transition-all duration-300 min-w-[320px] hover:shadow-lg hover:shadow-cyan-400/20 hover:scale-105 group">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3 flex-1 mr-4">
             <div
-              className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center`}
+              className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center transition-transform group-hover:scale-110`}
             >
               <span className="text-2xl">{gameIcon}</span>
             </div>
@@ -172,7 +249,7 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
               <p className="text-gray-400 text-xs font-rajdhani">{gameName}</p>
             </div>
           </div>
-          <Badge className={combine.invite_only ? "bg-yellow-400 text-black" : "bg-green-600 text-white"} variant="outline">
+          <Badge className={`${combine.invite_only ? "bg-yellow-400 text-black hover:bg-yellow-300" : "bg-green-600 text-white hover:bg-green-500"} transition-all duration-300 hover:scale-105`} variant="outline">
             {combine.invite_only ? "INVITE" : "OPEN"}
           </Badge>
         </div>
@@ -180,34 +257,32 @@ function RelatedCombineCard({ combine }: CombineCardProps) {
         <p className="text-gray-300 text-sm mb-4 font-rajdhani line-clamp-2">{combine.description}</p>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center space-x-2 text-sm">
+          <div className="flex items-center space-x-2 text-sm glass-morphism border-white/10 rounded-lg p-2 hover:border-cyan-400/30 transition-all duration-300">
             <MapPin className="w-4 h-4 text-cyan-400" />
             <span className="text-gray-300 font-rajdhani">{combine.type} • {combine.location}</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Users className="w-4 h-4 text-cyan-400" />
+          <div className="flex items-center space-x-2 text-sm glass-morphism border-white/10 rounded-lg p-2 hover:border-purple-400/30 transition-all duration-300">
+            <Users className="w-4 h-4 text-purple-400" />
             <span className="text-gray-300 font-rajdhani">{spotsLeft}/{combine.max_spots} spots available</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm">
-            <Calendar className="w-4 h-4 text-cyan-400" />
+          <div className="flex items-center space-x-2 text-sm glass-morphism border-white/10 rounded-lg p-2 hover:border-orange-400/30 transition-all duration-300">
+            <Calendar className="w-4 h-4 text-orange-400" />
             <span className="text-gray-300 font-rajdhani">{formatDate(combine.date)}</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 glass-morphism border-white/10 rounded-lg p-2 hover:border-cyan-400/30 transition-all duration-300">
             <Clock className="w-5 h-5 text-cyan-400" />
             <div>
-              <p className="text-white font-medium">{formatTime(combine.time_start ?? undefined, combine.time_end ?? undefined)}</p>
-              <p className="text-gray-400 text-sm">Event Time</p>
+              <p className="text-white font-medium">{formatDateTimeInLocalTimezone(combine.date, combine.time_start, combine.time_end, { showDate: false, showTime: true, showTimezone: false })}</p>
+              <p className="text-gray-400 text-sm">Local Time</p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400 font-rajdhani">EVAL Gaming</span>
-          <Link href={`/tryouts/combines/${combine.id}`}>
-            <Button size="sm" className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron text-xs tracking-wide">
-              VIEW DETAILS
-            </Button>
-          </Link>
+          <Button size="sm" className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron text-xs tracking-wide pointer-events-none">
+            VIEW DETAILS
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -231,18 +306,20 @@ function RelatedCombinesCarousel({ combines }: { combines: CombineCardProps['com
 
   return (
     <div className="mt-16">
-      <div className="glass-morphism border-white/20 rounded-2xl p-8 backdrop-blur-sm">
+      <div className="glass-morphism border-white/20 rounded-2xl p-8 backdrop-blur-sm hover:border-purple-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-purple-400/10">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="font-orbitron text-3xl font-bold text-white tracking-wide">
-            Related Combines
-          </h2>
+          <div className="flex items-center space-x-3">
+            <h2 className="font-orbitron text-3xl font-bold text-white tracking-wide">
+              <span className="text-purple-400">RELATED</span> COMBINES
+            </h2>
+          </div>
           <div className="flex space-x-2">
             <Button
               variant="outline"
               size="sm"
               onClick={prevSlide}
               disabled={currentIndex === 0}
-              className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all"
+              className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -251,21 +328,21 @@ function RelatedCombinesCarousel({ combines }: { combines: CombineCardProps['com
               size="sm"
               onClick={nextSlide}
               disabled={currentIndex >= maxIndex}
-              className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all"
+              className="glass-morphism border-white/20 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        <div className="overflow-hidden">
+        <div className="overflow-hidden rounded-lg">
           <div
-            className="flex space-x-6 transition-transform duration-300 ease-in-out"
+            className="flex space-x-6 transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
           >
             {combines.map((combine) => (
               <div key={combine.id} className="min-w-[calc(100%/3-1rem)]">
-                <Link href={`/tryouts/combines/${combine.id}`}>
+                <Link href={`/tryouts/combines/${combine.id}`} className="block transition-transform hover:scale-105">
                   <RelatedCombineCard combine={combine} />
                 </Link>
               </div>
@@ -407,9 +484,15 @@ export default function CombineDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
         <div className="absolute inset-0 bg-black/50" />
+        
+        {/* Floating Accent Elements */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl animate-pulse" />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl animate-pulse" />
+        
         <div className="relative container mx-auto px-4 sm:px-6 py-12">
           <div className="flex flex-col items-center justify-center py-32">
-            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20">
+            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20 hover:border-cyan-400/30 transition-all duration-300">
               <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400 mx-auto mb-4" />
               <span className="text-white font-rajdhani text-lg">Loading combine details...</span>
             </div>
@@ -423,18 +506,24 @@ export default function CombineDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
         <div className="absolute inset-0 bg-black/50" />
+        
+        {/* Floating Accent Elements */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl" />
+        <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" />
+        
         <div className="relative container mx-auto px-4 sm:px-6 py-12">
           <div className="flex flex-col items-center justify-center py-32">
-            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20 max-w-md">
+            <div className="glass-morphism rounded-2xl p-8 text-center border-white/20 hover:border-red-400/30 transition-all duration-300 max-w-md">
               <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
               <h1 className="text-2xl font-orbitron font-bold text-white mb-4">
                 Combine Not Found
               </h1>
-              <p className="text-gray-400 mb-8">
+              <p className="text-gray-400 mb-8 font-rajdhani">
                 The combine you&apos;re looking for doesn&apos;t exist or has been removed.
               </p>
               <Link href="/tryouts/combines">
-                <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron">
+                <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron transition-all duration-300 hover:scale-105">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Combines
                 </Button>
@@ -459,9 +548,10 @@ export default function CombineDetailPage() {
       <div className="absolute inset-0 bg-black/50" />
       
       {/* Floating Accent Elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl" />
-      <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
-      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" />
+      <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl animate-pulse" />
+      <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl animate-pulse" />
+      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl animate-pulse" />
+      <div className="absolute top-1/2 right-10 w-20 h-20 bg-cyan-400/5 rounded-full blur-xl animate-pulse" />
       
       <div className="relative container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Compact Header with Rainbow Divider */}
@@ -472,108 +562,217 @@ export default function CombineDetailPage() {
           </Link>
           
           <h1 className="font-orbitron font-black text-4xl sm:text-5xl text-white mb-4 tracking-wider">
-            COMBINE DETAILS
+            EVAL COMBINE
           </h1>
           
-          {/* Rainbow Divider */}
-          <div className="flex justify-center items-center space-x-0 w-full max-w-md mx-auto">
-            <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          {/* Compact Rainbow Divider */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-eval-cyan"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-cyan to-eval-purple"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-purple to-eval-orange"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-eval-orange to-transparent"></div>
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="max-w-5xl mx-auto space-y-8">
             
             {/* Header Card */}
             <Card className="glass-morphism border-white/20 hover:border-cyan-400/30 transition-all duration-300">
               <CardContent className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center`}>
-                      <span className="text-3xl">{gameIcon}</span>
+                {/* Combine Header */}
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+                  <div className="flex items-center space-x-6 mb-4 lg:mb-0">
+                    <div className="w-20 h-20 glass-morphism rounded-full flex items-center justify-center border-white/20 shadow-lg">
+                      <span className="text-4xl">{gameIcon}</span>
                     </div>
-                    <div className="flex-1">
-                      <h1 className="font-orbitron font-black text-3xl text-white mb-2 cyber-text">
+                    <div>
+                      <h1 className="font-orbitron font-black text-3xl lg:text-4xl text-white mb-2 cyber-text">
                         {combine.title} <span className="text-cyan-400">{combine.year}</span>
                       </h1>
-                      <p className="text-xl text-gray-300 font-rajdhani">
-                        {gameName}
-                      </p>
-                      <p className="text-gray-400 font-rajdhani">
-                        Organized by {combine.organizer ? `${combine.organizer.first_name} ${combine.organizer.last_name}` : "EVAL Gaming"}
-                      </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
+                        <p className="text-xl text-gray-300 font-rajdhani font-semibold">
+                          EVAL Gaming
+                        </p>
+                        <div className="hidden sm:block w-1 h-1 bg-gray-500 rounded-full"></div>
+                        <p className="text-gray-400 font-rajdhani">
+                          Official EVAL Combine
+                        </p>
+                        <div className="hidden sm:block w-1 h-1 bg-gray-500 rounded-full"></div>
+                        <Badge
+                          className={`${
+                            combine.invite_only 
+                              ? "bg-yellow-400 text-black hover:bg-yellow-300" 
+                              : "bg-green-600 text-white hover:bg-green-500"
+                          } transition-all duration-300 hover:scale-105`}
+                        >
+                          {combine.invite_only ? "INVITE ONLY" : "OPEN ENTRY"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <Badge
-                      variant={combine.invite_only ? "outline" : "secondary"}
-                      className={`${
-                        combine.invite_only 
-                          ? "border-yellow-400 text-yellow-400" 
-                          : "bg-green-600 text-white"
-                      } font-orbitron text-lg px-4 py-2 mb-2`}
+                  
+                  {/* Share Button */}
+                  <div className="flex items-center cursor-pointer">
+                    <button 
+                      onClick={() => {
+                        void navigator.clipboard.writeText(window.location.href).then(() => {
+                          toast.success("Link copied!", {
+                            description: "Combine link has been copied to your clipboard",
+                          })
+                        }).catch(() => {
+                          toast.error("Failed to copy link", {
+                            description: "Please try again or copy the URL manually",
+                          })
+                        })
+                      }}
+                      className="flex items-center space-x-2 glass-morphism border-white/20 hover:border-cyan-400/50 text-cyan-400 hover:text-cyan-300 rounded-lg px-4 py-2 transition-all duration-300 transform hover:scale-105 group"
                     >
-                      {combine.invite_only ? "INVITE ONLY" : "OPEN"}
-                    </Badge>
-                    <div className="text-sm text-gray-400">
-                      {spotsLeft > 0 ? (
-                        <span className="text-green-400">{spotsLeft} spots left</span>
-                      ) : (
-                        <span className="text-red-400">Full</span>
-                      )}
+                      <Share2 className="cursor-pointer w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span className="cursor-pointer font-medium">Share</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Critical Information Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Date & Time */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-cyan-400/30 transition-all duration-300">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Calendar className="w-5 h-5 text-cyan-400" />
+                      <span className="font-orbitron text-cyan-400 text-sm font-semibold">WHEN</span>
+                    </div>
+                    <p className="text-white font-semibold text-lg mb-1">{formatDate(combine.date)}</p>
+                    <p className="text-gray-300 font-medium">{formatDateTimeInLocalTimezone(combine.date, combine.time_start, combine.time_end, { showDate: false, showTime: true, showTimezone: true })}</p>
+                  </div>
+
+                  {/* Location & Format */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-purple-400/30 transition-all duration-300">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <MapPin className="w-5 h-5 text-purple-400" />
+                      <span className="font-orbitron text-purple-400 text-sm font-semibold">WHERE</span>
+                    </div>
+                    <p className="text-white font-semibold text-lg mb-1">{combine.type}</p>
+                    <p className="text-gray-300 font-medium">{combine.location}</p>
+                  </div>
+                </div>
+
+                {/* Combine Summary */}
+                <div className="glass-morphism border-white/10 rounded-lg p-6 mb-6">
+                  <h3 className="font-orbitron text-white text-lg font-semibold mb-3">
+                    ABOUT THIS COMBINE
+                  </h3>
+                  <p className="text-gray-300 font-rajdhani text-lg leading-relaxed mb-4">
+                    {combine.description}
+                  </p>
+                  {combine.long_description && combine.long_description !== combine.description && (
+                    <div className="pt-4 border-t border-white/10">
+                      <p className="text-gray-400 font-rajdhani leading-relaxed">
+                        {combine.long_description}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* EVAL Contact Information */}
+                  <div className="pt-4 border-t border-white/10 space-y-4">
+                    {/* Contact Info */}
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Building className="w-4 h-4 text-cyan-400" />
+                        <span className="text-gray-400 text-sm">Organized by</span>
+                        <span className="text-white font-medium">EVAL Gaming</span>
+                      </div>
+                      <div className="flex items-center space-x-2 pl-6">
+                        <Mail className="w-3 h-3 text-gray-400" />
+                        <span className="text-gray-300 text-sm">support@evalgaming.com</span>
+                      </div>
+                    </div>
+
+                    {/* Prize Pool */}
+                    <div className="flex items-center space-x-3">
+                      <Trophy className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-white font-medium">Prize Pool: </span>
+                        <span className="text-orange-400 font-semibold">{combine.prize_pool}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Key Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{formatDate(combine.date)}</p>
-                      <p className="text-gray-400 text-sm">Competition Date</p>
+                {/* Two Column Layout for Requirements and Registration */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Requirements */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-6">
+                    <h3 className="font-orbitron text-orange-400 text-lg font-semibold mb-4">
+                      REQUIREMENTS
+                    </h3>
+                    <div className="space-y-3">
+                      {/* Entry Fee */}
+                      <div className="flex items-center space-x-3">
+                        <Trophy className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        <div>
+                          <span className="text-white font-medium">Entry Fee: </span>
+                          <span className="text-green-400 font-semibold">FREE</span>
+                        </div>
+                      </div>
+                      
+                      {/* Game */}
+                      <div className="flex items-center space-x-3">
+                        <Users className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                        <div>
+                          <span className="text-white font-medium">Game: </span>
+                          <span className="text-gray-300">{gameName}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{combine.type}</p>
-                      <p className="text-gray-400 text-sm">{combine.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Users className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{combine.max_spots} Total Spots</p>
-                      <p className="text-gray-400 text-sm">{combine.registered_spots} registered</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Trophy className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="text-white font-medium">{combine.prize_pool}</p>
-                      <p className="text-gray-400 text-sm">Prize Pool</p>
+
+                  {/* Registration Progress */}
+                  <div className="glass-morphism border-white/10 rounded-lg p-6">
+                    <h3 className="font-orbitron text-purple-400 text-lg font-semibold mb-4">
+                      REGISTRATION STATUS
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300 font-medium">Registered Players</span>
+                        <span className="text-white font-semibold">{combine.registered_spots}/{combine.max_spots}</span>
+                      </div>
+                      <div className="w-full bg-gray-700/50 rounded-full h-3">
+                        <div 
+                          className={`h-3 rounded-full transition-all duration-500 ${
+                            spotsLeft > 5 ? 'bg-green-500' : 
+                            spotsLeft > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${(combine.registered_spots / combine.max_spots) * 100}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className={`font-medium ${
+                          spotsLeft > 5 ? 'text-green-400' : 
+                          spotsLeft > 0 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {spotsLeft > 0 ? `${spotsLeft} spots remaining` : 'Combine is full'}
+                        </span>
+                        <span className="text-gray-400">
+                          {Math.round((combine.registered_spots / combine.max_spots) * 100)}% filled
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Registration Status or Button */}
                 {existingRegistration ? (
-                  <div className="glass-morphism border-white/20 rounded-lg p-4">
+                  <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-green-400/30 transition-all duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(existingRegistration.status)}
                         <div>
                           <p className="text-white font-medium">Registration Status</p>
-                          <Badge className={getStatusColor(existingRegistration.status)}>
+                          <Badge className={`${getStatusColor(existingRegistration.status)} transition-all duration-300 hover:scale-105`}>
                             {existingRegistration.status}
                           </Badge>
                           {existingRegistration.qualified && (
-                            <Badge className="ml-2 bg-yellow-400 text-black">
+                            <Badge className="ml-2 bg-yellow-400 text-black transition-all duration-300 hover:scale-105">
                               <Star className="w-3 h-3 mr-1" />
                               QUALIFIED
                             </Badge>
@@ -719,49 +918,49 @@ export default function CombineDetailPage() {
                     </div>
                   </div>
                 ) : combine.invite_only ? (
-                  <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/30 rounded-lg p-4">
+                  <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/30 rounded-lg p-4 hover:border-yellow-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-400/10">
                     <div className="flex items-center space-x-3">
                       <Lock className="w-5 h-5 text-yellow-400" />
                       <div>
                         <p className="text-white font-medium">Invitation Only</p>
-                        <p className="text-gray-400 text-sm">This is an exclusive combine. Invitations are sent to qualifying players.</p>
+                        <p className="text-gray-400 text-sm font-rajdhani">This is an exclusive combine. Invitations are sent to qualifying players.</p>
                       </div>
                     </div>
                   </div>
                 ) : canRegister ? (
                   <Dialog open={registrationDialogOpen} onOpenChange={setRegistrationDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button 
-                        className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold py-4 text-lg tracking-wider"
-                        disabled={registerMutation.isPending}
-                      >
-                        {registerMutation.isPending ? (
-                          <LoaderIcon className="w-5 h-5 mr-2 animate-spin" />
-                        ) : null}
-                        REGISTER NOW
-                      </Button>
+                                          <Button 
+                      className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold py-4 text-lg tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-400/20"
+                      disabled={registerMutation.isPending}
+                    >
+                      {registerMutation.isPending ? (
+                        <LoaderIcon className="w-5 h-5 mr-2 animate-spin" />
+                      ) : null}
+                      REGISTER NOW
+                    </Button>
                     </DialogTrigger>
-                    <DialogContent className="glass-morphism border-white/20 text-white max-w-md">
+                    <DialogContent className="glass-morphism border-white/20 text-white max-w-md hover:border-cyan-400/30 transition-all duration-300">
                       <DialogHeader>
-                        <DialogTitle className="font-orbitron text-cyan-300">Register for Combine</DialogTitle>
-                        <DialogDescription className="text-gray-400">
+                        <DialogTitle className="font-orbitron text-cyan-300 text-xl">REGISTER FOR COMBINE</DialogTitle>
+                        <DialogDescription className="text-gray-400 font-rajdhani">
                           Confirm your registration for {combine.title}.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         {registrationError && (
-                          <div className="bg-red-500/10 border border-red-400/30 rounded-lg p-3">
+                          <div className="bg-red-500/10 border border-red-400/30 rounded-lg p-3 hover:border-red-400/50 transition-all duration-300">
                             <div className="flex items-center space-x-2">
                               <XCircle className="w-4 h-4 text-red-300 flex-shrink-0" />
-                              <p className="text-red-300 text-sm">{registrationError}</p>
+                              <p className="text-red-300 text-sm font-rajdhani">{registrationError}</p>
                             </div>
                           </div>
                         )}
                         
-                        <div className="glass-morphism border-white/10 rounded-lg p-4">
-                          <p className="text-gray-300 text-sm mb-2">You&apos;re registering for:</p>
-                          <p className="text-white font-medium">{combine.title} {combine.year}</p>
-                          <p className="text-gray-400 text-sm">{formatDate(combine.date)}</p>
+                        <div className="glass-morphism border-white/10 rounded-lg p-4 hover:border-cyan-400/30 transition-all duration-300">
+                          <p className="text-gray-300 text-sm mb-2 font-rajdhani">You&apos;re registering for:</p>
+                          <p className="text-white font-medium font-orbitron">{combine.title} {combine.year}</p>
+                          <p className="text-gray-400 text-sm font-rajdhani">{formatDate(combine.date)}</p>
                         </div>
                         
                         <div className="flex justify-end gap-3">
@@ -778,25 +977,25 @@ export default function CombineDetailPage() {
                           <Button 
                             onClick={handleRegister}
                             disabled={registerMutation.isPending}
-                            className="bg-cyan-400 hover:bg-cyan-500 text-black"
+                            className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron transition-all duration-300 hover:scale-105"
                           >
                             {registerMutation.isPending ? (
                               <LoaderIcon className="w-4 h-4 mr-1 animate-spin" />
                             ) : null}
-                            Confirm Registration
+                            CONFIRM REGISTRATION
                           </Button>
                         </div>
                       </div>
                     </DialogContent>
                   </Dialog>
                 ) : isPastCombine ? (
-                  <div className="glass-morphism border-white/20 rounded-lg p-4">
-                    <p className="text-gray-400 text-center">This combine has already occurred</p>
+                  <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-gray-400/30 transition-all duration-300">
+                    <p className="text-gray-400 text-center font-rajdhani">This combine has already occurred</p>
                   </div>
                 ) : spotsLeft === 0 ? (
                   <Button 
                     disabled
-                    className="w-full bg-gray-600 text-gray-400 font-orbitron font-bold py-4 text-lg tracking-wider cursor-not-allowed"
+                    className="w-full bg-gray-600 text-gray-400 font-orbitron font-bold py-4 text-lg tracking-wider cursor-not-allowed opacity-50"
                   >
                     COMBINE FULL
                   </Button>
@@ -804,67 +1003,38 @@ export default function CombineDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Description Card */}
-            <Card className="glass-morphism border-white/20 hover:border-purple-400/30 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="font-orbitron text-xl text-white">
-                  About This {combine.invite_only ? "Invitational" : "Combine"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 font-rajdhani leading-relaxed">
-                  {combine.description}
-                </p>
-                {combine.invite_only && combine.requirements && (
-                  <div className="mt-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/30 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Lock className="w-5 h-5 text-yellow-400" />
-                      <h4 className="font-orbitron text-white font-bold">Requirements</h4>
-                    </div>
-                    <p className="text-gray-300 font-rajdhani">{combine.requirements}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Sidebar */}
-          <div>
-            <Card className="glass-morphism border-white/20 hover:border-orange-400/30 transition-all duration-300 sticky top-6">
-              <CardContent className="p-6">
-                <div
-                  className={`w-full aspect-square bg-gradient-to-br ${gameColor} rounded-lg flex items-center justify-center mb-6`}
-                >
-                  <span className="text-7xl">{gameIcon}</span>
-                </div>
-
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 font-rajdhani">Entry Fee</span>
-                    <span className="text-white font-orbitron text-lg">FREE</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 font-rajdhani">Format</span>
-                    <span className="text-white font-orbitron text-sm">{combine.format ?? "TBA"}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 font-rajdhani">Status</span>
-                    <Badge className={combine.status === 'REGISTRATION_OPEN' ? 'bg-green-600' : 'bg-gray-600'}>
-                      {combine.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </div>
-
-                <p className="text-center text-gray-400 font-rajdhani text-sm">
-                  All EVAL combines are completely free to participate
-                </p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
-        {/* Related Combines */}
-        <RelatedCombinesCarousel combines={relatedCombines} />
+        {/* More Combines Section */}
+        {relatedCombines.length > 0 && (
+          <div className="mt-16">
+            <div className="glass-morphism border-white/20 rounded-2xl p-8">
+              <div className="mb-8 text-center">
+                <h2 className="font-orbitron text-2xl sm:text-3xl font-bold text-white mb-2">
+                  More {gameName} Combines
+                </h2>
+                <p className="text-gray-400 font-rajdhani text-lg">
+                  Discover other EVAL {gameName} combines happening soon
+                </p>
+              </div>
+
+              {/* Related Combines Carousel */}
+              <RelatedCombinesCarousel combines={relatedCombines} />
+
+              {/* View All Button */}
+              <div className="text-center mt-8">
+                <Link href={`/tryouts/combines?game=${encodeURIComponent(combine.game.name)}`}>
+                  <Button 
+                    className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-orbitron px-8 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  >
+                    View All {gameName} Combines
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

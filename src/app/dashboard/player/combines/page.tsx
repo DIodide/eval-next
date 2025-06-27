@@ -37,6 +37,7 @@ import {
   LockIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
+import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";
 
 type RegistrationStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED";
 
@@ -469,9 +470,11 @@ function CombinesPageContent() {
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <ClockIcon className="h-4 w-4 text-green-400" />
-                          <span>{formatTime(
+                          <span>{formatDateTimeInLocalTimezone(
+                            combine.date,
                             typeof combine.time_start === 'string' ? combine.time_start : undefined, 
-                            typeof combine.time_end === 'string' ? combine.time_end : undefined
+                            typeof combine.time_end === 'string' ? combine.time_end : undefined,
+                            { showDate: false, showTime: true, showTimezone: true }
                           )}</span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
