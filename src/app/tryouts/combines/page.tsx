@@ -469,14 +469,15 @@ function CombinesPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+    <div className="bg-gray-900/60">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5 relative">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-black/50" />
       
-      {/* Floating Accent Elements */}
+      {/* Floating Accent Elements
       <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl" />
       <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl" />
-      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" />
+      <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-orange-400/10 rounded-full blur-xl" /> */}
       
       <div className="relative container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Compact Header with Rainbow Divider */}
@@ -484,19 +485,19 @@ function CombinesPageContent() {
           <div className="flex items-center space-x-2 text-sm text-gray-400 font-rajdhani mb-6 justify-center">
             <span>Tryouts</span>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-cyan-400">EVAL Combines</span>
+            <span className="text-cyan-400 cyber-text">EVAL Combines</span>
           </div>
           
-          <h1 className="font-orbitron font-black text-4xl sm:text-5xl text-white mb-4 tracking-wider">
+          <h1 className="font-orbitron font-black text-4xl sm:text-6xl text-white mb-4">
             EVAL COMBINES
           </h1>
           
-          {/* Rainbow Divider */}
-          <div className="flex justify-center items-center space-x-0 w-full max-w-md mx-auto mb-6">
-            <div className="h-1 flex-1 bg-gradient-to-r from-transparent to-cyan-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-purple-500 to-orange-500"></div>
-            <div className="h-1 flex-1 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          {/* Compact Rainbow Divider */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-eval-cyan"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-cyan to-eval-purple"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-purple to-eval-orange"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-eval-orange to-transparent"></div>
           </div>
           
           <p className="text-lg sm:text-xl text-gray-300 font-rajdhani max-w-4xl mx-auto">
@@ -676,6 +677,7 @@ function CombinesPageContent() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

@@ -265,17 +265,17 @@ function TryoutsPageContent() {
         {/* Compact Header */}
         <div className="text-center mb-12">
           <div className="mb-4">
-            <h1 className="font-orbitron text-3xl md:text-5xl font-black text-white text-center">
+            <h1 className="font-orbitron text-3xl md:text-6xl font-black text-white text-center">
               COLLEGE TRYOUTS
             </h1>
           </div>
           
           {/* Compact Rainbow Divider */}
           <div className="flex items-center justify-center mb-6">
-            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-500"></div>
-            <div className="w-6 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-orange-500"></div>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-orange-500 to-transparent"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-eval-cyan"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-cyan to-eval-purple"></div>
+            <div className="w-8 h-0.5 bg-gradient-to-r from-eval-purple to-eval-orange"></div>
+            <div className="w-12 h-0.5 bg-gradient-to-r from-eval-orange to-transparent"></div>
           </div>
           
           <p className="text-lg text-gray-300 max-w-3xl mx-auto font-medium">

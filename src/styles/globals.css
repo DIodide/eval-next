@@ -508,6 +508,9 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
+  --color-eval-orange: var(--eval-orange);
+  --color-eval-purple: var(--eval-purple);
+  --color-eval-cyan: var(--eval-cyan);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
@@ -532,6 +535,10 @@
 }
 
 :root {
+  --eval-orange: #f59e0b;
+  --eval-purple: #8b5cf6;
+  --eval-cyan: #06b6d4;
+
 
   --radius: 0.75rem;
   --background: #0a0a0f;
