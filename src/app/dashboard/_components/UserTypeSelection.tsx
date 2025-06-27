@@ -63,7 +63,7 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 items-center justify-center p-6 pb-[10vh]">
+    <div className="flex h-screen bg-gray-900 items-center justify-center p-6 pb-[15vh] mb-10">
       <Card className="w-full max-w-2xl bg-gray-800 border-gray-700">
         <CardHeader className="text-center pb-8">
           <CardTitle className="text-3xl font-orbitron font-bold text-white mb-4">
