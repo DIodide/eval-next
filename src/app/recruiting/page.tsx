@@ -9,25 +9,14 @@ export default function HomePage() {
   const { user } = useUser()
   const router = useRouter()
 
-  const handlePlayerSignup = () => {
-    if (user) {
-      router.push('/dashboard/player')
-    }
-    // If user is not signed in, the SignUpButton will handle the signup
-  }
 
-  const handleCoachSignup = () => {
-    if (user) {
-      router.push('/dashboard/coaches')
-    }
-    // If user is not signed in, the SignUpButton will handle the signup
-  }
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center text-center text-white">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/70 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 via-purple-500/10 to-orange-500/15 z-10" />
+        <div className="absolute inset-0 bg-black/66 z-5" />
         {/* <Image
           src="/placeholder.svg?height=1080&width=1920"
           alt="Esports gaming background"
@@ -131,7 +120,7 @@ export default function HomePage() {
       </section>
 
       {/* Players Section */}
-      <section className="bg-gradient-to-b from-gray-900 to-black text-white py-20">
+      <section className="border-t border-slate-800/40 bg-gradient-to-b from-gray-900/78 to-black/95 text-white py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-orbitron md:text-5xl font-bold mb-4 text-cyan-400">FOR PLAYERS & FAMILIES</h2>
@@ -197,7 +186,7 @@ export default function HomePage() {
       </section>
 
       {/* Coaches Section */}
-      <section className="bg-gradient-to-b from-black to-gray-900 text-white py-20 border-t border-gray-200/40">
+      <section className="bg-gradient-to-b from-black/95 to-gray-900/85 text-white py-20 border-t border-gray-200/40">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-orbitron md:text-5xl font-bold mb-4 text-orange-400">FOR COACHES & SCOUTS</h2>
@@ -262,7 +251,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-gray-900 text-white py-20 border-t border-gray-100/35">
+      <section className="bg-gray-900/85 text-white py-20 border-t border-gray-100/35">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-16">HOW IT WORKS</h2>
 
@@ -341,7 +330,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-black text-white py-20">
+      <section className="bg-black/85 text-white py-20">
         <div className="container mx-auto px-6 flex flex-col items-center justify-center">
           <div className="text-6xl font-bold text-white mb-4">CLAIM YOUR SCHOLARSHIP TODAY</div>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-8 text-center">
@@ -367,8 +356,9 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="bg-gradient-to-r from-cyan-500 via-purple-600 to-orange-500 text-white py-20">
-        <div className="container mx-auto px-6 text-center">
+      <section className="bg-gradient-to-r from-cyan-500/60 via-purple-500/60 to-orange-500/60 text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="container mx-auto px-6 text-center relative z-10">
           <h2 className="font-orbitron text-4xl md:text-6xl font-black mb-6 cyber-text">READY TO GET STARTED?</h2>
           <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto">
             Join the platform that&apos;s revolutionizing esports recruitment and player development
