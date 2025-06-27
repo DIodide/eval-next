@@ -57,425 +57,351 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30 relative">
+      {/* Enhanced Background with Floating Elements */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      <div className="absolute top-20 left-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-xl animate-pulse"></div>
+      <div className="absolute top-40 right-20 w-24 h-24 bg-purple-500/20 rounded-full blur-lg animate-pulse delay-1000"></div>
+      <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-orange-500/20 rounded-full blur-xl animate-pulse delay-2000"></div>
+      <div className="absolute bottom-20 right-1/3 w-28 h-28 bg-cyan-500/20 rounded-full blur-lg animate-pulse delay-3000"></div>
 
-      <div className="container mx-auto px-6 py-12">
-        {/* Header */}
+      <div className="relative z-10 container mx-auto px-6 py-12">
+        {/* Compact Header */}
         <div className="text-center mb-12">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4 cyber-text glow-text">
+          <h1 className="font-orbitron text-3xl md:text-4xl font-black text-white mb-4 cyber-text glow-text">
             PRICING PLANS
           </h1>
-          <p className="text-xl text-gray-300 mb-8 font-rajdhani max-w-3xl mx-auto">
+          <div className="w-32 h-1 bg-gradient-to-r from-transparent via-cyan-400 via-purple-400 via-orange-400 to-transparent mx-auto mb-4"></div>
+          
+          <p className="text-lg text-gray-300 mb-6 font-rajdhani max-w-2xl mx-auto">
             Choose the perfect plan to elevate your esports journey
           </p>
 
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center">
             <Button
               onClick={() => setRequestDemoOpen(true)}
-              className="bg-gradient-to-r from-purple-600 to-cyan-400 hover:from-purple-700 hover:to-cyan-500 text-white font-orbitron font-bold px-8 py-3 tracking-wider"
+              className="bg-gradient-to-r from-purple-600 to-cyan-400 hover:from-purple-700 hover:to-cyan-500 text-white font-orbitron font-bold px-6 py-2 tracking-wider transform hover:scale-105 transition-all duration-300 shadow-lg"
             >
               REQUEST A DEMO
             </Button>
           </div>
         </div>
 
-        {/* Pricing Tabs */}
-        <Tabs defaultValue="players" className="w-full max-w-5xl mx-auto">
-          <TabsList className="grid grid-cols-3 mb-12 bg-gray-800 rounded-full p-1 w-full max-w-md mx-auto">
-            <TabsTrigger
-              value="players"
-              className="font-orbitron text-white data-[state=active]:bg-cyan-400 data-[state=active]:text-black rounded-full"
-            >
-              PLAYERS
-            </TabsTrigger>
-            <TabsTrigger
-              value="coaches"
-              className="font-orbitron text-white data-[state=active]:bg-orange-400 data-[state=active]:text-black rounded-full"
-            >
-              COACHES
-            </TabsTrigger>
-            <TabsTrigger
-              value="leagues"
-              className="font-orbitron text-white data-[state=active]:bg-purple-400 data-[state=active]:text-black rounded-full"
-            >
-              LEAGUES
-            </TabsTrigger>
-          </TabsList>
+        {/* Enhanced Pricing Tabs */}
+        <div className="glass-morphism border-white/20 rounded-2xl p-6 md:p-8">
+          <Tabs defaultValue="players" className="w-full max-w-6xl mx-auto">
+            <TabsList className="grid grid-cols-3 mb-8 bg-black/40 rounded-full p-1 w-full max-w-sm mx-auto">
+              <TabsTrigger
+                value="players"
+                className="font-orbitron text-sm text-white data-[state=active]:bg-cyan-400 data-[state=active]:text-black rounded-full transition-all duration-300 px-3 py-2"
+              >
+                PLAYERS
+              </TabsTrigger>
+              <TabsTrigger
+                value="coaches"
+                className="font-orbitron text-sm text-white data-[state=active]:bg-orange-400 data-[state=active]:text-black rounded-full transition-all duration-300 px-3 py-2"
+              >
+                COACHES
+              </TabsTrigger>
+              <TabsTrigger
+                value="leagues"
+                className="font-orbitron text-sm text-white data-[state=active]:bg-purple-400 data-[state=active]:text-black rounded-full transition-all duration-300 px-3 py-2"
+              >
+                LEAGUES
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Players Pricing */}
-          <TabsContent value="players" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Free Tier */}
-              <Card className="col-2 bg-gray-800 border-gray-700 hover:border-gray-500 transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-white font-orbitron text-2xl">Free</CardTitle>
-                  <CardDescription className="text-gray-400 font-rajdhani">
-                    Get started with basic features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$0</p>
-                    <p className="text-gray-400 font-rajdhani">Forever free for players and students</p>
-                  </div>
-                  <ul className="space-y-3 font-rajdhani">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Basic player profile</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">View public tryouts</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Upload 1 gameplay clip</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Send up to 3 coach messages</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500">Advanced analytics</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500">Priority visibility to coaches</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    onClick={handlePlayerCTA}
-                    className="w-full bg-gray-700 hover:bg-gray-600 text-white font-orbitron"
-                  >
-                    GET STARTED
-                  </Button>
-                </CardFooter>
-              </Card>
+            {/* Players Pricing */}
+            <TabsContent value="players" className="mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-md mx-auto">
+                {/* Free Tier */}
+                <Card className="glass-morphism border-white/20 hover:border-cyan-400/30 transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-cyan-400/10">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-white font-orbitron text-2xl">Free</CardTitle>
+                    <CardDescription className="text-gray-400 font-rajdhani">
+                      Get started with basic features
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="mb-4">
+                      <p className="text-4xl font-orbitron text-white mb-2">$0</p>
+                      <p className="text-gray-400 font-rajdhani">Forever free for players and students</p>
+                    </div>
+                    <ul className="space-y-3 font-rajdhani">
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Basic player profile</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">View public tryouts</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Upload 1 gameplay clip</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Send up to 3 coach messages</span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-500">Advanced analytics</span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-500">Priority visibility to coaches</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={handlePlayerCTA}
+                      className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-orbitron transform hover:scale-105 transition-all duration-300"
+                    >
+                      GET STARTED
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
 
-              {/* Eval+ Tier */}
-              {/* <Card className="bg-gray-800 border-cyan-400/50 hover:border-cyan-400 transition-all duration-300 shadow-lg shadow-cyan-400/10">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <CardTitle className="text-white font-orbitron text-2xl">Eval+</CardTitle>
-                    <Badge className="bg-cyan-400 text-black font-orbitron">POPULAR</Badge>
-                  </div>
-                  <CardDescription className="text-gray-400 font-rajdhani">
-                    Enhanced features for serious players
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$3</p>
-                    <p className="text-gray-400 font-rajdhani">per month</p>
-                  </div>
-                  <ul className="space-y-3 font-rajdhani">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Enhanced player profile</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Priority registration for tryouts</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Upload up to 10 gameplay clips</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Send up to 10 coach messages</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Basic performance analytics</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Increased visibility to coaches</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron">UPGRADE NOW</Button>
-                </CardFooter>
-              </Card> */}
+            {/* Coaches Pricing */}
+            <TabsContent value="coaches" className="mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Free Tier */}
+                <Card className="glass-morphism border-white/20 hover:border-gray-400/30 transition-all duration-300 transform hover:scale-105">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-white font-orbitron text-2xl">Free</CardTitle>
+                    <CardDescription className="text-gray-400 font-rajdhani">Basic scouting tools</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="mb-4">
+                      <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
+                      <p className="text-gray-400 font-rajdhani">Free pilot</p>
+                    </div>
+                    <ul className="space-y-3 font-rajdhani">
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Basic coach profile</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Browse player profiles</span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-500">Contact players in curated e-sports recruiting database</span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-500">Advanced player search</span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-500">Create tryouts</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={handleCoachCTA}
+                      className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-orbitron transform hover:scale-105 transition-all duration-300"
+                    >
+                      GET STARTED
+                    </Button>
+                  </CardFooter>
+                </Card>
 
-              {/* Eval++ Tier */}
-              {/* <Card className="bg-gray-800 border-purple-400/50 hover:border-purple-400 transition-all duration-300 shadow-lg shadow-purple-400/10">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <CardTitle className="text-white font-orbitron text-2xl">Eval++</CardTitle>
-                    <Badge className="bg-purple-400 text-black font-orbitron">PREMIUM</Badge>
+                {/* EVAL Gold Tier */}
+                <Card className="glass-morphism border-orange-400/50 hover:border-orange-400 transition-all duration-300 shadow-lg shadow-orange-400/10 transform hover:scale-105 relative">
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-orange-400 to-orange-500 text-black font-orbitron px-4 py-1">POPULAR</Badge>
                   </div>
-                  <CardDescription className="text-gray-400 font-rajdhani">
-                    Maximum exposure and opportunities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2">$10</p>
-                    <p className="text-gray-400 font-rajdhani">per month</p>
-                  </div>
-                  <ul className="space-y-3 font-rajdhani">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Premium player profile with highlights</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Early access to exclusive tryouts</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Unlimited gameplay clip uploads</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Unlimited coach messages</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Advanced performance analytics</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Featured profile for maximum visibility</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">1-on-1 coaching session per month</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full bg-purple-400 hover:bg-purple-500 text-black font-orbitron">
-                    GO PREMIUM
-                  </Button>
-                </CardFooter>
-              </Card> */}
-            </div>
-          </TabsContent>
-
-          {/* Coaches Pricing */}
-          <TabsContent value="coaches" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Free Tier */}
-              <Card className="bg-gray-800 border-gray-700 hover:border-gray-500 transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-white font-orbitron text-2xl">Free</CardTitle>
-                  <CardDescription className="text-gray-400 font-rajdhani">Basic scouting tools</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
-                    <p className="text-gray-400 font-rajdhani">Free pilot</p>
-                  </div>
-                  <ul className="space-y-3 font-rajdhani">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Basic coach profile</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-green-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Browse player profiles</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500">Contact players in curated e-sports recruiting database</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500">Advanced player search</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500">Create tryouts</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    onClick={handleCoachCTA}
-                    className="w-full bg-gray-700 hover:bg-gray-600 text-white font-orbitron"
-                  >
-                    GET STARTED
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Eval+ Tier */}
-              <Card className="bg-gray-800 border-orange-400/50 hover:border-orange-400 transition-all duration-300 shadow-lg shadow-orange-400/10">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
+                  <CardHeader className="pb-4 pt-6">
                     <CardTitle className="text-white font-orbitron text-2xl">EVAL Gold</CardTitle>
-                    <Badge className="bg-orange-400 text-black font-orbitron">POPULAR</Badge>
-                  </div>
-                  <CardDescription className="text-gray-400 font-rajdhani">Enhanced recruiting tools</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
-                    <p className="text-gray-400 font-rajdhani">per year</p>
-                  </div>
-                  <ul className="space-y-3 font-rajdhani">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Enhanced school profile</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Advanced player search filters</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Contact up to 100 players per month</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Scout at EVAL Combines</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Basic analytics dashboard</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-500">Talent pipeline management</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    onClick={handleCoachCTA}
-                    className="w-full bg-orange-400 hover:bg-orange-500 text-black font-orbitron"
-                  >
-                    UPGRADE NOW
-                  </Button>
-                </CardFooter>
-              </Card>
+                    <CardDescription className="text-gray-400 font-rajdhani">Enhanced recruiting tools</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="mb-4">
+                      <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
+                      <p className="text-gray-400 font-rajdhani">per year</p>
+                    </div>
+                    <ul className="space-y-3 font-rajdhani">
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Enhanced school profile</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Advanced player search filters</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Contact up to 100 players per month</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Scout at EVAL Combines</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Basic analytics dashboard</span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-500">Talent pipeline management</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={handleCoachCTA}
+                      className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-black font-orbitron transform hover:scale-105 transition-all duration-300"
+                    >
+                      UPGRADE NOW
+                    </Button>
+                  </CardFooter>
+                </Card>
 
-              {/* Eval++ Tier */}
-              <Card className="bg-gray-800 border-purple-400/50 hover:border-purple-400 transition-all duration-300 shadow-lg shadow-purple-400/10">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
+                {/* EVAL Platinum Tier */}
+                <Card className="glass-morphism border-purple-400/50 hover:border-purple-400 transition-all duration-300 shadow-lg shadow-purple-400/10 transform hover:scale-105 relative">
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-purple-400 to-purple-500 text-black font-orbitron px-4 py-1">PREMIUM</Badge>
+                  </div>
+                  <CardHeader className="pb-4 pt-6">
                     <CardTitle className="text-white font-orbitron text-2xl">EVAL Platinum</CardTitle>
-                    <Badge className="bg-purple-400 text-black font-orbitron">PREMIUM</Badge>
+                    <CardDescription className="text-gray-400 font-rajdhani">
+                      Complete recruiting solution
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="mb-4">
+                      <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
+                      <p className="text-gray-400 font-rajdhani">per year</p>
+                    </div>
+                    <ul className="space-y-3 font-rajdhani">
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Premium verified coach profile</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Recruitment consulting</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Unlimited player contacts</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Unlimited tryout creation</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Advanced analytics and reporting</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Talent pipeline management</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300">Priority support</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={handleCoachCTA}
+                      className="w-full bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-black font-orbitron transform hover:scale-105 transition-all duration-300"
+                    >
+                      GO PREMIUM
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Leagues Pricing */}
+            <TabsContent value="leagues" className="mt-8">
+              <div className="glass-morphism border-white/20 rounded-xl p-8 md:p-12 text-center max-w-4xl mx-auto hover:border-purple-400/30 transition-all duration-300">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/30">
+                  <Zap className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="font-orbitron text-3xl text-white mb-4">Custom League Solutions</h2>
+                <p className="text-gray-300 font-rajdhani text-lg mb-8 max-w-2xl mx-auto">
+                  We offer tailored solutions for leagues of all sizes. Our team will work with you to create a custom
+                  package that meets your specific needs and budget.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto">
+                  <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-cyan-400/30 transition-all duration-300 transform hover:scale-105">
+                    <Trophy className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
+                    <h3 className="font-orbitron text-white mb-2">Tournament Management</h3>
+                    <p className="text-gray-300 font-rajdhani text-sm">
+                      Complete tools for organizing and running tournaments
+                    </p>
                   </div>
-                  <CardDescription className="text-gray-400 font-rajdhani">
-                    Complete recruiting solution
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="mb-4">
-                    <p className="text-4xl font-orbitron text-white mb-2 line-through decoration-red-500">$0</p>
-                    <p className="text-gray-400 font-rajdhani">per year</p>
+                  <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-purple-400/30 transition-all duration-300 transform hover:scale-105">
+                    <Users className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                    <h3 className="font-orbitron text-white mb-2">Player Database</h3>
+                    <p className="text-gray-300 font-rajdhani text-sm">
+                      Comprehensive database of all registered players
+                    </p>
                   </div>
-                  <ul className="space-y-3 font-rajdhani">
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Premium verified coach profile</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Recruitment consulting</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Unlimited player contacts</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Unlimited tryout creation</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Advanced analytics and reporting</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Talent pipeline management</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="w-5 h-5 text-purple-400 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">Priority support</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    onClick={handleCoachCTA}
-                    className="w-full bg-purple-400 hover:bg-purple-500 text-black font-orbitron"
-                  >
-                    GO PREMIUM
+                  <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-orange-400/30 transition-all duration-300 transform hover:scale-105">
+                    <BarChart3 className="w-8 h-8 text-orange-400 mx-auto mb-3" />
+                    <h3 className="font-orbitron text-white mb-2">Broadcasting Tools</h3>
+                    <p className="text-gray-300 font-rajdhani text-sm">
+                      Integration with streaming platforms and overlays
+                    </p>
+                  </div>
+                </div>
+                <Link href="/about/contact">
+                  <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-orbitron font-bold px-8 py-3 tracking-wider transform hover:scale-105 transition-all duration-300 shadow-lg">
+                    CONTACT SALES
                   </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Leagues Pricing */}
-          <TabsContent value="leagues" className="mt-4">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 md:p-12 text-center max-w-3xl mx-auto">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap className="w-10 h-10 text-white" />
+                </Link>
               </div>
-              <h2 className="font-orbitron text-3xl text-white mb-4">Custom League Solutions</h2>
-              <p className="text-gray-300 font-rajdhani text-lg mb-8 max-w-2xl mx-auto">
-                We offer tailored solutions for leagues of all sizes. Our team will work with you to create a custom
-                package that meets your specific needs and budget.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-2xl mx-auto">
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h3 className="font-orbitron text-white mb-2">Tournament Management</h3>
-                  <p className="text-gray-300 font-rajdhani text-sm">
-                    Complete tools for organizing and running tournaments
-                  </p>
-                </div>
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h3 className="font-orbitron text-white mb-2">Player Database</h3>
-                  <p className="text-gray-300 font-rajdhani text-sm">
-                    Comprehensive database of all registered players
-                  </p>
-                </div>
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h3 className="font-orbitron text-white mb-2">Broadcasting Tools</h3>
-                  <p className="text-gray-300 font-rajdhani text-sm">
-                    Integration with streaming platforms and overlays
-                  </p>
-                </div>
-              </div>
-              <Link href="/about/contact">
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-orbitron font-bold px-8 py-3 tracking-wider">
-                CONTACT SALES
-              </Button>
-              </Link>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
 
-        {/* FAQ Section */}
-        <div className="mt-24 max-w-3xl mx-auto">
-          <h2 className="font-orbitron text-3xl text-white mb-8 text-center">Frequently Asked Questions</h2>
+        {/* Enhanced FAQ Section */}
+        <div className="mt-24 max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="font-orbitron text-3xl text-white mb-4">Frequently Asked Questions</h2>
+            <div className="w-32 h-1 bg-gradient-to-r from-transparent via-cyan-400 via-purple-400 via-orange-400 to-transparent mx-auto"></div>
+          </div>
+          
           <div className="space-y-6">
-            <div className="faq-rainbow-border bg-gray-800 rounded-lg p-6">
-              <h3 className="font-orbitron text-white text-xl mb-2">Can I change plans at any time?</h3>
-              <p className="text-gray-300 font-rajdhani">
+            <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-cyan-400/30 transition-all duration-300">
+              <h3 className="font-orbitron text-white text-xl mb-3 flex items-center">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full mr-3"></div>
+                Can I change plans at any time?
+              </h3>
+              <p className="text-gray-300 font-rajdhani pl-5">
                 Yes, you can upgrade, downgrade, or cancel your subscription at any time. Changes will take effect at
                 the start of your next billing cycle.
               </p>
             </div>
-            <div className="faq-rainbow-border bg-gray-800 rounded-lg p-6">
-              <h3 className="font-orbitron text-white text-xl mb-2">Are there any long-term contracts?</h3>
-              <p className="text-gray-300 font-rajdhani">
+            
+            <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-purple-400/30 transition-all duration-300">
+              <h3 className="font-orbitron text-white text-xl mb-3 flex items-center">
+                <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
+                Are there any long-term contracts?
+              </h3>
+              <p className="text-gray-300 font-rajdhani pl-5">
                 No, all our plans are month-to-month with no long-term commitment required. You can cancel anytime.
               </p>
             </div>
-            <div className="faq-rainbow-border bg-gray-800 rounded-lg p-6">
-              <h3 className="font-orbitron text-white text-xl mb-2">Do you offer student discounts?</h3>
-              <p className="text-gray-300 font-rajdhani">
+            
+            <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-orange-400/30 transition-all duration-300">
+              <h3 className="font-orbitron text-white text-xl mb-3 flex items-center">
+                <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
+                Do you offer student discounts?
+              </h3>
+              <p className="text-gray-300 font-rajdhani pl-5">
                 Yes, we offer a 20% discount for verified students. Contact our support team with your student ID to
                 apply for the discount.
               </p>
@@ -486,7 +412,7 @@ export default function PricingPage() {
 
       {/* Demo Request Modal */}
       <Dialog open={requestDemoOpen} onOpenChange={setRequestDemoOpen}>
-        <DialogContent className="sm:max-w-4xl bg-slate-900 text-white border-none max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl glass-morphism border-white/20 text-white max-h-[90vh] overflow-y-auto">
           <DialogHeader className="relative">
             <DialogTitle className="text-2xl font-bold text-white mb-4 font-orbitron">
               DISCOVER THE FUTURE OF COLLEGIATE ESPORTS RECRUITING
@@ -518,7 +444,7 @@ export default function PricingPage() {
               <h3 className="text-xl font-bold text-white mb-4 font-orbitron">Why coaches are choosing EVAL:</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Recruiting Dashboard */}
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-cyan-400/50 transition-all">
+                <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-cyan-400/50 transition-all transform hover:scale-105">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
                       <Users className="w-5 h-5 text-cyan-400" />
@@ -532,7 +458,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* EVAL Rankings */}
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-orange-400/50 transition-all">
+                <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-orange-400/50 transition-all transform hover:scale-105">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
                       <Trophy className="w-5 h-5 text-orange-400" />
@@ -546,7 +472,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* EVAL Analytics */}
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-purple-400/50 transition-all">
+                <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-purple-400/50 transition-all transform hover:scale-105">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
                       <BarChart3 className="w-5 h-5 text-purple-400" />
@@ -560,7 +486,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* Tryouts Platform */}
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-green-400/50 transition-all">
+                <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-green-400/50 transition-all transform hover:scale-105">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
                       <Target className="w-5 h-5 text-green-400" />
@@ -574,7 +500,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* Academic Profiles */}
-                <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 hover:border-blue-400/50 transition-all md:col-span-2">
+                <div className="glass-morphism border-white/20 rounded-lg p-4 hover:border-blue-400/50 transition-all transform hover:scale-105 md:col-span-2">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
                       <GraduationCap className="w-5 h-5 text-blue-400" />
@@ -614,7 +540,7 @@ export default function PricingPage() {
 
       {/* Sign Up Modal */}
       <Dialog open={showSignUpModal} onOpenChange={resetAndCloseModal}>
-        <DialogContent className="sm:max-w-lg bg-slate-900 text-white border-none">
+        <DialogContent className="sm:max-w-lg glass-morphism border-white/20 text-white">
           <DialogHeader className="relative">
             <DialogTitle className="text-2xl font-bold text-white mb-4">SIGN UP</DialogTitle>
           </DialogHeader>
