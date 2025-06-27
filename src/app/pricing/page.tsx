@@ -389,10 +389,10 @@ export default function PricingPage() {
             <div className="glass-morphism border-white/20 rounded-lg p-6 hover:border-purple-400/30 transition-all duration-300">
               <h3 className="font-orbitron text-white text-xl mb-3 flex items-center">
                 <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
-                Are there any long-term contracts?
+                Does EVAL offer monthly plans?
               </h3>
               <p className="text-gray-300 font-rajdhani pl-5">
-                No, all our plans are month-to-month with no long-term commitment required. You can cancel anytime.
+              To accomodate for the esports recruiting cycle, EVAL only offers annual plans. However, if you have specific needs, contact us at support@evalgaming.com.
               </p>
             </div>
             
