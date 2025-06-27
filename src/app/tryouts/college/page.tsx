@@ -42,6 +42,7 @@ import GameCarousel from "@/app/tryouts/_components/GameCarousel"
 import type { GameType } from "@/app/tryouts/_components/GameCarousel"
 import type { CardTryout } from "@/app/tryouts/_components/TryoutCard"
 import type { Tryout } from "@/app/tryouts/types"
+import { formatDateTimeInLocalTimezone } from "@/lib/time-utils"
 
 // Map database game names to UI game names
 const gameNameMap: Record<string, GameType> = {
@@ -59,11 +60,7 @@ const formatDate = (date: Date) => {
   }).format(new Date(date))
 }
 
-const formatTime = (timeStart?: string, timeEnd?: string) => {
-  if (!timeStart) return "Time TBA"
-  if (!timeEnd) return timeStart
-  return `${timeStart} - ${timeEnd}`
-}
+
 
 // Transform API tryout to card tryout format
 const transformToCardTryout = (apiTryout: Tryout): CardTryout => ({
@@ -73,7 +70,7 @@ const transformToCardTryout = (apiTryout: Tryout): CardTryout => ({
   game: gameNameMap[apiTryout.game.name] ?? apiTryout.game.name as GameType,
   school: apiTryout.school.name,
   date: formatDate(apiTryout.date),
-  time: formatTime(apiTryout.time_start ?? undefined, apiTryout.time_end ?? undefined),
+  time: formatDateTimeInLocalTimezone(apiTryout.date, apiTryout.time_start ?? undefined, apiTryout.time_end ?? undefined, { showDate: false, showTime: true, showTimezone: true }),
   type: apiTryout.type,
   price: apiTryout.price === "Free" ? "Free" : apiTryout.price,
   spots: `${apiTryout.max_spots - apiTryout.registered_spots} spots left`,

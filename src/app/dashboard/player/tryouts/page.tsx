@@ -34,6 +34,7 @@ import {
   SchoolIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
+import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";
 
 type RegistrationStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED";
 
@@ -107,11 +108,7 @@ const formatDate = (date: Date) => {
   }).format(new Date(date));
 };
 
-const formatTime = (timeStart?: string, timeEnd?: string) => {
-  if (!timeStart) return "Time TBA";
-  if (!timeEnd) return timeStart;
-  return `${timeStart} - ${timeEnd}`;
-};
+
 
 const isTryoutUpcoming = (date: Date) => {
   return new Date(date) > new Date();
@@ -432,7 +429,7 @@ export default function TryoutsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <ClockIcon className="h-4 w-4 text-green-400" />
-                          <span>{formatTime(tryout.time_start ?? undefined, tryout.time_end ?? undefined)}</span>
+                          <span>{formatDateTimeInLocalTimezone(tryout.date, tryout.time_start ?? undefined, tryout.time_end ?? undefined, { showDate: false, showTime: true, showTimezone: true })}</span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-300">
                           <MapPinIcon className="h-4 w-4 text-purple-400" />

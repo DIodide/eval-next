@@ -113,11 +113,7 @@ const formatDate = (date: Date) => {
   }).format(new Date(date));
 };
 
-const formatTime = (timeStart?: string, timeEnd?: string) => {
-  if (!timeStart) return "Time TBA";
-  if (!timeEnd) return timeStart;
-  return `${timeStart} - ${timeEnd}`;
-};
+
 
 const isCombineUpcoming = (date: Date) => {
   return new Date(date) > new Date();

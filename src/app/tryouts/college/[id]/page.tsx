@@ -46,6 +46,7 @@ import { gameIcons } from "@/app/tryouts/_components/GameCarousel"
 import TryoutCard from "@/app/tryouts/_components/TryoutCard"
 import type { CardTryout } from "@/app/tryouts/_components/TryoutCard"
 import { toast } from "sonner"
+import { formatDateTimeInLocalTimezone } from "@/lib/time-utils"
 
 // Map database game names to UI game names
 const gameNameMap: Record<string, keyof typeof gameIcons> = {
@@ -401,7 +402,7 @@ export default function TryoutDetailPage() {
                       <span className="font-orbitron text-cyan-400 text-sm font-semibold">WHEN</span>
                     </div>
                     <p className="text-white font-semibold text-lg mb-1">{formatDate(tryout.date)}</p>
-                    <p className="text-gray-300 font-medium">{formatTime(tryout.time_start, tryout.time_end)}</p>
+                    <p className="text-gray-300 font-medium">{formatDateTimeInLocalTimezone(tryout.date, tryout.time_start, tryout.time_end, { showDate: false, showTime: true, showTimezone: true })}</p>
                     {tryout.registration_deadline && (
                       <div className="mt-2 pt-2 border-t border-white/10">
                         <p className="text-orange-400 text-sm font-medium">
