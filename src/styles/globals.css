@@ -41,16 +41,44 @@
   max-width: 100vw;
 }
 
-/* Remove fixed background attachment on mobile devices */
+/* Mobile-optimized background classes */
+.home-background-mobile {
+  background-image: url('/eval/valorant_champs.png');
+  background-color: #0f0f1a;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100vw auto;
+  background-attachment: scroll;
+  min-height: 100vh;
+}
+
+.global-background-mobile {
+  background-image: url('/eval/recruitment_bg2.png');
+  background-color: #0f0f1a;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100vw auto;
+  background-attachment: scroll;
+  min-height: 100vh;
+}
+
+.tryouts-combine-background-mobile {
+  background-image: url('/eval/combine_tryout_bg.png');
+  background-color: #0f0f1a;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100vw auto;
+  background-attachment: scroll;
+  min-height: 100vh;
+}
+
+/* Hide desktop backgrounds on mobile */
 @media (max-width: 768px) {
-  .global-background {
-    background-image: none;
-    background-attachment: scroll;
-  }
-  
+  .home-background,
+  .global-background,
   .tryouts-combine-background {
     background-image: none;
-    background-attachment: scroll;
+    background-color: #0f0f1a;
   }
 }
 
