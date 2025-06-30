@@ -610,7 +610,7 @@ export default function MyProspectsPage() {
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="gap-2 border-gray-600 text-black hover:text-white hover:border-gray-500"
+              className="gap-2 border-gray-600 bg-white text-black hover:text-white hover:border-gray-500"
             >
               <Filter className="h-4 w-4" />
               {showFilters ? "Hide Filters" : "Filters"}

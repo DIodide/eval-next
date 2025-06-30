@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";  
 import { withRetry } from "@/lib/db-utils";
 import type { Prisma } from "@prisma/client";
 
