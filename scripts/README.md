@@ -1,6 +1,6 @@
-# Database Management Scripts
+# Development Management Scripts
 
-This directory contains scripts for managing the development database.
+This directory contains scripts for managing the development database and user accounts.
 
 ## 🚀 Quick Start
 
@@ -22,6 +22,8 @@ This will:
 
 ### NPM Scripts (Recommended)
 
+#### Database Scripts
+
 | Script                     | Description                      | Use Case                        |
 | -------------------------- | -------------------------------- | ------------------------------- |
 | `npm run db:reset:script`  | **Full reset with confirmation** | Most common development reset   |
@@ -34,12 +36,28 @@ This will:
 | `npm run db:push`          | Push schema without migrations   | Development schema testing      |
 | `npm run db:studio`        | Open Prisma Studio               | Database GUI                    |
 
+#### User Management Scripts (🚨 DEVELOPMENT ONLY 🚨)
+
+| Script                      | Description                       | Use Case                |
+| --------------------------- | --------------------------------- | ----------------------- |
+| `npm run clerk:reset`       | **Delete ALL Clerk users**        | Fresh start development |
+| `npm run clerk:reset:force` | Delete users without confirmation | CI/CD or automation     |
+
 ### Shell Scripts
+
+#### Database Scripts
 
 | Script                          | Description                   | Use Case            |
 | ------------------------------- | ----------------------------- | ------------------- |
 | `./scripts/db-reset.sh`         | Interactive reset with colors | Manual execution    |
 | `./scripts/db-reset.sh --force` | Non-interactive reset         | CI/CD or automation |
+
+#### User Management Scripts (🚨 DEVELOPMENT ONLY 🚨)
+
+| Script                                   | Description               | Use Case            |
+| ---------------------------------------- | ------------------------- | ------------------- |
+| `./scripts/clerk-users-reset.sh`         | Interactive user deletion | Manual execution    |
+| `./scripts/clerk-users-reset.sh --force` | Non-interactive deletion  | CI/CD or automation |
 
 ## 🌱 Seed Data
 
@@ -78,12 +96,21 @@ npm run db:push          # Quick test
 npm run db:reset:script  # Full reset
 ```
 
-### Fresh Start
+### Fresh Start (Database Only)
 
 Starting development or switching branches:
 
 ```bash
 npm run db:reset:script
+```
+
+### Complete Fresh Start (Database + Users)
+
+For a completely clean development environment:
+
+```bash
+npm run clerk:reset      # Delete all users
+npm run db:reset:script  # Reset database
 ```
 
 ### Add Test Data Only
@@ -94,13 +121,32 @@ If you just want to add seed data:
 npm run db:seed
 ```
 
+### Remove All Test Users
+
+During development, if you want to clean up user accounts:
+
+```bash
+npm run clerk:reset
+```
+
 ## ⚠️ Important Notes
+
+### Database Scripts
 
 - **Development Only**: These scripts are for development environments
 - **Data Loss**: All reset commands will **delete all data**
 - **Confirmation**: The interactive script asks for confirmation
 - **Force Mode**: Use `--force` flag to skip confirmation
 - **Backup**: Always backup important data before resetting
+
+### User Management Scripts
+
+- **🚨 DEVELOPMENT ONLY**: Will NOT work in production (NODE_ENV check)
+- **🚨 IRREVERSIBLE**: Clerk user deletion cannot be undone
+- **🚨 COMPLETE DELETION**: Removes users AND all associated data
+- **Double Confirmation**: Requires typing "DELETE ALL USERS" plus Y/N confirmation
+- **Webhook Cleanup**: Automatically triggers database cleanup via webhooks
+- **Environment Check**: Validates NODE_ENV=development before running
 
 ## 🐛 Troubleshooting
 

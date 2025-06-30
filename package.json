@@ -18,9 +18,11 @@
     "db:reset:script": "./scripts/db-reset.sh",
     "db:reset:production": "./scripts/db-reset-prod.sh",
     "db:seed": "tsx prisma/seed.ts",
+    "clerk:reset": "./scripts/clerk-users-reset.sh",
+    "clerk:reset:force": "./scripts/clerk-users-reset.sh --force",
     "db:seed:profiles": "tsx prisma/seed-game-profiles.ts",
     "db:reset:full": "npm run db:reset:confirm && npm run db:seed",
-    "dev": "concurrently \"next dev --turbo\" \"ngrok http --url=bison-pleased-unicorn.ngrok-free.app 3000\"",
+    "dev": "concurrently \"next dev --turbo\" \"ngrok http --url=fluent-peacock-grown.ngrok-free.app 3000\"",
     "dev:next": "next dev --turbo",
     "dev:ngrok": "ngrok http --url=bison-pleased-unicorn.ngrok-free.app 3000",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
@@ -33,6 +35,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/backend": "^2.3.1",
     "@clerk/elements": "^0.23.32",
     "@clerk/nextjs": "^6.20.2",
     "@clerk/themes": "^2.2.49",
