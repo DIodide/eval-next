@@ -6,7 +6,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 import React, { useState, useEffect, useMemo } from "react";
 import { api } from "@/trpc/react";
@@ -181,7 +180,7 @@ export default function CoachPlayerSearchPage() {
 
   // Search players query with proper type conversion using debounced values
   const searchInput = useMemo(() => ({
-    game_id: debouncedGameId || undefined,
+    game_id: debouncedGameId ?? undefined,
     ...debouncedSearchFilters,
     limit: 50,
     offset: 0,
@@ -381,7 +380,7 @@ export default function CoachPlayerSearchPage() {
       "RL": "🚀",
       "SSBU": "🥊",
     };
-    return icons[gameShortName] || "🎮";
+    return icons[gameShortName] ?? "🎮";
   };
 
   // Define proper rank orders for different games
@@ -432,8 +431,8 @@ export default function CoachPlayerSearchPage() {
     return rankOrder.filter(rank => availableRanks.has(rank));
   };
 
-  const players = searchResults?.players || [];
-  const currentGameName = games.find(g => g.id === currentGameId)?.name || "All Games";
+  const players = searchResults?.players ?? [];
+  const currentGameName = games.find(g => g.id === currentGameId)?.name ?? "All Games";
   
   // Memoize available ranks to prevent infinite loops
   const availableRanks = React.useMemo(() => {
@@ -477,7 +476,7 @@ export default function CoachPlayerSearchPage() {
               {player.first_name} {player.last_name}
             </div>
             <div className="text-sm text-gray-400">
-              {gameProfile?.username || player.username || 'No username'}
+              {gameProfile?.username ?? player.username ?? 'No username'}
             </div>
           </div>
         );
@@ -490,7 +489,7 @@ export default function CoachPlayerSearchPage() {
         const player = row.original;
         return (
           <div className="font-medium text-white">
-            {player.school_ref?.name || player.school || 'No school'}
+            {player.school_ref?.name ?? player.school ?? 'No school'}
           </div>
         );
       },
@@ -505,10 +504,10 @@ export default function CoachPlayerSearchPage() {
         return (
           <div className="space-y-1">
             <div className="font-medium text-white">
-              {player.class_year || 'No class year'}
+              {player.class_year ?? 'No class year'}
             </div>
             <div className="text-sm text-gray-400">
-              GPA: {gpaNumber?.toFixed(2) || 'N/A'}
+              GPA: {gpaNumber?.toFixed(2) ?? 'N/A'}
             </div>
           </div>
         );
@@ -524,7 +523,7 @@ export default function CoachPlayerSearchPage() {
         
         return (
           <div className="font-medium text-white">
-            {gameProfile?.rank || 'Unranked'}
+            {gameProfile?.rank ?? 'Unranked'}
           </div>
         );
       },
@@ -547,7 +546,7 @@ export default function CoachPlayerSearchPage() {
         return (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-white">{gameProfile.role || 'No role'}</span>
+              <span className="font-medium text-white">{gameProfile.role ?? 'No role'}</span>
             </div>
             {gameProfile.agents.length > 0 && (
               <div className="flex flex-wrap gap-1">
@@ -564,7 +563,7 @@ export default function CoachPlayerSearchPage() {
               </div>
             )}
             <div className="text-sm text-gray-400">
-              {gameProfile.play_style || ''}
+              {gameProfile.play_style ?? ''}
             </div>
           </div>
         );
@@ -582,13 +581,13 @@ export default function CoachPlayerSearchPage() {
             <div className="text-sm">
               <span className="font-medium text-gray-300">Combine:</span>{' '}
               <span className={gameProfile?.combine_score ? 'text-cyan-400' : 'text-gray-500'}>
-                {gameProfile?.combine_score?.toFixed(1) || 'N/A'}
+                {gameProfile?.combine_score?.toFixed(1) ?? 'N/A'}
               </span>
             </div>
             <div className="text-sm">
               <span className="font-medium text-gray-300">League:</span>{' '}
               <span className={gameProfile?.league_score ? 'text-green-400' : 'text-gray-500'}>
-                {gameProfile?.league_score?.toFixed(1) || 'N/A'}
+                {gameProfile?.league_score?.toFixed(1) ?? 'N/A'}
               </span>
             </div>
           </div>
@@ -656,7 +655,7 @@ export default function CoachPlayerSearchPage() {
 
   // Get live player data for dialog to prevent staleness
   const liveSelectedPlayer = selectedPlayer 
-    ? players.find(p => p.id === selectedPlayer.id) || selectedPlayer
+    ? players.find(p => p.id === selectedPlayer.id) ?? selectedPlayer
     : null;
 
   // Use a stable reference for the players data to prevent unnecessary re-renders
@@ -846,7 +845,7 @@ export default function CoachPlayerSearchPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-gray-300 text-xs">Min Rank</Label>
-                    <Select value={searchFilters.min_rank || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_rank: value === "all" ? "" : value }))}>
+                    <Select value={searchFilters.min_rank ?? "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, min_rank: value === "all" ? "" : value }))}>
                       <SelectTrigger className="bg-gray-900 border-gray-600 text-white text-xs">
                         <SelectValue placeholder="Min" />
                       </SelectTrigger>
@@ -860,7 +859,7 @@ export default function CoachPlayerSearchPage() {
                   </div>
                   <div>
                     <Label className="text-gray-300 text-xs">Max Rank</Label>
-                    <Select value={searchFilters.max_rank || "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, max_rank: value === "all" ? "" : value }))}>
+                    <Select value={searchFilters.max_rank ?? "all"} onValueChange={(value) => setSearchFilters(prev => ({ ...prev, max_rank: value === "all" ? "" : value }))}>
                       <SelectTrigger className="bg-gray-900 border-gray-600 text-white text-xs">
                         <SelectValue placeholder="Max" />
                       </SelectTrigger>
@@ -971,7 +970,7 @@ export default function CoachPlayerSearchPage() {
                     <h3 className="text-2xl font-orbitron font-bold text-white">
                       {liveSelectedPlayer.first_name} {liveSelectedPlayer.last_name}
                     </h3>
-                    <p className="text-gray-400 font-rajdhani">@{liveSelectedPlayer.username || "No username"}</p>
+                    <p className="text-gray-400 font-rajdhani">@{liveSelectedPlayer.username ?? "No username"}</p>
                     
                     <div className="flex items-center gap-4 mt-2">
                       {liveSelectedPlayer.main_game && (
@@ -1030,11 +1029,11 @@ export default function CoachPlayerSearchPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">School:</span>
-                        <span className="text-white">{liveSelectedPlayer.school_ref?.name || liveSelectedPlayer.school || "Not specified"}</span>
+                        <span className="text-white">{liveSelectedPlayer.school_ref?.name ?? liveSelectedPlayer.school ?? "Not specified"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Class Year:</span>
-                        <span className="text-white">{liveSelectedPlayer.class_year || "Not specified"}</span>
+                        <span className="text-white">{liveSelectedPlayer.class_year ?? "Not specified"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">GPA:</span>
@@ -1044,11 +1043,11 @@ export default function CoachPlayerSearchPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Intended Major:</span>
-                        <span className="text-white">{liveSelectedPlayer.intended_major || "Not specified"}</span>
+                        <span className="text-white">{liveSelectedPlayer.intended_major ?? "Not specified"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Graduation:</span>
-                        <span className="text-white">{liveSelectedPlayer.graduation_date || "Not specified"}</span>
+                        <span className="text-white">{liveSelectedPlayer.graduation_date ?? "Not specified"}</span>
                       </div>
                     </div>
                   </div>
@@ -1066,7 +1065,7 @@ export default function CoachPlayerSearchPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Location:</span>
-                        <span className="text-white">{liveSelectedPlayer.location || "Not specified"}</span>
+                        <span className="text-white">{liveSelectedPlayer.location ?? "Not specified"}</span>
                       </div>
                     </div>
                   </div>
@@ -1089,11 +1088,11 @@ export default function CoachPlayerSearchPage() {
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-400">Rank:</span>
-                              <span className="text-white">{profile.rank || "Unranked"}</span>
+                              <span className="text-white">{profile.rank ?? "Unranked"}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-400">Role:</span>
-                              <span className="text-white">{profile.role || "Not specified"}</span>
+                              <span className="text-white">{profile.role ?? "Not specified"}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-400">Username:</span>
