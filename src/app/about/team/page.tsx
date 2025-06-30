@@ -13,7 +13,7 @@ const founders = [
     role: "Founder & CEO",
     image: "/team/headshots/sekou-head.png?height=200&width=200",
     quote:
-      "It's more than a game. Video games are powerful—they inspire, connect, and bring people together. With Eval, kids are getting an education while doing something they love.",
+      "It's more than a game. Video games are powerful—they inspire, connect, and bring people together. With EVAL, kids are getting an education while doing something they love.",
     background: "D1 Athlete & Gaming Enthusiast",
     expertise: ["Leadership", "Strategy", "Business Development"],
     color: "from-cyan-400 to-blue-500"
@@ -33,7 +33,7 @@ const founders = [
     role: "Chief Marketing Officer",
     image: "/team/headshots/erica.png?height=200&width=200",
     quote:
-      "Marketing is all about storytelling. At Eval, we're creating a narrative where gaming talent meets real-world opportunities.",
+      "Marketing is all about storytelling. At EVAL, we're creating a narrative where gaming talent meets real-world opportunities.",
     background: "Brand Strategy & Digital Marketing",
     expertise: ["Marketing", "Brand Strategy", "Content Creation"],
     color: "from-orange-400 to-red-500"
@@ -43,7 +43,7 @@ const founders = [
     role: "Software Engineer",
     image: "/team/headshots/ibraheem.png?height=200&width=200",
     quote:
-      "Data tells the story of performance. At Eval, we're making sure every player's journey is backed by analytics and insight.",
+      "Data tells the story of performance. At EVAL, we're making sure every player's journey is backed by analytics and insight.",
     background: "Full-Stack Development & Analytics",
     expertise: ["Engineering", "Analytics", "Platform Development"],
     color: "from-green-400 to-teal-500"

@@ -33,7 +33,7 @@ const faqs = [
   },
   {
     question: "How do I get noticed by college coaches?",
-    answer: "To get noticed by coaches, maintain an active profile with updated stats, upload high-quality gameplay clips, participate in EVAL combines and tournaments, and consider upgrading to Eval+ or Eval++ for increased visibility and advanced features.",
+    answer: "To get noticed by coaches, maintain an active profile with updated stats, upload high-quality gameplay clips, participate in EVAL combines and tournaments, and consider upgrading to EVAL+ or EVAL++ for increased visibility and advanced features.",
   },
   {
     question: "Can college students use EVAL?",
