@@ -136,13 +136,13 @@ const ValorantPlayerStatsSchema = z.object({
   eval_score: z.number().nullable(),
   rank: z.number().nullable(),
   rank_name: z.string().nullable(),
-  game_name: z.string().nullable(),
-  tag_line: z.string().nullable(),
   image_paths: ValorantImagePathsSchema,
 });
 
 const ValorantPlayerStatsResponseSchema = z.object({
   puuid: z.string(),
+  game_name: z.string(),
+  tag_line: z.string(),
   eval_score: z.number(),
   rank_name: z.string(),
   stats: ValorantPlayerStatsSchema,
@@ -236,8 +236,8 @@ function transformToAnalyticsData(
   
   return {
     role: stats.main_role ?? "Unknown",
-    gameName: stats.game_name ?? undefined,
-    tagLine: stats.tag_line ?? undefined,
+    gameName: apiResponse.game_name ?? undefined,
+    tagLine: apiResponse.tag_line ?? undefined,
     mainAgent: {
       name: stats.main_agent ?? "Unknown",
       image: stats.image_paths.agent_icon_url,
