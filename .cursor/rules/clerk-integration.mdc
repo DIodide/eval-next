@@ -1,0 +1,160 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Metadata Deletion Requirements
+- **CRITICAL**: When removing fields from Clerk's `publicMetadata` or `privateMetadata`, you MUST use `null`, not `undefined`
+- Clerk's `updateUserMetadata()` uses deep merge behavior
+- Setting `undefined` will NOT remove the field - it will be ignored
+- Setting `null` explicitly removes the field from metadata
+
+```typescript
+// ✅ CORRECT - Removes the field
+await clerkClient.users.updateUserMetadata(userId, {
+  publicMetadata: {
+    valorant: null  // This removes the field
+  }
+})
+
+// ❌ WRONG - Field remains unchanged
+await clerkClient.users.updateUserMetadata(userId, {
+  publicMetadata: {
+    valorant: undefined  // This does nothing
+  }
+})
+
+// ❌ WRONG - Doesn't remove the field, just sets to undefined
+await clerkClient.users.updateUserMetadata(userId, {
+  publicMetadata: {
+    ...user.publicMetadata,
+    valorant: undefined
+  }
+})
+```
+
+## External Account Management
+
+### OAuth Connection Patterns
+- Always use `useReverification` wrapper for external account operations
+- Provide fallback to direct user methods if reverification fails
+- Include proper loading states and user session readiness checks
+
+```typescript
+// ✅ CORRECT Pattern
+const createExternalAccount = useReverification((params: CreateExternalAccountParams) => {
+  if (!user?.createExternalAccount) {
+    throw new Error('User not fully loaded')
+  }
+  return user.createExternalAccount(params)
+})
+
+const addSSO = async (strategy: OAuthStrategy) => {
+  if (!isUserReady) {
+    alert('Please wait for user session to initialize')
+    return
+  }
+  
+  try {
+    res = await createExternalAccount({ strategy, redirectUrl })
+  } catch (reverificationError) {
+    // Fallback to direct user method
+    res = await user!.createExternalAccount({ strategy, redirectUrl })
+  }
+}
+```
+
+### Account Removal Best Practices
+- Always clean up related metadata BEFORE destroying the account
+- Use dedicated cleanup APIs rather than complex webhook logic
+- Reload user data after account operations
+
+```typescript
+// ✅ CORRECT - Clean then remove
+const removeAccountWithCleanup = useReverification(async (account: ExternalAccountResource) => {
+  // 1. Clean up metadata first
+  if (account.provider === 'custom_valorant') {
+    await fetch('/api/valorant/cleanup-metadata', { method: 'POST' })
+  }
+  
+  // 2. Remove the account
+  await account.destroy()
+  
+  // 3. Refresh user data
+  await user?.reload()
+})
+```
+
+## Webhook Integration
+
+### Simplified Webhook Approach
+- Avoid complex external account logic in webhooks due to timing issues
+- Focus webhooks on core user lifecycle events (create, update, delete)
+- Handle external account cleanup through dedicated API endpoints
+
+```typescript
+// ✅ CORRECT - Simple webhook focused on user lifecycle
+if (eventType === 'user.updated') {
+  // Sync basic user data to database
+  await db.player.update({
+    where: { clerk_id: userData.id },
+    data: {
+      email: userData.email_addresses[0]?.email_address ?? '',
+      first_name: userData.first_name ?? '',
+      last_name: userData.last_name ?? '',
+      external_accounts: userData.external_accounts // Keep for DB sync
+    }
+  })
+}
+```
+### Timing-Sensitive Operations
+- Avoid relying on webhooks for immediate cleanup
+- Use explicit API calls for operations requiring immediate consistency
+- Implement proper loading states during operations
+
+## Database Sync Patterns
+
+### User Data Sync
+- Sync basic profile data through webhooks
+- Use separate endpoints for complex operations
+- Keep external_accounts field synced for data consistency
+
+### External Account Data
+- Store external account metadata in Clerk's publicMetadata
+- Use database only for searchable/queryable data
+- Maintain clear separation between auth data and app data
+
+## API Endpoint Patterns
+
+### Cleanup Endpoints
+```typescript
+// Simple, focused cleanup endpoints
+export async function POST() {
+  const { userId } = await auth()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  
+  try {
+    await clerkClient.users.updateUserMetadata(userId, {
+      publicMetadata: { valorant: null }
+    })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 })
+  }
+}
+```
+
+### Processing Endpoints
+- Validate user authentication
+- Handle API failures gracefully
+- Return structured responses
+- Log important operations
+
+## Common Pitfalls to Avoid
+
+1. **Using `undefined` for metadata deletion** - Always use `null`
+2. **Complex webhook logic** - Keep webhooks simple, use dedicated endpoints
+3. **Race conditions** - Always check user session readiness
+4. **Missing error handling** - Provide user feedback for all failure cases
+5. **Inconsistent data sync** - Maintain clear patterns for what goes where
+6. **OAuth timing issues** - Implement proper loading states and session warming
