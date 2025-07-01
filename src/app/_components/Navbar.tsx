@@ -304,14 +304,14 @@ export default function Navbar() {
                 <div className="pl-4 space-y-2">
                   <Link 
                     href="/rankings/leagues"
-                    className="block font-inter text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     LEAGUES
                   </Link>
                   <Link 
                     href="/rankings/combines"
-                    className="block font-inter text-gray-300 hover:text-cyan-400 transition-colors py-1"
+                    className="block font-orbitron text-gray-300 hover:text-cyan-400 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     COMBINES
