@@ -190,7 +190,7 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
  * Middleware to verify user is a coach (including school_id)
  * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const isCoach = t.middleware(async ({ next, ctx }) => {
   const coach = await ctx.db.coach.findUnique({
     where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
