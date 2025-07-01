@@ -80,8 +80,8 @@ async function main() {
           tier: 'COMPETITIVE',
           season: '2024-2025',
           status: 'ACTIVE',
-          format: 'Round Robin + Playoffs',
-          prize_pool: '$25,000',
+          format: 'GSE Format',
+          prize_pool: '$...',
           founded_year: 2019
         }
       })
