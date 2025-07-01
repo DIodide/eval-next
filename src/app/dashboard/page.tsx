@@ -18,6 +18,8 @@ export default function DashboardPage() {
         router.push("/dashboard/coaches");
       } else if (userType === "player") {
         router.push("/dashboard/player");
+      } else if (userType === "league") {
+        router.push("/dashboard/leagues");
       } else {
         // If userType is not set or unknown, show the selection UI
         console.warn("Unknown userType or missing userType in unsafeMetadata:", userType);
@@ -26,10 +28,12 @@ export default function DashboardPage() {
     }
   }, [isLoaded, user, router]);
 
-  const handleUserTypeSelected = (userType: 'player' | 'coach') => {
+  const handleUserTypeSelected = (userType: 'player' | 'coach' | 'league') => {
     // After userType is updated, redirect to the appropriate dashboard
     if (userType === "coach") {
       router.push("/dashboard/coaches");
+    } else if (userType === "league") {
+      router.push("/dashboard/leagues");
     } else {
       router.push("/dashboard/player");
     }

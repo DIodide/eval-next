@@ -1,7 +1,7 @@
 import { type User } from "@clerk/nextjs/server";
 import { type UserResource } from "@clerk/types";
 
-export type UserRole = "player" | "coach" | null;
+export type UserRole = "player" | "coach" | "league" | null;
 
 // Union type to handle both server and client Clerk user types
 type ClerkUser = User | UserResource | null;
@@ -16,13 +16,13 @@ export function getUserRole(user: ClerkUser): UserRole {
   
   // Check publicMetadata for userType (primary field used throughout the system)
   const publicUserType = user.publicMetadata?.userType as string | undefined;
-  if (publicUserType === "player" || publicUserType === "coach") {
+  if (publicUserType === "player" || publicUserType === "coach" || publicUserType === "league") {
     return publicUserType;
   }
   
   // Fallback to unsafeMetadata for backward compatibility
   const unsafeUserType = user.unsafeMetadata?.userType as string | undefined;
-  if (unsafeUserType === "player" || unsafeUserType === "coach") {
+  if (unsafeUserType === "player" || unsafeUserType === "coach" || unsafeUserType === "league") {
     return unsafeUserType;
   }
   
@@ -46,11 +46,35 @@ export function isCoachOnboarded(user: ClerkUser): boolean {
 }
 
 /**
+ * Check if a league organization is onboarded using Clerk's publicMetadata.
+ * This function does not make any Prisma calls to avoid client context issues.
+ * This function can only be used on the server side.
+ */
+export function isLeagueOnboarded(user: ClerkUser): boolean {
+  if (!user) return false;
+  
+  const userRole = getUserRole(user);
+  if (userRole !== "league") return false;
+  
+  // Check if onboarded flag is set in publicMetadata
+  const onboarded = user.publicMetadata?.onboarded as boolean | undefined;
+  return onboarded === true;
+}
+
+/**
  * Check if user can access coach-only features.
  * This combines role check and onboarding status.
  */
 export function canAccessCoachFeatures(user: ClerkUser): boolean {
   return isCoachOnboarded(user);
+}
+
+/**
+ * Check if user can access league-only features.
+ * This combines role check and onboarding status.
+ */
+export function canAccessLeagueFeatures(user: ClerkUser): boolean {
+  return isLeagueOnboarded(user);
 }
 
 export function canMessageCoach(currentUserRole: UserRole): boolean {

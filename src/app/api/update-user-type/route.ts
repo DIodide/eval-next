@@ -18,9 +18,9 @@ export async function POST(request: NextRequest) {
     const { userType } = body;
 
     // Validate userType
-    if (!userType || !['player', 'coach'].includes(userType)) {
+    if (!userType || !['player', 'coach', 'league'].includes(userType)) {
       return NextResponse.json(
-        { error: 'Invalid userType. Must be "player" or "coach"' },
+        { error: 'Invalid userType. Must be "player", "coach", or "league"' },
         { status: 400 }
       );
     }
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists in database as player or coach
-    const [existingPlayer, existingCoach] = await Promise.all([
+    // Check if user already exists in database as player, coach, or league organization
+    const [existingPlayer, existingCoach, existingLeague] = await Promise.all([
       db.player.findUnique({
         where: { clerk_id: userId },
         select: { id: true }
@@ -47,10 +47,14 @@ export async function POST(request: NextRequest) {
       db.coach.findUnique({
         where: { clerk_id: userId },
         select: { id: true }
+      }),
+      db.leagueOrganization.findUnique({
+        where: { clerk_id: userId },
+        select: { id: true }
       })
     ]);
 
-    if (existingPlayer || existingCoach) {
+    if (existingPlayer || existingCoach || existingLeague) {
       return NextResponse.json(
         { error: 'User already exists in database and cannot change type' },
         { status: 403 }
@@ -124,12 +128,41 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+    } else if (userType === 'league') {
+      try {
+        const newLeagueOrganization = await db.leagueOrganization.create({
+          data: {
+            clerk_id: userId,
+            email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
+            first_name: clerkUser.firstName ?? '',
+            last_name: clerkUser.lastName ?? '',
+            username: clerkUser.username ?? '',
+            image_url: clerkUser.imageUrl,
+            external_accounts: clerkUser.externalAccounts as unknown as Prisma.InputJsonValue,
+            organization_name: '', // Will be set during onboarding
+            organization_type: 'ESPORTS_COMPANY', // Default, will be updated during onboarding
+            leagues_operated: [],
+            games_supported: [],
+          }
+        });
+        console.log('League organization created successfully:', newLeagueOrganization.id);
+      } catch (error) {
+        console.error('Error creating league organization:', error);
+        // Rollback Clerk metadata if database creation fails
+        await client.users.updateUserMetadata(userId, {
+          unsafeMetadata: {}
+        });
+        return NextResponse.json(
+          { error: 'Failed to create league organization profile' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ 
       success: true, 
       userType,
-      message: `${userType === 'coach' ? 'Coach' : 'Player'} profile created successfully`
+      message: `${userType === 'coach' ? 'Coach' : userType === 'player' ? 'Player' : 'League'} profile created successfully`
     });
 
   } catch (error) {

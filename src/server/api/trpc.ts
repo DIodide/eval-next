@@ -300,3 +300,82 @@ export const playerProcedure = protectedProcedure.use(isPlayer);
  * Checks Clerk publicMetadata.role === "admin".
  */
 export const adminProcedure = protectedProcedure.use(isAdmin);
+
+/**
+ * Middleware to verify user is an onboarded league organization
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isOnboardedLeague = t.middleware(async ({ next, ctx }) => {
+  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  
+  if (!publicMetadata?.onboarded || publicMetadata?.userType !== "league") {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Access denied. Only onboarded league organizations can access this resource.',
+    });
+  }
+
+  // Verify league organization exists in database
+  const leagueOrganization = await ctx.db.leagueOrganization.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true, organization_name: true },
+  });
+
+  if (!leagueOrganization) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'League organization profile not found.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      leagueOrganizationId: leagueOrganization.id, // Add league-specific context
+      organizationName: leagueOrganization.organization_name, // Add organization name context
+    },
+  });
+});
+
+/**
+ * Middleware to verify user is a league organization
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isLeague = t.middleware(async ({ next, ctx }) => {
+  const leagueOrganization = await ctx.db.leagueOrganization.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true, organization_name: true },
+  });
+
+  if (!leagueOrganization) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'League organization profile not found. Only league organizations can access this resource.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      leagueOrganizationId: leagueOrganization.id, // Add league-specific context
+      organizationName: leagueOrganization.organization_name, // Add organization name context
+    },
+  });
+});
+
+/**
+ * Onboarded league procedure
+ *
+ * This is a procedure that requires the user to be signed in and be an onboarded league organization.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ */
+export const onboardedLeagueProcedure = protectedProcedure.use(isOnboardedLeague);
+
+/**
+ * League procedure
+ *
+ * This is a procedure that requires the user to be signed in and be a league organization.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ * Provides leagueOrganizationId and organizationName in the context.
+ */
+export const leagueProcedure = protectedProcedure.use(isLeague);

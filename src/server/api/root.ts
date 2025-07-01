@@ -1,5 +1,6 @@
 import { playerProfileRouter } from "@/server/api/routers/playerProfile";
 import { coachProfileRouter } from "@/server/api/routers/coachProfile";
+import { leagueProfileRouter } from "@/server/api/routers/leagueProfile";
 import { schoolProfileRouter } from "@/server/api/routers/schoolProfile";
 import { tryoutsRouter } from "@/server/api/routers/tryouts";
 import { combinesRouter } from "@/server/api/routers/combines";
@@ -8,6 +9,7 @@ import { leaguesRouter } from "@/server/api/routers/leagues";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAssociationRequests";
+import { leagueAssociationRequestsRouter } from "@/server/api/routers/leagueAssociationRequests";
 
 /**
  * This is the primary router for your server.
@@ -17,6 +19,7 @@ import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAsso
 export const appRouter = createTRPCRouter({
   playerProfile: playerProfileRouter,
   coachProfile: coachProfileRouter,
+  leagueProfile: leagueProfileRouter,
   schoolProfile: schoolProfileRouter,
   tryouts: tryoutsRouter,
   combines: combinesRouter,
@@ -24,6 +27,7 @@ export const appRouter = createTRPCRouter({
   playerSearch: playerSearchRouter,
   leagues: leaguesRouter,
   schoolAssociationRequests: schoolAssociationRequestsRouter,
+  leagueAssociationRequests: leagueAssociationRequestsRouter,
 });
 
 // export type definition of API

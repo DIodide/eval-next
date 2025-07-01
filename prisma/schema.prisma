@@ -100,6 +100,67 @@ model CoachAchievement {
   @@map("coach_achievements")
 }
 
+/// League Organizations table with Clerk integration
+model LeagueOrganization {
+  id                      String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_id                String                     @unique
+  email                   String                     @unique
+  first_name              String
+  last_name               String
+  username                String                     @unique
+  image_url               String?
+  external_accounts       Json?
+  organization_name       String
+  organization_website    String?
+  organization_location   String?
+  organization_state      String?
+  organization_region     String?
+  organization_type       LeagueOrganizationType
+  description             String?
+  founded_year            Int?
+  leagues_operated        String[] // List of league names they operate
+  games_supported         String[] // List of games they support
+  created_at              DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                   @updatedAt
+  association_requests    LeagueAssociationRequest[]
+
+  @@map("league_organizations")
+}
+
+/// League association requests for league organization onboarding
+model LeagueAssociationRequest {
+  id                          String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  league_organization_id      String                     @db.Uuid
+  status                      LeagueAssociationStatus    @default(PENDING)
+  request_message             String?
+  admin_notes                 String?
+  requested_at                DateTime                   @default(now()) @db.Timestamp(6)
+  reviewed_at                 DateTime?                  @db.Timestamp(6)
+  reviewed_by                 String?
+  created_at                  DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at                  DateTime                   @updatedAt
+  // Organization details
+  organization_name           String
+  organization_website        String?
+  organization_location       String?
+  organization_state          String?
+  organization_region         String?
+  organization_type           LeagueOrganizationType
+  description                 String?
+  founded_year                Int?
+  leagues_operated            String[] // List of league names they operate
+  games_supported             String[] // List of games they support
+  // Verification documents/links
+  verification_documents      String[] // URLs to documents
+  references                  String? // Contact references
+  league_organization         LeagueOrganization         @relation(fields: [league_organization_id], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([requested_at])
+  @@index([organization_type])
+  @@map("league_association_requests")
+}
+
 /// School association requests for coach onboarding
 model SchoolAssociationRequest {
   id                       String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -678,4 +739,20 @@ enum SchoolAnnouncementType {
   ALUMNI
   EVENT
   SEASON_REVIEW
+}
+
+enum LeagueAssociationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeagueOrganizationType {
+  PROFESSIONAL_LEAGUE
+  COLLEGIATE_LEAGUE
+  HIGH_SCHOOL_LEAGUE
+  AMATEUR_LEAGUE
+  TOURNAMENT_ORGANIZER
+  ESPORTS_COMPANY
+  GAMING_ORGANIZATION
 }

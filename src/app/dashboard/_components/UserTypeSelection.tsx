@@ -3,20 +3,20 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, GraduationCap, AlertTriangle } from "lucide-react";
+import { User, GraduationCap, AlertTriangle, Trophy } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
 interface UserTypeSelectionProps {
-  onUserTypeSelected: (userType: 'player' | 'coach') => void;
+  onUserTypeSelected: (userType: 'player' | 'coach' | 'league') => void;
 }
 
 export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelectionProps) {
-  const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null);
+  const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | 'league' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
 
-  const handleUserTypeSelect = (userType: 'player' | 'coach') => {
+  const handleUserTypeSelect = (userType: 'player' | 'coach' | 'league') => {
     setSelectedUserType(userType);
     setError(null); // Clear any previous errors when selecting a new type
   };
@@ -87,7 +87,7 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
 
         <CardContent className="space-y-8">
           {/* User Type Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Player Option */}
             <button
               onClick={() => handleUserTypeSelect('player')}
@@ -143,6 +143,34 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
                 </div>
               </div>
             </button>
+
+            {/* League Option */}
+            <button
+              onClick={() => handleUserTypeSelect('league')}
+              className={`p-8 rounded-lg border-2 text-center transition-all ${
+                selectedUserType === 'league'
+                  ? 'border-cyan-400 bg-cyan-900/50 shadow-lg shadow-cyan-500/20'
+                  : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'
+              }`}
+            >
+              <div className="flex flex-col items-center space-y-4">
+                <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center ${
+                  selectedUserType === 'league' 
+                    ? 'border-cyan-400 bg-cyan-500/20' 
+                    : 'border-gray-500 bg-gray-700/50'
+                }`}>
+                  <Trophy className={`w-8 h-8 ${
+                    selectedUserType === 'league' ? 'text-cyan-400' : 'text-gray-400'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className="font-orbitron font-bold text-white text-lg mb-3">LEAGUE</h3>
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    I am a league organizer or administrator looking to manage esports events and competitions.
+                  </p>
+                </div>
+              </div>
+            </button>
           </div>
 
           {/* Error Message */}
@@ -169,7 +197,7 @@ export default function UserTypeSelection({ onUserTypeSelected }: UserTypeSelect
                     Setting up your account...
                   </div>
                 ) : (
-                  `CONTINUE AS ${selectedUserType === 'coach' ? 'COACH' : 'PLAYER'}`
+                  `CONTINUE AS ${selectedUserType === 'coach' ? 'COACH' : selectedUserType === 'league' ? 'LEAGUE' : 'PLAYER'}`
                 )}
               </Button>
             ) : (
