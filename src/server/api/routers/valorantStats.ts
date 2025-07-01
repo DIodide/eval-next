@@ -136,6 +136,8 @@ const ValorantPlayerStatsSchema = z.object({
   eval_score: z.number().nullable(),
   rank: z.number().nullable(),
   rank_name: z.string().nullable(),
+  game_name: z.string().nullable(),
+  tag_line: z.string().nullable(),
   image_paths: ValorantImagePathsSchema,
 });
 
@@ -222,9 +224,7 @@ async function makeValorantAPIRequest(endpoint: string, data?: unknown): Promise
 
 // Helper function to convert API response to analytics format
 function transformToAnalyticsData(
-  apiResponse: z.infer<typeof ValorantPlayerStatsResponseSchema>,
-  gameName?: string,
-  tagLine?: string
+  apiResponse: z.infer<typeof ValorantPlayerStatsResponseSchema>
 ): ValorantAnalyticsData {
   const stats = apiResponse.stats;
   
@@ -236,8 +236,8 @@ function transformToAnalyticsData(
   
   return {
     role: stats.main_role ?? "Unknown",
-    gameName,
-    tagLine,
+    gameName: stats.game_name ?? undefined,
+    tagLine: stats.tag_line ?? undefined,
     mainAgent: {
       name: stats.main_agent ?? "Unknown",
       image: stats.image_paths.agent_icon_url,
@@ -459,11 +459,7 @@ export const valorantStatsRouter = createTRPCRouter({
             const clerk = await clerkClient();
             const clerkUser = await clerk.users.getUser(player.clerk_id);
             
-            const valorantMetadata = clerkUser.publicMetadata?.valorant as { 
-              puuid?: string;
-              gameName?: string;
-              tagLine?: string;
-            } | undefined;
+            const valorantMetadata = clerkUser.publicMetadata?.valorant as { puuid?: string } | undefined;
             
             if (!valorantMetadata?.puuid) {
               return {
@@ -488,11 +484,7 @@ export const valorantStatsRouter = createTRPCRouter({
               };
             }
 
-            const analyticsData = transformToAnalyticsData(
-              validatedResponse,
-              valorantMetadata.gameName,
-              valorantMetadata.tagLine
-            );
+            const analyticsData = transformToAnalyticsData(validatedResponse);
 
             return {
               success: true,
@@ -556,11 +548,7 @@ export const valorantStatsRouter = createTRPCRouter({
            const clerk = await clerkClient();
            const clerkUser = await clerk.users.getUser(ctx.auth.userId!);
            
-           const valorantMetadata = clerkUser.publicMetadata?.valorant as { 
-             puuid?: string;
-             gameName?: string;
-             tagLine?: string;
-           } | undefined;
+           const valorantMetadata = clerkUser.publicMetadata?.valorant as { puuid?: string } | undefined;
           
           if (!valorantMetadata?.puuid) {
             return {
@@ -584,11 +572,7 @@ export const valorantStatsRouter = createTRPCRouter({
             };
           }
 
-          const analyticsData = transformToAnalyticsData(
-            validatedResponse,
-            valorantMetadata.gameName,
-            valorantMetadata.tagLine
-          );
+          const analyticsData = transformToAnalyticsData(validatedResponse);
 
           return {
             success: true,
