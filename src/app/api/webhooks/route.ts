@@ -11,15 +11,6 @@ interface ClerkUnsafeMetadata {
   // Optional additional fields
 }
 
-interface ExternalAccount {
-  id: string;
-  provider: string;
-  external_id?: string;
-  approved_scopes: string;
-  email_address?: string;
-  username?: string;
-}
-
 export async function POST(req: NextRequest) {
     try {
         
@@ -29,36 +20,14 @@ export async function POST(req: NextRequest) {
     // For this guide, log payload to console
     const { id } = evt.data
     const eventType = evt.type
-    console.log(`Received webhook with ID ${id} and event type of ${eventType}`)
-    console.log('Webhook payload:', evt.data)
+    console.log(`[WEBHOOK] Received webhook with ID ${id} and event type of ${eventType}`)
+    // console.log('[WEBHOOK] Webhook payload:', evt.data)
     
     // Handle user.created
-    if (eventType === 'user.created') {
+      if (eventType === 'user.created') {
+      console.log("[WEBHOOK] User create event received")
       const userData = evt.data 
       const unsafeMetadata = userData.unsafe_metadata as unknown as ClerkUnsafeMetadata
-      
-      // Extract relevant data for database sync
-      const userDataForSync = {
-        clerk_id: userData.id,
-        email: userData.email_addresses?.[0]?.email_address ?? '',
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        image_url: userData.image_url,
-        username: userData.username,
-        created_at: new Date(userData.created_at),
-        updated_at: new Date(userData.updated_at),
-        public_metadata: userData.public_metadata,
-        unsafe_metadata: userData.unsafe_metadata,
-        // User type from unsafe metadata
-        user_type: unsafeMetadata.userType,
-        // Additional useful fields
-        external_id: userData.external_id,
-        last_sign_in_at: userData.last_sign_in_at ? new Date(userData.last_sign_in_at) : null,
-        two_factor_enabled: userData.two_factor_enabled,
-        password_enabled: userData.password_enabled,
-      }
-      
-      console.log('User created - data for sync:', userDataForSync)
       
       // Update publicMetadata with userType for secure access
       if (unsafeMetadata.userType) {
@@ -76,7 +45,7 @@ export async function POST(req: NextRequest) {
         }
       }
       
-      // TODO: Add database sync logic here based on user type
+      // Database sync logic here based on user type
       if (unsafeMetadata.userType === 'player') {
         try {
           const newPlayer = await db.player.create({
@@ -214,62 +183,6 @@ export async function POST(req: NextRequest) {
       const userData = evt.data 
       const unsafeMetadata = userData.unsafe_metadata as unknown as ClerkUnsafeMetadata
       
-      // Check for Valorant external account changes and clean up metadata if needed
-      const externalAccounts = userData.external_accounts as unknown as ExternalAccount[]
-      const hasValorantAccount = externalAccounts.some(
-        account => account.provider === 'custom_valorant'
-      )
-      const hasValorantMetadata = userData.public_metadata?.valorant
-      
-      // If user has Valorant metadata but NO Valorant external account, clean it up
-      if (!hasValorantAccount && hasValorantMetadata) {
-        try {
-          const client = await clerkClient()
-          
-          // Remove Valorant metadata from publicMetadata
-          const updatedMetadata = { ...userData.public_metadata }
-          delete updatedMetadata.valorant
-          
-          await client.users.updateUserMetadata(userData.id, {
-            publicMetadata: updatedMetadata,
-          })
-
-          console.log(`🧹 Cleaned up orphaned Valorant metadata for user: ${userData.id}`)
-          
-          // Log cleanup to Discord
-          try {
-            await logError({
-              error: 'Valorant metadata cleanup completed',
-              errorCode: 'VALORANT_METADATA_CLEANUP',
-              endpoint: 'webhooks/user.updated',
-              severity: 'low',
-              userId: userData.id,
-              userEmail: userData.email_addresses?.[0]?.email_address ?? null,
-              timestamp: new Date(),
-            });
-          } catch (discordError) {
-            console.error('Discord logging failed for cleanup:', discordError);
-          }
-        } catch (error) {
-          console.error('❌ Error cleaning up Valorant metadata:', error)
-          
-          // Log cleanup error to Discord
-          try {
-            await logError({
-              error: error instanceof Error ? error.message : 'Unknown error cleaning up Valorant metadata',
-              errorCode: 'VALORANT_CLEANUP_FAILED',
-              endpoint: 'webhooks/user.updated',
-              severity: 'medium',
-              userId: userData.id,
-              userEmail: userData.email_addresses?.[0]?.email_address ?? null,
-              timestamp: new Date(),
-            });
-          } catch (discordError) {
-            console.error('Discord error logging failed:', discordError);
-          }
-        }
-      }
-      
       // Extract relevant data for database sync
       const userDataForSync = {
         clerk_id: userData.id,
@@ -291,7 +204,7 @@ export async function POST(req: NextRequest) {
         password_enabled: userData.password_enabled,
       }
       
-      console.log('User updated - data for sync:', userDataForSync)
+      console.log('User updated - data for sync: omitted')
       
       // TODO: Add database sync logic here based on user type
       if (unsafeMetadata.userType === 'player') {

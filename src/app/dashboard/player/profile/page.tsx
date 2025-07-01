@@ -1196,7 +1196,7 @@ export default function ProfilePage() {
                       setConnectionUsername("");
                       setConnectionError("");
                     }}
-                    className="border-gray-600 text-black hover:bg-gray-200"
+                    className="border-gray-600 bg-white text-black hover:bg-gray-200"
                     disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending}
                   >
                     <XIcon className="w-4 h-4 mr-2 text-black" />

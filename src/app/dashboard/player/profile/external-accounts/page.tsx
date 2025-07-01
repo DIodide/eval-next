@@ -137,48 +137,40 @@ export default function ManageExternalAccounts() {
     return user.createExternalAccount(params)
   })
   
-  // Enhanced account removal with Valorant cleanup
+  // Simple account removal 
   const removeAccountWithCleanup = useReverification(async (account: ExternalAccountResource) => {
     try {
-      const isValorantAccount = account.provider === 'custom_valorant';
-      
-      // Remove the external account
-      await account.destroy();
-      
-      // If it was a Valorant account, clean up metadata immediately
-      if (isValorantAccount) {
-        try {
-          const response = await fetch('/api/valorant/cleanup-metadata', {
+      console.log(`Removing external account: ${account.provider}`);
+
+      switch (account.provider) {
+        case 'custom_valorant': { 
+          // Remove the valorant metadata from the user's public metadata by calling the cleanup route
+          await fetch('/api/valorant/cleanup-metadata', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-          });
-          
-          if (response.ok) {
-            const data = await response.json() as { success?: boolean; cleaned?: boolean; message?: string };
-            if (data.success && data.cleaned) {
-              console.log('✅ Valorant metadata cleaned up successfully');
-            } else {
-              console.log('ℹ️ No cleanup needed:', data.message);
-            }
-          } else {
-            console.warn('⚠️ Failed to clean up metadata immediately - webhook will handle it');
-          }
-        } catch (cleanupError) {
-          console.warn('⚠️ Cleanup request failed - webhook will handle it:', cleanupError);
+          })
         }
-        
-        // Refresh user data to reflect changes
-        await user?.reload();
       }
+      
+      // Remove the external account
+      await account.destroy();
+      console.log(`✅ Account removed: ${account.provider}`);
+
+      
+      
+      // Refresh user data to reflect changes
+      await user?.reload();
+      
+      console.log('✅ Account removal complete');
     } catch (error) {
       console.error('❌ Error removing external account:', error);
-      throw error; // Re-throw so reverification can handle it
+      throw error;
     }
   });
 
-  // Legacy function for backwards compatibility
+  // Legacy function for backwards compatibility, accountDestroy is actually called
   const accountDestroy = removeAccountWithCleanup;
 
   // List the options the user can select when adding a new external account
@@ -233,7 +225,7 @@ export default function ManageExternalAccounts() {
     
     setIsConnecting(true)
     
-          try {
+    try {
       // Alternative approach: Use user object directly if reverification fails
       let res
       try {

@@ -14,6 +14,6 @@ export interface RiotAccountResponse {
 // Extend Clerk's publicMetadata type
 declare global {
   interface UserPublicMetadata {
-    valorant?: ValorantMetadata;
+    valorant?: ValorantMetadata | null;
   }
 } 

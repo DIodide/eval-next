@@ -4,9 +4,11 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LoaderIcon, RefreshCwIcon, ShieldIcon } from "lucide-react";
+import { LoaderIcon, RefreshCwIcon, ShieldIcon, TrashIcon } from "lucide-react";
+import { useState } from "react";
 
 export function ValorantTestComponent() {
+  const [testingCleanup, setTestingCleanup] = useState(false);
   const { data: valorantData, isLoading, refetch } = api.playerProfile.getValorantData.useQuery();
   const refreshMutation = api.playerProfile.refreshValorantData.useMutation({
     onSuccess: () => {
@@ -17,6 +19,41 @@ export function ValorantTestComponent() {
   const handleRefresh = () => {
     refreshMutation.mutate();
   };
+
+  const handleTestCleanup = async () => {
+    setTestingCleanup(true);
+    try {
+      const response = await fetch('/api/valorant/cleanup-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json() as { 
+        success?: boolean; 
+        cleaned?: boolean; 
+        message?: string; 
+        error?: string;
+      };
+      
+      if (response.ok) {
+        console.log('Cleanup result:', data);
+        alert(`Cleanup: ${data.message}`);
+        void refetch();
+      } else {
+        console.error('Cleanup failed:', data);
+        alert(`Cleanup failed: ${data.error ?? 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      alert('Cleanup test failed');
+    } finally {
+      setTestingCleanup(false);
+    }
+  };
+
+
 
   if (isLoading) {
     return (
@@ -36,19 +73,36 @@ export function ValorantTestComponent() {
           <ShieldIcon className="h-5 w-5 text-red-500" />
           Valorant Integration Test
         </h3>
-        <Button
-          onClick={handleRefresh}
-          disabled={refreshMutation.isPending}
-          size="sm"
-          variant="outline"
-        >
-          {refreshMutation.isPending ? (
-            <LoaderIcon className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <RefreshCwIcon className="h-4 w-4 mr-2" />
-          )}
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleTestCleanup}
+            disabled={testingCleanup}
+            size="sm"
+            variant="outline"
+            className="border-orange-600 text-orange-400 hover:bg-orange-900/20"
+          >
+            {testingCleanup ? (
+              <LoaderIcon className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <TrashIcon className="h-4 w-4 mr-2" />
+            )}
+            Test Cleanup
+          </Button>
+
+          <Button
+            onClick={handleRefresh}
+            disabled={refreshMutation.isPending}
+            size="sm"
+            variant="outline"
+          >
+            {refreshMutation.isPending ? (
+              <LoaderIcon className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <RefreshCwIcon className="h-4 w-4 mr-2" />
+            )}
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {valorantData ? (
@@ -93,6 +147,18 @@ export function ValorantTestComponent() {
           </p>
         </div>
       )}
+      
+      {/* Debug information */}
+      <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+        <h4 className="text-blue-200 font-medium mb-2">Debug Instructions:</h4>
+        <ul className="text-blue-300 text-sm space-y-1 list-disc list-inside">
+          <li><strong>Test Cleanup:</strong> Tests the metadata cleanup API directly</li>
+          <li><strong>Force Remove Metadata:</strong> Removes VALORANT metadata from your account regardless of external account status</li>
+          <li><strong>Refresh:</strong> Fetches fresh VALORANT data from your connected account</li>
+          <li><strong>Console:</strong> Check browser console for detailed cleanup logs</li>
+          <li><strong>Expected:</strong> After removing external account, metadata should be cleaned automatically</li>
+        </ul>
+      </div>
     </Card>
   );
 } 

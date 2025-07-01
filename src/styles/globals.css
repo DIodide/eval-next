@@ -7,6 +7,9 @@
 @import "tw-animate-css"; */
 
 
+.cl-profileSection__connectedAccounts {
+  display: none;
+}
 
 /* Global Background Image */
 .home-background {

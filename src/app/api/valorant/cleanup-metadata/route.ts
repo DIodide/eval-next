@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 
 export async function POST(req: NextRequest) {
@@ -12,42 +12,41 @@ export async function POST(req: NextRequest) {
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
     
-    // Check if user still has a Valorant external account
-    const hasValorantAccount = user.externalAccounts.some(
-      account => account.provider === 'custom_valorant'
-    );
+    console.log(`[CLEANUP] User ${userId}: checking VALORANT cleanup`);
     
+    // Check current state
+    const hasValorantAccount = user.externalAccounts.some(acc => acc.provider === 'custom_valorant');
     const hasValorantMetadata = !!user.publicMetadata?.valorant;
     
+    console.log(`[CLEANUP] State: account=${hasValorantAccount}, metadata=${hasValorantMetadata}`);
+
+    // Simple logic: if metadata exists but no external account, remove it
     if (!hasValorantAccount && hasValorantMetadata) {
-      // Remove Valorant metadata since no external account exists
-      const updatedMetadata = { ...user.publicMetadata };
-      delete updatedMetadata.valorant;
+      console.log(`[CLEANUP] Removing orphaned VALORANT metadata`);
       
       await client.users.updateUserMetadata(userId, {
-        publicMetadata: updatedMetadata,
+        publicMetadata: {
+          ...user.publicMetadata,
+          valorant: null
+        }
       });
 
-      console.log(`🧹 Cleaned up Valorant metadata for user: ${userId}`);
-      
+      console.log(`[CLEANUP] ✅ Metadata removed`);
       return NextResponse.json({ 
         success: true, 
         cleaned: true,
-        message: 'Valorant metadata cleaned up successfully' 
+        message: 'VALORANT metadata cleaned up successfully'
       });
     }
 
+    console.log(`[CLEANUP] No cleanup needed`);
     return NextResponse.json({ 
       success: true, 
       cleaned: false,
-      message: hasValorantAccount 
-        ? 'User still has Valorant account - no cleanup needed'
-        : 'No Valorant metadata found - nothing to clean'
+      message: hasValorantAccount ? 'User has VALORANT account' : 'No VALORANT metadata to clean'
     });
   } catch (error) {
-    console.error('❌ Error cleaning up Valorant metadata:', error);
-    return NextResponse.json({ 
-      error: 'Failed to cleanup metadata' 
-    }, { status: 500 });
+    console.error('[CLEANUP] Error:', error);
+    return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 });
   }
 } 
