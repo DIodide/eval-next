@@ -19,6 +19,7 @@ export const env = createEnv({
       .default("development"),
     CLERK_SECRET_KEY: z.string(),
     CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
+    EVAL_API_BASE: z.string(),
     
     // Discord webhook URLs (optional)
     DISCORD_WEBHOOK_GENERAL: z.string().optional(),
@@ -61,6 +62,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+    EVAL_API_BASE: process.env.EVAL_API_BASE,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
     DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,

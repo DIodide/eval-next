@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { MessageSquareIcon, StarIcon, GamepadIcon, GithubIcon, TwitterIcon, InstagramIcon, TwitchIcon, MessageCircleIcon, ExternalLinkIcon, InfoIcon } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { MessageSquareIcon, StarIcon, GamepadIcon, GithubIcon, TwitterIcon, InstagramIcon, TwitchIcon, MessageCircleIcon, ExternalLinkIcon } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
 import { api } from "@/trpc/react";
+import { ValorantAnalytics } from "./ValorantAnalytics";
 
 // Helper functions for platform and social connections
 function getPlatformIcon(platform: string) {
@@ -118,37 +119,8 @@ function getSocialDisplayName(platform: string) {
   }
 }
 
-// Mock data for game statistics (keeping this separate from database data)
+// Mock data for game statistics (excluding Valorant which now uses real data)
 const mockGameStats = {
-  valorant: {
-    role: "Duelist",
-    mainAgent: {
-      name: "Jett",
-      image: "/valorant/agents/jett.png"
-    },
-    mainGun: {
-      name: "Vandal",
-      image: "/valorant/weapons/vandal.png"
-    },
-    bestMap: {
-      name: "Ascent", 
-      image: "/valorant/maps/ascent.png"
-    },
-    worstMap: {
-      name: "Breeze",
-      image: "/valorant/maps/breeze.png"
-    },
-    stats: {
-      evalScore: 87,
-      rank: "Immortal 2",
-      kda: "1.4/0.8/2.1",
-      gameWinRate: "68%",
-      roundWinRate: "55%",
-      acs: 245,
-      kastPercent: "76%",
-      clutchFactor: "24%"
-    }
-  },
   overwatch: {
     role: "DPS",
     bestHeroes: ["Tracer", "Genji", "Widow"],
@@ -552,231 +524,9 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                 <TabsTrigger value="rocket-league" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white font-orbitron">Rocket League</TabsTrigger>
               </TabsList>
 
-              {/* Valorant Stats */}
+              {/* Valorant Stats - Now using real API data */}
               <TabsContent value="valorant" className="mt-6">
-                {/* Top Row: Role, Agent, Gun */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 font-rajdhani mb-1 flex items-center gap-1">
-                      MAIN ROLE
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                          <p>Primary role played in competitive matches. Duelists are entry fraggers who create space for the team.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="text-lg font-orbitron font-bold text-cyan-400">{mockGameStats.valorant.role}</div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 font-rajdhani mb-1 flex items-center gap-1">
-                      MAIN AGENT
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                          <p>Most frequently played agent based on match history and performance statistics.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gray-800 rounded border border-gray-600 flex items-center justify-center">
-                        <span className="text-xs text-gray-500">IMG</span>
-                      </div>
-                      <div className="text-lg font-orbitron font-bold text-white">{mockGameStats.valorant.mainAgent.name}</div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 font-rajdhani mb-1 flex items-center gap-1">
-                      MAIN GUN
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                          <p>Primary weapon with highest kill count and best performance metrics.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gray-800 rounded border border-gray-600 flex items-center justify-center">
-                        <span className="text-xs text-gray-500">IMG</span>
-                      </div>
-                      <div className="text-lg font-orbitron font-bold text-white">{mockGameStats.valorant.mainGun.name}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Maps Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 font-rajdhani mb-1 flex items-center gap-1">
-                      BEST MAP
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                          <p>Highest win rate and performance map. Shows where the player excels most consistently.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gray-800 rounded border border-gray-600 flex items-center justify-center">
-                        <span className="text-xs text-gray-500">IMG</span>
-                      </div>
-                      <div className="text-lg font-orbitron font-bold text-green-400">{mockGameStats.valorant.bestMap.name}</div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 font-rajdhani mb-1 flex items-center gap-1">
-                      WORST MAP
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                          <p>Lowest win rate and performance map. Indicates areas for improvement.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gray-800 rounded border border-gray-600 flex items-center justify-center">
-                        <span className="text-xs text-gray-500">IMG</span>
-                      </div>
-                      <div className="text-lg font-orbitron font-bold text-red-400">{mockGameStats.valorant.worstMap.name}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Core Metrics Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-orbitron font-bold text-purple-300">{mockGameStats.valorant.stats.evalScore}</div>
-                    <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
-                      EVAL SCORE
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-purple-500 hover:text-purple-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>EVAL&apos;s proprietary ranking score (0-100) based on performance across multiple metrics including aim, game sense, and impact.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-red-300">{mockGameStats.valorant.stats.rank}</div>
-                    <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
-                      RANK
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-red-500 hover:text-red-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Current competitive rank in Valorant&apos;s ranked system. Higher ranks indicate better skill level.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-green-400">{mockGameStats.valorant.stats.gameWinRate}</div>
-                    <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-                      GAME WIN %
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Percentage of games won out of total games played. Measures overall team success rate.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-blue-400">{mockGameStats.valorant.stats.roundWinRate}</div>
-                    <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-                      ROUND WIN %
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Percentage of individual rounds won. More granular than game win rate and shows consistent performance.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-red-400">{mockGameStats.valorant.stats.kda}</div>
-                    <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-                      K/D/A
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Kills/Deaths/Assists ratio. Shows average performance per game in eliminations and team support.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-orange-400">
-                      {mockGameStats.valorant.stats.acs}
-                    </div>
-                    <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-                      ACS
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Average Combat Score - comprehensive metric measuring overall impact per round including damage, kills, and utility usage.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-yellow-400">
-                      {mockGameStats.valorant.stats.kastPercent}
-                    </div>
-                    <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-                      KAST%
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Percentage of rounds where the player got a Kill, Assist, Survived, or was Traded. Measures consistent round contribution.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-orbitron font-bold text-cyan-400">
-                      {mockGameStats.valorant.stats.clutchFactor}
-                    </div>
-                    <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-                      CLUTCH FACTOR
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                        </TooltipTrigger>
-                                                 <TooltipContent side="bottom" className="bg-black text-white border-gray-600 max-w-40 md:max-w-48 whitespace-normal">
-                           <p>Win rate in 1vX clutch situations. Measures performance under pressure when outnumbered.</p>
-                         </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
+                <ValorantAnalytics playerId={player.id} />
               </TabsContent>
 
               {/* Overwatch Stats */}
