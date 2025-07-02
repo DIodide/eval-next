@@ -54,21 +54,27 @@ async function main() {
     }
   }
 
-  // Find VALORANT game for GSE league
+  // Find GSE supported games
   const valorantGame = createdGames.find(g => g.short_name === 'VAL')
+  const smashGame = createdGames.find(g => g.short_name === 'SSBU')
+  const rocketLeagueGame = createdGames.find(g => g.short_name === 'RL')
+  const gseGames = [valorantGame, smashGame, rocketLeagueGame].filter(Boolean)
   
   // Create Garden State Esports League
   console.log('🏆 Creating Garden State Esports League...')
   let gseLeague = null
   try {
     const existingLeague = await prisma.league.findFirst({
-      where: { name: 'Garden State Esports League' }
+      where: { 
+        name: 'Garden State Esports League',
+        season: '2024-2025'
+      }
     })
     
     if (existingLeague) {
       console.log('⏭️  Garden State Esports League already exists')
       gseLeague = existingLeague
-    } else if (valorantGame?.id) {
+    } else {
       gseLeague = await prisma.league.create({
         data: {
           name: 'Garden State Esports League',
@@ -79,33 +85,91 @@ async function main() {
           tier: 'COMPETITIVE',
           season: '2024-2025',
           status: 'ACTIVE',
-          format: 'GSE Format',
-          prize_pool: '$...',
+          format: 'Round Robin + Playoffs',
+          prize_pool: 'Scholarships and Awards',
           founded_year: 2019
         }
       })
-      
-      // Create the league-game relationship
-      if (gseLeague && valorantGame.id) {
-        await prisma.leagueGame.create({
-          data: {
-            league_id: gseLeague.id,
-            game_id: valorantGame.id
-          }
-        });
-      }
       console.log('✅ Created Garden State Esports League')
-    } else {
-      console.log('⚠️  Cannot create GSE League: VALORANT game not found')
     }
   } catch (error) {
     console.log('⚠️  Could not create Garden State Esports League:', error)
   }
 
+  // Create league-game relationships for GSE supported games
+  if (gseLeague && gseGames.length > 0) {
+    console.log('🎮 Creating GSE game relationships...')
+    let createdRelationships = 0
+    
+    for (const game of gseGames) {
+      if (!game) continue
+      
+      try {
+        const existingLeagueGame = await prisma.leagueGame.findUnique({
+          where: {
+            league_id_game_id: {
+              league_id: gseLeague.id,
+              game_id: game.id
+            }
+          }
+        })
+        
+        if (existingLeagueGame) {
+          console.log(`⏭️  GSE-${game.short_name} relationship already exists`)
+        } else {
+          await prisma.leagueGame.create({
+            data: {
+              league_id: gseLeague.id,
+              game_id: game.id
+            }
+          })
+          console.log(`✅ Created GSE-${game.short_name} game relationship`)
+          createdRelationships++
+        }
+      } catch (error) {
+        console.log(`⚠️  Could not create GSE-${game.short_name} relationship:`, error)
+      }
+    }
+  }
+
+  // Optional: Create a default league administrator for GSE
+  // This is commented out as it would require actual Clerk user data
+  // Uncomment and modify if you have specific admin user details to seed
+  /*
+  if (gseLeague) {
+    try {
+      const existingAdmin = await prisma.leagueAdministrator.findFirst({
+        where: { league_id: gseLeague.id }
+      })
+      
+      if (!existingAdmin) {
+        await prisma.leagueAdministrator.create({
+          data: {
+            clerk_id: 'your_clerk_id_here',
+            email: 'admin@gse.league',
+            first_name: 'GSE',
+            last_name: 'Administrator',
+            username: 'gse_admin',
+            league: 'Garden State Esports League',
+            league_id: gseLeague.id,
+            title: 'Commissioner'
+          }
+        })
+        console.log('✅ Created GSE League Administrator')
+      } else {
+        console.log('⏭️  GSE League Administrator already exists')
+      }
+    } catch (error) {
+      console.log('⚠️  Could not create GSE League Administrator:', error)
+    }
+  }
+  */
+
   console.log('🎉 Production seed completed successfully!')
   console.log('📊 Summary:')
   console.log(`   - Games: ${createdGames.length}`)
   console.log(`   - GSE League: ${gseLeague ? 'Created/Found' : 'Failed'}`)
+  console.log(`   - GSE Game Support: ${gseGames.map(g => g?.short_name).join(', ')} (${gseGames.length} games)`)
 }
 
 main()
