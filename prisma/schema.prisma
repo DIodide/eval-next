@@ -132,21 +132,82 @@ model SchoolAssociationRequest {
   @@map("school_association_requests")
 }
 
+/// League administrators who can manage league information
+model LeagueAdministrator {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_id          String   @unique
+  email             String   @unique
+  first_name        String
+  last_name         String
+  username          String?  @unique
+  image_url         String?
+  external_accounts Json?
+  league            String // Denormalized league name
+  league_id         String?  @db.Uuid // Foreign key to League (nullable until association)
+  title             String? // Commissioner, Director, Admin, etc.
+  created_at        DateTime @default(now()) @db.Timestamp(6)
+  updated_at        DateTime @updatedAt
+
+  // Relationships
+  league_ref           League?                    @relation(fields: [league_id], references: [id])
+  association_requests LeagueAssociationRequest[]
+
+  @@map("league_administrators")
+}
+
+/// League association requests (similar to school association)
+model LeagueAssociationRequest {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  administrator_id      String                  @db.Uuid
+  league_id             String?                 @db.Uuid
+  request_message       String
+  status                LeagueAssociationStatus @default(PENDING)
+  admin_notes           String?
+  is_new_league_request Boolean                 @default(false)
+
+  // New league proposal fields
+  proposed_league_name        String?
+  proposed_league_short_name  String?
+  proposed_league_description String?
+  proposed_game_ids           Json? // Array of game IDs (existing games)
+  proposed_custom_games       Json? // Array of custom game objects {name, short_name, icon?, color?}
+  proposed_region             String?
+  proposed_state              String?
+  proposed_tier               LeagueTier?
+  proposed_season             String?
+  proposed_format             String?
+  proposed_founded_year       Int?
+
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt
+
+  administrator LeagueAdministrator @relation(fields: [administrator_id], references: [id], onDelete: Cascade)
+  league        League?             @relation(fields: [league_id], references: [id])
+  Game          Game?               @relation(fields: [gameId], references: [id])
+  gameId        String?             @db.Uuid
+
+  @@map("league_association_requests")
+}
+
 /// Games supported by the platform
 model Game {
-  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name              String              @unique
-  short_name        String              @unique
-  icon              String?
-  color             String?
-  created_at        DateTime            @default(now()) @db.Timestamp(6)
-  combines          Combine[]
-  leagues           League[]
-  player_profiles   PlayerGameProfile[]
-  rankings          PlayerRanking[]
-  main_game_players Player[]            @relation("PlayerMainGame")
-  teams             Team[]
-  tryouts           Tryout[]
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                     String                     @unique
+  short_name               String                     @unique
+  icon                     String?
+  color                    String?
+  is_custom                Boolean                    @default(false) // Distinguishes Eval's official games from custom league games
+  created_by_league_id     String?                    @db.Uuid // League that created this custom game
+  created_at               DateTime                   @default(now()) @db.Timestamp(6)
+  combines                 Combine[]
+  league_games             LeagueGame[] // Many-to-many with leagues
+  player_profiles          PlayerGameProfile[]
+  rankings                 PlayerRanking[]
+  main_game_players        Player[]                   @relation("PlayerMainGame")
+  teams                    Team[]
+  tryouts                  Tryout[]
+  created_by_league        League?                    @relation("CustomGamesCreated", fields: [created_by_league_id], references: [id])
+  LeagueAssociationRequest LeagueAssociationRequest[]
 
   @@map("games")
 }
@@ -374,29 +435,46 @@ model CombineRegistration {
 
 /// Competitive leagues
 model League {
-  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                String
-  short_name          String
-  description         String
-  game_id             String         @db.Uuid
-  region              String
-  state               String?
-  tier                LeagueTier
-  season              String
-  status              LeagueStatus
-  format              String?
-  prize_pool          String?
-  founded_year        Int?
-  created_at          DateTime       @default(now()) @db.Timestamp(6)
-  updated_at          DateTime       @updatedAt
-  schools             LeagueSchool[]
-  teams               LeagueTeam[]
-  game                Game           @relation(fields: [game_id], references: [id])
-  matches             Match[]
-  player_participants PlayerLeague[]
+  id                   String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  short_name           String
+  description          String
+  logo_url             String? // League logo URL
+  banner_url           String? // League banner URL
+  region               String
+  state                String?
+  tier                 LeagueTier
+  season               String
+  status               LeagueStatus
+  format               String?
+  prize_pool           String?
+  founded_year         Int?
+  created_at           DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at           DateTime                   @updatedAt
+  schools              LeagueSchool[]
+  teams                LeagueTeam[]
+  league_games         LeagueGame[] // Many-to-many with games
+  matches              Match[]
+  player_participants  PlayerLeague[]
+  administrators       LeagueAdministrator[]
+  association_requests LeagueAssociationRequest[]
+  custom_games_created Game[]                     @relation("CustomGamesCreated")
 
-  @@unique([name, season, game_id])
+  @@unique([name, season])
   @@map("leagues")
+}
+
+/// League-Game many-to-many relationship
+model LeagueGame {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  league_id String   @db.Uuid
+  game_id   String   @db.Uuid
+  added_at  DateTime @default(now()) @db.Timestamp(6)
+  league    League   @relation(fields: [league_id], references: [id], onDelete: Cascade)
+  game      Game     @relation(fields: [game_id], references: [id], onDelete: Cascade)
+
+  @@unique([league_id, game_id])
+  @@map("league_games")
 }
 
 /// League team participation
@@ -589,6 +667,12 @@ model SchoolAnnouncement {
 }
 
 enum SchoolAssociationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeagueAssociationStatus {
   PENDING
   APPROVED
   REJECTED
