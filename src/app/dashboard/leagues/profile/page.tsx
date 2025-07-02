@@ -6,10 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserIcon, SaveIcon, EyeIcon, BuildingIcon, AlertCircleIcon, Loader2 } from "lucide-react";
+import { FileUpload } from "@/components/ui/file-upload";
+import { UserIcon, SaveIcon, EyeIcon, BuildingIcon, AlertCircleIcon, Loader2, ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import type { TRPCError } from "@trpc/server";
 
 export default function LeagueProfilePage() {
   const { toast } = useToast();
@@ -29,7 +32,7 @@ export default function LeagueProfilePage() {
   });
 
   // Get league admin profile data
-  const { data: profileData, isLoading, error } = api.leagueAdminProfile.getProfile.useQuery();
+  const { data: profileData, isLoading, error, refetch } = api.leagueAdminProfile.getProfile.useQuery();
   
   // Update league profile mutation
   const updateLeagueProfile = api.leagueAdminProfile.updateLeagueProfile.useMutation({
@@ -46,6 +49,30 @@ export default function LeagueProfilePage() {
         title: "Update Failed",
         description: error.message,
       });
+    },
+  });
+
+  // Update logo mutation
+  const updateLogoMutation = api.leagueAdminProfile.updateLeagueLogo.useMutation({
+    onSuccess: () => {
+      sonnerToast.success("League logo updated successfully!");
+      void refetch();
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      sonnerToast.error(`Failed to update logo: ${errorMessage}`);
+    },
+  });
+
+  // Update banner mutation  
+  const updateBannerMutation = api.leagueAdminProfile.updateLeagueBanner.useMutation({
+    onSuccess: () => {
+      sonnerToast.success("League banner updated successfully!");
+      void refetch();
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      sonnerToast.error(`Failed to update banner: ${errorMessage}`);
     },
   });
 
@@ -88,6 +115,26 @@ export default function LeagueProfilePage() {
       // Error handled by mutation onError
       console.error("Failed to save league profile:", error);
     }
+  };
+
+  const handleLogoUpload = (url: string) => {
+    updateLogoMutation.mutate({ logo_url: url });
+  };
+
+  const handleLogoRemove = () => {
+    updateLogoMutation.mutate({ logo_url: "" });
+  };
+
+  const handleBannerUpload = (url: string) => {
+    updateBannerMutation.mutate({ banner_url: url });
+  };
+
+  const handleBannerRemove = () => {
+    updateBannerMutation.mutate({ banner_url: "" });
+  };
+
+  const handleUploadError = (error: string) => {
+    sonnerToast.error(`Upload failed: ${error}`);
   };
 
   // Loading state
@@ -256,6 +303,62 @@ export default function LeagueProfilePage() {
                 className="bg-gray-800 border-gray-700 text-white disabled:opacity-50"
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* League Assets */}
+      <Card className="bg-[#1a1a2e] border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <ImageIcon className="h-5 w-5 text-purple-400" />
+            League Assets
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* League Logo */}
+            <div className="space-y-2">
+              <FileUpload
+                bucket="LEAGUES"
+                entityId={profileData?.league_ref?.id ?? ""}
+                assetType="LOGO"
+                currentImageUrl={profileData?.league_ref?.logo_url}
+                label="League Logo"
+                description="Upload your league's official logo"
+                onUploadSuccess={handleLogoUpload}
+                onUploadError={handleUploadError}
+                onRemove={handleLogoRemove}
+                disabled={updateLogoMutation.isPending}
+              />
+            </div>
+
+            {/* League Banner */}
+            <div className="space-y-2">
+              <FileUpload
+                bucket="LEAGUES"
+                entityId={profileData?.league_ref?.id ?? ""}
+                assetType="BANNER"
+                currentImageUrl={profileData?.league_ref?.banner_url}
+                label="League Banner"
+                description="Upload a banner image for your league profile"
+                onUploadSuccess={handleBannerUpload}
+                onUploadError={handleUploadError}
+                onRemove={handleBannerRemove}
+                disabled={updateBannerMutation.isPending}
+              />
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-400 bg-gray-800/50 p-4 rounded-lg">
+            <p className="mb-2"><strong className="text-gray-300">Asset Guidelines:</strong></p>
+            <ul className="space-y-1 list-disc list-inside">
+              <li><strong>Logo:</strong> Square format (400x400px recommended) - Used in league listings and team profiles</li>
+              <li><strong>Banner:</strong> Wide format (1200x300px recommended) - Used as header image on your league page</li>
+              <li>Supported formats: PNG, JPG, JPEG, WebP</li>
+              <li>Maximum file size: 5MB per image</li>
+              <li>Images are automatically optimized for web display</li>
+            </ul>
           </div>
         </CardContent>
       </Card>

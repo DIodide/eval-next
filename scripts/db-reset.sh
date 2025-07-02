@@ -33,7 +33,21 @@ if [ "$1" != "--force" ]; then
     fi
 fi
 
-echo -e "${BLUE}🔄 Resetting database...${NC}"
+echo -e "${BLUE}🔄 Resetting database and storage...${NC}"
+
+# Reset storage buckets first
+echo -e "${YELLOW}🗑️  Resetting storage buckets...${NC}"
+npx tsx scripts/reset-storage-buckets.ts
+
+# Wait a moment for storage reset to complete
+sleep 2
+
+# Setup storage buckets again
+echo -e "${YELLOW}📦 Setting up storage buckets...${NC}"
+npx tsx scripts/setup-storage-buckets.ts
+
+# Wait a moment before database reset
+sleep 2
 
 # Reset database with migrations
 echo -e "${YELLOW}📋 Running Prisma migrate reset...${NC}"
