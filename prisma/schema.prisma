@@ -279,6 +279,7 @@ model School {
   region                  String?
   website                 String?
   logo_url                String?
+  banner_url              String? // School banner URL
   bio                     String?
   email                   String?
   phone                   String?
