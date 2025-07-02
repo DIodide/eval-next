@@ -15,7 +15,8 @@ import {
   Activity,
   ClipboardList,
   Gamepad2,
-  Crown
+  Crown,
+  FolderOpen
 } from "lucide-react";
 
 const adminRoutes = [
@@ -23,6 +24,11 @@ const adminRoutes = [
     href: "/admin",
     label: "Dashboard",
     icon: Home,
+  },
+  {
+    href: "/admin/directory",
+    label: "Directory",
+    icon: FolderOpen,
   },
   {
     href: "/admin/test-messages",
