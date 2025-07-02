@@ -109,6 +109,8 @@ export const leagueAdminProfileRouter = createTRPCRouter({
                 name: true,
                 short_name: true,
                 description: true,
+                logo_url: true,
+                banner_url: true,
                 region: true,
                 state: true,
                 tier: true,
@@ -541,6 +543,108 @@ export const leagueAdminProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update league profile',
+        });
+      }
+    }),
+
+  // Update league logo
+  updateLeagueLogo: leagueAdminProcedure
+    .input(z.object({
+      logo_url: z.string().url("Must be a valid URL").optional().or(z.literal(""))
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { league_id: true },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to update league assets',
+          });
+        }
+
+        // Update the league logo
+        const updatedLeague = await withRetry(() =>
+          ctx.db.league.update({
+            where: { id: leagueAdmin.league_id! },
+            data: {
+              logo_url: input.logo_url ?? null,
+              updated_at: new Date(),
+            },
+            select: {
+              id: true,
+              name: true,
+              logo_url: true,
+            },
+          })
+        );
+
+        return updatedLeague;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating league logo:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update league logo',
+        });
+      }
+    }),
+
+  // Update league banner
+  updateLeagueBanner: leagueAdminProcedure
+    .input(z.object({
+      banner_url: z.string().url("Must be a valid URL").optional().or(z.literal(""))
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { league_id: true },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to update league assets',
+          });
+        }
+
+        // Update the league banner
+        const updatedLeague = await withRetry(() =>
+          ctx.db.league.update({
+            where: { id: leagueAdmin.league_id! },
+            data: {
+              banner_url: input.banner_url ?? null,
+              updated_at: new Date(),
+            },
+            select: {
+              id: true,
+              name: true,
+              banner_url: true,
+            },
+          })
+        );
+
+        return updatedLeague;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating league banner:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update league banner',
         });
       }
     }),
