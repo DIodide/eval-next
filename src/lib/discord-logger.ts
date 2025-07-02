@@ -1,4 +1,3 @@
- 
 import { env } from "@/env";
 
 // Discord webhook configuration types
@@ -43,6 +42,9 @@ export enum LogEventType {
   SCHOOL_ASSOCIATION_REQUEST = 'school_association_request',
   SCHOOL_ASSOCIATION_APPROVED = 'school_association_approved',
   SCHOOL_ASSOCIATION_REJECTED = 'school_association_rejected',
+  LEAGUE_ASSOCIATION_REQUEST = 'league_association_request',
+  LEAGUE_ASSOCIATION_APPROVED = 'league_association_approved',
+  LEAGUE_ASSOCIATION_REJECTED = 'league_association_rejected',
   TRYOUT_CREATED = 'tryout_created',
   COMBINE_CREATED = 'combine_created',
   USER_REGISTRATION = 'user_registration',
@@ -56,6 +58,9 @@ export const DISCORD_COLORS = {
   [LogEventType.SCHOOL_ASSOCIATION_REQUEST]: 0x3498db, // Blue
   [LogEventType.SCHOOL_ASSOCIATION_APPROVED]: 0x2ecc71, // Green
   [LogEventType.SCHOOL_ASSOCIATION_REJECTED]: 0xe74c3c, // Red
+  [LogEventType.LEAGUE_ASSOCIATION_REQUEST]: 0x8e44ad, // Purple
+  [LogEventType.LEAGUE_ASSOCIATION_APPROVED]: 0x27ae60, // Green
+  [LogEventType.LEAGUE_ASSOCIATION_REJECTED]: 0xe74c3c, // Red
   [LogEventType.TRYOUT_CREATED]: 0x9b59b6, // Purple
   [LogEventType.COMBINE_CREATED]: 0xf39c12, // Orange
   [LogEventType.USER_REGISTRATION]: 0x1abc9c, // Turquoise
@@ -80,6 +85,9 @@ export const EVENT_WEBHOOK_ROUTING: Record<LogEventType, string[]> = {
   [LogEventType.SCHOOL_ASSOCIATION_REQUEST]: ['general', 'admin'],
   [LogEventType.SCHOOL_ASSOCIATION_APPROVED]: ['general', 'admin'],
   [LogEventType.SCHOOL_ASSOCIATION_REJECTED]: ['admin'],
+  [LogEventType.LEAGUE_ASSOCIATION_REQUEST]: ['general', 'admin'],
+  [LogEventType.LEAGUE_ASSOCIATION_APPROVED]: ['general', 'admin'],
+  [LogEventType.LEAGUE_ASSOCIATION_REJECTED]: ['admin'],
   [LogEventType.TRYOUT_CREATED]: ['general'],
   [LogEventType.COMBINE_CREATED]: ['general'],
   [LogEventType.USER_REGISTRATION]: ['general'],
@@ -120,6 +128,27 @@ export interface SchoolAssociationDecisionData extends BaseEventData {
   decision: 'approved' | 'rejected';
 }
 
+export interface LeagueAssociationRequestData extends BaseEventData {
+  requestId: string;
+  adminName: string;
+  adminEmail: string;
+  leagueName: string;
+  leagueType?: string;
+  leagueRegion?: string;
+  requestMessage?: string | null | undefined;
+  isNewLeagueRequest?: boolean;
+}
+
+export interface LeagueAssociationDecisionData extends BaseEventData {
+  requestId: string;
+  adminName: string;
+  adminEmail: string;
+  leagueName: string;
+  reviewerName?: string | null;
+  reviewerNotes?: string | null;
+  decision: 'approved' | 'rejected';
+}
+
 export interface TryoutCreatedData extends BaseEventData {
   tryoutId: string;
   tryoutTitle: string;
@@ -131,7 +160,7 @@ export interface TryoutCreatedData extends BaseEventData {
 }
 
 export interface UserRegistrationData extends BaseEventData {
-  userType: 'coach' | 'player' | 'not selected';
+  userType: 'coach' | 'player' | 'league_admin' | 'not selected';
   registrationMethod: string;
 }
 
@@ -161,6 +190,8 @@ export interface SecurityAlertData extends BaseEventData {
 export type EventData =
   | SchoolAssociationRequestData
   | SchoolAssociationDecisionData
+  | LeagueAssociationRequestData
+  | LeagueAssociationDecisionData
   | TryoutCreatedData
   | UserRegistrationData
   | AdminActionData
@@ -239,6 +270,13 @@ class DiscordLogger {
       case LogEventType.SCHOOL_ASSOCIATION_APPROVED:
       case LogEventType.SCHOOL_ASSOCIATION_REJECTED:
         return this.formatSchoolAssociationDecision(eventType, data as SchoolAssociationDecisionData);
+      
+      case LogEventType.LEAGUE_ASSOCIATION_REQUEST:
+        return this.formatLeagueAssociationRequest(data as LeagueAssociationRequestData);
+      
+      case LogEventType.LEAGUE_ASSOCIATION_APPROVED:
+      case LogEventType.LEAGUE_ASSOCIATION_REJECTED:
+        return this.formatLeagueAssociationDecision(eventType, data as LeagueAssociationDecisionData);
       
       case LogEventType.TRYOUT_CREATED:
         return this.formatTryoutCreated(data as TryoutCreatedData);
@@ -341,6 +379,94 @@ class DiscordLogger {
         value: data.adminNotes.length > 1000 
           ? `${data.adminNotes.substring(0, 1000)}...`
           : data.adminNotes,
+        inline: false,
+      });
+    }
+
+    return { embeds: [embed] };
+  }
+
+  private formatLeagueAssociationRequest(data: LeagueAssociationRequestData): DiscordMessage {
+    const embed = this.createBaseEmbed(
+      LogEventType.LEAGUE_ASSOCIATION_REQUEST,
+      '🏫 New League Association Request'
+    );
+
+    embed.description = `A league administrator has requested association with a league and requires admin review.`;
+    embed.fields = [
+      {
+        name: '👤 Admin Details',
+        value: `**Name:** ${data.adminName}\n**Email:** ${data.adminEmail}`,
+        inline: true,
+      },
+      {
+        name: '🏫 League Details',
+        value: `**Name:** ${data.leagueName}\n**Type:** ${data.leagueType}\n**Region:** ${data.leagueRegion}`,
+        inline: true,
+      },
+      {
+        name: '📄 Request ID',
+        value: `\`${data.requestId}\``,
+        inline: false,
+      },
+    ];
+
+    if (data.requestMessage) {
+      embed.fields.push({
+        name: '💬 Message',
+        value: data.requestMessage.length > 1000 
+          ? `${data.requestMessage.substring(0, 1000)}...`
+          : data.requestMessage,
+        inline: false,
+      });
+    }
+
+    return { embeds: [embed] };
+  }
+
+  private formatLeagueAssociationDecision(eventType: LogEventType, data: LeagueAssociationDecisionData): DiscordMessage {
+    const isApproved = data.decision === 'approved';
+    const embed = this.createBaseEmbed(
+      eventType,
+      isApproved ? '✅ League Association Approved' : '❌ League Association Rejected'
+    );
+
+    embed.description = isApproved 
+      ? `A league administrator's league association request has been approved. The league administrator is now onboarded and can manage the league.`
+      : `A league administrator's league association request has been rejected.`;
+
+    embed.fields = [
+      {
+        name: '👤 Admin',
+        value: `**Name:** ${data.adminName}\n**Email:** ${data.adminEmail}`,
+        inline: true,
+      },
+      {
+        name: '🏫 League',
+        value: data.leagueName,
+        inline: true,
+      },
+      {
+        name: '📄 Request ID',
+        value: `\`${data.requestId}\``,
+        inline: false,
+      },
+    ];
+
+    if (data.reviewerName) {
+      embed.fields.push({
+        name: '👨‍💼 Reviewed By',
+        value: data.reviewerName,
+        inline: true,
+      });
+    }
+
+    if (data.reviewerNotes) {
+      embed.fields.push({
+        name: '📝 Reviewer Notes',
+        value: data.reviewerNotes.length > 1000 
+          ? `${data.reviewerNotes.substring(0, 1000)}...`
+          : data.reviewerNotes,
         inline: false,
       });
     }
@@ -565,6 +691,18 @@ export const logSchoolAssociationApproved = (data: SchoolAssociationDecisionData
 
 export const logSchoolAssociationRejected = (data: SchoolAssociationDecisionData, webhookUrl?: string) => {
   return discordLogger.logEvent(LogEventType.SCHOOL_ASSOCIATION_REJECTED, data, webhookUrl);
+};
+
+export const logLeagueAssociationRequest = (data: LeagueAssociationRequestData, webhookUrl?: string) => {
+  return discordLogger.logEvent(LogEventType.LEAGUE_ASSOCIATION_REQUEST, data, webhookUrl);
+};
+
+export const logLeagueAssociationApproved = (data: LeagueAssociationDecisionData, webhookUrl?: string) => {
+  return discordLogger.logEvent(LogEventType.LEAGUE_ASSOCIATION_APPROVED, data, webhookUrl);
+};
+
+export const logLeagueAssociationRejected = (data: LeagueAssociationDecisionData, webhookUrl?: string) => {
+  return discordLogger.logEvent(LogEventType.LEAGUE_ASSOCIATION_REJECTED, data, webhookUrl);
 };
 
 export const logTryoutCreated = (data: TryoutCreatedData, webhookUrl?: string) => {

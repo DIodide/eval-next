@@ -7,7 +7,7 @@ import { logUserRegistration, logError } from '@/lib/discord-logger'
 
 // Schema for Clerk unsafe_metadata
 interface ClerkUnsafeMetadata {
-  userType?: 'player' | 'coach'
+  userType?: 'player' | 'coach' | 'league'
   // Optional additional fields
 }
 
@@ -157,6 +157,59 @@ export async function POST(req: NextRequest) {
           // You might want to throw an error here to trigger webhook retry
           // throw error
         }
+      } else if (unsafeMetadata.userType === 'league_admin') {
+        try {
+          const newLeagueAdmin = await db.leagueAdministrator.create({
+            data: {
+              clerk_id: userData.id,
+              email: userData.email_addresses[0]?.email_address ?? '',
+              first_name: userData.first_name ?? '',
+              last_name: userData.last_name ?? '',
+              username: userData.username,
+              image_url: userData.image_url,
+              external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
+              league: '', // TODO: This should be set during onboarding
+              league_id: null, // Optional - can be linked later
+            }
+          })
+          console.log('League Administrator created successfully:', newLeagueAdmin.id)
+
+          // Log league admin registration to Discord
+          try {
+            await logUserRegistration({
+              userType: 'league_admin',
+              registrationMethod: 'Clerk Webhook',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              userName: userData.first_name && userData.last_name 
+                ? `${userData.first_name} ${userData.last_name}` 
+                : userData.username ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord notification failed for league admin registration:', discordError);
+          }
+        } catch (error) {
+          console.error('Error creating league administrator:', error)
+          
+          // Log error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error creating league administrator',
+              errorCode: 'LEAGUE_ADMIN_CREATION_FAILED',
+              endpoint: 'webhooks/user.created',
+              severity: 'high',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+          
+          // You might want to throw an error here to trigger webhook retry
+          // throw error
+        }
       } else {
         // Log discord sign-in userType
         try {
@@ -206,12 +259,28 @@ export async function POST(req: NextRequest) {
       
       console.log('User updated - data for sync: omitted')
       
-      // TODO: Add database sync logic here based on user type
+      // Database sync logic using upsert to handle both create and update scenarios
       if (unsafeMetadata.userType === 'player') {
         try {
-          const updatedPlayer = await db.player.update({
+          const upsertedPlayer = await db.player.upsert({
             where: { clerk_id: userData.id },
-            data: {
+            create: {
+              clerk_id: userData.id,
+              email: userData.email_addresses[0]?.email_address ?? '',
+              first_name: userData.first_name ?? '',
+              last_name: userData.last_name ?? '',
+              username: userData.username,
+              image_url: userData.image_url,
+              external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
+              // Optional fields - can be updated later through user profile
+              school: null,
+              school_id: null,
+              gpa: null,
+              transcript: null,
+              class_year: null,
+              guardian_email: null,
+            },
+            update: {
               email: userData.email_addresses[0]?.email_address ?? '',
               first_name: userData.first_name ?? '',
               last_name: userData.last_name ?? '',
@@ -222,15 +291,40 @@ export async function POST(req: NextRequest) {
               // School info, GPA, etc. should be updated through your app's profile system
             }
           })
-          console.log('Player updated successfully:', updatedPlayer.id)
+          console.log('Player upserted successfully:', upsertedPlayer.id)
+
+          // Log player registration to Discord if this was a new creation
+          const isNewPlayer = !await db.player.findFirst({
+            where: { 
+              clerk_id: userData.id,
+              created_at: { lt: new Date(Date.now() - 1000) } // Existed more than 1 second ago
+            }
+          })
+          
+          if (isNewPlayer) {
+            try {
+              await logUserRegistration({
+                userType: 'player',
+                registrationMethod: 'User Type Selection',
+                userId: userData.id,
+                userEmail: userData.email_addresses[0]?.email_address ?? null,
+                userName: userData.first_name && userData.last_name 
+                  ? `${userData.first_name} ${userData.last_name}` 
+                  : userData.username ?? null,
+                timestamp: new Date(),
+              });
+            } catch (discordError) {
+              console.error('Discord notification failed for player creation:', discordError);
+            }
+          }
         } catch (error) {
-          console.error('Error updating player:', error)
+          console.error('Error upserting player:', error)
           
           // Log error to Discord
           try {
             await logError({
-              error: error instanceof Error ? error.message : 'Unknown error updating player',
-              errorCode: 'PLAYER_UPDATE_FAILED',
+              error: error instanceof Error ? error.message : 'Unknown error upserting player',
+              errorCode: 'PLAYER_UPSERT_FAILED',
               endpoint: 'webhooks/user.updated',
               severity: 'medium',
               userId: userData.id,
@@ -247,9 +341,20 @@ export async function POST(req: NextRequest) {
           
       } else if (unsafeMetadata.userType === 'coach') {
         try {
-          const updatedCoach = await db.coach.update({
+          const upsertedCoach = await db.coach.upsert({
             where: { clerk_id: userData.id },
-            data: {
+            create: {
+              clerk_id: userData.id,
+              email: userData.email_addresses[0]?.email_address ?? '',
+              first_name: userData.first_name ?? '',
+              last_name: userData.last_name ?? '',
+              username: userData.username ?? '',
+              image_url: userData.image_url,
+              external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
+              school: '', // TODO: This should be set during onboarding
+              school_id: null, // Optional - can be linked later
+            },
+            update: {
               email: userData.email_addresses[0]?.email_address ?? '',
               first_name: userData.first_name ?? '',
               last_name: userData.last_name ?? '',
@@ -260,15 +365,113 @@ export async function POST(req: NextRequest) {
               // School info should be updated through your app's profile system
             }
           })
-          console.log('Coach updated successfully:', updatedCoach.id)
+          console.log('Coach upserted successfully:', upsertedCoach.id)
+
+          // Log coach registration to Discord if this was a new creation
+          const isNewCoach = !await db.coach.findFirst({
+            where: { 
+              clerk_id: userData.id,
+              created_at: { lt: new Date(Date.now() - 1000) } // Existed more than 1 second ago
+            }
+          })
+          
+          if (isNewCoach) {
+            try {
+              await logUserRegistration({
+                userType: 'coach',
+                registrationMethod: 'User Type Selection',
+                userId: userData.id,
+                userEmail: userData.email_addresses[0]?.email_address ?? null,
+                userName: userData.first_name && userData.last_name 
+                  ? `${userData.first_name} ${userData.last_name}` 
+                  : userData.username ?? null,
+                timestamp: new Date(),
+              });
+            } catch (discordError) {
+              console.error('Discord notification failed for coach creation:', discordError);
+            }
+          }
         } catch (error) {
-          console.error('Error updating coach:', error)
+          console.error('Error upserting coach:', error)
           
           // Log error to Discord
           try {
             await logError({
-              error: error instanceof Error ? error.message : 'Unknown error updating coach',
-              errorCode: 'COACH_UPDATE_FAILED',
+              error: error instanceof Error ? error.message : 'Unknown error upserting coach',
+              errorCode: 'COACH_UPSERT_FAILED',
+              endpoint: 'webhooks/user.updated',
+              severity: 'medium',
+              userId: userData.id,
+              userEmail: userData.email_addresses[0]?.email_address ?? null,
+              timestamp: new Date(),
+            });
+          } catch (discordError) {
+            console.error('Discord error logging failed:', discordError);
+          }
+          
+          // You might want to throw an error here to trigger webhook retry
+          // throw error
+        }
+      } else if (unsafeMetadata.userType === 'league') {
+        try {
+          const upsertedLeagueAdmin = await db.leagueAdministrator.upsert({
+            where: { clerk_id: userData.id },
+            create: {
+              clerk_id: userData.id,
+              email: userData.email_addresses[0]?.email_address ?? '',
+              first_name: userData.first_name ?? '',
+              last_name: userData.last_name ?? '',
+              username: userData.username,
+              image_url: userData.image_url,
+              external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
+              league: '', // TODO: This should be set during onboarding
+              league_id: null, // Optional - can be linked later
+            },
+            update: {
+              email: userData.email_addresses[0]?.email_address ?? '',
+              first_name: userData.first_name ?? '',
+              last_name: userData.last_name ?? '',
+              username: userData.username,
+              image_url: userData.image_url,
+              external_accounts: userData.external_accounts as unknown as Prisma.InputJsonValue,
+              // Note: We only update basic fields from Clerk
+              // League info should be updated through your app's profile system
+            }
+          })
+          console.log('League Administrator upserted successfully:', upsertedLeagueAdmin.id)
+
+          // Log league admin registration to Discord if this was a new creation
+          const isNewLeagueAdmin = !await db.leagueAdministrator.findFirst({
+            where: { 
+              clerk_id: userData.id,
+              created_at: { lt: new Date(Date.now() - 1000) } // Existed more than 1 second ago
+            }
+          })
+          
+          if (isNewLeagueAdmin) {
+            try {
+              await logUserRegistration({
+                userType: 'league_admin',
+                registrationMethod: 'User Type Selection',
+                userId: userData.id,
+                userEmail: userData.email_addresses[0]?.email_address ?? null,
+                userName: userData.first_name && userData.last_name 
+                  ? `${userData.first_name} ${userData.last_name}` 
+                  : userData.username ?? null,
+                timestamp: new Date(),
+              });
+            } catch (discordError) {
+              console.error('Discord notification failed for league admin creation:', discordError);
+            }
+          }
+        } catch (error) {
+          console.error('Error upserting league administrator:', error)
+          
+          // Log error to Discord
+          try {
+            await logError({
+              error: error instanceof Error ? error.message : 'Unknown error upserting league administrator',
+              errorCode: 'LEAGUE_ADMIN_UPSERT_FAILED',
               endpoint: 'webhooks/user.updated',
               severity: 'medium',
               userId: userData.id,
@@ -305,9 +508,15 @@ export async function POST(req: NextRequest) {
           select: { id: true, email: true }
         })
         
+        const existingLeagueAdmin = await db.leagueAdministrator.findFirst({
+          where: { clerk_id: userData.id },
+          select: { id: true, email: true }
+        })
+        
         // Delete records that match both clerk_id and email for precise deletion
         let deletedPlayer = { count: 0 }
         let deletedCoach = { count: 0 }
+        let deletedLeagueAdmin = { count: 0 }
         
         if (existingPlayer) {
           deletedPlayer = await db.player.deleteMany({
@@ -333,7 +542,19 @@ export async function POST(req: NextRequest) {
           console.log(`Coach deleted successfully (${deletedCoach.count} records) with email: ${existingCoach.email}`)
         }
         
-        if (deletedPlayer.count === 0 && deletedCoach.count === 0) {
+        if (existingLeagueAdmin) {
+          deletedLeagueAdmin = await db.leagueAdministrator.deleteMany({
+            where: { 
+              AND: [
+                { clerk_id: userData.id },
+                { email: existingLeagueAdmin.email }
+              ]
+            }
+          })
+          console.log(`League Administrator deleted successfully (${deletedLeagueAdmin.count} records) with email: ${existingLeagueAdmin.email}`)
+        }
+        
+        if (deletedPlayer.count === 0 && deletedCoach.count === 0 && deletedLeagueAdmin.count === 0) {
           console.warn('No user found to delete with clerk_id:', userData.id)
         }
       } catch (error) {

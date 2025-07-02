@@ -4,6 +4,7 @@
  * Clerk Users Reset Script
  * 
  * This script deletes all Clerk users and associated database records.
+ * Handles players, coaches, and league administrators.
  * DEVELOPMENT ENVIRONMENT ONLY!
  */
 
@@ -143,6 +144,14 @@ async function main() {
         }
       });
 
+      const orphanedLeagueAdmins = await db.leagueAdministrator.findMany({
+        where: {
+          clerk_id: {
+            notIn: Array.from(remainingClerkIds)
+          }
+        }
+      });
+
       if (orphanedPlayers.length > 0) {
         const orphanedPlayerIds = orphanedPlayers.map(p => p.id);
         
@@ -229,7 +238,30 @@ async function main() {
         log.success(`Cleaned up ${orphanedCoaches.length} orphaned coach records and all related data`);
       }
 
-      if (orphanedPlayers.length === 0 && orphanedCoaches.length === 0) {
+      if (orphanedLeagueAdmins.length > 0) {
+        const orphanedLeagueAdminIds = orphanedLeagueAdmins.map(la => la.id);
+        
+        // Delete related league administrator records
+        log.step('Cleaning up related league administrator data...');
+        
+        // Delete league association requests (most have cascade delete, but let's be explicit)
+        await db.leagueAssociationRequest.deleteMany({
+          where: { administrator_id: { in: orphanedLeagueAdminIds } }
+        });
+        
+        // Finally delete the main league administrator records
+        await db.leagueAdministrator.deleteMany({
+          where: {
+            clerk_id: {
+              notIn: Array.from(remainingClerkIds)
+            }
+          }
+        });
+        
+        log.success(`Cleaned up ${orphanedLeagueAdmins.length} orphaned league administrator records and all related data`);
+      }
+
+      if (orphanedPlayers.length === 0 && orphanedCoaches.length === 0 && orphanedLeagueAdmins.length === 0) {
         log.info('No orphaned database records found');
       }
 

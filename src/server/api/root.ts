@@ -5,6 +5,8 @@ import { tryoutsRouter } from "@/server/api/routers/tryouts";
 import { combinesRouter } from "@/server/api/routers/combines";
 import { messagesRouter } from "@/server/api/routers/messages";
 import { leaguesRouter } from "@/server/api/routers/leagues";
+import { leagueAdminProfileRouter } from "@/server/api/routers/leagueAdminProfile";
+import { leagueAssociationRequestsRouter } from "@/server/api/routers/leagueAssociationRequests";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAssociationRequests";
@@ -24,6 +26,8 @@ export const appRouter = createTRPCRouter({
   messages: messagesRouter,
   playerSearch: playerSearchRouter,
   leagues: leaguesRouter,
+  leagueAdminProfile: leagueAdminProfileRouter,
+  leagueAssociationRequests: leagueAssociationRequestsRouter,
   schoolAssociationRequests: schoolAssociationRequestsRouter,
   valorantStats: valorantStatsRouter,
 });

@@ -1,5 +1,8 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { 
   MessageSquare, 
@@ -11,8 +14,12 @@ import {
   Activity,
   Settings,
   School,
-  UserCheck
+  UserCheck,
+  ClipboardList,
+  Crown,
+  AlertCircle
 } from "lucide-react";
+import { api } from "@/trpc/react";
 
 const adminTools = [
   {
@@ -67,6 +74,12 @@ const adminTools = [
 ];
 
 export default function AdminDashboard() {
+  // Fetch pending counts
+  const { data: pendingSchoolRequests } = api.schoolAssociationRequests.getPendingCount.useQuery();
+  const { data: pendingLeagueRequests } = api.leagueAssociationRequests.getPendingCount.useQuery();
+
+  const totalPending = (pendingSchoolRequests ?? 0) + (pendingLeagueRequests ?? 0);
+
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-2">
@@ -76,6 +89,60 @@ export default function AdminDashboard() {
           <p className="text-gray-400">Developer tools and system management</p>
         </div>
       </div>
+
+      {/* Pending Actions Section */}
+      {totalPending > 0 && (
+        <Card className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border-yellow-600/50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="h-6 w-6 text-yellow-400" />
+                <CardTitle className="text-white">Pending Actions Required</CardTitle>
+              </div>
+              <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
+                {totalPending} Total
+              </Badge>
+            </div>
+            <CardDescription className="text-gray-300">
+              Review and process pending association requests
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Link href="/admin/school-requests">
+                <Button variant="outline" className="w-full border-yellow-600/50 hover:bg-yellow-600/10">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center space-x-2">
+                      <ClipboardList className="h-4 w-4" />
+                      <span>School Requests</span>
+                    </div>
+                    {pendingSchoolRequests !== undefined && pendingSchoolRequests > 0 && (
+                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
+                        {pendingSchoolRequests}
+                      </Badge>
+                    )}
+                  </div>
+                </Button>
+              </Link>
+              <Link href="/admin/league-requests">
+                <Button variant="outline" className="w-full border-yellow-600/50 hover:bg-yellow-600/10">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center space-x-2">
+                      <Crown className="h-4 w-4" />
+                      <span>League Requests</span>
+                    </div>
+                    {pendingLeagueRequests !== undefined && pendingLeagueRequests > 0 && (
+                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
+                        {pendingLeagueRequests}
+                      </Badge>
+                    )}
+                  </div>
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {adminTools.map((tool) => {

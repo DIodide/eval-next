@@ -300,3 +300,83 @@ export const playerProcedure = protectedProcedure.use(isPlayer);
  * Checks Clerk publicMetadata.role === "admin".
  */
 export const adminProcedure = protectedProcedure.use(isAdmin);
+
+/**
+ * Middleware to verify user is an onboarded league administrator
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isOnboardedLeagueAdmin = t.middleware(async ({ next, ctx }) => {
+  // Get user from Clerk to check publicMetadata
+  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  
+  if (!publicMetadata?.onboarded || publicMetadata?.userType !== "league") {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Access denied. Only onboarded league administrators can access this resource.',
+    });
+  }
+
+  // Verify league administrator exists in database
+  const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true, league_id: true },
+  });
+
+  if (!leagueAdmin) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'League administrator profile not found.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      leagueAdminId: leagueAdmin.id, // Add league admin-specific context
+      leagueId: leagueAdmin.league_id, // Add league context for onboarded admins
+    },
+  });
+});
+
+/**
+ * Middleware to verify user is a league administrator (including non-onboarded)
+ * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
+ */
+const isLeagueAdmin = t.middleware(async ({ next, ctx }) => {
+  const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+    where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
+    select: { id: true, league_id: true },
+  });
+
+  if (!leagueAdmin) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'League administrator profile not found. Only league administrators can access this resource.',
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx, // Preserve existing context
+      leagueAdminId: leagueAdmin.id, // Add league admin-specific context
+      leagueId: leagueAdmin.league_id, // Add league context for league admins
+    },
+  });
+});
+
+/**
+ * Onboarded league administrator procedure
+ *
+ * This is a procedure that requires the user to be signed in and be an onboarded league administrator.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ */
+export const onboardedLeagueAdminProcedure = protectedProcedure.use(isOnboardedLeagueAdmin);
+
+/**
+ * League administrator procedure
+ *
+ * This is a procedure that requires the user to be signed in and be a league administrator.
+ * It builds upon protectedProcedure, so authentication is handled automatically.
+ * Provides leagueAdminId and leagueId in the context.
+ */
+export const leagueAdminProcedure = protectedProcedure.use(isLeagueAdmin);

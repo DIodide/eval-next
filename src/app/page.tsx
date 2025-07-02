@@ -471,7 +471,6 @@ export default function HomePage() {
                     src="https://discord.com/widget?id=1208123255592849438&theme=dark" 
                     width="350" 
                     height="500" 
-                    allowTransparency={true}
                     frameBorder="0" 
                     sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
                     className="rounded-lg"

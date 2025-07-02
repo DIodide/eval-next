@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Activity,
   ClipboardList,
-  Gamepad2
+  Gamepad2,
+  Crown
 } from "lucide-react";
 
 const adminRoutes = [
@@ -67,6 +68,11 @@ const adminRoutes = [
     href: "/admin/school-requests",
     label: "School Requests",
     icon: ClipboardList,
+  },
+  {
+    href: "/admin/league-requests",
+    label: "League Requests",
+    icon: Crown,
   },
   {
     href: "/admin/settings",

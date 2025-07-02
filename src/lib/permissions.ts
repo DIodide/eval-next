@@ -1,10 +1,10 @@
 import { type User } from "@clerk/nextjs/server";
 import { type UserResource } from "@clerk/types";
 
-export type UserRole = "player" | "coach" | null;
+export type UserRole = "player" | "coach" | "league" | null;
 
 // Union type to handle both server and client Clerk user types
-type ClerkUser = User | UserResource | null;
+type ClerkUser = User | UserResource | null | undefined;
 
 /**
  * Permissions utility functions for role-based access control.
@@ -16,13 +16,13 @@ export function getUserRole(user: ClerkUser): UserRole {
   
   // Check publicMetadata for userType (primary field used throughout the system)
   const publicUserType = user.publicMetadata?.userType as string | undefined;
-  if (publicUserType === "player" || publicUserType === "coach") {
+  if (publicUserType === "player" || publicUserType === "coach" || publicUserType === "league") {
     return publicUserType;
   }
   
   // Fallback to unsafeMetadata for backward compatibility
   const unsafeUserType = user.unsafeMetadata?.userType as string | undefined;
-  if (unsafeUserType === "player" || unsafeUserType === "coach") {
+  if (unsafeUserType === "player" || unsafeUserType === "coach" || unsafeUserType === "league") {
     return unsafeUserType;
   }
   
@@ -30,19 +30,35 @@ export function getUserRole(user: ClerkUser): UserRole {
 }
 
 /**
- * Check if a coach is onboarded using Clerk's publicMetadata.
- * This function does not make any Prisma calls to avoid client context issues.
- * This function can only be used on the server side.
+ * Check if user is a coach and has been onboarded (has school association and onboarded flag)
  */
 export function isCoachOnboarded(user: ClerkUser): boolean {
-  if (!user) return false;
+  const role = getUserRole(user);
+  if (role !== "coach") return false;
   
-  const userRole = getUserRole(user);
-  if (userRole !== "coach") return false;
+  // Check publicMetadata first (server-controlled)
+  const publicOnboarded = user?.publicMetadata?.onboarded as boolean | undefined;
+  if (publicOnboarded === true) return true;
   
-  // Check if onboarded flag is set in publicMetadata
-  const onboarded = user.publicMetadata?.onboarded as boolean | undefined;
-  return onboarded === true;
+  // Fallback to unsafeMetadata for compatibility
+  const unsafeOnboarded = user?.unsafeMetadata?.onboarded as boolean | undefined;
+  return unsafeOnboarded === true;
+}
+
+/**
+ * Check if user is a league administrator and has been onboarded
+ */
+export function isLeagueAdminOnboarded(user: ClerkUser): boolean {
+  const role = getUserRole(user);
+  if (role !== "league") return false;
+  
+  // Check publicMetadata first (server-controlled)
+  const publicOnboarded = user?.publicMetadata?.onboarded as boolean | undefined;
+  if (publicOnboarded === true) return true;
+  
+  // Fallback to unsafeMetadata for compatibility
+  const unsafeOnboarded = user?.unsafeMetadata?.onboarded as boolean | undefined;
+  return unsafeOnboarded === true;
 }
 
 /**
@@ -53,19 +69,24 @@ export function canAccessCoachFeatures(user: ClerkUser): boolean {
   return isCoachOnboarded(user);
 }
 
-export function canMessageCoach(currentUserRole: UserRole): boolean {
-  // Only players can message coaches
-  return currentUserRole === "player";
-}
-
 export function canMessagePlayer(currentUserRole: UserRole): boolean {
   // Only coaches can message players
   return currentUserRole === "coach";
 }
 
+export function canMessageCoach(currentUserRole: UserRole): boolean {
+  // Only players can message coaches
+  return currentUserRole === "player";
+}
+
+export function canManageLeague(currentUserRole: UserRole): boolean {
+  // Only league administrators can manage leagues
+  return currentUserRole === "league";
+}
+
 export function canPerformAction(
   role: UserRole,
-  action: "message_coach" | "message_player" | "view_profile" | "search_players" | "create_tryout" | "view_coach_dashboard"
+  action: "message_coach" | "message_player" | "view_profile" | "search_players" | "create_tryout" | "view_coach_dashboard" | "manage_league" | "view_league_dashboard"
 ): boolean {
   switch (action) {
     case "message_coach":
@@ -78,6 +99,9 @@ export function canPerformAction(
     case "create_tryout":
     case "view_coach_dashboard":
       return role === "coach"; // Coach-specific actions (will need onboarding check too)
+    case "manage_league":
+    case "view_league_dashboard":
+      return role === "league"; // League administrator actions
     default:
       return false;
   }

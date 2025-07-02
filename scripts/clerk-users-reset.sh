@@ -55,6 +55,7 @@ if [ "$1" != "--force" ]; then
     echo -e "${YELLOW}  • All Clerk user accounts${NC}"
     echo -e "${YELLOW}  • All player records${NC}"
     echo -e "${YELLOW}  • All coach records${NC}"
+    echo -e "${YELLOW}  • All league administrator records${NC}"
     echo -e "${YELLOW}  • All associated data${NC}"
     echo ""
     read -p "Type 'DELETE ALL USERS' to confirm: " -r
