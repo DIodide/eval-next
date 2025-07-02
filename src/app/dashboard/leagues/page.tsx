@@ -18,10 +18,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { LeagueAssociationRequestForm } from "./_components/LeagueAssociationRequestForm";
 import { isLeagueAdminOnboarded } from "@/lib/permissions";
+import { api } from "@/trpc/react";
 
 export default function LeagueDashboardPage() {
   const { user, isLoaded } = useUser();
   const [showAssociationForm, setShowAssociationForm] = useState(false);
+
+  // Fetch league admin profile data (only if onboarded)
+  const isOnboarded = isLoaded && user ? isLeagueAdminOnboarded(user) : false;
+  const { data: leagueProfile } = api.leagueAdminProfile.getProfile.useQuery(
+    undefined,
+    { enabled: isOnboarded }
+  );
 
   if (!isLoaded) {
     return (
@@ -38,8 +46,6 @@ export default function LeagueDashboardPage() {
       </div>
     );
   }
-
-  const isOnboarded = isLeagueAdminOnboarded(user);
 
   // Show onboarding if not yet associated with a league
   if (!isOnboarded) {
@@ -158,12 +164,14 @@ export default function LeagueDashboardPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex gap-3">
-          <Link href="/leagues/public">
-            <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-800">
-              <EyeIcon className="h-4 w-4 mr-2" />
-              View Public Profile
-            </Button>
-          </Link>
+          {leagueProfile?.league_ref && (
+            <Link href={`/profiles/leagues/${leagueProfile.league_ref.id}`}>
+              <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-800">
+                <EyeIcon className="h-4 w-4 mr-2" />
+                View Public Profile
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

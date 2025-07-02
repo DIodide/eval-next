@@ -28,13 +28,16 @@ import {
   TrophyIcon,
   PlusIcon,
   CalendarIcon,
-  TrashIcon
+  TrashIcon,
+  ImageIcon
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { toast } from "sonner";
+import { FileUpload } from "@/components/ui/file-upload";
+import type { TRPCError } from "@trpc/server";
 
 interface ValidationErrors {
   bio?: string;
@@ -42,6 +45,7 @@ interface ValidationErrors {
   email?: string;
   phone?: string;
   logo_url?: string;
+  banner_url?: string;
 }
 
 interface Achievement {
@@ -76,6 +80,7 @@ export default function CoachProfilePage() {
     email: "",
     phone: "",
     logo_url: "",
+    banner_url: "",
   });
 
   // Achievement form state
@@ -111,7 +116,8 @@ export default function CoachProfilePage() {
       toast.success("Profile updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update profile: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update profile: ${message}`);
     },
   });
 
@@ -124,7 +130,8 @@ export default function CoachProfilePage() {
       toast.success("School information updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update school information: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update school information: ${message}`);
     },
   });
 
@@ -136,7 +143,8 @@ export default function CoachProfilePage() {
       toast.success("Achievement added successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to add achievement: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to add achievement: ${message}`);
     },
   });
 
@@ -148,7 +156,8 @@ export default function CoachProfilePage() {
       toast.success("Achievement updated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to update achievement: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update achievement: ${message}`);
     },
   });
 
@@ -158,7 +167,31 @@ export default function CoachProfilePage() {
       toast.success("Achievement deleted successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to delete achievement: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to delete achievement: ${message}`);
+    },
+  });
+
+  // School asset upload mutations
+  const updateSchoolLogoMutation = api.schoolProfile.updateSchoolLogo.useMutation({
+    onSuccess: () => {
+      toast.success("School logo updated successfully!");
+      void refetchSchoolDetails();
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update school logo: ${message}`);
+    },
+  });
+
+  const updateSchoolBannerMutation = api.schoolProfile.updateSchoolBanner.useMutation({
+    onSuccess: () => {
+      toast.success("School banner updated successfully!");
+      void refetchSchoolDetails();
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update school banner: ${message}`);
     },
   });
 
@@ -238,6 +271,7 @@ export default function CoachProfilePage() {
         email: schoolDetails.email ?? "",
         phone: schoolDetails.phone ?? "",
         logo_url: schoolDetails.logo_url ?? "",
+        banner_url: schoolDetails.banner_url ?? "",
       });
     }
   }, [schoolDetails]);
@@ -253,7 +287,7 @@ export default function CoachProfilePage() {
     }
   }, [formData, profile]);
 
-  // Track school form changes
+  // Track school form changes (updated to include banner_url)
   useEffect(() => {
     if (schoolDetails) {
       const hasChanges = 
@@ -261,7 +295,8 @@ export default function CoachProfilePage() {
         schoolFormData.website !== (schoolDetails.website ?? "") ||
         schoolFormData.email !== (schoolDetails.email ?? "") ||
         schoolFormData.phone !== (schoolDetails.phone ?? "") ||
-        schoolFormData.logo_url !== (schoolDetails.logo_url ?? "");
+        schoolFormData.logo_url !== (schoolDetails.logo_url ?? "") ||
+        schoolFormData.banner_url !== (schoolDetails.banner_url ?? "");
       setHasUnsavedSchoolChanges(hasChanges);
     }
   }, [schoolFormData, schoolDetails]);
@@ -298,6 +333,7 @@ export default function CoachProfilePage() {
         email: schoolDetails.email ?? "",
         phone: schoolDetails.phone ?? "",
         logo_url: schoolDetails.logo_url ?? "",
+        banner_url: schoolDetails.banner_url ?? "",
       });
     }
     setIsEditingSchool(false);
@@ -307,17 +343,11 @@ export default function CoachProfilePage() {
 
   const handleSchoolFieldChange = (field: keyof typeof schoolFormData, value: string) => {
     setSchoolFormData(prev => ({ ...prev, [field]: value }));
+    setHasUnsavedSchoolChanges(true);
     
-    // Clear specific field error when user starts typing (with a small delay to avoid flicker)
+    // Clear validation error for this field when user starts typing
     if (schoolValidationErrors[field]) {
-      // Use setTimeout to ensure the error clears after the input is updated
-      setTimeout(() => {
-        setSchoolValidationErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      }, 0);
+      setSchoolValidationErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -391,6 +421,26 @@ export default function CoachProfilePage() {
       default:
         return "bg-gray-600";
     }
+  };
+
+  const handleSchoolLogoUpload = (url: string) => {
+    updateSchoolLogoMutation.mutate({ logo_url: url });
+  };
+
+  const handleSchoolLogoRemove = () => {
+    updateSchoolLogoMutation.mutate({ logo_url: "" });
+  };
+
+  const handleSchoolBannerUpload = (url: string) => {
+    updateSchoolBannerMutation.mutate({ banner_url: url });
+  };
+
+  const handleSchoolBannerRemove = () => {
+    updateSchoolBannerMutation.mutate({ banner_url: "" });
+  };
+
+  const handleSchoolUploadError = (error: string) => {
+    toast.error(`Upload failed: ${error}`);
   };
 
   if (profileLoading) {
@@ -1042,6 +1092,64 @@ export default function CoachProfilePage() {
                 </div>
               </>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* School Assets Panel */}
+      {profile?.school_id && schoolDetails && (
+        <Card className="bg-gray-900 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white font-orbitron flex items-center gap-2">
+              <ImageIcon className="h-5 w-5 text-cyan-400" />
+              School Assets
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* School Logo */}
+              <div className="space-y-2">
+                <FileUpload
+                  bucket="SCHOOLS"
+                  entityId={schoolDetails.id}
+                  assetType="LOGO"
+                  currentImageUrl={schoolDetails.logo_url}
+                  label="School Logo"
+                  description="Upload your school's official logo"
+                  onUploadSuccess={handleSchoolLogoUpload}
+                  onUploadError={handleSchoolUploadError}
+                  onRemove={handleSchoolLogoRemove}
+                  disabled={updateSchoolLogoMutation.isPending}
+                />
+              </div>
+
+              {/* School Banner */}
+              <div className="space-y-2">
+                <FileUpload
+                  bucket="SCHOOLS"
+                  entityId={schoolDetails.id}
+                  assetType="BANNER"
+                  currentImageUrl={schoolDetails.banner_url}
+                  label="School Banner"
+                  description="Upload a banner image for your school profile"
+                  onUploadSuccess={handleSchoolBannerUpload}
+                  onUploadError={handleSchoolUploadError}
+                  onRemove={handleSchoolBannerRemove}
+                  disabled={updateSchoolBannerMutation.isPending}
+                />
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-400 bg-gray-800/50 p-4 rounded-lg">
+              <p className="mb-2"><strong className="text-gray-300">Asset Guidelines:</strong></p>
+              <ul className="space-y-1 list-disc list-inside">
+                <li><strong>Logo:</strong> Square format (400x400px recommended) - Used in school listings and player profiles</li>
+                <li><strong>Banner:</strong> Wide format (1200x300px recommended) - Used as header image on your school page</li>
+                <li>Supported formats: PNG, JPG, JPEG, WebP</li>
+                <li>Maximum file size: 5MB per image</li>
+                <li>Images are automatically optimized for web display</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
       )}

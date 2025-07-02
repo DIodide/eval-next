@@ -22,6 +22,7 @@ import {
   BarChart3Icon
 } from "lucide-react";
 import { isLeagueAdminOnboarded } from "@/lib/permissions";
+import { api } from "@/trpc/react";
 
 // Define protected routes that require onboarding
 const protectedRoutes = [
@@ -41,6 +42,13 @@ export default function LeaguesDashboardLayout({
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
+  // Get league profile data for onboarded users
+  const isOnboarded = user ? isLeagueAdminOnboarded(user) : false;
+  const { data: leagueProfile } = api.leagueAdminProfile.getProfile.useQuery(
+    undefined,
+    { enabled: isOnboarded }
+  );
+
   // Check if user is a league administrator
   if (isLoaded && user) {
     const userType = user.unsafeMetadata?.userType;
@@ -52,14 +60,13 @@ export default function LeaguesDashboardLayout({
   // Check onboarding status and redirect if necessary
   useEffect(() => {
     if (isLoaded && user) {
-      const isOnboarded = isLeagueAdminOnboarded(user);
       const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
       
       if (!isOnboarded && isProtectedRoute) {
         router.push("/dashboard/leagues");
       }
     }
-  }, [isLoaded, user, pathname, router]);
+  }, [isLoaded, user, pathname, router, isOnboarded]);
 
   // Show loading state while checking user
   if (!isLoaded) {
@@ -69,8 +76,6 @@ export default function LeaguesDashboardLayout({
       </div>
     );
   }
-
-  const isOnboarded = user ? isLeagueAdminOnboarded(user) : false;
 
   // Define sidebar items
   const sidebarItems = [
@@ -88,10 +93,10 @@ export default function LeaguesDashboardLayout({
       requiresOnboarding: true,
       enabled: true,
       subItems: [
-        // Only show public profile link for onboarded league admins
-        ...(isOnboarded ? [{
+        // Only show public profile link for onboarded league admins with league data
+        ...(isOnboarded && leagueProfile?.league_ref?.id ? [{
           title: "Public Profile",
-          href: "/leagues/public", // This will be implemented later
+          href: `/profiles/leagues/${leagueProfile.league_ref.id}`,
           icon: EyeIcon,
           requiresOnboarding: true,
         }] : [])
