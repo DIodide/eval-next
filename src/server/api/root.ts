@@ -11,6 +11,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAssociationRequests";
 import { valorantStatsRouter } from "@/server/api/routers/valorantStats";
+import { adminDirectoryRouter } from "@/server/api/routers/adminDirectory";
 
 /**
  * This is the primary router for your server.
@@ -30,6 +31,7 @@ export const appRouter = createTRPCRouter({
   leagueAssociationRequests: leagueAssociationRequestsRouter,
   schoolAssociationRequests: schoolAssociationRequestsRouter,
   valorantStats: valorantStatsRouter,
+  adminDirectory: adminDirectoryRouter,
 });
 
 // export type definition of API

@@ -194,10 +194,16 @@ export default function LeagueProfilePage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex gap-3">
-          <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-800">
-            <EyeIcon className="h-4 w-4 mr-2" />
-            Preview Public Profile
-          </Button>
+          {profileData?.league_ref && (
+            <Button 
+              variant="outline" 
+              className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-800"
+              onClick={() => window.open(`/profiles/leagues/${profileData.league_ref!.id}`, '_blank')}
+            >
+              <EyeIcon className="h-4 w-4 mr-2" />
+              Preview Public Profile
+            </Button>
+          )}
           {!isEditing ? (
             <Button 
               onClick={() => setIsEditing(true)}

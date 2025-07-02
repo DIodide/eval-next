@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Users, Trophy, MapPin, Calendar, ChevronRight, Loader2, BarChart3 } from "lucide-react"
 import Link from "next/link"
 import { api } from "@/trpc/react"
+import Image from "next/image"
 
 const gameColors = {
   VALORANT: "from-red-500 to-red-700",
@@ -41,6 +42,8 @@ type League = {
   status: string
   tier: string
   description: string | null
+  logo_url: string | null
+  banner_url: string | null
   league_games: Array<{
     game: {
       id: string
@@ -80,14 +83,40 @@ function LeagueCard({ league }: { league: League }) {
     <Link href={`/rankings/leagues/${league.id}`}>
       <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/60 border-gray-600/50 backdrop-blur-sm hover:border-cyan-400/60 transition-all duration-500 hover:shadow-xl hover:shadow-cyan-400/25 hover:transform hover:scale-[1.02] cursor-pointer h-full group">
         <CardContent className="p-6 relative overflow-hidden">
+          {/* Banner Background */}
+          {league.banner_url && (
+            <div className="absolute inset-0 w-full h-full opacity-20 group-hover:opacity-30 transition-opacity duration-500">
+              <Image
+                src={league.banner_url}
+                alt={`${league.name} banner`}
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent" />
+            </div>
+          )}
+          
           {/* Subtle background accent */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
           
           <div className="flex items-start justify-between mb-4 relative z-10">
             <div className="flex items-center space-x-3">
-              <div className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
+              {league.logo_url ? (
+                <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                  <Image
+                    src={league.logo_url}
+                    alt={`${league.name} logo`}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className={`w-12 h-12 bg-gradient-to-br ${gameColor} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+              )}
               <div>
                 <h3 className="font-orbitron font-bold text-white text-lg tracking-wide group-hover:text-cyan-200 transition-colors duration-300">{league.short_name}</h3>
                 <p className="text-gray-400 text-sm font-medium">{league.league_games?.[0]?.game?.name}</p>

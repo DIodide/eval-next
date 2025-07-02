@@ -33,7 +33,18 @@ export const leaguesRouter = createTRPCRouter({
         const leagues = await withRetry(() =>
           ctx.db.league.findMany({
             where: whereClause,
-            include: {
+            select: {
+              id: true,
+              name: true,
+              short_name: true,
+              region: true,
+              state: true,
+              season: true,
+              status: true,
+              tier: true,
+              description: true,
+              logo_url: true,
+              banner_url: true,
               league_games: {
                 include: {
                   game: {
@@ -107,7 +118,21 @@ export const leaguesRouter = createTRPCRouter({
         const league = await withRetry(() =>
           ctx.db.league.findUnique({
             where: { id: input.id },
-            include: {
+            select: {
+              id: true,
+              name: true,
+              short_name: true,
+              description: true,
+              region: true,
+              state: true,
+              tier: true,
+              status: true,
+              season: true,
+              format: true,
+              prize_pool: true,
+              founded_year: true,
+              logo_url: true,
+              banner_url: true,
               league_games: {
                 include: {
                   game: {

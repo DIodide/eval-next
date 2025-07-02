@@ -648,4 +648,79 @@ export const leagueAdminProfileRouter = createTRPCRouter({
         });
       }
     }),
+
+  // Get league by ID (public endpoint for league profiles)
+  getLeagueById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const league = await withRetry(() =>
+          ctx.db.league.findUnique({
+            where: { id: input.id },
+            include: {
+              league_games: {
+                include: {
+                  game: {
+                    select: {
+                      id: true,
+                      name: true,
+                      short_name: true,
+                      icon: true,
+                      color: true,
+                    },
+                  },
+                },
+              },
+              schools: {
+                include: {
+                  school: {
+                    select: {
+                      id: true,
+                      name: true,
+                      type: true,
+                      location: true,
+                      state: true,
+                      logo_url: true,
+                    },
+                  },
+                },
+              },
+              teams: {
+                include: {
+                  team: {
+                    select: {
+                      id: true,
+                      name: true,
+                      created_at: true,
+                    },
+                  },
+                },
+              },
+              administrators: {
+                select: {
+                  id: true,
+                  first_name: true,
+                  last_name: true,
+                  username: true,
+                  image_url: true,
+                  title: true,
+                  created_at: true,
+                },
+                orderBy: {
+                  created_at: 'asc', // Show the founder/first admin first
+                },
+              },
+            },
+          })
+        );
+
+        return league;
+      } catch (error) {
+        console.error("Error fetching league by ID:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch league information",
+        });
+      }
+    }),
 }); 

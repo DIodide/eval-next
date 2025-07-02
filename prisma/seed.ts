@@ -1819,6 +1819,284 @@ async function main() {
     console.log(`📊 Updated ${combine.title}: ${confirmedRegistrations}/${combine.max_spots} confirmed spots`)
   }
 
+  // Create a test league with teams and players
+  console.log('🏆 Creating test league with teams and players...')
+  
+  const testLeague = {
+    name: 'East Coast Collegiate Esports League',
+    short_name: 'ECCEL',
+    description: 'A competitive collegiate esports league featuring top schools from the East Coast',
+    region: 'Northeast',
+    state: 'Multi-State',
+    tier: 'ELITE' as const,
+    season: 'Spring 2024',
+    status: 'ACTIVE' as const,
+    format: 'Round Robin + Playoffs',
+    prize_pool: '$10,000',
+    founded_year: 2023
+  }
+
+  let createdTestLeague = null
+  try {
+    // Check if league already exists
+    const existingLeague = await prisma.league.findFirst({
+      where: { 
+        name: testLeague.name,
+        season: testLeague.season
+      }
+    })
+
+    if (existingLeague) {
+      console.log(`⏭️  Test league already exists: ${testLeague.name}`)
+      createdTestLeague = existingLeague
+    } else {
+      createdTestLeague = await prisma.league.create({ data: testLeague })
+      console.log(`✅ Created test league: ${testLeague.name}`)
+    }
+  } catch (error) {
+    console.log(`⚠️  Could not create test league:`, error)
+  }
+
+  if (createdTestLeague && createdGames.length > 0 && createdSchools.length >= 4) {
+    // Add games to the league (VALORANT and Super Smash Bros)
+    const leagueGames = [valorantGame, smashGame].filter(game => game)
+    for (const game of leagueGames) {
+      try {
+        const existingLeagueGame = await prisma.leagueGame.findUnique({
+          where: {
+            league_id_game_id: {
+              league_id: createdTestLeague.id,
+              game_id: game.id
+            }
+          }
+        })
+
+        if (!existingLeagueGame) {
+          await prisma.leagueGame.create({
+            data: {
+              league_id: createdTestLeague.id,
+              game_id: game.id
+            }
+          })
+          console.log(`✅ Added ${game.name} to test league`)
+        }
+      } catch (error) {
+        console.log(`⚠️  Could not add ${game.name} to league:`, error)
+      }
+    }
+
+    // Select 4 schools for the test league teams
+    const selectedSchools = getRandomElements(createdSchools, 4)
+    const teamNames = [
+      'Valorant Varsity',
+      'Elite Esports',
+      'Championship Squad',
+      'Gaming Eagles'
+    ]
+
+    const createdTeams = []
+    
+    // Create teams for each school
+    for (let i = 0; i < selectedSchools.length; i++) {
+      const school = selectedSchools[i]!
+      const teamName = teamNames[i]!
+      const gameForTeam = getRandomElement(leagueGames)
+      
+      try {
+        // Check if team already exists
+        const existingTeam = await prisma.team.findFirst({
+          where: {
+            school_id: school.id,
+            game_id: gameForTeam.id,
+            name: teamName
+          }
+        })
+
+        let team
+        if (existingTeam) {
+          console.log(`⏭️  Team already exists: ${teamName} at ${school.name}`)
+          team = existingTeam
+        } else {
+          // Find a coach for this school
+          const teamCoach = createdCoaches.find(c => c.school_id === school.id)
+          
+          team = await prisma.team.create({
+            data: {
+              name: teamName,
+              school_id: school.id,
+              game_id: gameForTeam.id,
+              coach_id: teamCoach?.id,
+              tier: 'COMPETITIVE' as const,
+              active: true
+            }
+          })
+          console.log(`✅ Created team: ${teamName} at ${school.name}`)
+        }
+        createdTeams.push(team)
+
+        // Add team to league
+        try {
+          const existingLeagueTeam = await prisma.leagueTeam.findUnique({
+            where: {
+              league_id_team_id_season: {
+                league_id: createdTestLeague.id,
+                team_id: team.id,
+                season: testLeague.season
+              }
+            }
+          })
+
+          if (!existingLeagueTeam) {
+            await prisma.leagueTeam.create({
+              data: {
+                league_id: createdTestLeague.id,
+                team_id: team.id,
+                season: testLeague.season,
+                wins: Math.floor(Math.random() * 10) + 2,  // 2-11 wins
+                losses: Math.floor(Math.random() * 8) + 1, // 1-8 losses
+                points: Math.floor(Math.random() * 50) + 20 // 20-69 points
+              }
+            })
+            console.log(`✅ Added ${teamName} to league`)
+          }
+        } catch (error) {
+          console.log(`⚠️  Could not add team to league:`, error)
+        }
+
+        // Add school to league
+        try {
+          const existingLeagueSchool = await prisma.leagueSchool.findUnique({
+            where: {
+              league_id_school_id_season: {
+                league_id: createdTestLeague.id,
+                school_id: school.id,
+                season: testLeague.season
+              }
+            }
+          })
+
+          if (!existingLeagueSchool) {
+            await prisma.leagueSchool.create({
+              data: {
+                league_id: createdTestLeague.id,
+                school_id: school.id,
+                season: testLeague.season
+              }
+            })
+            console.log(`✅ Added ${school.name} to league`)
+          }
+        } catch (error) {
+          console.log(`⚠️  Could not add school to league:`, error)
+        }
+
+        // Add 3-5 players to each team
+        const playersFromSchool = [...createdPlayers, ...createdGSEPlayers].filter(
+          p => p.school_id === school.id
+        )
+        
+        if (playersFromSchool.length > 0) {
+          const teamSize = Math.min(Math.floor(Math.random() * 3) + 3, playersFromSchool.length) // 3-5 players
+          const selectedPlayers = getRandomElements(playersFromSchool, teamSize)
+          
+          for (const player of selectedPlayers) {
+            try {
+              // Check if player is already on this team
+              const existingMembership = await prisma.teamMember.findUnique({
+                where: {
+                  team_id_player_id: {
+                    team_id: team.id,
+                    player_id: player.id
+                  }
+                }
+              })
+
+              if (!existingMembership) {
+                // Add player to team
+                await prisma.teamMember.create({
+                  data: {
+                    team_id: team.id,
+                    player_id: player.id,
+                    role: gameForTeam.short_name === 'VAL' 
+                      ? getRandomElement(['Duelist', 'Controller', 'Initiator', 'Sentinel', 'IGL'])
+                      : gameForTeam.short_name === 'SSBU' 
+                      ? getRandomElement(['Main', 'Secondary', 'Pocket'])
+                      : 'Player',
+                    position: `Position ${Math.floor(Math.random() * 5) + 1}`,
+                    active: true
+                  }
+                })
+
+                // Add player to league
+                const existingPlayerLeague = await prisma.playerLeague.findUnique({
+                  where: {
+                    player_id_league_id_season: {
+                      player_id: player.id,
+                      league_id: createdTestLeague.id,
+                      season: testLeague.season
+                    }
+                  }
+                })
+
+                if (!existingPlayerLeague) {
+                  await prisma.playerLeague.create({
+                    data: {
+                      player_id: player.id,
+                      league_id: createdTestLeague.id,
+                      season: testLeague.season,
+                      eval_score: parseFloat((Math.random() * 40 + 60).toFixed(1)), // 60-100 score
+                      main_agent: gameForTeam.short_name === 'VAL' 
+                        ? getRandomElement(['Jett', 'Reyna', 'Phoenix', 'Sage', 'Sova', 'Brimstone', 'Omen'])
+                        : gameForTeam.short_name === 'SSBU'
+                        ? getRandomElement(['Mario', 'Pikachu', 'Link', 'Samus', 'Kirby', 'Fox'])
+                        : null,
+                      role: gameForTeam.short_name === 'VAL' 
+                        ? getRandomElement(['Duelist', 'Controller', 'Initiator', 'Sentinel'])
+                        : gameForTeam.short_name === 'SSBU' 
+                        ? 'Fighter'
+                        : 'Player',
+                      rank: gameForTeam.short_name === 'VAL' 
+                        ? getRandomElement(['Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Immortal'])
+                        : gameForTeam.short_name === 'SSBU'
+                        ? `${Math.floor(Math.random() * 5000000 + 3000000)} GSP`
+                        : 'Unranked',
+                      wins: Math.floor(Math.random() * 15) + 5,  // 5-19 wins
+                      losses: Math.floor(Math.random() * 10) + 2, // 2-11 losses
+                      games_played: 0 // Will be calculated
+                    }
+                  })
+                  
+                  // Update games_played
+                  await prisma.playerLeague.update({
+                    where: {
+                      player_id_league_id_season: {
+                        player_id: player.id,
+                        league_id: createdTestLeague.id,
+                        season: testLeague.season
+                      }
+                    },
+                    data: {
+                      games_played: { increment: Math.floor(Math.random() * 15) + 7 } // 7-21 games
+                    }
+                  })
+                }
+
+                console.log(`✅ Added ${player.first_name} ${player.last_name} to ${teamName}`)
+              }
+            } catch (error) {
+              console.log(`⚠️  Could not add player to team:`, error)
+            }
+          }
+        }
+      } catch (error) {
+        console.log(`⚠️  Could not create team ${teamName}:`, error)
+      }
+    }
+
+    console.log(`🏆 Test league setup complete with ${createdTeams.length} teams`)
+  } else {
+    console.log('⚠️  Skipping test league creation - missing dependencies')
+  }
+
   console.log('🎉 Database seed completed successfully!')
   console.log('')
   console.log('🎮 Available games:')
@@ -1880,6 +2158,48 @@ async function main() {
   })
   allCombines.forEach(combine => {
     console.log(`   • ${combine.title} - ${combine.game.name}`)
+  })
+
+  console.log('')
+  console.log('🏅 Available leagues:')
+  const allLeagues = await prisma.league.findMany({
+    include: {
+      teams: {
+        include: {
+          team: {
+            include: {
+              school: true,
+              game: true
+            }
+          }
+        }
+      },
+      schools: {
+        include: {
+          school: true
+        }
+      }
+    }
+  })
+  allLeagues.forEach(league => {
+    console.log(`   • ${league.name} (${league.season}) - ${league.teams.length} teams from ${league.schools.length} schools`)
+  })
+
+  console.log('')
+  console.log('🏀 Available teams:')
+  const allTeams = await prisma.team.findMany({
+    include: {
+      school: true,
+      game: true,
+      members: {
+        include: {
+          player: true
+        }
+      }
+    }
+  })
+  allTeams.forEach(team => {
+    console.log(`   • ${team.name} - ${team.game.name} at ${team.school.name} (${team.members.length} players)`)
   })
 }
 

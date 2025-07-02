@@ -13,6 +13,7 @@ const schoolInfoUpdateSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().max(20).optional().or(z.literal("")),
   logo_url: z.string().url().optional().or(z.literal("")),
+  banner_url: z.string().url().optional().or(z.literal("")),
 });
 
 // Input validation schema for announcements
@@ -179,6 +180,7 @@ export const schoolProfileRouter = createTRPCRouter({
               phone: true,
               bio: true,
               logo_url: true,
+              banner_url: true,
               created_at: true,
               updated_at: true,
             },
@@ -234,6 +236,7 @@ export const schoolProfileRouter = createTRPCRouter({
           email?: string | null;
           phone?: string | null;
           logo_url?: string | null;
+          banner_url?: string | null;
           updated_at: Date;
         } = {
           updated_at: new Date(),
@@ -254,6 +257,9 @@ export const schoolProfileRouter = createTRPCRouter({
         if (input.logo_url !== undefined) {
           updateData.logo_url = input.logo_url === "" ? null : input.logo_url;
         }
+        if (input.banner_url !== undefined) {
+          updateData.banner_url = input.banner_url === "" ? null : input.banner_url;
+        }
 
         const updatedSchool = await withRetry(() =>
           ctx.db.school.update({
@@ -271,6 +277,114 @@ export const schoolProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update school information',
+        });
+      }
+    }),
+
+  // Update school logo
+  updateSchoolLogo: onboardedCoachProcedure
+    .input(z.object({
+      logo_url: z.string().url("Must be a valid URL").optional().or(z.literal(""))
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+      const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
+
+      try {
+        // Verify coach has permission to edit this school
+        const coach = await withRetry(() =>
+          ctx.db.coach.findUnique({
+            where: { id: coachId },
+            select: { school_id: true },
+          })
+        );
+
+        if (!coach || coach.school_id !== schoolId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to update this school\'s assets',
+          });
+        }
+
+        // Update the school logo
+        const updatedSchool = await withRetry(() =>
+          ctx.db.school.update({
+            where: { id: schoolId },
+            data: {
+              logo_url: input.logo_url ?? null,
+              updated_at: new Date(),
+            },
+            select: {
+              id: true,
+              name: true,
+              logo_url: true,
+            },
+          })
+        );
+
+        return updatedSchool;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating school logo:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update school logo',
+        });
+      }
+    }),
+
+  // Update school banner
+  updateSchoolBanner: onboardedCoachProcedure
+    .input(z.object({
+      banner_url: z.string().url("Must be a valid URL").optional().or(z.literal(""))
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+      const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
+
+      try {
+        // Verify coach has permission to edit this school
+        const coach = await withRetry(() =>
+          ctx.db.coach.findUnique({
+            where: { id: coachId },
+            select: { school_id: true },
+          })
+        );
+
+        if (!coach || coach.school_id !== schoolId) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to update this school\'s assets',
+          });
+        }
+
+        // Update the school banner
+        const updatedSchool = await withRetry(() =>
+          ctx.db.school.update({
+            where: { id: schoolId },
+            data: {
+              banner_url: input.banner_url ?? null,
+              updated_at: new Date(),
+            },
+            select: {
+              id: true,
+              name: true,
+              banner_url: true,
+            },
+          })
+        );
+
+        return updatedSchool;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating school banner:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update school banner',
         });
       }
     }),
