@@ -31,6 +31,11 @@ const adminRoutes = [
     icon: FolderOpen,
   },
   {
+    href: "/admin/management",
+    label: "Management",
+    icon: Settings,
+  },
+  {
     href: "/admin/test-messages",
     label: "Test Messages",
     icon: MessageSquare,
