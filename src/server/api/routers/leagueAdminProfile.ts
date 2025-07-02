@@ -38,6 +38,20 @@ const leagueAdminProfileSchema = z.object({
   league_id: z.string().uuid().optional(),
 });
 
+const leagueProfileSchema = z.object({
+  name: z.string().min(1, "League name is required"),
+  short_name: z.string().min(1, "Short name is required").max(10, "Short name must be 10 characters or less"),
+  description: z.string().optional(),
+  region: z.string().min(1, "Region is required"),
+  state: z.string().optional(),
+  tier: z.enum(["ELITE", "PROFESSIONAL", "COMPETITIVE", "DEVELOPMENTAL"]),
+  season: z.string().min(1, "Season is required"),
+  format: z.string().optional(),
+  prize_pool: z.string().optional(),
+  founded_year: z.number().int().min(1900).max(new Date().getFullYear() + 10).optional(),
+  status: z.enum(["UPCOMING", "ACTIVE", "COMPLETED", "CANCELLED"]),
+});
+
 const leagueAssociationRequestSchema = z.object({
   // Required fields
   request_message: z.string().min(10, "Request message must be at least 10 characters"),
@@ -100,12 +114,19 @@ export const leagueAdminProfileRouter = createTRPCRouter({
                 tier: true,
                 season: true,
                 status: true,
-                game: {
-                  select: {
-                    id: true,
-                    name: true,
-                    short_name: true,
-                    color: true,
+                format: true,
+                prize_pool: true,
+                founded_year: true,
+                league_games: {
+                  include: {
+                    game: {
+                      select: {
+                        id: true,
+                        name: true,
+                        short_name: true,
+                        color: true,
+                      },
+                    },
                   },
                 },
               },
@@ -175,11 +196,15 @@ export const leagueAdminProfileRouter = createTRPCRouter({
                   tier: true,
                   season: true,
                   status: true,
-                  game: {
-                    select: {
-                      name: true,
-                      short_name: true,
-                      color: true,
+                  league_games: {
+                    include: {
+                      game: {
+                        select: {
+                          name: true,
+                          short_name: true,
+                          color: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -385,8 +410,8 @@ export const leagueAdminProfileRouter = createTRPCRouter({
               proposed_league_name: input.proposed_league_name,
               proposed_league_short_name: input.proposed_league_short_name,
               proposed_league_description: input.proposed_league_description,
-              proposed_game_ids: input.proposed_game_ids || null,
-              proposed_custom_games: input.proposed_custom_games || null,
+              proposed_game_ids: input.proposed_game_ids ?? undefined,
+              proposed_custom_games: input.proposed_custom_games ?? undefined,
               proposed_region: input.proposed_region,
               proposed_state: input.proposed_state,
               proposed_tier: input.proposed_tier,
@@ -446,6 +471,76 @@ export const leagueAdminProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to submit league association request',
+        });
+      }
+    }),
+
+  // Update league profile information
+  updateLeagueProfile: leagueAdminProcedure
+    .input(leagueProfileSchema)
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // First, get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: {
+            league_id: true,
+          },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to update league information',
+          });
+        }
+
+        // Update the league information
+        const updatedLeague = await withRetry(() =>
+          ctx.db.league.update({
+            where: { id: leagueAdmin.league_id! },
+            data: {
+              name: input.name,
+              short_name: input.short_name,
+              description: input.description,
+              region: input.region,
+              state: input.state,
+              tier: input.tier,
+              season: input.season,
+              format: input.format,
+              prize_pool: input.prize_pool,
+              founded_year: input.founded_year,
+              status: input.status,
+              updated_at: new Date(),
+            },
+            include: {
+              league_games: {
+                include: {
+                  game: {
+                    select: {
+                      id: true,
+                      name: true,
+                      short_name: true,
+                      color: true,
+                    },
+                  },
+                },
+              },
+            },
+          })
+        );
+
+        return updatedLeague;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error updating league profile:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update league profile',
         });
       }
     }),

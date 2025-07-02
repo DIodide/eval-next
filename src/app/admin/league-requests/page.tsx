@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
-  ClockIcon, 
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
   SearchIcon,
   TrophyIcon,
   UserIcon,
@@ -23,57 +23,76 @@ import {
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
-// Type definitions for requests data
-interface RequestData {
-  requests: Array<{
-    id: string;
-    status: string;
-    created_at: string;
-    request_message: string;
-    admin_notes?: string;
-    is_new_league_request: boolean;
-    proposed_league_name?: string;
-    proposed_league_short_name?: string;
-    proposed_league_description?: string;
-    proposed_region?: string;
-    proposed_state?: string;
-    proposed_tier?: "ELITE" | "PROFESSIONAL" | "COMPETITIVE" | "DEVELOPMENTAL";
-    proposed_season?: string;
-    proposed_format?: string;
-    proposed_founded_year?: number;
-    proposed_game_ids?: string[];
-    proposed_custom_games?: string[];
-    proposed_games?: Array<{
-      id: string;
-      name: string;
-      short_name: string;
-    }>;
-    administrator: {
-      first_name: string;
-      last_name: string;
-      email: string;
-      username?: string;
-      created_at: string;
-    };
-    league?: {
-      name: string;
-      short_name: string;
-      description: string;
-      region: string;
-      state?: string;
-      tier: string;
-      season: string;
-      league_games: Array<{
-        game: {
-          name: string;
-          short_name: string;
-        };
-      }>;
-    };
-  }>;
-  pagination: {
-    total: number;
+// Type definitions for better type safety
+interface GameInfo {
+  id: string;
+  name: string;
+  short_name: string;
+}
+
+interface CustomGameInfo {
+  name: string;
+  short_name: string;
+  icon?: string;
+  color?: string;
+}
+
+interface LeagueGameInfo {
+  game: {
+    name: string;
+    short_name: string;
   };
+}
+
+interface LeagueInfo {
+  id: string;
+  name: string;
+  short_name: string;
+  tier: string;
+  region: string;
+  state: string | null;
+  league_games: LeagueGameInfo[];
+}
+
+interface AdministratorInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string | null;
+  image_url: string | null;
+  created_at: Date;
+  league_id: string | null;
+}
+
+interface LeagueAssociationRequestData {
+  id: string;
+  status: string;
+  created_at: Date;
+  request_message: string;
+  admin_notes: string | null;
+  is_new_league_request: boolean;
+  
+  // Existing league request fields
+  league: LeagueInfo | null;
+  
+  // New league request fields
+  proposed_league_name: string | null;
+  proposed_league_short_name: string | null;
+  proposed_league_description: string | null;
+  proposed_region: string | null;
+  proposed_state: string | null;
+  proposed_tier: string | null;
+  proposed_season: string | null;
+  proposed_format: string | null;
+  proposed_founded_year: number | null;
+  
+  // Game fields - these come from JSON so we need to handle them carefully
+  proposed_game_ids: unknown; // JSON field from Prisma
+  proposed_custom_games: unknown; // JSON field from Prisma
+  proposed_games?: GameInfo[]; // Added by tRPC resolver
+  
+  administrator: AdministratorInfo;
 }
 
 export default function LeagueRequestsPage() {
@@ -140,7 +159,7 @@ export default function LeagueRequestsPage() {
       toast.error("Admin notes are required for rejection");
       return;
     }
-    
+
     setIsProcessing(true);
     await rejectRequest.mutateAsync({
       requestId,
@@ -184,13 +203,23 @@ export default function LeagueRequestsPage() {
     );
   };
 
-  // Helper function to render games for a request
-  const renderGames = (request: any) => {
+  // Helper function to safely parse JSON fields and render games for a request
+  const renderGames = (request: LeagueAssociationRequestData): React.ReactNode => {
     if (request.is_new_league_request) {
-      // For new league requests, use the resolved game details
-      const proposedGames = request.proposed_games || [];
-      const customGames: any[] = request.proposed_custom_games || [];
+      // For new league requests, use the resolved game details and custom games
+      const proposedGames = request.proposed_games ?? [];
       
+      // Safely parse custom games from JSON field
+      let customGames: CustomGameInfo[] = [];
+      try {
+        if (request.proposed_custom_games && Array.isArray(request.proposed_custom_games)) {
+          customGames = request.proposed_custom_games as CustomGameInfo[];
+        }
+      } catch (error) {
+        console.warn('Error parsing custom games:', error);
+        customGames = [];
+      }
+
       if (proposedGames.length === 0 && customGames.length === 0) {
         return 'N/A';
       }
@@ -198,14 +227,14 @@ export default function LeagueRequestsPage() {
       return (
         <div className="space-y-1">
           {/* Show official games */}
-          {proposedGames.map((game: any, index: number) => (
+          {proposedGames.map((game: GameInfo, index: number) => (
             <div key={index} className="text-sm">
               {game.name} ({game.short_name})
             </div>
           ))}
-          
+
           {/* Show custom games */}
-          {customGames.map((game: any, index: number) => (
+          {customGames.map((game: CustomGameInfo, index: number) => (
             <div key={`custom-${index}`} className="text-sm text-cyan-400">
               {game.name} ({game.short_name}) <span className="text-xs">- Custom</span>
             </div>
@@ -220,7 +249,7 @@ export default function LeagueRequestsPage() {
 
       return (
         <div className="space-y-1">
-          {request.league.league_games.map((lg: any, index: number) => (
+          {request.league.league_games.map((lg: LeagueGameInfo, index: number) => (
             <div key={index} className="text-sm">
               {lg.game.name} ({lg.game.short_name})
             </div>
@@ -271,8 +300,8 @@ export default function LeagueRequestsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status" className="text-gray-300">Status</Label>
-              <Select 
-                value={statusFilter ?? "all"} 
+              <Select
+                value={statusFilter ?? "all"}
                 onValueChange={(value) => setStatusFilter(value === "all" ? undefined : value as "PENDING" | "APPROVED" | "REJECTED")}
               >
                 <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
@@ -308,11 +337,10 @@ export default function LeagueRequestsPage() {
           </Card>
         ) : (
           requestsData.requests.map((request) => (
-            <Card 
-              key={request.id} 
-              className={`bg-gray-900 border-gray-800 transition-colors ${
-                selectedRequest === request.id ? 'border-cyan-500' : 'hover:border-gray-700'
-              }`}
+            <Card
+              key={request.id}
+              className={`bg-gray-900 border-gray-800 transition-colors ${selectedRequest === request.id ? 'border-cyan-500' : 'hover:border-gray-700'
+                }`}
             >
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

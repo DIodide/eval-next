@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
           // You might want to throw an error here to trigger webhook retry
           // throw error
         }
-      } else if (unsafeMetadata.userType === 'league_admin') {
+      } else if (unsafeMetadata.userType === 'league') {
         try {
           const newLeagueAdmin = await db.leagueAdministrator.create({
             data: {

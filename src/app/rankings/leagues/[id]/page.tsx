@@ -90,7 +90,7 @@ export default function LeagueDetailPage() {
     )
   }
 
-  const gameColor = gameColors[league.game?.short_name as keyof typeof gameColors] ?? "from-gray-500 to-gray-700"
+  const gameColor = gameColors[league.league_games?.[0]?.game?.short_name as keyof typeof gameColors] ?? "from-gray-500 to-gray-700"
   const tierColor = tierColors[league.tier as keyof typeof tierColors] ?? "bg-gray-400 text-white"
   const statusColor = statusColors[league.status as keyof typeof statusColors] ?? "bg-gray-400 text-white"
 
@@ -165,7 +165,7 @@ export default function LeagueDetailPage() {
                       <Award className="w-5 h-5 text-cyan-400" />
                       <span className="text-white font-orbitron text-sm font-bold">Game</span>
                 </div>
-                    <p className="text-sm text-gray-300 font-medium">{league.game?.name}</p>
+                    <p className="text-sm text-gray-300 font-medium">{league.league_games?.[0]?.game?.name}</p>
                   </div>
                 </div>
               </div>

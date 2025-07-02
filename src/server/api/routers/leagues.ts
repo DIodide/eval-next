@@ -16,22 +16,35 @@ export const leaguesRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
+        const whereClause = {
+          ...(input?.state && { state: input.state }),
+          ...(input?.tier && { tier: input.tier }),
+          ...(input?.status && { status: input.status }),
+          // If game_id filter is provided, filter by leagues that have that game
+          ...(input?.game_id && {
+            league_games: {
+              some: {
+                game_id: input.game_id,
+              },
+            },
+          }),
+        };
+
         const leagues = await withRetry(() =>
           ctx.db.league.findMany({
-            where: {
-              ...(input?.game_id && { game_id: input.game_id }),
-              ...(input?.state && { state: input.state }),
-              ...(input?.tier && { tier: input.tier }),
-              ...(input?.status && { status: input.status }),
-            },
+            where: whereClause,
             include: {
-              game: {
-                select: {
-                  id: true,
-                  name: true,
-                  short_name: true,
-                  color: true,
-                  icon: true,
+              league_games: {
+                include: {
+                  game: {
+                    select: {
+                      id: true,
+                      name: true,
+                      short_name: true,
+                      color: true,
+                      icon: true,
+                    },
+                  },
                 },
               },
               schools: {
@@ -95,13 +108,17 @@ export const leaguesRouter = createTRPCRouter({
           ctx.db.league.findUnique({
             where: { id: input.id },
             include: {
-              game: {
-                select: {
-                  id: true,
-                  name: true,
-                  short_name: true,
-                  color: true,
-                  icon: true,
+              league_games: {
+                include: {
+                  game: {
+                    select: {
+                      id: true,
+                      name: true,
+                      short_name: true,
+                      color: true,
+                      icon: true,
+                    },
+                  },
                 },
               },
               schools: {
@@ -388,6 +405,50 @@ export const leaguesRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch top players',
+        });
+      }
+    }),
+
+  // Get leagues available for association requests (simplified data)
+  getAvailableForAssociation: publicProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const leagues = await withRetry(() =>
+          ctx.db.league.findMany({
+            where: {
+              status: { in: ["ACTIVE", "UPCOMING"] }, // Show active and upcoming leagues for association
+            },
+            select: {
+              id: true,
+              name: true,
+              short_name: true,
+              tier: true,
+              region: true,
+              state: true,
+              league_games: {
+                include: {
+                  game: {
+                    select: {
+                      name: true,
+                      short_name: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: [
+              { tier: 'asc' },
+              { name: 'asc' },
+            ],
+          })
+        );
+
+        return leagues;
+      } catch (error) {
+        console.error('Error fetching available leagues:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch available leagues',
         });
       }
     }),

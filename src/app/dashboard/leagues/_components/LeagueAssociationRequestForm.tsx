@@ -33,11 +33,7 @@ interface LeagueAssociationRequestData {
   proposed_founded_year?: number;
 }
 
-// Available leagues (placeholder data)
-const AVAILABLE_LEAGUES = [
-  { id: "1", name: "Garden State Esports League", short_name: "GSEL", tier: "COMPETITIVE" },
-  { id: "2", name: "Northeast Collegiate League", short_name: "NECL", tier: "PROFESSIONAL" },
-];
+// Remove placeholder data - will fetch real leagues from database
 
 export function LeagueAssociationRequestForm({ onClose }: LeagueAssociationRequestFormProps) {
   const { toast } = useToast();
@@ -48,6 +44,9 @@ export function LeagueAssociationRequestForm({ onClose }: LeagueAssociationReque
 
   // Fetch available games for game selection
   const { data: games } = api.tryouts.getGames.useQuery();
+  
+  // Fetch available leagues for association requests
+  const { data: availableLeagues, isLoading: isLoadingLeagues } = api.leagues.getAvailableForAssociation.useQuery();
 
   // Form state for existing league association
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
@@ -484,11 +483,23 @@ export function LeagueAssociationRequestForm({ onClose }: LeagueAssociationReque
                     <SelectValue placeholder="Choose a league" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    {AVAILABLE_LEAGUES.map((league) => (
-                      <SelectItem key={league.id} value={league.id}>
-                        {league.name} ({league.short_name}) - {league.tier}
+                    {isLoadingLeagues ? (
+                      <SelectItem value="loading" disabled>
+                        Loading leagues...
                       </SelectItem>
-                    ))}
+                    ) : availableLeagues && availableLeagues.length > 0 ? (
+                      availableLeagues.map((league) => (
+                        <SelectItem key={league.id} value={league.id}>
+                          {league.name} ({league.short_name}) - {league.tier}
+                          {league.region && ` - ${league.region}`}
+                          {league.state && ` (${league.state})`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-leagues" disabled>
+                        No leagues available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -517,7 +528,8 @@ export function LeagueAssociationRequestForm({ onClose }: LeagueAssociationReque
             disabled={
               (!selectedLeagueId && !isNewLeagueRequest) || 
               isSubmitting ||
-              (isNewLeagueRequest && selectedGameIds.length === 0 && customGames.length === 0)
+              (isNewLeagueRequest && selectedGameIds.length === 0 && customGames.length === 0) ||
+              (!isNewLeagueRequest && isLoadingLeagues)
             }
             className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white font-orbitron"
           >

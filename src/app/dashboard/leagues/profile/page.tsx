@@ -6,14 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserIcon, SaveIcon, EyeIcon, BuildingIcon } from "lucide-react";
-import { useState } from "react";
+import { UserIcon, SaveIcon, EyeIcon, BuildingIcon, AlertCircleIcon, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { api } from "@/trpc/react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LeagueProfilePage() {
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Mock league data - this would come from tRPC in a real implementation
   const [leagueData, setLeagueData] = useState({
     name: "",
     short_name: "",
@@ -28,22 +28,111 @@ export default function LeagueProfilePage() {
     status: "ACTIVE"
   });
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    
-    try {
-      // TODO: Implement actual save using tRPC
-      // await api.leagueAdminProfile.updateLeagueProfile.mutate(leagueData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+  // Get league admin profile data
+  const { data: profileData, isLoading, error } = api.leagueAdminProfile.getProfile.useQuery();
+  
+  // Update league profile mutation
+  const updateLeagueProfile = api.leagueAdminProfile.updateLeagueProfile.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Profile Updated",
+        description: "League profile has been updated successfully.",
+      });
       setIsEditing(false);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: error.message,
+      });
+    },
+  });
+
+  // Initialize form data when profile data loads
+  useEffect(() => {
+    if (profileData?.league_ref) {
+      const league = profileData.league_ref;
+      setLeagueData({
+        name: league.name ?? "",
+        short_name: league.short_name ?? "",
+        description: league.description ?? "",
+        region: league.region ?? "",
+        state: league.state ?? "",
+        tier: league.tier ?? "",
+        season: league.season ?? "",
+        format: league.format ?? "",
+        prize_pool: league.prize_pool ?? "",
+        founded_year: league.founded_year?.toString() ?? "",
+        status: league.status ?? "ACTIVE"
+      });
+    }
+  }, [profileData]);
+
+  const handleSave = async () => {
+    try {
+      await updateLeagueProfile.mutateAsync({
+        name: leagueData.name,
+        short_name: leagueData.short_name,
+        description: leagueData.description,
+        region: leagueData.region,
+        state: leagueData.state,
+        tier: leagueData.tier as "ELITE" | "PROFESSIONAL" | "COMPETITIVE" | "DEVELOPMENTAL",
+        season: leagueData.season,
+        format: leagueData.format,
+        prize_pool: leagueData.prize_pool,
+        founded_year: leagueData.founded_year ? parseInt(leagueData.founded_year) : undefined,
+        status: leagueData.status as "UPCOMING" | "ACTIVE" | "COMPLETED" | "CANCELLED"
+      });
     } catch (error) {
+      // Error handled by mutation onError
       console.error("Failed to save league profile:", error);
-    } finally {
-      setIsSaving(false);
     }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+          <span className="ml-2 text-white">Loading league profile...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Card className="bg-red-900/20 border-red-700">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-red-300">
+              <AlertCircleIcon className="h-5 w-5" />
+              <span>Error loading profile: {error.message}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // No league association
+  if (!profileData?.league_ref) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Card className="bg-yellow-900/20 border-yellow-700">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-yellow-300">
+              <AlertCircleIcon className="h-5 w-5" />
+              <span>You must be associated with a league to manage league profiles. Please submit a league association request first.</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -75,18 +164,22 @@ export default function LeagueProfilePage() {
               <Button 
                 variant="outline"
                 onClick={() => setIsEditing(false)}
-                disabled={isSaving}
+                disabled={updateLeagueProfile.isPending}
                 className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-800"
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleSave}
-                disabled={isSaving}
+                disabled={updateLeagueProfile.isPending}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
-                <SaveIcon className="h-4 w-4 mr-2" />
-                {isSaving ? "Saving..." : "Save Changes"}
+                {updateLeagueProfile.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <SaveIcon className="h-4 w-4 mr-2" />
+                )}
+                {updateLeagueProfile.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           )}
@@ -263,6 +356,33 @@ export default function LeagueProfilePage() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Games Section */}
+      <Card className="bg-[#1a1a2e] border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white">Games</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <Label className="text-white">Supported Games</Label>
+            <div className="flex flex-wrap gap-2">
+              {profileData?.league_ref?.league_games?.map((leagueGame) => (
+                <div
+                  key={leagueGame.game.id}
+                  className="flex items-center gap-2 px-3 py-1 bg-purple-600/20 border border-purple-600/40 rounded-full"
+                >
+                  <span className="text-purple-300 text-sm">{leagueGame.game.name}</span>
+                </div>
+              )) ?? (
+                <p className="text-gray-400 text-sm">No games configured</p>
+              )}
+            </div>
+            <p className="text-gray-400 text-sm">
+              Game selection is managed during league association requests. Contact support if you need to modify supported games.
+            </p>
           </div>
         </CardContent>
       </Card>

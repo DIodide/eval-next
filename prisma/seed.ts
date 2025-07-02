@@ -1258,7 +1258,6 @@ async function main() {
           name: 'Garden State Esports League',
           short_name: 'GSE',
           description: 'New Jersey\'s premier high school esports league, fostering competitive gaming excellence across the Garden State.',
-                     game_id: valorantGame?.id ?? createdGames.find(g => g.short_name === 'VAL')?.id,
           region: 'Northeast',
           state: 'NJ',
           tier: 'COMPETITIVE',
@@ -1269,6 +1268,17 @@ async function main() {
           founded_year: 2019
         }
       })
+      
+      // Create the league-game relationship
+      const valorantGameId = valorantGame?.id ?? createdGames.find(g => g.short_name === 'VAL')?.id;
+      if (valorantGameId) {
+        await prisma.leagueGame.create({
+          data: {
+            league_id: gseLeague.id,
+            game_id: valorantGameId
+          }
+        });
+      }
       console.log('✅ Created Garden State Esports League')
     }
   } catch (error) {

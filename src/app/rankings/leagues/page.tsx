@@ -41,13 +41,15 @@ type League = {
   status: string
   tier: string
   description: string | null
-  game: {
-    id: string
-    name: string
-    short_name: string
-    color: string | null
-    icon: string | null
-  } | null
+  league_games: Array<{
+    game: {
+      id: string
+      name: string
+      short_name: string
+      color: string | null
+      icon: string | null
+    }
+  }>
   teams: Array<{
     team: {
       id: string
@@ -70,7 +72,7 @@ type League = {
 }
 
 function LeagueCard({ league }: { league: League }) {
-  const gameColor = gameColors[league.game?.short_name as keyof typeof gameColors] ?? "from-gray-500 to-gray-700"
+  const gameColor = gameColors[league.league_games?.[0]?.game?.short_name as keyof typeof gameColors] ?? "from-gray-500 to-gray-700"
   const tierColor = tierColors[league.tier as keyof typeof tierColors] ?? "bg-gray-400 text-white"
   const statusColor = statusColors[league.status as keyof typeof statusColors] ?? "bg-gray-400 text-white"
 
@@ -88,7 +90,7 @@ function LeagueCard({ league }: { league: League }) {
               </div>
               <div>
                 <h3 className="font-orbitron font-bold text-white text-lg tracking-wide group-hover:text-cyan-200 transition-colors duration-300">{league.short_name}</h3>
-                <p className="text-gray-400 text-sm font-medium">{league.game?.name}</p>
+                <p className="text-gray-400 text-sm font-medium">{league.league_games?.[0]?.game?.name}</p>
               </div>
             </div>
             <div className="flex flex-col gap-1">
@@ -155,7 +157,7 @@ export default function LeaguesRankingPage() {
   ) ?? []
 
   // Get unique values for filters
-  const games = Array.from(new Set(leagues?.map(l => l.game).filter(Boolean) ?? [])).map(g => ({ id: g.id, name: g.name }))
+  const games = Array.from(new Set(leagues?.map(l => l.league_games?.[0]?.game).filter(Boolean) ?? [])).map(g => ({ id: g!.id, name: g!.name }))
   const states = Array.from(new Set(leagues?.map(l => l.state).filter((s): s is string => Boolean(s)) ?? []))
 
   if (error) {
