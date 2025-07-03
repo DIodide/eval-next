@@ -1140,6 +1140,18 @@ export default function CoachProfilePage() {
               </div>
             </div>
 
+            {/* Priority Information */}
+            <div className="text-sm text-blue-300 bg-blue-900/20 border border-blue-600/30 p-4 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <InfoIcon className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold mb-2 text-blue-300">Logo Priority System:</p>
+                  <p className="mb-2">If you provide both a logo URL (in School Information) and upload a logo file here, <strong>the most recently changed item will be used</strong>.</p>
+                  <p className="text-blue-400">💡 For best results, use either the URL field OR file upload, not both.</p>
+                </div>
+              </div>
+            </div>
+
             <div className="text-sm text-gray-400 bg-gray-800/50 p-4 rounded-lg">
               <p className="mb-2"><strong className="text-gray-300">Asset Guidelines:</strong></p>
               <ul className="space-y-1 list-disc list-inside">
