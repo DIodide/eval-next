@@ -1,9 +1,9 @@
-import { SignUp } from '@clerk/nextjs'
+import { SignIn } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Trophy, Users, Target, Globe } from 'lucide-react'
+import { Trophy, Users, Target, Gamepad2 } from 'lucide-react'
 
-export default function LeagueSignUpPage() {
+export default function SignInPage() {
   return (
     <div className="min-h-screen bg-gray-900/90 text-white relative overflow-hidden">
       {/* Background Effects */}
@@ -41,13 +41,13 @@ export default function LeagueSignUpPage() {
           {/* Heading */}
           <div className="mb-12">
             <h1 className="text-4xl xl:text-5xl font-orbitron font-black text-white mb-4 leading-tight">
-              Create Your
+              Welcome Back to
               <span className="block bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500 bg-clip-text text-transparent">
-                League Admin Account
+                EVAL
               </span>
             </h1>
             <p className="text-lg text-gray-300 font-medium leading-relaxed">
-              Join the premier esports platform and showcase your competitive gaming league with professional profiles and rankings.
+              Sign in to access your dashboard and continue your competitive gaming journey.
             </p>
           </div>
 
@@ -55,11 +55,11 @@ export default function LeagueSignUpPage() {
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                <Globe className="w-6 h-6 text-cyan-400" />
+                <Trophy className="w-6 h-6 text-cyan-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Shareable League Profile</h3>
-                <p className="text-gray-400 text-sm">Professional public profile showcasing your league brand and identity</p>
+                <h3 className="font-orbitron font-bold text-white">Competitive Excellence</h3>
+                <p className="text-gray-400 text-sm">Access tournaments, tryouts, and showcase your skills</p>
               </div>
             </div>
 
@@ -68,8 +68,8 @@ export default function LeagueSignUpPage() {
                 <Users className="w-6 h-6 text-purple-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Team & Player Analytics</h3>
-                <p className="text-gray-400 text-sm">Comprehensive performance tracking and insights</p>
+                <h3 className="font-orbitron font-bold text-white">Community Connection</h3>
+                <p className="text-gray-400 text-sm">Connect with players, coaches, and leagues worldwide</p>
               </div>
             </div>
 
@@ -78,35 +78,49 @@ export default function LeagueSignUpPage() {
                 <Target className="w-6 h-6 text-orange-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Professional Rankings</h3>
-                <p className="text-gray-400 text-sm">Industry-standard ranking and leaderboard systems</p>
+                <h3 className="font-orbitron font-bold text-white">Performance Analytics</h3>
+                <p className="text-gray-400 text-sm">Track your progress with detailed stats and insights</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-cyan-400" />
+                <Gamepad2 className="w-6 h-6 text-cyan-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">League Management</h3>
-                <p className="text-gray-400 text-sm">Organize teams, manage players, and showcase your league</p>
+                <h3 className="font-orbitron font-bold text-white">Multi-Game Platform</h3>
+                <p className="text-gray-400 text-sm">Support for Valorant, Overwatch, Rocket League, and more</p>
               </div>
             </div>
           </div>
 
-          {/* CTA Link */}
+          {/* CTA Links */}
           <div className="mt-12 pt-8 border-t border-white/10">
-            <p className="text-gray-400 text-sm mb-4">Already have an account?</p>
-            <Link 
-              href="/sign-in" 
-              className="inline-flex items-center text-cyan-400 hover:text-cyan-300 font-orbitron font-bold transition-colors"
-            >
-              Sign in to your account →
-            </Link>
+            <p className="text-gray-400 text-sm mb-4">Don&apos;t have an account yet?</p>
+            <div className="space-y-2">
+              <Link 
+                href="/sign-up/players" 
+                className="block text-cyan-400 hover:text-cyan-300 font-orbitron font-bold transition-colors"
+              >
+                Sign up as Player →
+              </Link>
+              <Link 
+                href="/sign-up/schools" 
+                className="block text-purple-400 hover:text-purple-300 font-orbitron font-bold transition-colors"
+              >
+                Sign up as Coach or School →
+              </Link>
+              <Link 
+                href="/sign-up/leagues" 
+                className="block text-orange-400 hover:text-orange-300 font-orbitron font-bold transition-colors"
+              >
+                Sign up as League Admin →
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Right Side - Sign Up Form */}
+        {/* Right Side - Sign In Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center px-6 lg:px-12">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
@@ -128,15 +142,14 @@ export default function LeagueSignUpPage() {
             {/* Mobile Title */}
             <div className="lg:hidden mb-8 text-center">
               <h2 className="text-2xl font-orbitron font-black text-white mb-2">
-                Create League Admin Account
+                Welcome Back
               </h2>
               <div className="w-16 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500 rounded-full mx-auto"></div>
             </div>
 
-            {/* Sign Up Component with Enhanced Styling */}
+            {/* Sign In Component with Enhanced Styling */}
             <div className="bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl p-8">
-              <SignUp 
-                unsafeMetadata={{userType: "league"}}
+              <SignIn 
                 appearance={{
                   elements: {
                     rootBox: "w-full",
@@ -153,16 +166,42 @@ export default function LeagueSignUpPage() {
                     footerActionText: "text-gray-400",
                     formButtonPrimary: "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-orbitron font-bold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300",
                     identityPreviewText: "text-gray-300",
-                    identityPreviewEditButton: "text-cyan-400 hover:text-cyan-300"
+                    identityPreviewEditButton: "text-cyan-400 hover:text-cyan-300",
+                    formFieldAction: "text-cyan-400 hover:text-cyan-300 font-medium"
                   }
                 }}
               />
             </div>
 
+            {/* Mobile Sign Up Links */}
+            <div className="lg:hidden mt-6 text-center">
+              <p className="text-gray-400 text-sm mb-4">Don&apos;t have an account?</p>
+              <div className="space-y-2">
+                <Link 
+                  href="/sign-up/players" 
+                  className="block text-cyan-400 hover:text-cyan-300 font-orbitron font-bold transition-colors text-sm"
+                >
+                  Sign up as Player →
+                </Link>
+                <Link 
+                  href="/sign-up/schools" 
+                  className="block text-purple-400 hover:text-purple-300 font-orbitron font-bold transition-colors text-sm"
+                >
+                  Sign up as Coach →
+                </Link>
+                <Link 
+                  href="/sign-up/leagues" 
+                  className="block text-orange-400 hover:text-orange-300 font-orbitron font-bold transition-colors text-sm"
+                >
+                  Sign up as League Admin →
+                </Link>
+              </div>
+            </div>
+
             {/* Bottom Links */}
             <div className="mt-6 text-center">
               <p className="text-gray-400 text-sm">
-                By creating an account, you agree to our{' '}
+                By signing in, you agree to our{' '}
                 <Link href="/tos" className="text-cyan-400 hover:text-cyan-300 transition-colors">
                   Terms of Service
                 </Link>
