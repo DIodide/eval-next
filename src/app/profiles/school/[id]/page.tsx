@@ -1067,11 +1067,11 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                                 <div className="text-3xl">
                                   {gameIcons[tryout.game.name] ?? "🎮"}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-orbitron font-semibold text-white text-lg truncate">
+                                <div className="flex-1 min-w-0 overflow-hidden">
+                                  <h4 className="font-orbitron font-semibold text-white text-sm leading-tight line-clamp-2 break-words">
                                     {tryout.title}
                                   </h4>
-                                  <p className="text-gray-400 text-sm font-rajdhani mt-1">
+                                  <p className="text-gray-400 text-xs font-rajdhani mt-1 line-clamp-2 break-words leading-tight">
                                     {tryout.description}
                                   </p>
                                 </div>
