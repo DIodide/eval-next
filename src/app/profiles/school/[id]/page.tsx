@@ -266,12 +266,12 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
   );
 }
 
-// Game icons mapping
-const gameIcons: Record<string, string> = {
-  "VALORANT": "🎯",
-  "Overwatch 2": "⚡",
-  "Super Smash Bros. Ultimate": "👊",
-  "Rocket League": "🚗",
+// Game logo mapping
+const gameLogos: Record<string, string> = {
+  "VALORANT": "/valorant/logos/V_Lockup_Vertical Black.png",
+  "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png",
+  "Super Smash Bros. Ultimate": "/smash/logos/Smash Ball White Logo.png",
+  "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
 }
 
 // Tryout status colors
@@ -1064,8 +1064,18 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                             {/* Header */}
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex items-center gap-3 flex-1">
-                                <div className="text-3xl">
-                                  {gameIcons[tryout.game.name] ?? "🎮"}
+                                <div className="w-12 h-12 flex items-center justify-center">
+                                  {gameLogos[tryout.game.name] ? (
+                                    <Image
+                                      src={gameLogos[tryout.game.name]!}
+                                      alt={tryout.game.name}
+                                      width={48}
+                                      height={48}
+                                      className="w-full h-full object-contain"
+                                    />
+                                  ) : (
+                                    <div className="text-3xl">🎮</div>
+                                  )}
                                 </div>
                                 <div className="flex-1 min-w-0 overflow-hidden">
                                   <h4 className="font-orbitron font-semibold text-white text-sm leading-tight line-clamp-2 break-words">
