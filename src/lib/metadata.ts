@@ -241,6 +241,7 @@ export const staticPageMetadata = {
     title: 'FAQ - Frequently Asked Questions',
     description: 'Find answers to common questions about EVAL, college esports recruiting, scholarships, and our platform features.',
     keywords: ['EVAL FAQ', 'esports questions', 'college gaming help', 'platform support', 'esports recruiting FAQ'],
+    image: 'https://evalgaming.com/api/faq-og',
   }),
 
   aboutPartners: generateMetadata({
