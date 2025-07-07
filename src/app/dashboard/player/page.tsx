@@ -1,8 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { staticPageMetadata } from "@/lib/metadata";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = staticPageMetadata.playerDashboard;
 
 export default function DashboardPage() {
   return (
