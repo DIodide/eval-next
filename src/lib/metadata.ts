@@ -217,6 +217,13 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/recruiting-og',
   }),
 
+  dashboard: generateMetadata({
+    title: 'Dashboard - Your Esports Command Center',
+    description: 'Your command center for esports success. Access analytics, insights, and control everything from your personalized dashboard.',
+    keywords: ['esports dashboard', 'gaming analytics', 'performance tracking', 'esports insights', 'command center', 'esports management'],
+    image: 'https://evalgaming.com/api/dashboard-og',
+  }),
+
   pricing: generateMetadata({
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
