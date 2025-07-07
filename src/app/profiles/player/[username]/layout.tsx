@@ -56,20 +56,20 @@ export async function generateMetadata({ params }: PlayerLayoutProps): Promise<M
         description,
         type: 'profile',
         url: `https://evalgaming.com/profiles/player/${player.username}`,
-        images: player.image_url ? [
+        images: [
           {
-            url: player.image_url,
-            width: 400,
-            height: 400,
+            url: `https://evalgaming.com/api/player-og/${player.username}`,
+            width: 1200,
+            height: 630,
             alt: `${displayName} - EVAL Player Profile`,
           }
-        ] : undefined,
+        ],
       },
       twitter: {
-        card: 'summary',
+        card: 'summary_large_image',
         title,
         description,
-        images: player.image_url ? [player.image_url] : undefined,
+        images: [`https://evalgaming.com/api/player-og/${player.username}`],
       },
     };
   } catch (error) {
