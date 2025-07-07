@@ -247,6 +247,7 @@ export const staticPageMetadata = {
     title: 'Our Partners - EVAL Collaborations',
     description: 'Discover our trusted partners and collaborations that help make college esports opportunities accessible to all student gamers.',
     keywords: ['EVAL partners', 'esports partnerships', 'college gaming collaborations', 'educational partnerships'],
+    image: 'https://evalgaming.com/api/partners-og',
   }),
 
   tryoutsCollege: generateMetadata({
