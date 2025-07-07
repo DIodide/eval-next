@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users } from "lucide-react";
+import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users, Share2Icon } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
+import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -369,6 +370,18 @@ const formatRelativeTime = (date: Date) => {
 export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   const { user } = useUser();
   const unwrappedParams = use(params);
+
+  // Handle share profile functionality
+  const handleShareProfile = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      toast.success("School profile URL copied to clipboard!");
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      toast.error("Unable to copy to clipboard. Please copy the URL manually.");
+    }
+  };
   
   // Fetch school data using tRPC
   const { data: schoolData, isLoading: isLoadingSchool, error: schoolError } = api.schoolProfile.getById.useQuery({
@@ -797,6 +810,18 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div>
+                    <h3 className="font-orbitron font-semibold text-gray-300 mb-3">Actions</h3>
+                    <Button 
+                      onClick={handleShareProfile}
+                      className="bg-gray-600 hover:bg-gray-700 text-white font-orbitron"
+                    >
+                      <Share2Icon className="w-4 h-4 mr-2" />
+                      Share School Profile
+                    </Button>
                   </div>
 
                   <div>

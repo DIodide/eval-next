@@ -17,8 +17,10 @@ import {
   ExternalLink,
   TrophyIcon,
   Clock,
-  UserIcon
+  UserIcon,
+  Share2Icon
 } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -130,6 +132,18 @@ function getGameColor(gameName: string) {
 export default function LeagueProfilePage({ params }: LeagueProfilePageProps) {
   const resolvedParams = use(params);
   const [selectedGameFilter, setSelectedGameFilter] = useState<string>('all');
+
+  // Handle share profile functionality
+  const handleShareProfile = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      toast.success("League profile URL copied to clipboard!");
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      toast.error("Unable to copy to clipboard. Please copy the URL manually.");
+    }
+  };
   
   const { data: league, isLoading, error } = api.leagueAdminProfile.getLeagueById.useQuery({
     id: resolvedParams.id,
@@ -346,6 +360,22 @@ export default function LeagueProfilePage({ params }: LeagueProfilePageProps) {
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
+            {/* Share Profile */}
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white font-orbitron">Share League</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={handleShareProfile}
+                  className="w-full bg-gray-600 hover:bg-gray-700 text-white font-orbitron"
+                >
+                  <Share2Icon className="w-4 h-4 mr-2" />
+                  Share League Profile
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Supported Games */}
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader>
