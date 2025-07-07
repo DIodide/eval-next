@@ -1,5 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { staticPageMetadata } from "@/lib/metadata";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = staticPageMetadata.dashboard;
 
 export default async function DashboardLayout({
   children,
