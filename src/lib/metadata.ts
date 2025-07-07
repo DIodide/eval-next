@@ -245,6 +245,34 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/leagues-dashboard-og',
   }),
 
+  tryoutsCombines: generateMetadata({
+    title: 'Tryout Combines - Showcase Your Skills in Competitive Events',
+    description: 'Showcase your skills in competitive esports events. Join tryout combines to demonstrate your abilities and get noticed by coaches and scouts.',
+    keywords: ['tryout combines', 'esports tryouts', 'competitive events', 'skill showcase', 'player evaluation', 'esports recruitment', 'gaming competitions'],
+    image: 'https://evalgaming.com/api/tryouts-combines-og',
+  }),
+
+  tryoutsCollege: generateMetadata({
+    title: 'College Tryouts - Join Collegiate Esports Teams & Programs',
+    description: 'Join collegiate esports teams and programs. Find opportunities to compete at the college level and pursue esports scholarships.',
+    keywords: ['college tryouts', 'collegiate esports', 'esports scholarships', 'college gaming', 'university esports', 'student athletes', 'academic gaming'],
+    image: 'https://evalgaming.com/api/tryouts-college-og',
+  }),
+
+  rankingsCombines: generateMetadata({
+    title: 'Combine Rankings - See Where You Rank Among the Competition',
+    description: 'See where you rank among the competition. Track your performance in combines and compare your skills against other players.',
+    keywords: ['combine rankings', 'player rankings', 'esports leaderboards', 'competitive standings', 'skill rankings', 'performance metrics', 'player comparison'],
+    image: 'https://evalgaming.com/api/rankings-combines-og',
+  }),
+
+  rankingsLeagues: generateMetadata({
+    title: 'League Rankings - Track Team Standings & League Competition',
+    description: 'Track team standings and league competition. Follow league rankings, tournament brackets, and competitive seasons across multiple games.',
+    keywords: ['league rankings', 'team standings', 'tournament brackets', 'competitive leagues', 'esports tournaments', 'season standings', 'league competition'],
+    image: 'https://evalgaming.com/api/rankings-leagues-og',
+  }),
+
   pricing: generateMetadata({
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
@@ -281,34 +309,10 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/partners-og',
   }),
 
-  tryoutsCollege: generateMetadata({
-    title: 'College Esports Tryouts - Find Your Team',
-    description: 'Browse college esports tryouts across all games and skill levels. Register for tryouts and join competitive collegiate gaming teams.',
-    keywords: ['college esports tryouts', 'collegiate gaming', 'esports teams', 'gaming tryouts', 'college recruiting'],
-  }),
-
-  tryoutsCombines: generateMetadata({
-    title: 'Esports Combines - Elite Competition',
-    description: 'Compete in elite esports combines to showcase your skills, earn rankings, and attract college recruiters. Join the best competitive gaming events.',
-    keywords: ['esports combines', 'gaming competition', 'esports events', 'competitive gaming', 'skill showcase'],
-  }),
-
   rankings: generateMetadata({
     title: 'Esports Rankings - Top Players & Teams',
     description: 'View comprehensive esports rankings for players, teams, and schools. Track performance across games and compete for top positions.',
     keywords: ['esports rankings', 'gaming leaderboards', 'player rankings', 'team standings', 'college esports stats'],
-  }),
-
-  rankingsLeagues: generateMetadata({
-    title: 'League Rankings - Competitive Standings',
-    description: 'Follow league standings and rankings across all competitive esports leagues. Track team performance and playoff positions.',
-    keywords: ['esports leagues', 'league standings', 'competitive rankings', 'team standings', 'esports seasons'],
-  }),
-
-  rankingsCombines: generateMetadata({
-    title: 'Combine Rankings - Elite Player Performance',
-    description: 'View combine performance rankings and results from elite esports competitions. See who performed best in competitive gaming events.',
-    keywords: ['combine rankings', 'esports performance', 'gaming competition results', 'elite players', 'competitive stats'],
   }),
 
   privacyPolicy: generateMetadata({
