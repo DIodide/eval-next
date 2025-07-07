@@ -107,7 +107,9 @@ export function generatePlayerMetadata(player: PlayerMetadataOptions): Metadata 
     player.username,
     player.mainGame,
     player.school,
-    'esports scholarships'
+    'esports scholarships',
+    'EVAL',
+    'EVAL Gaming'
   ].filter(Boolean) as string[];
 
   return generateMetadata({
@@ -134,7 +136,9 @@ export function generateSchoolMetadata(school: SchoolMetadataOptions): Metadata 
     school.state,
     school.schoolType.toLowerCase().replace('_', ' '),
     'esports recruitment',
-    'gaming teams'
+    'gaming teams',
+    'EVAL',
+    'EVAL Gaming'
   ];
 
   return generateMetadata({
@@ -166,7 +170,9 @@ export function generateEventMetadata(event: EventMetadataOptions): Metadata {
     event.game,
     event.school,
     'competitive gaming',
-    'esports recruitment'
+    'esports recruitment',
+    'EVAL',
+    'EVAL Gaming'
   ].filter(Boolean) as string[];
 
   return generateMetadata({
@@ -191,7 +197,9 @@ export function generateLeagueMetadata(league: LeagueMetadataOptions): Metadata 
     league.region,
     league.tier.toLowerCase(),
     'competitive gaming',
-    'esports season'
+    'esports season',
+    'EVAL',
+    'EVAL Gaming'
   ].filter(Boolean) as string[];
 
   return generateMetadata({
@@ -206,77 +214,77 @@ export const staticPageMetadata = {
   home: generateMetadata({
     title: 'EVAL - College Esports Recruiting Platform',
     description: 'The premier platform connecting student gamers with college esports programs and scholarships. Get ranked, get recruited, get scholarships.',
-    keywords: ['college esports', 'esports scholarships', 'gaming recruitment', 'esports platform', 'student gamers', 'collegiate gaming'],
+    keywords: ['college esports', 'esports scholarships', 'gaming recruitment', 'esports platform', 'student gamers', 'collegiate gaming', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/home-og',
   }),
 
   recruiting: generateMetadata({
     title: 'Esports Recruiting - The Bridge Between Talent & Opportunity',
     description: 'The bridge between talent and opportunity. Connecting esports players with college programs through advanced analytics and recruitment tools. Access $50M+ in scholarships.',
-    keywords: ['esports recruiting', 'college esports', 'esports scholarships', 'gaming recruitment', 'esports opportunities', 'talent bridge', 'college gaming'],
+    keywords: ['esports recruiting', 'college esports', 'esports scholarships', 'gaming recruitment', 'esports opportunities', 'talent bridge', 'college gaming', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/recruiting-og',
   }),
 
   dashboard: generateMetadata({
     title: 'Dashboard - Your Esports Command Center',
     description: 'Your command center for esports success. Access analytics, insights, and control everything from your personalized dashboard.',
-    keywords: ['esports dashboard', 'gaming analytics', 'performance tracking', 'esports insights', 'command center', 'esports management'],
+    keywords: ['esports dashboard', 'gaming analytics', 'performance tracking', 'esports insights', 'command center', 'esports management', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/dashboard-og',
   }),
 
   playerDashboard: generateMetadata({
     title: 'Player Dashboard - Track Your Gaming Journey',
     description: 'Track your gaming journey and achievements. Monitor your performance, stats, and progress toward your esports goals.',
-    keywords: ['player dashboard', 'gaming progress', 'esports tracking', 'gaming achievements', 'performance stats', 'gaming journey'],
+    keywords: ['player dashboard', 'gaming progress', 'esports tracking', 'gaming achievements', 'performance stats', 'gaming journey', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/player-dashboard-og',
   }),
 
   coachesDashboard: generateMetadata({
     title: 'Coaches Dashboard - Recruit Talent & Build Your Team',
     description: 'Recruit talent and build your team. Access powerful coaching tools to discover players, manage prospects, and coordinate tryouts.',
-    keywords: ['coaches dashboard', 'esports recruiting', 'coaching tools', 'talent recruitment', 'team building', 'player discovery', 'esports coaching'],
+    keywords: ['coaches dashboard', 'esports recruiting', 'coaching tools', 'talent recruitment', 'team building', 'player discovery', 'esports coaching', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/coaches-dashboard-og',
   }),
 
   leaguesDashboard: generateMetadata({
     title: 'League Dashboard - Manage Teams & Competitive Seasons',
     description: 'Manage teams and competitive seasons. Access powerful league administration tools to organize tournaments, track rankings, and coordinate esports competitions.',
-    keywords: ['league dashboard', 'esports league management', 'tournament organization', 'team management', 'competitive seasons', 'esports administration', 'league tools'],
+    keywords: ['league dashboard', 'esports league management', 'tournament organization', 'team management', 'competitive seasons', 'esports administration', 'league tools', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/leagues-dashboard-og',
   }),
 
   tryoutsCombines: generateMetadata({
     title: 'Tryout Combines - Showcase Your Skills in Competitive Events',
     description: 'Showcase your skills in competitive esports events. Join tryout combines to demonstrate your abilities and get noticed by coaches and scouts.',
-    keywords: ['tryout combines', 'esports tryouts', 'competitive events', 'skill showcase', 'player evaluation', 'esports recruitment', 'gaming competitions'],
+    keywords: ['tryout combines', 'esports tryouts', 'competitive events', 'skill showcase', 'player evaluation', 'esports recruitment', 'gaming competitions', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/tryouts-combines-og',
   }),
 
   tryoutsCollege: generateMetadata({
     title: 'College Tryouts - Join Collegiate Esports Teams & Programs',
     description: 'Join collegiate esports teams and programs. Find opportunities to compete at the college level and pursue esports scholarships.',
-    keywords: ['college tryouts', 'collegiate esports', 'esports scholarships', 'college gaming', 'university esports', 'student athletes', 'academic gaming'],
+    keywords: ['college tryouts', 'collegiate esports', 'esports scholarships', 'college gaming', 'university esports', 'student athletes', 'academic gaming', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/tryouts-college-og',
   }),
 
   rankingsCombines: generateMetadata({
     title: 'Combine Rankings - See Where You Rank Among the Competition',
     description: 'See where you rank among the competition. Track your performance in combines and compare your skills against other players.',
-    keywords: ['combine rankings', 'player rankings', 'esports leaderboards', 'competitive standings', 'skill rankings', 'performance metrics', 'player comparison'],
+    keywords: ['combine rankings', 'player rankings', 'esports leaderboards', 'competitive standings', 'skill rankings', 'performance metrics', 'player comparison', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/rankings-combines-og',
   }),
 
   rankingsLeagues: generateMetadata({
     title: 'League Rankings - Track Team Standings & League Competition',
     description: 'Track team standings and league competition. Follow league rankings, tournament brackets, and competitive seasons across multiple games.',
-    keywords: ['league rankings', 'team standings', 'tournament brackets', 'competitive leagues', 'esports tournaments', 'season standings', 'league competition'],
+    keywords: ['league rankings', 'team standings', 'tournament brackets', 'competitive leagues', 'esports tournaments', 'season standings', 'league competition', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/rankings-leagues-og',
   }),
 
   pricing: generateMetadata({
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
-    keywords: ['esports platform pricing', 'college esports cost', 'gaming platform subscription', 'esports recruiting pricing'],
+    keywords: ['esports platform pricing', 'college esports cost', 'gaming platform subscription', 'esports recruiting pricing', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/pricing-og',
   }),
 
@@ -284,55 +292,55 @@ export const staticPageMetadata = {
   aboutTeam: generateMetadata({
     title: 'Our Team - EVAL Leadership',
     description: 'Meet the passionate team behind EVAL, dedicated to transforming college esports and creating opportunities for student gamers.',
-    keywords: ['EVAL team', 'esports leadership', 'gaming industry professionals', 'college esports experts'],
+    keywords: ['EVAL team', 'esports leadership', 'gaming industry professionals', 'college esports experts', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/team-og',
   }),
 
   aboutContact: generateMetadata({
     title: 'Contact Us - Get in Touch with EVAL',
     description: 'Contact the EVAL team for support, partnerships, or questions about our college esports recruiting platform.',
-    keywords: ['contact EVAL', 'esports support', 'platform help', 'gaming platform contact'],
+    keywords: ['contact EVAL', 'esports support', 'platform help', 'gaming platform contact', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/contact-og',
   }),
 
   aboutFaq: generateMetadata({
     title: 'FAQ - Frequently Asked Questions',
     description: 'Find answers to common questions about EVAL, college esports recruiting, scholarships, and our platform features.',
-    keywords: ['EVAL FAQ', 'esports questions', 'college gaming help', 'platform support', 'esports recruiting FAQ'],
+    keywords: ['EVAL FAQ', 'esports questions', 'college gaming help', 'platform support', 'esports recruiting FAQ', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/faq-og',
   }),
 
   aboutPartners: generateMetadata({
     title: 'Our Partners - EVAL Collaborations',
     description: 'Discover our trusted partners and collaborations that help make college esports opportunities accessible to all student gamers.',
-    keywords: ['EVAL partners', 'esports partnerships', 'college gaming collaborations', 'educational partnerships'],
+    keywords: ['EVAL partners', 'esports partnerships', 'college gaming collaborations', 'educational partnerships', 'EVAL', 'EVAL Gaming'],
     image: 'https://evalgaming.com/api/partners-og',
   }),
 
   rankings: generateMetadata({
     title: 'Esports Rankings - Top Players & Teams',
     description: 'View comprehensive esports rankings for players, teams, and schools. Track performance across games and compete for top positions.',
-    keywords: ['esports rankings', 'gaming leaderboards', 'player rankings', 'team standings', 'college esports stats'],
+    keywords: ['esports rankings', 'gaming leaderboards', 'player rankings', 'team standings', 'college esports stats', 'EVAL', 'EVAL Gaming'],
   }),
 
   privacyPolicy: generateMetadata({
     title: 'Privacy Policy - EVAL',
     description: 'Read our privacy policy to understand how EVAL protects and uses your personal information on our esports recruiting platform.',
-    keywords: ['privacy policy', 'data protection', 'user privacy', 'platform terms'],
+    keywords: ['privacy policy', 'data protection', 'user privacy', 'platform terms', 'EVAL', 'EVAL Gaming'],
     noIndex: false,
   }),
 
   termsOfService: generateMetadata({
     title: 'Terms of Service - EVAL',
     description: 'Review the terms of service for using the EVAL esports recruiting platform and our services.',
-    keywords: ['terms of service', 'platform terms', 'user agreement', 'service terms'],
+    keywords: ['terms of service', 'platform terms', 'user agreement', 'service terms', 'EVAL', 'EVAL Gaming'],
     noIndex: false,
   }),
 
   cookiePolicy: generateMetadata({
     title: 'Cookie Policy - EVAL',
     description: 'Learn about how EVAL uses cookies to improve your experience on our esports recruiting platform.',
-    keywords: ['cookie policy', 'website cookies', 'data tracking', 'user experience'],
+    keywords: ['cookie policy', 'website cookies', 'data tracking', 'user experience', 'EVAL', 'EVAL Gaming'],
     noIndex: false,
   }),
 }; 
