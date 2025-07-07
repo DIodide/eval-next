@@ -234,6 +234,7 @@ export const staticPageMetadata = {
     title: 'Contact Us - Get in Touch with EVAL',
     description: 'Contact the EVAL team for support, partnerships, or questions about our college esports recruiting platform.',
     keywords: ['contact EVAL', 'esports support', 'platform help', 'gaming platform contact'],
+    image: 'https://evalgaming.com/api/contact-og',
   }),
 
   aboutFaq: generateMetadata({
