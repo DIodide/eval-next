@@ -238,6 +238,13 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/coaches-dashboard-og',
   }),
 
+  leaguesDashboard: generateMetadata({
+    title: 'League Dashboard - Manage Teams & Competitive Seasons',
+    description: 'Manage teams and competitive seasons. Access powerful league administration tools to organize tournaments, track rankings, and coordinate esports competitions.',
+    keywords: ['league dashboard', 'esports league management', 'tournament organization', 'team management', 'competitive seasons', 'esports administration', 'league tools'],
+    image: 'https://evalgaming.com/api/leagues-dashboard-og',
+  }),
+
   pricing: generateMetadata({
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
