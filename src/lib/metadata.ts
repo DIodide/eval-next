@@ -227,6 +227,7 @@ export const staticPageMetadata = {
     title: 'Our Team - EVAL Leadership',
     description: 'Meet the passionate team behind EVAL, dedicated to transforming college esports and creating opportunities for student gamers.',
     keywords: ['EVAL team', 'esports leadership', 'gaming industry professionals', 'college esports experts'],
+    image: 'https://evalgaming.com/api/team-og',
   }),
 
   aboutContact: generateMetadata({
