@@ -211,9 +211,10 @@ export const staticPageMetadata = {
   }),
 
   recruiting: generateMetadata({
-    title: 'Esports Recruiting - Find Your College Opportunity',
-    description: 'Discover college esports opportunities and scholarships. Connect with coaches, showcase your skills, and find the perfect program for your gaming career.',
-    keywords: ['esports recruiting', 'college esports', 'esports scholarships', 'gaming recruitment', 'esports opportunities'],
+    title: 'Esports Recruiting - The Bridge Between Talent & Opportunity',
+    description: 'The bridge between talent and opportunity. Connecting esports players with college programs through advanced analytics and recruitment tools. Access $50M+ in scholarships.',
+    keywords: ['esports recruiting', 'college esports', 'esports scholarships', 'gaming recruitment', 'esports opportunities', 'talent bridge', 'college gaming'],
+    image: 'https://evalgaming.com/api/recruiting-og',
   }),
 
   pricing: generateMetadata({
