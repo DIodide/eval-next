@@ -60,11 +60,11 @@ const sidebarItems = [
     href: "/dashboard/player/messages",
     icon: MessageSquareIcon,
     },
-  {
-    title: "Memberships",
-    href: "/dashboard/player/memberships",
-    icon: ShieldCheckIcon,
-  },
+  // {
+  //   title: "Memberships",
+  //   href: "/dashboard/player/memberships",
+  //   icon: ShieldCheckIcon,
+  // },
 ];
 
 export default function DashboardLayout({
