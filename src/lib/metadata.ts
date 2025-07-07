@@ -224,6 +224,13 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/dashboard-og',
   }),
 
+  playerDashboard: generateMetadata({
+    title: 'Player Dashboard - Track Your Gaming Journey',
+    description: 'Track your gaming journey and achievements. Monitor your performance, stats, and progress toward your esports goals.',
+    keywords: ['player dashboard', 'gaming progress', 'esports tracking', 'gaming achievements', 'performance stats', 'gaming journey'],
+    image: 'https://evalgaming.com/api/player-dashboard-og',
+  }),
+
   pricing: generateMetadata({
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
