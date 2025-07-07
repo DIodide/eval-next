@@ -19,53 +19,9 @@ import {
   UsersIcon,
   ShieldCheckIcon,
   ZapIcon,
-  LinkIcon
+  LinkIcon,
+  ExternalLinkIcon
 } from "lucide-react";
-
-const sidebarItems = [
-  {
-    title: "EVAL Home",
-    href: "/dashboard/player",
-    icon: HomeIcon,
-  },
-  {
-    title: "Profile",
-    href: "/dashboard/player/profile",
-    icon: UserIcon,
-    subItems: [
-      {
-        title: "External Accounts",
-        href: "/dashboard/player/profile/external-accounts",
-        icon: LinkIcon,
-      }
-    ]
-  },
-  {
-    title: "My Tryouts",
-    href: "/dashboard/player/tryouts",
-    icon: TrophyIcon,
-  },
-  {
-    title: "My Combines",
-    href: "/dashboard/player/combines",
-    icon: ZapIcon,
-  },
-  {
-    title: "My Highlights",
-    href: "/dashboard/player/highlights",
-    icon: PlayIcon,
-  },
-  {
-    title: "Messages",
-    href: "/dashboard/player/messages",
-    icon: MessageSquareIcon,
-    },
-  // {
-  //   title: "Memberships",
-  //   href: "/dashboard/player/memberships",
-  //   icon: ShieldCheckIcon,
-  // },
-];
 
 export default function DashboardLayout({
   children,
@@ -75,6 +31,57 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { user, isLoaded } = useUser();
+
+  // Generate sidebar items dynamically to include username-dependent links
+  const sidebarItems = [
+    {
+      title: "EVAL Home",
+      href: "/dashboard/player",
+      icon: HomeIcon,
+    },
+    {
+      title: "Profile",
+      href: "/dashboard/player/profile",
+      icon: UserIcon,
+      subItems: [
+        {
+          title: "External Accounts",
+          href: "/dashboard/player/profile/external-accounts",
+          icon: LinkIcon,
+        },
+        ...(user?.username ? [{
+          title: "Public Profile",
+          href: `/profiles/player/${user.username}`,
+          icon: ExternalLinkIcon,
+        }] : [])
+      ]
+    },
+    {
+      title: "My Tryouts",
+      href: "/dashboard/player/tryouts",
+      icon: TrophyIcon,
+    },
+    {
+      title: "My Combines",
+      href: "/dashboard/player/combines",
+      icon: ZapIcon,
+    },
+    {
+      title: "My Highlights",
+      href: "/dashboard/player/highlights",
+      icon: PlayIcon,
+    },
+    {
+      title: "Messages",
+      href: "/dashboard/player/messages",
+      icon: MessageSquareIcon,
+      },
+    // {
+    //   title: "Memberships",
+    //   href: "/dashboard/player/memberships",
+    //   icon: ShieldCheckIcon,
+    // },
+  ];
 
   // Check if user is a player
   if (isLoaded && user) {
