@@ -6,6 +6,57 @@ A comprehensive platform connecting student gamers with college esports programs
 
 EVAL Gaming bridges the gap between talented student gamers and college esports programs through a sophisticated recruiting platform. Players can showcase their skills through combines and leagues while building comprehensive profiles that highlight both gaming performance and academic achievements. Coaches can discover talent, manage tryouts, and build championship teams.
 
+## Visual Showcase
+
+### Platform Homepage & Onboarding
+
+![EVAL Gaming Homepage](https://eval-next.vercel.app/api/home-og)
+
+### Sign-Up Experience
+
+<div style="display: flex; gap: 20px; margin: 20px 0;">
+  <div style="flex: 1;">
+    <h4>Player Registration</h4>
+    <img src="https://eval-next.vercel.app/api/sign-up-players-og" alt="Player Sign-Up" style="width: 100%; border-radius: 8px;">
+  </div>
+  <div style="flex: 1;">
+    <h4>School Registration</h4>
+    <img src="https://eval-next.vercel.app/api/sign-up-schools-og" alt="School Sign-Up" style="width: 100%; border-radius: 8px;">
+  </div>
+</div>
+
+### Dashboard Views
+
+<div style="display: flex; gap: 20px; margin: 20px 0;">
+  <div style="flex: 1;">
+    <h4>Player Dashboard</h4>
+    <img src="https://eval-next.vercel.app/api/player-dashboard-og" alt="Player Dashboard" style="width: 100%; border-radius: 8px;">
+  </div>
+  <div style="flex: 1;">
+    <h4>Coach Dashboard</h4>
+    <img src="https://eval-next.vercel.app/api/coaches-dashboard-og" alt="Coach Dashboard" style="width: 100%; border-radius: 8px;">
+  </div>
+</div>
+
+### Competitive Features
+
+<div style="display: flex; gap: 20px; margin: 20px 0;">
+  <div style="flex: 1;">
+    <h4>League Rankings</h4>
+    <img src="https://eval-next.vercel.app/api/rankings-leagues-og" alt="League Rankings" style="width: 100%; border-radius: 8px;">
+  </div>
+  <div style="flex: 1;">
+    <h4>Combine Rankings</h4>
+    <img src="https://eval-next.vercel.app/api/rankings-combines-og" alt="Combine Rankings" style="width: 100%; border-radius: 8px;">
+  </div>
+</div>
+
+### About & Support
+
+![About Our Team](https://eval-next.vercel.app/api/team-og)
+
+![Frequently Asked Questions](https://eval-next.vercel.app/api/faq-og)
+
 ## Key Features
 
 ### For Players
