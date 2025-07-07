@@ -207,6 +207,7 @@ export const staticPageMetadata = {
     title: 'EVAL - College Esports Recruiting Platform',
     description: 'The premier platform connecting student gamers with college esports programs and scholarships. Get ranked, get recruited, get scholarships.',
     keywords: ['college esports', 'esports scholarships', 'gaming recruitment', 'esports platform', 'student gamers', 'collegiate gaming'],
+    image: 'https://evalgaming.com/api/home-og',
   }),
 
   recruiting: generateMetadata({
