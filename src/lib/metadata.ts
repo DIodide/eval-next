@@ -324,23 +324,26 @@ export const staticPageMetadata = {
   }),
 
   privacyPolicy: generateMetadata({
-    title: 'Privacy Policy - EVAL',
-    description: 'Read our privacy policy to understand how EVAL protects and uses your personal information on our esports recruiting platform.',
-    keywords: ['privacy policy', 'data protection', 'user privacy', 'platform terms', 'EVAL', 'EVAL Gaming'],
+    title: 'Privacy Policy - How We Protect & Handle Your Data',
+    description: 'How we protect and handle your data. Read our privacy policy to understand how EVAL protects and uses your personal information on our esports recruiting platform.',
+    keywords: ['privacy policy', 'data protection', 'user privacy', 'platform terms', 'data security', 'personal information', 'EVAL', 'EVAL Gaming'],
+    image: 'https://evalgaming.com/api/privacy-policy-og',
     noIndex: false,
   }),
 
   termsOfService: generateMetadata({
-    title: 'Terms of Service - EVAL',
-    description: 'Review the terms of service for using the EVAL esports recruiting platform and our services.',
-    keywords: ['terms of service', 'platform terms', 'user agreement', 'service terms', 'EVAL', 'EVAL Gaming'],
+    title: 'Terms of Service - Platform Terms & User Agreements',
+    description: 'Platform terms and user agreements. Review the terms of service for using the EVAL esports recruiting platform and our services.',
+    keywords: ['terms of service', 'platform terms', 'user agreement', 'service terms', 'legal terms', 'user obligations', 'EVAL', 'EVAL Gaming'],
+    image: 'https://evalgaming.com/api/tos-og',
     noIndex: false,
   }),
 
   cookiePolicy: generateMetadata({
-    title: 'Cookie Policy - EVAL',
-    description: 'Learn about how EVAL uses cookies to improve your experience on our esports recruiting platform.',
-    keywords: ['cookie policy', 'website cookies', 'data tracking', 'user experience', 'EVAL', 'EVAL Gaming'],
+    title: 'Cookie Policy - How We Use Cookies to Enhance Your Experience',
+    description: 'How we use cookies to enhance your experience. Learn about how EVAL uses cookies to improve your experience on our esports recruiting platform.',
+    keywords: ['cookie policy', 'website cookies', 'data tracking', 'user experience', 'web tracking', 'browser cookies', 'EVAL', 'EVAL Gaming'],
+    image: 'https://evalgaming.com/api/cookie-policy-og',
     noIndex: false,
   }),
 }; 
