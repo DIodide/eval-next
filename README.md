@@ -235,4 +235,4 @@ This project is proprietary software. All rights reserved.
 
 ## Support
 
-For questions, issues, or feature requests, please contact the development team or open an issue in the repository.
+For questions, issues, or feature requests, please contact ibraheem@princeton.edu or open an issue in the repository.
