@@ -220,6 +220,7 @@ export const staticPageMetadata = {
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
     keywords: ['esports platform pricing', 'college esports cost', 'gaming platform subscription', 'esports recruiting pricing'],
+    image: 'https://evalgaming.com/api/pricing-og',
   }),
 
 
