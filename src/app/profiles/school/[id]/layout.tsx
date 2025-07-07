@@ -45,25 +45,25 @@ export async function generateMetadata({ params }: SchoolLayoutProps): Promise<M
       title,
       description,
       keywords: keywordsList,
-      openGraph: {
+              openGraph: {
         title,
         description,
         type: 'website',
         url: `https://evalgaming.com/profiles/school/${school.id}`,
-        images: school.logo_url ? [
+        images: [
           {
-            url: school.logo_url,
+            url: `https://evalgaming.com/api/school-og/${school.id}`,
             width: 1200,
             height: 630,
             alt: `${school.name} - EVAL School Profile`,
           }
-        ] : undefined,
+        ],
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
-        images: school.logo_url ? [school.logo_url] : undefined,
+        images: [`https://evalgaming.com/api/school-og/${school.id}`],
       },
     };
   } catch (error) {
