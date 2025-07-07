@@ -31,12 +31,6 @@ export async function GET(
     const gameProfile = player.game_profiles?.[0];
     const evalScore = gameProfile?.combine_score?.toFixed(1) ?? 'N/A';
     
-    // Get school info
-    console.log("Player School", player.school);
-    console.log("Player School Ref", player.school_ref);
-    const schoolName = player.school ?? player.school ?? 'School';
-    const classYear = player.class_year ?? '2025';
-    
     // Get main game info
     const mainGame = player.main_game?.name ?? 'Game';
     
@@ -132,7 +126,7 @@ export async function GET(
                 minWidth: '180px',
               }}>
                 <div style={{ 
-                  fontSize: '14px', 
+                  fontSize: '24px', 
                   color: '#c4b5fd', // purple-300
                   marginBottom: '12px',
                   display: 'flex',
@@ -144,7 +138,7 @@ export async function GET(
                   K/D/A
                 </div>
                 <div style={{ 
-                  fontSize: '36px', 
+                  fontSize: '48px', 
                   fontWeight: 'bold',
                   color: '#e9d5ff', // purple-200
                   display: 'flex',
@@ -169,7 +163,7 @@ export async function GET(
                 minWidth: '200px',
               }}>
                 <div style={{ 
-                  fontSize: '14px', 
+                  fontSize: '24px', 
                   color: '#86efac', // green-300
                   marginBottom: '12px',
                   display: 'flex',
@@ -181,7 +175,7 @@ export async function GET(
                   GAME WIN %
                 </div>
                 <div style={{ 
-                  fontSize: '36px', 
+                  fontSize: '48px', 
                   fontWeight: 'bold',
                   color: '#bbf7d0', // green-200
                   display: 'flex',
@@ -206,7 +200,7 @@ export async function GET(
                 minWidth: '200px',
               }}>
                 <div style={{ 
-                  fontSize: '14px', 
+                  fontSize: '24px', 
                   color: '#93c5fd', // blue-300
                   marginBottom: '12px',
                   display: 'flex',
@@ -218,7 +212,7 @@ export async function GET(
                   ROUND WIN %
                 </div>
                 <div style={{ 
-                  fontSize: '36px', 
+                  fontSize: '48px', 
                   fontWeight: 'bold',
                   color: '#dbeafe', // blue-200
                   display: 'flex',
@@ -240,12 +234,12 @@ export async function GET(
       if (isValorantPlayer && valorantGameName && valorantTagLine) {
         return (
           <div style={{ 
-            fontSize: '14px', 
+            fontSize: '32px', 
             color: '#fca5a5', // red-300
             display: 'flex',
             fontFamily: 'Tilt Warp, sans-serif',
           }}>
-            VALORANT: {valorantGameName}#{valorantTagLine}
+            {valorantGameName}#{valorantTagLine}
           </div>
         );
       }
@@ -264,18 +258,20 @@ export async function GET(
           style={{
             background: 'linear-gradient(135deg, rgba(153, 27, 27, 0.5) 0%, rgba(220, 38, 38, 0.5) 100%)', // red gradient
             border: '1px solid rgba(239, 68, 68, 0.3)', // red border
-            borderRadius: '12px',
-            padding: '16px 20px',
+            borderRadius: '20px',
+            padding: '28px 40px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            minWidth: '140px',
+            justifyContent: 'center',
+            minWidth: '200px',
+            height: '100%',
           }}
         >
           <div style={{ 
-            fontSize: '10px', 
+            fontSize: '24px', 
             color: '#fca5a5', // red-300
-            marginBottom: '6px',
+            marginBottom: '12px',
             display: 'flex',
             fontFamily: 'Tilt Warp, sans-serif',
             textTransform: 'uppercase',
@@ -285,13 +281,12 @@ export async function GET(
             VALORANT RANK
           </div>
           <div style={{ 
-            fontSize: '18px', 
+            fontSize: '28px', 
             fontWeight: 'bold',
             color: '#fecaca', // red-200
             textAlign: 'center',
             display: 'flex',
             fontFamily: 'Tilt Warp, sans-serif',
-            marginBottom: '4px',
           }}>
             {valorantRank}
           </div>
@@ -367,7 +362,7 @@ export async function GET(
                 alignItems: 'flex-start',
               }}>
                 <div style={{ 
-                  fontSize: '36px', 
+                  fontSize: '48px', 
                   fontWeight: 'bold', 
                   marginBottom: '4px',
                   display: 'flex',
@@ -377,7 +372,7 @@ export async function GET(
                   {displayName}
                 </div>
                 <div style={{ 
-                  fontSize: '20px', 
+                  fontSize: '32px', 
                   color: '#06b6d4', // cyan-500
                   display: 'flex',
                   fontFamily: 'Tilt Warp, sans-serif',
@@ -394,8 +389,8 @@ export async function GET(
             }}>
               <img 
                 src={`${baseUrl}/eval/logos/eLOGO_white.png`}
-                width="120"
-                height="40"
+                width="300"
+                height="100"
                 alt="EVAL Gaming"
                 style={{
                   objectFit: 'contain',
@@ -404,7 +399,7 @@ export async function GET(
             </div>
           </div>
           
-          {/* Middle Row - Game Info + School Info + EVAL Score */}
+          {/* Middle Row - Game Info + EVAL Score + Rank */}
           <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -413,11 +408,10 @@ export async function GET(
             marginBottom: '20px',
             gap: '20px',
           }}>
-            {/* Left: Game & School Info */}
+            {/* Left: Game Info */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: (schoolName !== 'School' || classYear !== '2025') ? '16px' : '0px',
               flex: '1',
             }}>
               {/* Game Info Card */}
@@ -426,16 +420,16 @@ export async function GET(
                 color: '#d1d5db', // gray-300
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '12px 16px',
+                padding: '24px 32px',
                 backgroundColor: '#1f2937', // gray-800
                 border: '1px solid #374151', // gray-700
                 borderRadius: '8px',
                 fontFamily: 'Tilt Warp, sans-serif',
               }}>
                 <div style={{
-                  fontSize: '10px',
+                  fontSize: '24px',
                   color: '#9ca3af', // gray-400
-                  marginBottom: '4px',
+                  marginBottom: '8px',
                   display: 'flex',
                   fontFamily: 'Tilt Warp, sans-serif',
                   textTransform: 'uppercase',
@@ -444,84 +438,27 @@ export async function GET(
                   MAIN GAME & ROLE
                 </div>
                 <div style={{
-                  fontSize: '18px',
+                  fontSize: '32px',
                   color: '#06b6d4', // cyan-400
                   fontWeight: 'bold',
                   display: 'flex',
                   fontFamily: 'Tilt Warp, sans-serif',
-                  marginBottom: '4px',
+                  marginBottom: '8px',
                 }}>
                   {mainGame.toUpperCase()}
                 </div>
                 <div style={{
-                  fontSize: '14px',
+                  fontSize: '28px',
                   color: '#d1d5db', // gray-300
                   display: 'flex',
                   fontFamily: 'Tilt Warp, sans-serif',
-                  marginBottom: '4px',
+                  marginBottom: '8px',
                 }}>
                   Role: {gameRole}
                 </div>
                 {/* Game-specific Account Name */}
                 {renderGameAccountInfo()}
               </div>
-              
-              {/* School Info Card - Only show if player has school */}
-              {(schoolName !== 'School') && (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '12px 16px',
-                  backgroundColor: '#1f2937', // gray-800
-                  border: '1px solid #374151', // gray-700
-                  borderRadius: '8px',
-                }}>
-                  <div style={{
-                    fontSize: '10px',
-                    color: '#9ca3af', // gray-400
-                    marginBottom: '8px',
-                    display: 'flex',
-                    fontFamily: 'Tilt Warp, sans-serif',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}>
-                    EDUCATION
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      backgroundColor: '#1f2937', // gray-800
-                      border: '1px solid #374151', // gray-700
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '8px',
-                      color: 'white',
-                      fontWeight: 'bold',
-                    }}>
-                      <div style={{ display: 'flex', textAlign: 'center' }}>
-                        LOGO
-                      </div>
-                    </div>
-                    <div style={{ 
-                      fontSize: '16px', 
-                      color: 'white',
-                      display: 'flex',
-                      fontFamily: 'Tilt Warp, sans-serif',
-                      fontWeight: 'bold',
-                    }}>
-                      {schoolName} • {classYear}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
             
             {/* Center: EVAL Score - Large */}
@@ -530,7 +467,7 @@ export async function GET(
                 background: 'linear-gradient(135deg, rgba(88, 28, 135, 0.6) 0%, rgba(79, 70, 229, 0.6) 100%)', // stronger purple gradient
                 border: '2px solid rgba(147, 51, 234, 0.5)', // stronger purple border
                 borderRadius: '20px',
-                padding: '32px 40px',
+                padding: '40px 50px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -539,9 +476,9 @@ export async function GET(
               }}
             >
               <div style={{ 
-                fontSize: '14px', 
+                fontSize: '24px', 
                 color: '#c084fc', // purple-300
-                marginBottom: '12px',
+                marginBottom: '16px',
                 fontWeight: '600',
                 display: 'flex',
                 fontFamily: 'Tilt Warp, sans-serif',
@@ -551,7 +488,7 @@ export async function GET(
                 EVAL SCORE
               </div>
               <div style={{ 
-                fontSize: '72px', 
+                fontSize: '96px', 
                 fontWeight: 'bold',
                 color: '#ddd6fe', // purple-200
                 display: 'flex',
@@ -562,11 +499,11 @@ export async function GET(
               </div>
             </div>
             
-            {/* Right: Valorant Rank */}
+            {/* Right: Game Rank */}
             {renderGameRank()}
           </div>
           
-          {/* Bottom Row - Valorant Stats */}
+          {/* Bottom Row - Game Stats */}
           {renderGameSpecificStats()}
         </div>
       ),
