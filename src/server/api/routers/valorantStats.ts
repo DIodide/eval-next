@@ -208,6 +208,9 @@ async function makeValorantAPIRequest(endpoint: string, data?: unknown): Promise
     const response = await fetch(url, requestOptions);
 
     if (!response.ok) {
+      console.error(`Valorant API request failed for ${endpoint}:`, response);
+      console.error(`url: ${url}`);
+      console.error(`requestOptions: ${JSON.stringify(requestOptions)}`);
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
 
