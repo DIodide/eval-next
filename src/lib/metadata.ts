@@ -231,6 +231,13 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/player-dashboard-og',
   }),
 
+  coachesDashboard: generateMetadata({
+    title: 'Coaches Dashboard - Recruit Talent & Build Your Team',
+    description: 'Recruit talent and build your team. Access powerful coaching tools to discover players, manage prospects, and coordinate tryouts.',
+    keywords: ['coaches dashboard', 'esports recruiting', 'coaching tools', 'talent recruitment', 'team building', 'player discovery', 'esports coaching'],
+    image: 'https://evalgaming.com/api/coaches-dashboard-og',
+  }),
+
   pricing: generateMetadata({
     title: 'Pricing - EVAL Esports Platform',
     description: 'Choose the perfect plan for your esports journey. Affordable pricing for players and comprehensive solutions for coaches and schools.',
