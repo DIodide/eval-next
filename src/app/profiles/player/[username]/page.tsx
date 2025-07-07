@@ -11,8 +11,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MessageSquareIcon, StarIcon, GamepadIcon, GithubIcon, TwitterIcon, InstagramIcon, TwitchIcon, MessageCircleIcon, ExternalLinkIcon } from "lucide-react";
+import { MessageSquareIcon, StarIcon, GamepadIcon, GithubIcon, TwitterIcon, InstagramIcon, TwitchIcon, MessageCircleIcon, ExternalLinkIcon, Share2Icon } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
+import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import { ValorantAnalytics } from "./ValorantAnalytics";
 
@@ -264,6 +265,18 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
     refetchOnWindowFocus: false,
   });
 
+  // Handle share profile functionality
+  const handleShareProfile = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      toast.success("Profile URL copied to clipboard!");
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      toast.error("Unable to copy to clipboard. Please copy the URL manually.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black/60 to-black/80 flex items-center justify-center">
@@ -373,11 +386,18 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
               </div>
 
               {/* Action Buttons */}
-              {canMessage && (
-                <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={handleShareProfile}
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-orbitron"
+                >
+                  <Share2Icon className="w-4 h-4 mr-2" />
+                  Share Profile
+                </Button>
+                {canMessage && (
                   <MessagePlayerDialog playerId={player.id} playerName={`${player.first_name} ${player.last_name}`} />
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
