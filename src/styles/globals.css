@@ -6,6 +6,10 @@
 @import "tailwindcss/utilities";
 @import "tw-animate-css"; */
 
+.cl-socialButtonsBlockButtonText {
+  color: #ffffff;
+}
+
 
 .cl-profileSection__connectedAccounts {
   display: none;
