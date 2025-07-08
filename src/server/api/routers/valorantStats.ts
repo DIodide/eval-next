@@ -5,7 +5,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { env } from "@/env";
 
 // API Base URL
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+ 
 const EVAL_API_BASE = env.EVAL_API_BASE;
 
 // Zod schemas for API responses

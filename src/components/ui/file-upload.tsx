@@ -16,8 +16,8 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { 
-  STORAGE_BUCKETS, 
-  ASSET_TYPES, 
+  type STORAGE_BUCKETS, 
+  type ASSET_TYPES, 
   UPLOAD_CONSTRAINTS,
   uploadAsset,
   deleteAsset,

@@ -64,7 +64,7 @@ export default function SchoolRequestsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch requests with pagination
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+   
   const { data: requestsData, isLoading, refetch } = api.schoolAssociationRequests.getRequests.useQuery({
     search: searchTerm || undefined,
     status: statusFilter,
@@ -73,9 +73,9 @@ export default function SchoolRequestsPage() {
   });
 
   // Get pending count for the header
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+   
   const pendingCountQuery = api.schoolAssociationRequests.getPendingCount.useQuery();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+   
   const pendingCount = pendingCountQuery.data;
 
   // Approve request mutation

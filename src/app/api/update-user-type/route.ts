@@ -1,7 +1,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
-import { Prisma } from '@prisma/client';
+import { type Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
