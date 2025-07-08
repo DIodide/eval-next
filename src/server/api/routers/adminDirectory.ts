@@ -144,6 +144,13 @@ export const adminDirectoryRouter = createTRPCRouter({
                 class_year: true,
                 graduation_date: true,
                 bio: true,
+                gpa: true,
+                intended_major: true,
+                guardian_email: true,
+                scholastic_contact: true,
+                scholastic_contact_email: true,
+                extra_curriculars: true,
+                academic_bio: true,
                 created_at: true,
                 school_ref: {
                   select: {

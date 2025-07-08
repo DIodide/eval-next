@@ -20,7 +20,8 @@ import {
   ExternalLink,
   FolderOpen,
   Upload,
-  AlertTriangle
+  AlertTriangle,
+  UserIcon
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -37,6 +38,8 @@ export default function AdminManagementPage() {
   const [leaguePage, setLeaguePage] = useState(0);
   const [schoolSearch, setSchoolSearch] = useState("");
   const [schoolPage, setSchoolPage] = useState(0);
+  const [playerSearch, setPlayerSearch] = useState("");
+  const [playerPage, setPlayerPage] = useState(0);
   
   // Edit modal states
   const [editingLeague, setEditingLeague] = useState<{
@@ -56,8 +59,26 @@ export default function AdminManagementPage() {
     logo_url: string;
     banner_url: string;
   } | null>(null);
+  const [editingPlayer, setEditingPlayer] = useState<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    main_game_id: string | null;
+    location: string;
+    bio: string;
+    gpa: number | null;
+    class_year: string;
+    graduation_date: string;
+    intended_major: string;
+    guardian_email: string;
+    scholastic_contact: string;
+    scholastic_contact_email: string;
+    extra_curriculars: string;
+    academic_bio: string;
+  } | null>(null);
   const [isLeagueModalOpen, setIsLeagueModalOpen] = useState(false);
   const [isSchoolModalOpen, setIsSchoolModalOpen] = useState(false);
+  const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
   // Fetch leagues
   const { data: leaguesData, isLoading: leaguesLoading, refetch: refetchLeagues } = api.adminDirectory.getLeagues.useQuery({
@@ -72,6 +93,16 @@ export default function AdminManagementPage() {
     limit: ITEMS_PER_PAGE,
     offset: schoolPage * ITEMS_PER_PAGE,
   });
+
+  // Fetch players
+  const { data: playersData, isLoading: playersLoading, refetch: refetchPlayers } = api.adminDirectory.getPlayers.useQuery({
+    search: playerSearch || undefined,
+    limit: ITEMS_PER_PAGE,
+    offset: playerPage * ITEMS_PER_PAGE,
+  });
+
+  // Fetch games for main game selection
+  const { data: gamesData } = api.adminManagement.getGames.useQuery();
 
   // Mutations
   const updateLeagueMutation = api.adminManagement.updateLeague.useMutation({
@@ -102,6 +133,25 @@ export default function AdminManagementPage() {
       void refetchSchools();
       setIsSchoolModalOpen(false);
       setEditingSchool(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePlayerMutation = api.adminManagement.updatePlayer.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Player updated successfully",
+      });
+      void refetchPlayers();
+      setIsPlayerModalOpen(false);
+      setEditingPlayer(null);
     },
     onError: (error) => {
       toast({
@@ -152,6 +202,43 @@ export default function AdminManagementPage() {
     setIsSchoolModalOpen(true);
   };
 
+  const handleEditPlayer = (player: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    main_game_id?: string | null;
+    location?: string | null;
+    bio?: string | null;
+    gpa?: number | null;
+    class_year?: string | null;
+    graduation_date?: string | null;
+    intended_major?: string | null;
+    guardian_email?: string | null;
+    scholastic_contact?: string | null;
+    scholastic_contact_email?: string | null;
+    extra_curriculars?: string | null;
+    academic_bio?: string | null;
+  }) => {
+    setEditingPlayer({
+      id: player.id,
+      first_name: player.first_name,
+      last_name: player.last_name,
+      main_game_id: player.main_game_id ?? null,
+      location: player.location ?? "",
+      bio: player.bio ?? "",
+      gpa: player.gpa ?? null,
+      class_year: player.class_year ?? "",
+      graduation_date: player.graduation_date ?? "",
+      intended_major: player.intended_major ?? "",
+      guardian_email: player.guardian_email ?? "",
+      scholastic_contact: player.scholastic_contact ?? "",
+      scholastic_contact_email: player.scholastic_contact_email ?? "",
+      extra_curriculars: player.extra_curriculars ?? "",
+      academic_bio: player.academic_bio ?? "",
+    });
+    setIsPlayerModalOpen(true);
+  };
+
   const handleSaveLeague = () => {
     if (!editingLeague) return;
     
@@ -175,6 +262,26 @@ export default function AdminManagementPage() {
       phone: editingSchool.phone,
       logo_url: editingSchool.logo_url,
       banner_url: editingSchool.banner_url,
+    });
+  };
+
+  const handleSavePlayer = () => {
+    if (!editingPlayer) return;
+    
+    void updatePlayerMutation.mutate({
+      id: editingPlayer.id,
+      main_game_id: editingPlayer.main_game_id,
+      location: editingPlayer.location,
+      bio: editingPlayer.bio,
+      gpa: editingPlayer.gpa,
+      class_year: editingPlayer.class_year,
+      graduation_date: editingPlayer.graduation_date,
+      intended_major: editingPlayer.intended_major,
+      guardian_email: editingPlayer.guardian_email,
+      scholastic_contact: editingPlayer.scholastic_contact,
+      scholastic_contact_email: editingPlayer.scholastic_contact_email,
+      extra_curriculars: editingPlayer.extra_curriculars,
+      academic_bio: editingPlayer.academic_bio,
     });
   };
 
@@ -266,7 +373,7 @@ export default function AdminManagementPage() {
           </div>
           
           <p className="text-lg text-gray-300 max-w-3xl mx-auto font-medium">
-            Manage leagues and schools across the EVAL platform with advanced editing capabilities.
+            Manage leagues, schools, and players across the EVAL platform with advanced editing capabilities.
           </p>
           
           {/* Quick Action Button */}
@@ -295,6 +402,13 @@ export default function AdminManagementPage() {
             >
               <Building className="w-4 h-4 mr-2" />
               SCHOOLS
+            </TabsTrigger>
+            <TabsTrigger 
+              value="players" 
+              className="font-orbitron font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-400 data-[state=active]:to-purple-500 data-[state=active]:text-black data-[state=active]:shadow-lg text-gray-300 hover:text-white transition-all duration-300 rounded-md px-6 py-2"
+            >
+              <UserIcon className="w-4 h-4 mr-2" />
+              PLAYERS
             </TabsTrigger>
           </TabsList>
 
@@ -541,6 +655,170 @@ export default function AdminManagementPage() {
                           size="sm"
                           onClick={() => setSchoolPage(schoolPage + 1)}
                           disabled={!schoolsData?.hasMore}
+                          className="border-white/20 text-gray-300 hover:text-white"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Players Tab */}
+          <TabsContent value="players" className="space-y-6">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border-white/10 shadow-2xl rounded-lg">
+              <CardHeader>
+                <CardTitle className="font-orbitron text-white text-xl font-bold">Player Management</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Edit player information, academic details, contact information, and main game settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Search */}
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search players..."
+                    value={playerSearch}
+                    onChange={(e) => {
+                      setPlayerSearch(e.target.value);
+                      setPlayerPage(0);
+                    }}
+                    className="pl-10 bg-gray-800/50 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* Players List */}
+                {playersLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="flex items-center space-x-3">
+                      <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                      <span className="text-gray-300 font-medium">Loading players...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {playersData?.players.map((player) => (
+                      <Card key={player.id} className="bg-gray-800/30 border-white/10 hover:border-purple-400/30 transition-all duration-300 group">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              {player.image_url ? (
+                                <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                                  <Image
+                                    src={player.image_url}
+                                    alt={`${player.first_name} ${player.last_name}`}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                  <UserIcon className="h-8 w-8 text-gray-400" />
+                                </div>
+                              )}
+                              
+                              <div>
+                                <h3 className="font-orbitron text-lg font-bold text-white group-hover:text-purple-200 transition-colors">
+                                  {player.first_name} {player.last_name}
+                                </h3>
+                                <p className="text-gray-400 font-medium">
+                                  {player.username && `@${player.username}`} • {player.email}
+                                </p>
+                                <div className="flex space-x-4 text-sm text-gray-500 mt-1">
+                                  {player.school && <span>{player.school}</span>}
+                                  {player.class_year && <span>Class of {player.class_year}</span>}
+                                  {player.location && <span>{player.location}</span>}
+                                </div>
+                                <div className="flex space-x-2 mt-2">
+                                  {player.main_game ? (
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="bg-purple-500/20 text-purple-400 border-purple-500/30"
+                                    >
+                                      Main: {player.main_game.short_name}
+                                    </Badge>
+                                  ) : (
+                                    <Badge 
+                                      variant="outline"
+                                      className="border-yellow-500/30 text-yellow-400"
+                                    >
+                                      No main game
+                                    </Badge>
+                                  )}
+                                  <Badge 
+                                    variant="outline"
+                                    className="border-gray-500/30 text-gray-400"
+                                  >
+                                    {player._count.game_profiles} games
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              {player.username && (
+                                <Link href={`/profiles/player/${player.username}`}>
+                                  <Button variant="outline" size="sm" className="border-white/20 text-gray-300 hover:text-white">
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    View Profile
+                                  </Button>
+                                </Link>
+                              )}
+                              <Button 
+                                onClick={() => handleEditPlayer({
+                                  id: player.id,
+                                  first_name: player.first_name,
+                                  last_name: player.last_name,
+                                  main_game_id: player.main_game?.id ?? null,
+                                  location: player.location,
+                                  bio: player.bio,
+                                  gpa: player.gpa ? Number(player.gpa) : null,
+                                  class_year: player.class_year,
+                                  graduation_date: player.graduation_date,
+                                  intended_major: player.intended_major,
+                                  guardian_email: player.guardian_email,
+                                  scholastic_contact: player.scholastic_contact,
+                                  scholastic_contact_email: player.scholastic_contact_email,
+                                  extra_curriculars: player.extra_curriculars,
+                                  academic_bio: player.academic_bio,
+                                })}
+                                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-black font-bold"
+                              >
+                                <Edit3 className="h-4 w-4 mr-2" />
+                                Edit
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+
+                    {/* Pagination */}
+                    <div className="flex justify-between items-center pt-4">
+                      <p className="text-sm text-gray-400">
+                        Showing {playerPage * ITEMS_PER_PAGE + 1} to {Math.min((playerPage + 1) * ITEMS_PER_PAGE, playersData?.total ?? 0)} of {playersData?.total ?? 0} players
+                      </p>
+                      
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPlayerPage(Math.max(0, playerPage - 1))}
+                          disabled={playerPage === 0}
+                          className="border-white/20 text-gray-300 hover:text-white"
+                        >
+                          Previous
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPlayerPage(playerPage + 1)}
+                          disabled={!playersData?.hasMore}
                           className="border-white/20 text-gray-300 hover:text-white"
                         >
                           Next
@@ -949,6 +1227,240 @@ export default function AdminManagementPage() {
                     className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black font-bold"
                   >
                     {updateSchoolMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Player Edit Modal */}
+        <Dialog open={isPlayerModalOpen} onOpenChange={setIsPlayerModalOpen}>
+          <DialogContent className="bg-gray-900 border-white/20 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-orbitron text-xl font-bold text-purple-400">Edit Player</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Update player information, academic details, contact information, and main game settings. Name and username cannot be edited.
+              </DialogDescription>
+            </DialogHeader>
+            
+                        {editingPlayer && (
+              <div className="space-y-6">
+                {/* Player Info Display - Read Only */}
+                <div className="bg-gray-800/30 rounded-lg p-4 border border-white/10">
+                  <h4 className="font-semibold text-white mb-2">Player Information (Read Only)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-gray-400 text-sm">Name</Label>
+                      <p className="text-gray-300 font-medium">
+                        {editingPlayer.first_name} {editingPlayer.last_name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Basic Information</h4>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-location" className="text-white font-medium">Location</Label>
+                    <Input
+                      id="player-location"
+                      value={editingPlayer.location}
+                      onChange={(e) => setEditingPlayer({...editingPlayer, location: e.target.value})}
+                      placeholder="City, State"
+                      className="bg-gray-800/50 border-white/20 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-bio" className="text-white font-medium">Bio</Label>
+                    <Textarea
+                      id="player-bio"
+                      value={editingPlayer.bio}
+                      onChange={(e) => setEditingPlayer({...editingPlayer, bio: e.target.value})}
+                      rows={3}
+                      className="bg-gray-800/50 border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Main Game Selection */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Main Game Selection</h4>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-main-game" className="text-white font-medium">Main Game</Label>
+                    <select
+                      id="player-main-game"
+                      value={editingPlayer.main_game_id ?? ""}
+                      onChange={(e) => setEditingPlayer({
+                        ...editingPlayer, 
+                        main_game_id: e.target.value || null
+                      })}
+                      className="w-full px-3 py-2 bg-gray-800/50 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="">No main game selected</option>
+                      {gamesData?.map((game) => (
+                        <option key={game.id} value={game.id}>
+                          {game.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-sm text-gray-400">
+                      The main game appears prominently on the player&apos;s profile and is used for recruitment matching.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Academic Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Academic Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="player-gpa" className="text-white font-medium">GPA</Label>
+                      <Input
+                        id="player-gpa"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="4.0"
+                        value={editingPlayer.gpa ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value ? parseFloat(value) : null;
+                          setEditingPlayer({...editingPlayer, gpa: (numValue !== null && !isNaN(numValue)) ? numValue : null});
+                        }}
+                        placeholder="3.75"
+                        className="bg-gray-800/50 border-white/20 text-white"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="player-class-year" className="text-white font-medium">Class Year</Label>
+                      <Input
+                        id="player-class-year"
+                        value={editingPlayer.class_year}
+                        onChange={(e) => setEditingPlayer({...editingPlayer, class_year: e.target.value})}
+                        placeholder="2025"
+                        className="bg-gray-800/50 border-white/20 text-white"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="player-graduation-date" className="text-white font-medium">Graduation Date</Label>
+                      <Input
+                        id="player-graduation-date"
+                        value={editingPlayer.graduation_date}
+                        onChange={(e) => setEditingPlayer({...editingPlayer, graduation_date: e.target.value})}
+                        placeholder="May 2025"
+                        className="bg-gray-800/50 border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-intended-major" className="text-white font-medium">Intended Major</Label>
+                    <Input
+                      id="player-intended-major"
+                      value={editingPlayer.intended_major}
+                      onChange={(e) => setEditingPlayer({...editingPlayer, intended_major: e.target.value})}
+                      placeholder="Computer Science"
+                      className="bg-gray-800/50 border-white/20 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-academic-bio" className="text-white font-medium">Academic Bio</Label>
+                    <Textarea
+                      id="player-academic-bio"
+                      value={editingPlayer.academic_bio}
+                      onChange={(e) => setEditingPlayer({...editingPlayer, academic_bio: e.target.value})}
+                      rows={3}
+                      placeholder="Academic achievements, honors, etc."
+                      className="bg-gray-800/50 border-white/20 text-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-extra-curriculars" className="text-white font-medium">Extra Curriculars</Label>
+                    <Textarea
+                      id="player-extra-curriculars"
+                      value={editingPlayer.extra_curriculars}
+                      onChange={(e) => setEditingPlayer({...editingPlayer, extra_curriculars: e.target.value})}
+                      rows={3}
+                      placeholder="Student government, clubs, activities, etc."
+                      className="bg-gray-800/50 border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Contact Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="player-guardian-email" className="text-white font-medium">Guardian Email</Label>
+                      <Input
+                        id="player-guardian-email"
+                        type="email"
+                        value={editingPlayer.guardian_email}
+                        onChange={(e) => setEditingPlayer({...editingPlayer, guardian_email: e.target.value})}
+                        placeholder="parent@example.com"
+                        className="bg-gray-800/50 border-white/20 text-white"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="player-scholastic-contact" className="text-white font-medium">Scholastic Contact</Label>
+                      <Input
+                        id="player-scholastic-contact"
+                        value={editingPlayer.scholastic_contact}
+                        onChange={(e) => setEditingPlayer({...editingPlayer, scholastic_contact: e.target.value})}
+                        placeholder="Ms. Johnson"
+                        className="bg-gray-800/50 border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="player-scholastic-contact-email" className="text-white font-medium">Scholastic Contact Email</Label>
+                    <Input
+                      id="player-scholastic-contact-email"
+                      type="email"
+                      value={editingPlayer.scholastic_contact_email}
+                      onChange={(e) => setEditingPlayer({...editingPlayer, scholastic_contact_email: e.target.value})}
+                      placeholder="counselor@school.edu"
+                      className="bg-gray-800/50 border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsPlayerModalOpen(false)}
+                    className="border-white/20 text-gray-300 hover:text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSavePlayer}
+                    disabled={updatePlayerMutation.isPending}
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-black font-bold"
+                  >
+                    {updatePlayerMutation.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Saving...
