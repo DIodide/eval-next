@@ -49,3 +49,4 @@ yarn-error.log*
 # clerk configuration (can include secrets)
 /.clerk/
 player-og.png
+links.txt
