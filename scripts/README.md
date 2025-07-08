@@ -43,6 +43,12 @@ This will:
 | `npm run clerk:reset`       | **Delete ALL Clerk users**        | Fresh start development |
 | `npm run clerk:reset:force` | Delete users without confirmation | CI/CD or automation     |
 
+#### Data Export Scripts
+
+| Script                                     | Description                                       | Use Case                       |
+| ------------------------------------------ | ------------------------------------------------- | ------------------------------ |
+| `./scripts/fetch-future-combine-emails.sh` | **Fetch emails for future combine registrations** | Email marketing, notifications |
+
 ### Shell Scripts
 
 #### Database Scripts
@@ -177,6 +183,31 @@ DIRECT_URL="postgresql://..."
 npm run db:generate
 ```
 
+## 📊 Data Export Scripts
+
+### Future Combine Registrations
+
+To get emails of all players registered for upcoming combines:
+
+```bash
+./scripts/fetch-future-combine-emails.sh
+```
+
+This script will:
+
+- 🔍 Find all combines scheduled in the future
+- 📋 Fetch all player registrations for those combines
+- 📧 Extract unique player email addresses
+- 📄 Display detailed breakdown by combine
+- 📎 Provide comma-separated list for easy copy-paste
+
+**Output includes:**
+
+- Summary of unique emails count
+- List of all unique emails
+- Detailed breakdown by combine (date, location, player details)
+- Comma-separated email list for marketing tools
+
 ## 🔄 Workflow Examples
 
 ### Daily Development
@@ -211,4 +242,13 @@ npm run db:reset:script
 
 # Run tests
 npm test
+```
+
+### Marketing Campaign Preparation
+
+```bash
+# Get emails for upcoming combines
+./scripts/fetch-future-combine-emails.sh
+
+# Copy the comma-separated list to your email marketing tool
 ```
