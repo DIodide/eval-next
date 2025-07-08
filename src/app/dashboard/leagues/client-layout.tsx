@@ -103,32 +103,32 @@ export function LeaguesDashboardClientLayout({
       ]
     },
     {
-      title: "Manage Players",
+      title: "Player Search",
       href: "/dashboard/leagues/players",
       icon: UsersIcon,
       requiresOnboarding: true,
-      enabled: true,
+      enabled: false,
     },
     {
       title: "Manage Teams",
       href: "/dashboard/leagues/teams",
       icon: TrophyIcon,
       requiresOnboarding: true,
-      enabled: true,
+      enabled: false,
     },
     {
       title: "Manage Rankings",
       href: "/dashboard/leagues/rankings",
       icon: BarChart3Icon,
       requiresOnboarding: true,
-      enabled: true,
+      enabled: false,
     },
     {
       title: "League Settings",
       href: "/dashboard/leagues/settings",
       icon: SettingsIcon,
       requiresOnboarding: true,
-      enabled: true,
+      enabled: false,
     },
   ];
 
