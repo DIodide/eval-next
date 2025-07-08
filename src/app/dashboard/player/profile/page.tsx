@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +27,10 @@ import {
   SaveIcon,
   CheckIcon,
   UserIcon,
-  ShieldIcon
+  ShieldIcon,
+  ExternalLinkIcon
 } from "lucide-react";
+import Link from "next/link";
 import { api } from "@/trpc/react";
 import { neobrutalism } from "@clerk/themes";
 import { cn } from "@/lib/utils";
@@ -41,6 +44,7 @@ interface GameConnection {
   displayName: string;
   color: string;
   requiresOAuth?: boolean; // New field to indicate OAuth requirement
+  featured?: boolean; // New field to highlight main supported games
 }
 
 interface SocialConnection {
@@ -257,52 +261,47 @@ export default function ProfilePage() {
     }
   }, [recruitingData, profileData]);
 
-  // Game connections configurations
+  // Game connections configurations - Emphasizing the 4 main supported games
   const gameConnectionsConfig: GameConnection[] = [
-    {
-      platform: "steam",
-      username: "",
-      connected: false,
-      icon: MonitorIcon,
-      displayName: "Steam",
-      color: "bg-blue-600",
-      requiresOAuth: false
-    },
     {
       platform: "valorant",
       username: "",
       connected: false,
       icon: ShieldIcon,
       displayName: "VALORANT",
-      color: "bg-red-600",
-      requiresOAuth: true // Valorant uses OAuth
-    },
-    {
-      platform: "battlenet",
-      username: "",
-      connected: false,
-      icon: GamepadIcon,
-      displayName: "Battle.net",
-      color: "bg-blue-500",
-      requiresOAuth: false
+      color: "bg-gradient-to-r from-red-500 to-red-600",
+      requiresOAuth: true,
+      featured: true
     },
     {
       platform: "epicgames",
       username: "",
       connected: false,
       icon: GamepadIcon,
-      displayName: "Rocket League (Epic Games)",
-      color: "bg-orange-600",
-      requiresOAuth: true // Epic Games uses OAuth for Rocket League
+      displayName: "Rocket League",
+      color: "bg-gradient-to-r from-orange-500 to-orange-600",
+      requiresOAuth: true,
+      featured: true
+    },
+    {
+      platform: "battlenet",
+      username: "",
+      connected: false,
+      icon: GamepadIcon,
+      displayName: "Overwatch 2",
+      color: "bg-gradient-to-r from-orange-400 to-blue-500",
+      requiresOAuth: false,
+      featured: true
     },
     {
       platform: "startgg",
       username: "",
       connected: false,
       icon: GamepadIcon,
-      displayName: "start.gg",
-      color: "bg-purple-600",
-      requiresOAuth: false
+      displayName: "Smash Ultimate",
+      color: "bg-gradient-to-r from-purple-500 to-purple-600",
+      requiresOAuth: false,
+      featured: true
     }
   ];
 
@@ -670,26 +669,91 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">
-            Profile
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Manage your gaming profile and recruitment information
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20">
+      <div className="container max-w-7xl mx-auto p-6 space-y-8">
+        
+        {/* Enhanced Page Header */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-orange-500/10 border border-blue-500/30 rounded-2xl p-8">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDU5LCAxMzAsIDI0NiwgMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
+          
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center space-x-6 mb-6 lg:mb-0">
+              {/* Enhanced Profile Avatar - Now Circular */}
+              <div className="relative">
+                <div className="w-28 h-28 rounded-full border-4 border-gradient-to-br from-blue-400 to-purple-500 p-1 bg-gradient-to-br from-blue-500 to-purple-600 shadow-2xl">
+                  <UserButton 
+                    appearance={{
+                      baseTheme: neobrutalism,
+                      elements: {
+                        avatarBox: "profile-avatar-large",
+                        avatarImage: "rounded-full"
+                      }
+                    }}
+                  />
+                </div>
+                {/* Online Status Indicator */}
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-[#1a1a2e] rounded-full animate-pulse"></div>
+              </div>
+              
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-orbitron font-bold text-white">
+                    {user?.firstName} {user?.lastName}
+                  </h1>
+                  {user?.username && (
+                    <Link 
+                      href={`/profiles/player/${user.username}`}
+                      className="group flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg hover:from-blue-600/30 hover:to-purple-600/30 hover:border-blue-400/50 transition-all duration-200"
+                    >
+                      <ExternalLinkIcon className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
+                      <span className="text-sm text-blue-400 group-hover:text-blue-300 font-rajdhani">
+                        View Public Profile
+                      </span>
+                    </Link>
+                  )}
+                </div>
+                {user?.username && (
+                  <div className="flex items-center space-x-1 mb-2">
+                    <UserIcon className="h-4 w-4 text-blue-400" />
+                    <span className="font-rajdhani text-gray-300">@{user.username}</span>
+                  </div>
+                )}
+                <p className="text-gray-400 font-rajdhani">
+                  Manage your gaming profile and recruitment information
+                </p>
+              </div>
+            </div>
+            
+            {/* Profile Completion Widget */}
+            <div className="bg-black/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 min-w-[200px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-rajdhani text-gray-300">Profile Strength</span>
+                <span className="text-lg font-orbitron font-bold text-white">{profileCompletion}%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-3 relative overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${profileCompletion}%` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+              </div>
+              <p className="text-xs text-gray-400 mt-2 font-rajdhani">
+                {profileCompletion < 50 ? "Complete your profile to attract recruiters" : 
+                 profileCompletion < 80 ? "Looking good! Add more connections" : 
+                 "Excellent! Your profile is ready to shine"}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
 
       {/* Profile Content */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-8">
           
           {/* Basic Information */}
-          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
+          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-blue-500/30 transition-all duration-300 p-6 shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-semibold text-white">Basic Information</h3>
@@ -737,105 +801,87 @@ export default function ProfilePage() {
 
             {/* Profile Content */}
             {!isLoadingProfile && !profileError && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {user || editableProfileData.location || editableProfileData.bio ? (
-                  <div className="space-y-4">
-                    {/* Profile Image */}
-                    <div className="flex justify-center">
-                      <UserButton 
-                        appearance={{
-                          baseTheme: neobrutalism,
-                          elements: {
-                            avatarBox: "profile-avatar-large",
-                            //userButtonPopoverCard: "bg-[#1a1a2e] border-gray-800 p-5",
-                            userButtonPopoverActions: "text-white"
-                          }
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Horizontal Separator */}
-                    <div className="border-t border-gray-700"></div>
-                    
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {/* Clerk-managed fields (read-only) */}
-                      {user?.firstName && user?.lastName && (
-                        <div>
-                          <Label className="text-gray-400 font-rajdhani">Real Name</Label>
-                          <p className="text-white">{user.firstName} {user.lastName}</p>
-                          <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
-                        </div>
-                      )}
-                      {user?.username && (
-                        <div>
-                          <Label className="text-gray-400 font-rajdhani">Username</Label>
-                          <p className="text-white">{user.username}</p>
-                          <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
-                        </div>
-                      )}
-                      {user?.emailAddresses[0]?.emailAddress && (
-                        <div>
-                          <Label className="text-gray-400 font-rajdhani">Email</Label>
-                          <p className="text-white">{user.emailAddresses[0].emailAddress}</p>
-                          <p className="text-xs text-gray-500 mt-1">Managed by account settings</p>
-                        </div>
-                      )}
-                      
-                      {                      /* Editable fields */}
-                      {isEditingProfile ? (
-                        <>
-                          <div>
-                            <Label htmlFor="location" className="text-white font-rajdhani">Location</Label>
-                            <Input
-                              id="location"
-                              value={editableProfileData.location}
-                              onChange={(e) => setEditableProfileData(prev => ({ ...prev, location: e.target.value }))}
-                              className="bg-gray-800 border-gray-700 text-white mt-1"
-                              placeholder="City, State"
-                            />
-                            {profileErrors.location && (
-                              <p className="text-red-400 text-sm mt-1">{profileErrors.location}</p>
-                            )}
-                          </div>
-                          <div className="md:col-span-2">
-                            <Label htmlFor="bio" className="text-white font-rajdhani">Bio</Label>
-                            <Input
-                              id="bio"
-                              value={editableProfileData.bio}
-                              onChange={(e) => setEditableProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                              className="bg-gray-800 border-gray-700 text-white mt-1"
-                              placeholder="Tell us about yourself..."
-                            />
-                            {profileErrors.bio && (
-                              <p className="text-red-400 text-sm mt-1">{profileErrors.bio}</p>
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {editableProfileData.location && (
-                            <div>
-                              <Label className="text-gray-400 font-rajdhani">Location</Label>
-                              <p className="text-white">{editableProfileData.location}</p>
-                            </div>
+                  <div className="space-y-6">
+                    {/* Enhanced Form Section */}
+                    <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-xl p-6 border border-blue-500/20">
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {/* Editable fields with enhanced styling */}
+                                                {isEditingProfile ? (
+                            <>
+                              <div className="group">
+                                <Label htmlFor="location" className="text-white font-rajdhani font-medium mb-2 block">
+                                  Location
+                                </Label>
+                                <Input
+                                  id="location"
+                                  value={editableProfileData.location}
+                                  onChange={(e) => setEditableProfileData(prev => ({ ...prev, location: e.target.value }))}
+                                  className="bg-gray-800/50 border-gray-600 text-white focus:border-blue-400 focus:ring-blue-400/20 transition-all duration-200"
+                                  placeholder="Enter your location (e.g., San Francisco, CA)"
+                                />
+                                {profileErrors.location && (
+                                  <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                                    <XIcon className="h-3 w-3" />
+                                    {profileErrors.location}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="md:col-span-2 group">
+                                <Label htmlFor="bio" className="text-white font-rajdhani font-medium mb-2 block">
+                                  Bio
+                                </Label>
+                                <Input
+                                  id="bio"
+                                  value={editableProfileData.bio}
+                                  onChange={(e) => setEditableProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                                  className="bg-gray-800/50 border-gray-600 text-white focus:border-blue-400 focus:ring-blue-400/20 transition-all duration-200"
+                                  placeholder="Tell us about yourself and your gaming journey..."
+                                />
+                                {profileErrors.bio && (
+                                  <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                                    <XIcon className="h-3 w-3" />
+                                    {profileErrors.bio}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              {editableProfileData.location && (
+                                <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
+                                  <Label className="text-gray-400 font-rajdhani text-sm">Location</Label>
+                                  <p className="text-white font-medium mt-1">{editableProfileData.location}</p>
+                                </div>
+                              )}
+                              {editableProfileData.bio && (
+                                <div className="md:col-span-2 bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
+                                  <Label className="text-gray-400 font-rajdhani text-sm">Bio</Label>
+                                  <p className="text-white font-medium mt-1">{editableProfileData.bio}</p>
+                                </div>
+                              )}
+                              {!editableProfileData.location && !editableProfileData.bio && (
+                                <div className="md:col-span-2 text-center py-8">
+                                  <div className="text-gray-400 mb-4">
+                                    <UserIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                                    <p>No profile information added yet</p>
+                                    <p className="text-sm">Add your location and bio to help others get to know you</p>
+                                  </div>
+                                </div>
+                              )}
+                            </>
                           )}
-                          {editableProfileData.bio && (
-                            <div className="md:col-span-2">
-                              <Label className="text-gray-400 font-rajdhani">Bio</Label>
-                              <p className="text-white">{editableProfileData.bio}</p>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
+                        </div>
+                      </div>
 
-                    {/* Action Buttons */}
+                    {/* Enhanced Action Buttons */}
                     {isEditingProfile && (
-                      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700/50">
                         <Button
                           variant="outline"
                           onClick={handleProfileCancel}
-                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700 hover:border-gray-500 transition-all duration-200"
                         >
                           <XIcon className="w-4 h-4 mr-2" />
                           Cancel
@@ -843,7 +889,7 @@ export default function ProfilePage() {
                         <Button
                           onClick={handleProfileSave}
                           disabled={updateProfileMutation.isPending || !hasUnsavedProfileChanges}
-                          className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {updateProfileMutation.isPending ? (
                             <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
@@ -878,7 +924,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Recruiting Information */}
-          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
+          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-purple-500/30 transition-all duration-300 p-6 shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <div>
@@ -904,168 +950,276 @@ export default function ProfilePage() {
                 </Button>
               )}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {recruitingErrors.general && (
-                <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4 flex items-center gap-3">
+                  <XIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
                   <p className="text-red-400 text-sm">{recruitingErrors.general}</p>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="school" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>School</Label>
-                  <Input
-                    id="school"
-                    value={recruitingData.school}
-                    onChange={(e) => setRecruitingData(prev => ({ ...prev, school: e.target.value }))}
-                    disabled={!isEditingRecruiting}
-                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
-                    placeholder="University Name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="class" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Graduation Year</Label>
-                  <Input
-                    id="class"
-                    value={recruitingData.class_year}
-                    onChange={(e) => setRecruitingData(prev => ({ ...prev, class_year: e.target.value }))}
-                    disabled={!isEditingRecruiting}
-                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
-                    placeholder="2025"
-                  />
-                  {recruitingErrors.class_year && (
-                    <p className="text-red-400 text-sm mt-1">{recruitingErrors.class_year}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="mainGame" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Main Game</Label>
-                  <Select 
-                    value={recruitingData.main_game_id} 
-                    onValueChange={(value) => setRecruitingData(prev => ({ ...prev, main_game_id: value }))}
-                    disabled={isLoadingGames || !isEditingRecruiting}
-                  >
-                    <SelectTrigger className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}>
-                      <SelectValue placeholder={isLoadingGames ? "Loading games..." : "Select your main game"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      {availableGames?.map((game) => (
-                        <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
-                          {game.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="gpa" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>GPA</Label>
-                  <Input
-                    id="gpa"
-                    value={recruitingData.gpa}
-                    onChange={(e) => setRecruitingData(prev => ({ ...prev, gpa: e.target.value }))}
-                    disabled={!isEditingRecruiting}
-                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
-                    placeholder="3.5"
-                  />
-                  {recruitingErrors.gpa && (
-                    <p className="text-red-400 text-sm mt-1">{recruitingErrors.gpa}</p>
-                  )}
+              
+              {/* Enhanced Academic Information */}
+              <div className="bg-gradient-to-br from-purple-500/5 to-orange-500/5 rounded-xl p-6 border border-purple-500/20">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <UserIcon className="h-5 w-5 text-purple-400" />
+                  Academic Information
+                </h4>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="group">
+                    <Label htmlFor="school" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      School
+                    </Label>
+                    <Input
+                      id="school"
+                      value={recruitingData.school}
+                      onChange={(e) => setRecruitingData(prev => ({ ...prev, school: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-purple-400 focus:ring-purple-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
+                      placeholder="Enter your high school's name"
+                    />
+                  </div>
+                  <div className="group">
+                    <Label htmlFor="class" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      Graduation Year
+                    </Label>
+                    <Input
+                      id="class"
+                      value={recruitingData.class_year}
+                      onChange={(e) => setRecruitingData(prev => ({ ...prev, class_year: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-purple-400 focus:ring-purple-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
+                      placeholder="e.g., 2025"
+                    />
+                    {recruitingErrors.class_year && (
+                      <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                        <XIcon className="h-3 w-3" />
+                        {recruitingErrors.class_year}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="intended_major" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Intended Major</Label>
-                <Input
-                  id="intended_major"
-                  value={recruitingData.intended_major}
-                  onChange={(e) => setRecruitingData(prev => ({ ...prev, intended_major: e.target.value }))}
-                  disabled={!isEditingRecruiting}
-                  className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
-                  placeholder="Computer Science, Business, etc."
-                />
+              {/* Gaming & Academic Performance */}
+              <div className="bg-gradient-to-br from-orange-500/5 to-green-500/5 rounded-xl p-6 border border-orange-500/20">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <GamepadIcon className="h-5 w-5 text-orange-400" />
+                  Gaming & Academic Performance
+                </h4>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="group">
+                    <Label htmlFor="mainGame" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      Main Game
+                    </Label>
+                    <Select 
+                      value={recruitingData.main_game_id} 
+                      onValueChange={(value) => setRecruitingData(prev => ({ ...prev, main_game_id: value }))}
+                      disabled={isLoadingGames || !isEditingRecruiting}
+                    >
+                      <SelectTrigger className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting && !isLoadingGames
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-orange-400 focus:ring-orange-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}>
+                        <SelectValue placeholder={isLoadingGames ? "Loading games..." : "Select your main competitive game"} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        {availableGames?.map((game) => (
+                          <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700 focus:bg-gray-700">
+                            {game.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="group">
+                    <Label htmlFor="gpa" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      GPA
+                    </Label>
+                    <Input
+                      id="gpa"
+                      value={recruitingData.gpa}
+                      onChange={(e) => setRecruitingData(prev => ({ ...prev, gpa: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-orange-400 focus:ring-orange-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
+                      placeholder="e.g., 3.7 (scale of 4.0)"
+                    />
+                    {recruitingErrors.gpa && (
+                      <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                        <XIcon className="h-3 w-3" />
+                        {recruitingErrors.gpa}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="mt-6 group">
+                  <Label htmlFor="intended_major" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                    Intended Major
+                  </Label>
+                  <Input
+                    id="intended_major"
+                    value={recruitingData.intended_major}
+                    onChange={(e) => setRecruitingData(prev => ({ ...prev, intended_major: e.target.value }))}
+                    disabled={!isEditingRecruiting}
+                    className={cn(
+                      "transition-all duration-200",
+                      isEditingRecruiting 
+                        ? "bg-gray-800/50 border-gray-600 text-white focus:border-orange-400 focus:ring-orange-400/20" 
+                        : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                    )}
+                    placeholder="e.g., Computer Science, Business Administration, Engineering"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <h4 className="text-md font-semibold text-white">Contact Information</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="scholastic_contact" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Scholastic Contact</Label>
+              {/* Contact Information */}
+              <div className="bg-gradient-to-br from-green-500/5 to-blue-500/5 rounded-xl p-6 border border-green-500/20">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <UserIcon className="h-5 w-5 text-green-400" />
+                  Contact Information
+                </h4>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="group">
+                    <Label htmlFor="scholastic_contact" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      Scholastic Contact
+                    </Label>
                     <Input
                       id="scholastic_contact"
                       value={recruitingData.scholastic_contact}
                       onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact: e.target.value }))}
                       disabled={!isEditingRecruiting}
-                      className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                      className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-green-400 focus:ring-green-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
                       placeholder="Guidance Counselor or Teacher Name"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="scholastic_contact_email" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Scholastic Contact Email</Label>
+                  <div className="group">
+                    <Label htmlFor="scholastic_contact_email" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      Scholastic Contact Email
+                    </Label>
                     <Input
                       id="scholastic_contact_email"
                       type="email"
                       value={recruitingData.scholastic_contact_email}
                       onChange={(e) => setRecruitingData(prev => ({ ...prev, scholastic_contact_email: e.target.value }))}
                       disabled={!isEditingRecruiting}
-                      className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                      className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-green-400 focus:ring-green-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
                       placeholder="counselor@school.edu"
                     />
                     {recruitingErrors.scholastic_contact_email && (
-                      <p className="text-red-400 text-sm mt-1">{recruitingErrors.scholastic_contact_email}</p>
+                      <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                        <XIcon className="h-3 w-3" />
+                        {recruitingErrors.scholastic_contact_email}
+                      </p>
                     )}
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="guardian_email" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Parent/Guardian Email</Label>
+                <div className="mt-6 group">
+                  <Label htmlFor="guardian_email" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                    Parent/Guardian Email
+                  </Label>
                   <Input
                     id="guardian_email"
                     type="email"
                     value={recruitingData.guardian_email}
                     onChange={(e) => setRecruitingData(prev => ({ ...prev, guardian_email: e.target.value }))}
                     disabled={!isEditingRecruiting}
-                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
+                    className={cn(
+                      "transition-all duration-200",
+                      isEditingRecruiting 
+                        ? "bg-gray-800/50 border-gray-600 text-white focus:border-green-400 focus:ring-green-400/20" 
+                        : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                    )}
                     placeholder="parent@email.com"
                   />
                   {recruitingErrors.guardian_email && (
-                    <p className="text-red-400 text-sm mt-1">{recruitingErrors.guardian_email}</p>
+                    <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
+                      <XIcon className="h-3 w-3" />
+                      {recruitingErrors.guardian_email}
+                    </p>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h4 className="text-md font-semibold text-white">Additional Information</h4>
-                <div>
-                  <Label htmlFor="extra_curriculars" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Extra Curriculars</Label>
-                  <Input
-                    id="extra_curriculars"
-                    value={recruitingData.extra_curriculars}
-                    onChange={(e) => setRecruitingData(prev => ({ ...prev, extra_curriculars: e.target.value }))}
-                    disabled={!isEditingRecruiting}
-                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
-                    placeholder="Sports, clubs, leadership roles, etc."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="academic_bio" className={cn("font-rajdhani pb-2", isEditingRecruiting ? "text-white" : "text-gray-400")}>Academic Bio</Label>
-                  <Input
-                    id="academic_bio"
-                    value={recruitingData.academic_bio}
-                    onChange={(e) => setRecruitingData(prev => ({ ...prev, academic_bio: e.target.value }))}
-                    disabled={!isEditingRecruiting}
-                    className={cn("bg-gray-800 border-gray-700 text-white", !isEditingRecruiting && "opacity-60")}
-                    placeholder="Academic achievements, honors, awards..."
-                  />
+              {/* Additional Information */}
+              <div className="bg-gradient-to-br from-pink-500/5 to-red-500/5 rounded-xl p-6 border border-pink-500/20">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <MessageCircleIcon className="h-5 w-5 text-pink-400" />
+                  Additional Information
+                </h4>
+                <div className="space-y-6">
+                  <div className="group">
+                    <Label htmlFor="extra_curriculars" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      Extracurricular Activities
+                    </Label>
+                    <Input
+                      id="extra_curriculars"
+                      value={recruitingData.extra_curriculars}
+                      onChange={(e) => setRecruitingData(prev => ({ ...prev, extra_curriculars: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn(
+                        "transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-pink-400 focus:ring-pink-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
+                      placeholder="e.g., Sports teams, clubs, leadership roles, volunteer work"
+                    />
+                  </div>
+                  <div className="group">
+                    <Label htmlFor="academic_bio" className={cn("font-rajdhani font-medium mb-2 block", isEditingRecruiting ? "text-white" : "text-gray-400")}>
+                      Academic & Gaming Bio
+                    </Label>
+                    <Textarea
+                      id="academic_bio"
+                      value={recruitingData.academic_bio}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRecruitingData(prev => ({ ...prev, academic_bio: e.target.value }))}
+                      disabled={!isEditingRecruiting}
+                      className={cn(
+                        "min-h-[100px] transition-all duration-200",
+                        isEditingRecruiting 
+                          ? "bg-gray-800/50 border-gray-600 text-white focus:border-pink-400 focus:ring-pink-400/20" 
+                          : "bg-gray-800/30 border-gray-700 text-gray-300 opacity-60"
+                      )}
+                      placeholder="Tell coaches about your academic achievements, gaming experience, leadership roles, and what makes you a great team player..."
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Enhanced Action Buttons */}
               {isEditingRecruiting && (
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-700/50">
                   <Button
                     variant="outline"
                     onClick={handleRecruitingCancel}
-                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700 hover:border-gray-500 transition-all duration-200"
                   >
                     <XIcon className="w-4 h-4 mr-2" />
                     Cancel
@@ -1073,7 +1227,7 @@ export default function ProfilePage() {
                   <Button
                     onClick={handleRecruitingSave}
                     disabled={updateProfileMutation.isPending || !hasUnsavedRecruitingChanges}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updateProfileMutation.isPending ? (
                       <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
@@ -1088,34 +1242,151 @@ export default function ProfilePage() {
           </Card>
 
           {/* Game Connections */}
-          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-white">Game Connections</h3>
+          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-orange-500/30 transition-all duration-300 p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-orbitron font-bold text-white mb-2">Game Connections</h3>
+                <p className="text-sm text-gray-400 font-rajdhani">Connect your accounts from our 4 supported games</p>
+              </div>
               {!isEditingGameConnections && (
                 <Button 
                   size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium"
                   onClick={() => setIsEditingGameConnections(true)}
                   disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending || removePlatformMutation.isPending}
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  Connect Account
+                  Connect Game
                 </Button>
               )}
             </div>
 
-            {/* Connection Form - shown when editing */}
+            {/* Featured Games Grid - Show all 4 supported games prominently */}
+            {!isEditingGameConnections && (
+              <div className="mb-6">
+                <h4 className="text-sm font-rajdhani font-semibold text-gray-300 mb-3 uppercase tracking-wide">Supported Games</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {gameConnectionsConfig.map((game) => {
+                    const connection = gameConnections.find(conn => conn.platform === game.platform);
+                    const isConnected = connection?.connected ?? false;
+                    
+                    return (
+                      <div
+                        key={game.platform}
+                        className={cn(
+                          "relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer group",
+                          isConnected 
+                            ? "border-green-500/50 bg-green-500/10 hover:border-green-400/70" 
+                            : "border-gray-600/50 bg-gray-800/30 hover:border-gray-500/70"
+                        )}
+                        onClick={() => !isConnected && setIsEditingGameConnections(true)}
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          {/* Game Logo */}
+                          <div className="w-12 h-12 mb-3 flex items-center justify-center">
+                            {game.platform === "valorant" ? (
+                              <Image 
+                                src="/valorant/logos/Valorant Logo Red Border.jpg"
+                                alt="VALORANT Logo"
+                                width={48}
+                                height={48}
+                                className="object-contain"
+                              />
+                            ) : game.platform === "epicgames" ? (
+                              <Image 
+                                src="/rocket-league/logos/Rocket League Emblem.png"
+                                alt="Rocket League Logo"
+                                width={48}
+                                height={48}
+                                className="object-contain"
+                              />
+                            ) : game.platform === "battlenet" ? (
+                              <Image 
+                                src="/overwatch/logos/Overwatch 2 Primary Logo.png"
+                                alt="Overwatch 2 Logo"
+                                width={48}
+                                height={48}
+                                className="object-contain"
+                              />
+                            ) : game.platform === "startgg" ? (
+                              <Image 
+                                src="/smash/logos/Smash Ball White Logo.png"
+                                alt="Smash Bros Logo"
+                                width={48}
+                                height={48}
+                                className="object-contain"
+                              />
+                            ) : (
+                              <div className={cn("p-3 rounded-lg", game.color)}>
+                                <game.icon className="h-6 w-6 text-white" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Game Name */}
+                          <h5 className="font-rajdhani font-semibold text-white text-sm mb-1">
+                            {game.displayName}
+                          </h5>
+                          
+                          {/* Connection Status */}
+                          {isConnected ? (
+                            <div className="flex items-center gap-1">
+                              <CheckIcon className="h-3 w-3 text-green-400" />
+                              <span className="text-xs text-green-400 font-medium">Connected</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">Not Connected</span>
+                          )}
+                          
+                          {/* OAuth Badge */}
+                          {game.requiresOAuth && (
+                            <Badge variant="outline" className="mt-2 text-xs border-blue-400/50 text-blue-400">
+                              OAuth
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {/* Connect Overlay */}
+                        {!isConnected && (
+                          <div className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                            <Button size="sm" className="bg-white text-black hover:bg-gray-200">
+                              <PlusIcon className="h-3 w-3 mr-1" />
+                              Connect
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Connection Form - shown when editing */}
             {isEditingGameConnections && (
-              <div className="space-y-4 mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <h4 className="text-md font-semibold text-white">Connect Game Account</h4>
+              <div className="space-y-6 mb-6 p-6 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-xl border border-orange-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-500/20 rounded-lg">
+                    <GamepadIcon className="h-5 w-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-orbitron font-semibold text-white">Connect Game Account</h4>
+                    <p className="text-sm text-gray-400 font-rajdhani">Choose a game platform to connect your account</p>
+                  </div>
+                </div>
+                
                 {connectionError && (
-                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                    <p className="text-red-400 text-sm">{connectionError}</p>
+                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <XIcon className="h-4 w-4 text-red-400" />
+                      <p className="text-red-400 text-sm font-medium">{connectionError}</p>
+                    </div>
                   </div>
                 )}
+                
                 <div>
-                  <Label className="text-white font-rajdhani mb-2 block">Select Platform</Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <Label className="text-white font-rajdhani font-medium mb-3 block">Select Game Platform</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {gameConnectionsConfig.filter(config => {
                       const isConnected = gameConnections.find(conn => conn.platform === config.platform)?.connected;
                       return !isConnected;
@@ -1123,30 +1394,65 @@ export default function ProfilePage() {
                       <Button
                         key={platform.platform}
                         variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                        className={`text-white justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                        className={cn(
+                          "h-auto p-4 justify-start text-left transition-all duration-200",
+                          selectedPlatform === platform.platform 
+                            ? "bg-gradient-to-r from-orange-500 to-red-500 border-orange-400 text-white" 
+                            : "bg-gray-800/50 border-gray-600 text-gray-300 hover:text-white hover:border-gray-500 hover:bg-gray-700/50"
+                        )}
                         onClick={() => setSelectedPlatform(platform.platform)}
                         disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending}
                       >
-                        {platform.platform === "valorant" ? (
-                          <Image 
-                            src="/valorant/logos/Valorant Logo Red Border.jpg"
-                            alt="VALORANT Logo"
-                            width={20}
-                            height={20}
-                            className="object-contain mr-2"
-                          />
-                        ) : platform.platform === "epicgames" ? (
-                          <Image 
-                            src="/rocket-league/logos/Rocket League Emblem.png"
-                            alt="Rocket League Logo"
-                            width={20}
-                            height={20}
-                            className="object-contain mr-2"
-                          />
-                        ) : (
-                          <platform.icon className="h-4 w-4 mr-2 text-white" />
-                        )}
-                        {platform.displayName}
+                        <div className="flex items-center gap-3 w-full">
+                          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+                            {platform.platform === "valorant" ? (
+                              <Image 
+                                src="/valorant/logos/Valorant Logo Red Border.jpg"
+                                alt="VALORANT Logo"
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                              />
+                            ) : platform.platform === "epicgames" ? (
+                              <Image 
+                                src="/rocket-league/logos/Rocket League Emblem.png"
+                                alt="Rocket League Logo"
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                              />
+                            ) : platform.platform === "battlenet" ? (
+                              <Image 
+                                src="/overwatch/logos/Overwatch 2 Primary Logo.png"
+                                alt="Overwatch 2 Logo"
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                              />
+                            ) : platform.platform === "startgg" ? (
+                              <Image 
+                                src="/smash/logos/Smash Ball White Logo.png"
+                                alt="Smash Bros Logo"
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                              />
+                            ) : (
+                              <platform.icon className="h-6 w-6" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-rajdhani font-semibold">{platform.displayName}</p>
+                            <p className="text-xs opacity-70">
+                              {platform.requiresOAuth ? "OAuth Authentication" : "Manual Username"}
+                            </p>
+                          </div>
+                          {platform.requiresOAuth && (
+                            <Badge variant="outline" className="text-xs border-blue-400/50 text-blue-400">
+                              OAuth
+                            </Badge>
+                          )}
+                        </div>
                       </Button>
                     ))}
                   </div>
@@ -1237,7 +1543,7 @@ export default function ProfilePage() {
                     className="border-gray-600 bg-white text-black hover:bg-gray-200"
                     disabled={updatePlatformMutation.isPending || updateOAuthMutation.isPending}
                   >
-                    <XIcon className="w-4 h-4 mr-2 text-black" />
+                    <XIcon className="w-4 h-4 mr-2 text-white" />
                     Cancel
                   </Button>
                   <Button
@@ -1343,17 +1649,22 @@ export default function ProfilePage() {
                 })
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">
-                    No game accounts connected yet. Connect your accounts to showcase your gaming achievements.
-                  </p>
+                  <div className="mb-6">
+                    <GamepadIcon className="h-12 w-12 mx-auto text-gray-500 mb-3" />
+                    <h4 className="text-white font-orbitron font-semibold mb-2">No Connected Accounts</h4>
+                    <p className="text-gray-400 text-sm">
+                      Connect your gaming accounts to showcase your achievements across our 4 supported games
+                    </p>
+                  </div>
                   {isLoadingProfile ? (
                     <LoaderIcon className="h-5 w-5 animate-spin text-blue-400 mx-auto" />
                   ) : (
                     <Button 
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium"
                       onClick={() => setIsEditingGameConnections(true)}
                     >
-                      Connect Your First Account
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Connect Your First Game
                     </Button>
                   )}
                 </div>
@@ -1362,13 +1673,16 @@ export default function ProfilePage() {
           </Card>
 
           {/* Social Connections */}
-          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-white">Social Connections</h3>
+          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-pink-500/30 transition-all duration-300 p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-orbitron font-bold text-white mb-2">Social Connections</h3>
+                <p className="text-sm text-gray-400 font-rajdhani">Build your personal brand across social platforms</p>
+              </div>
               {!isEditingSocialConnections && (
                 <Button 
                   size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium"
                   onClick={() => setIsEditingSocialConnections(true)}
                   disabled={updateSocialMutation.isPending || removeSocialMutation.isPending}
                 >
@@ -1378,18 +1692,106 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Connection Form - shown when editing */}
+            {/* Social Platforms Overview */}
+            {!isEditingSocialConnections && (
+              <div className="mb-6">
+                <h4 className="text-sm font-rajdhani font-semibold text-gray-300 mb-3 uppercase tracking-wide">Available Platforms</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {socialConnectionsConfig.map((social) => {
+                    const connection = socialConnections.find(conn => conn.platform === social.platform);
+                    const isConnected = connection?.connected ?? false;
+                    
+                    return (
+                      <div
+                        key={social.platform}
+                        className={cn(
+                          "p-4 rounded-lg border transition-all duration-200 cursor-pointer group",
+                          isConnected 
+                            ? "border-green-500/50 bg-green-500/10 hover:border-green-400/70" 
+                            : "border-gray-600/50 bg-gray-800/30 hover:border-gray-500/70"
+                        )}
+                        onClick={() => !isConnected && setIsEditingSocialConnections(true)}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Platform Icon */}
+                          <div className={cn("p-2 rounded-lg", social.color, "flex-shrink-0")}>
+                            {social.platform === "discord" && social.requiresOAuth ? (
+                              <Image 
+                                src="/discord/Discord-Symbol-White.svg"
+                                alt="Discord Logo"
+                                width={20}
+                                height={20}
+                                className="object-contain"
+                              />
+                            ) : (
+                              <social.icon className="h-5 w-5 text-white" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-rajdhani font-semibold text-white text-sm">
+                                {social.displayName}
+                              </h5>
+                              {social.requiresOAuth && (
+                                <Badge variant="outline" className="text-xs border-blue-400/50 text-blue-400">
+                                  OAuth
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {isConnected ? (
+                              <div className="flex items-center gap-1 mt-1">
+                                <CheckIcon className="h-3 w-3 text-green-400" />
+                                <span className="text-xs text-green-400 font-medium">Connected</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400">Not Connected</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Connect Button */}
+                        {!isConnected && (
+                          <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <Button size="sm" variant="outline" className="w-full text-xs border-gray-600 text-gray-300 hover:border-gray-500">
+                              <PlusIcon className="h-3 w-3 mr-1" />
+                              Connect
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Social Connection Form - shown when editing */}
             {isEditingSocialConnections && (
-              <div className="space-y-4 mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <h4 className="text-md font-semibold text-white">Connect Social Account</h4>
+              <div className="space-y-6 mb-6 p-6 bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-xl border border-pink-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-pink-500/20 rounded-lg">
+                    <LinkIcon className="h-5 w-5 text-pink-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-orbitron font-semibold text-white">Connect Social Account</h4>
+                    <p className="text-sm text-gray-400 font-rajdhani">Connect your social media to build your personal brand</p>
+                  </div>
+                </div>
+                
                 {connectionError && (
-                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                    <p className="text-red-400 text-sm">{connectionError}</p>
+                  <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <XIcon className="h-4 w-4 text-red-400" />
+                      <p className="text-red-400 text-sm font-medium">{connectionError}</p>
+                    </div>
                   </div>
                 )}
+                
                 <div>
-                  <Label className="text-white font-rajdhani mb-2 block">Select Platform</Label>
-                  <div className="grid grid-cols-1 gap-2">
+                  <Label className="text-white font-rajdhani font-medium mb-3 block">Select Social Platform</Label>
+                  <div className="grid grid-cols-1 gap-3">
                     {socialConnectionsConfig.filter(config => {
                       const isConnected = socialConnections.find(conn => conn.platform === config.platform)?.connected;
                       return !isConnected;
@@ -1397,22 +1799,41 @@ export default function ProfilePage() {
                       <Button
                         key={platform.platform}
                         variant={selectedPlatform === platform.platform ? "default" : "outline"}
-                        className={`text-white justify-start bg-slate-800 ${selectedPlatform === platform.platform ? platform.color : 'border-gray-600'}`}
+                        className={cn(
+                          "h-auto p-4 justify-start text-left transition-all duration-200",
+                          selectedPlatform === platform.platform 
+                            ? "bg-gradient-to-r from-pink-500 to-purple-500 border-pink-400 text-white" 
+                            : "bg-gray-800/50 border-gray-600 text-gray-300 hover:text-white hover:border-gray-500 hover:bg-gray-700/50"
+                        )}
                         onClick={() => setSelectedPlatform(platform.platform)}
                         disabled={updateSocialMutation.isPending}
                       >
-                        {platform.platform === "discord" && platform.requiresOAuth ? (
-                          <Image 
-                            src="/discord/Discord-Symbol-White.svg"
-                            alt="Discord Logo"
-                            width={16}
-                            height={16}
-                            className="object-contain mr-2"
-                          />
-                        ) : (
-                          <platform.icon className="h-4 w-4 mr-2 text-white" />
-                        )}
-                        {platform.displayName}
+                        <div className="flex items-center gap-3 w-full ">
+                          <div className={cn("p-2 rounded-lg", platform.color, "flex-shrink-0")}>
+                            {platform.platform === "discord" && platform.requiresOAuth ? (
+                              <Image 
+                                src="/discord/Discord-Symbol-White.svg"
+                                alt="Discord Logo"
+                                width={20}
+                                height={20}
+                                className="object-contain"
+                              />
+                            ) : (
+                              <platform.icon className="h-5 w-5 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-rajdhani font-semibold">{platform.displayName}</p>
+                            <p className="text-xs opacity-70">
+                              {platform.requiresOAuth ? "OAuth Authentication" : "Manual Username"}
+                            </p>
+                          </div>
+                          {platform.requiresOAuth && (
+                            <Badge variant="outline" className="text-xs border-blue-400/50 text-blue-400">
+                              OAuth
+                            </Badge>
+                          )}
+                        </div>
                       </Button>
                     ))}
                   </div>
@@ -1484,7 +1905,7 @@ export default function ProfilePage() {
                       setConnectionUsername("");
                       setConnectionError("");
                     }}
-                    className="border-gray-600 text-black hover:bg-gray-200"
+                    className="border-gray-600 text-white hover:bg-gray-200"
                     disabled={updateSocialMutation.isPending}
                   >
                     <XIcon className="w-4 h-4 mr-2" />
@@ -1567,17 +1988,22 @@ export default function ProfilePage() {
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">
-                    No social accounts connected yet. Connect your social media to build your personal brand.
-                  </p>
+                  <div className="mb-6">
+                    <LinkIcon className="h-12 w-12 mx-auto text-gray-500 mb-3" />
+                    <h4 className="text-white font-orbitron font-semibold mb-2">No Social Connections</h4>
+                    <p className="text-gray-400 text-sm">
+                      Connect your social media accounts to build your personal brand and reach a wider audience
+                    </p>
+                  </div>
                   {isLoadingProfile ? (
                     <LoaderIcon className="h-5 w-5 animate-spin text-blue-400 mx-auto" />
                   ) : (
                     <Button 
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium"
                       onClick={() => setIsEditingSocialConnections(true)}
                     >
-                      Connect Your First Account
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Connect Your First Social
                     </Button>
                   )}
                 </div>
@@ -1587,45 +2013,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Sidebar */}
-        <div className="space-y-6">
-          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Profile Completion</h3>
+        <div className="space-y-8">
+          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-purple-500/30 transition-all duration-300 p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-white mb-4">Profile Progress</h3>
             <div className="space-y-4">
-              {/* Circular Progress */}
-              <div className="flex flex-col items-center">
-                <div className="relative w-24 h-24">
-                  <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-                    {/* Background circle */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="rgb(55, 65, 81)"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    {/* Progress circle */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="rgb(59, 130, 246)"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - profileCompletion / 100)}`}
-                      className="transition-all duration-500 ease-in-out"
-                    />
-                  </svg>
-                  {/* Percentage text */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-white">{profileCompletion}%</span>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-400 mt-2 text-center">Profile Complete</p>
-              </div>
-              
               {/* Completion Breakdown */}
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
@@ -1675,7 +2066,7 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          <Card className="bg-[#1a1a2e] border-gray-800 p-6">
+          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-green-500/30 transition-all duration-300 p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <Button 
@@ -1705,6 +2096,7 @@ export default function ProfilePage() {
             </div>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   );

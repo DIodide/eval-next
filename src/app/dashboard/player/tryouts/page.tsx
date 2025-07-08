@@ -31,7 +31,10 @@ import {
   TimerIcon,
   LoaderIcon,
   GamepadIcon,
-  SchoolIcon
+  SchoolIcon,
+  TrophyIcon,
+  StarIcon,
+  CrownIcon
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";
@@ -39,6 +42,21 @@ import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";
 type RegistrationStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED";
 
 const getGameColor = (game: string) => {
+  switch (game.toUpperCase()) {
+    case "VALORANT":
+      return "from-red-500/20 to-red-600/30 border-red-500/30";
+    case "OVERWATCH 2":
+      return "from-orange-500/20 to-orange-600/30 border-orange-500/30";
+    case "SUPER SMASH BROS. ULTIMATE":
+      return "from-yellow-500/20 to-yellow-600/30 border-yellow-500/30";
+    case "ROCKET LEAGUE":
+      return "from-blue-500/20 to-blue-600/30 border-blue-500/30";
+    default:
+      return "from-gray-500/20 to-gray-600/30 border-gray-500/30";
+  }
+};
+
+const getGameBadgeColor = (game: string) => {
   switch (game.toUpperCase()) {
     case "VALORANT":
       return "bg-red-600";
@@ -107,8 +125,6 @@ const formatDate = (date: Date) => {
     year: 'numeric'
   }).format(new Date(date));
 };
-
-
 
 const isTryoutUpcoming = (date: Date) => {
   return new Date(date) > new Date();
@@ -195,346 +211,429 @@ export default function TryoutsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">
-            My Tryouts
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Track your tryout applications and manage your registrations
-          </p>
-          {user && (
-            <p className="text-sm text-blue-400 mt-1">
-              Logged in as: {user.emailAddresses[0]?.emailAddress}
-            </p>
-          )}
-        </div>
-        <Link href="/tryouts/college">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <SearchIcon className="h-4 w-4 mr-2" />
-            Browse Tryouts
-          </Button>
-        </Link>
-      </div>
-
-      {/* Filters and Search */}
-      <Card className="bg-[#1a1a2e] border-gray-800 p-6">
-        <div className="space-y-4">
-          {/* Status Filter Tabs */}
-          <div className="flex gap-2">
-            <Button 
-              variant={activeFilter === "upcoming" ? "default" : "ghost"}
-              className={activeFilter === "upcoming" ? "bg-blue-600" : "text-gray-300 hover:bg-gray-800"}
-              onClick={() => setActiveFilter("upcoming")}
-            >
-              Upcoming
-            </Button>
-            <Button 
-              variant={activeFilter === "past" ? "default" : "ghost"}
-              className={activeFilter === "past" ? "bg-blue-600" : "text-gray-300 hover:bg-gray-800"}
-              onClick={() => setActiveFilter("past")}
-            >
-              Past
-            </Button>
-            <Button 
-              variant={activeFilter === "all" ? "default" : "ghost"}
-              className={activeFilter === "all" ? "bg-blue-600" : "text-gray-300 hover:bg-gray-800"}
-              onClick={() => setActiveFilter("all")}
-            >
-              All
-            </Button>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search tryouts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
-
-            {/* Game Filter */}
-            <Select value={gameFilter} onValueChange={setGameFilter}>
-              <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                <SelectValue placeholder="All Games" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="all" className="text-white">All Games</SelectItem>
-                {availableGames.map((game) => (
-                  <SelectItem key={game} value={game} className="text-white">
-                    {game}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as RegistrationStatus | "all")}>
-              <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="all" className="text-white">All Statuses</SelectItem>
-                <SelectItem value="PENDING" className="text-white">Pending</SelectItem>
-                <SelectItem value="CONFIRMED" className="text-white">Confirmed</SelectItem>
-                <SelectItem value="WAITLISTED" className="text-white">Waitlisted</SelectItem>
-                <SelectItem value="DECLINED" className="text-white">Declined</SelectItem>
-                <SelectItem value="CANCELLED" className="text-white">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Results Count */}
-          {filteredRegistrations && (
-            <div className="text-sm text-gray-400">
-              Showing {filteredRegistrations.length} of {registrations?.length ?? 0} registrations
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Loading State */}
-      {isLoadingRegistrations && (
-        <Card className="bg-[#1a1a2e] border-gray-800 p-8">
-          <div className="flex items-center justify-center space-x-2">
-            <LoaderIcon className="h-6 w-6 animate-spin text-blue-400" />
-            <span className="text-gray-400">Loading your tryout registrations...</span>
-          </div>
-        </Card>
-      )}
-
-      {/* Error State */}
-      {registrationsError && (
-        <Card className="bg-[#1a1a2e] border-gray-800 p-8">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-red-900/20 rounded-full mx-auto flex items-center justify-center">
-              <XCircleIcon className="w-8 h-8 text-red-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-white">Error Loading Tryouts</h3>
-            <p className="text-red-400 max-w-md mx-auto">
-              {registrationsError.message}
-            </p>
-            <Button 
-              onClick={() => void refetchRegistrations()} 
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Try Again
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {/* Tryouts List */}
-      {!isLoadingRegistrations && !registrationsError && (
-        <div className="space-y-4">
-          {filteredRegistrations.length === 0 ? (
-            /* Empty State */
-            <Card className="bg-[#1a1a2e] border-gray-800 p-8">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-gray-800 rounded-full mx-auto flex items-center justify-center">
-                  <GamepadIcon className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white">
-                  {searchQuery || (gameFilter !== "all") || (statusFilter !== "all")
-                    ? "No tryouts match your filters" 
-                    : `No ${activeFilter === "all" ? "" : activeFilter} tryouts`
-                  }
-                </h3>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  {searchQuery || (gameFilter !== "all") || (statusFilter !== "all")
-                    ? "Try adjusting your search or filter criteria to find more results."
-                    : activeFilter === "upcoming" 
-                      ? "You don't have any upcoming tryouts. Start by browsing available opportunities and submitting your applications."
-                      : activeFilter === "past"
-                        ? "You don't have any past tryouts to review."
-                        : "You haven't registered for any tryouts yet. Start exploring opportunities!"
-                  }
-                </p>
-                {!searchQuery && (gameFilter === "all") && (statusFilter === "all") && (
-                  <Link href="/tryouts/college">
-                    <Button className="bg-blue-600 hover:bg-blue-700">
-                      <SearchIcon className="h-4 w-4 mr-2" />
-                      Browse Available Tryouts
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </Card>
-          ) : (
-            /* Tryouts Cards */
-            filteredRegistrations.map((registration) => {
-              const tryout = registration.tryout;
-              const isUpcoming = isTryoutUpcoming(tryout.date);
-              const canCancel = isUpcoming && registration.status !== "CANCELLED" && registration.status !== "DECLINED";
-
-              return (
-                <Card key={registration.id} className="bg-[#1a1a2e] border-gray-800 p-6 hover:border-gray-700 transition-colors">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Badge 
-                          variant="secondary" 
-                          className={`${getGameColor(tryout.game.name)} text-white`}
-                        >
-                          <GamepadIcon className="h-3 w-3 mr-1" />
-                          {tryout.game.short_name}
-                        </Badge>
-                        <Badge 
-                          variant="secondary" 
-                          className={`${getTypeColor(tryout.type)} text-white`}
-                        >
-                          {tryout.type}
-                        </Badge>
-                        <Badge 
-                          variant="secondary" 
-                          className={`${getStatusColor(registration.status)} text-white flex items-center gap-1`}
-                        >
-                          {getStatusIcon(registration.status)}
-                          {registration.status}
-                        </Badge>
-                        {tryout.price === "Free" ? (
-                          <Badge variant="secondary" className="bg-green-600 text-white">
-                            Free
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-gray-600 text-white">
-                            {tryout.price}
-                          </Badge>
-                        )}
-                        {!isUpcoming && (
-                          <Badge variant="secondary" className="bg-gray-500 text-white">
-                            Past Event
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <h3 className="text-xl font-semibold text-white mb-2">
-                        {tryout.title}
-                      </h3>
-                      <p className="text-gray-400 mb-3">
-                        {tryout.description}
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-4">
-                        <div className="flex items-center gap-2 text-gray-300">
-                          <CalendarIcon className="h-4 w-4 text-blue-400" />
-                          <span>{formatDate(tryout.date)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-300">
-                          <ClockIcon className="h-4 w-4 text-green-400" />
-                          <span>{formatDateTimeInLocalTimezone(tryout.date, tryout.time_start ?? undefined, tryout.time_end ?? undefined, { showDate: false, showTime: true, showTimezone: true })}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-300">
-                          <MapPinIcon className="h-4 w-4 text-purple-400" />
-                          <span className="truncate">{tryout.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-300">
-                          <UsersIcon className="h-4 w-4 text-orange-400" />
-                          <span>{tryout.max_spots - tryout.registered_spots} spots left</span>
-                        </div>
-                      </div>
-
-                      {registration.notes && (
-                        <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
-                          <Label className="text-gray-400 text-xs font-medium">Your Registration Notes:</Label>
-                          <p className="text-gray-300 text-sm mt-1">{registration.notes ?? ""}</p>
-                        </div>
-                      )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Enhanced Page Header */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 rounded-2xl blur-xl" />
+          <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-blue-500/20 backdrop-blur-sm shadow-2xl">
+            <div className="p-8">
+              <div className="flex justify-between items-start">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-500/20 rounded-xl">
+                      <TrophyIcon className="h-8 w-8 text-blue-400" />
                     </div>
-                    
-                    <div className="flex flex-col gap-2 ml-6">
-                      <Link href={`/tryouts/college/${tryout.id}`}>
-                        <Button 
-                          variant="outline" 
-                          className="border-gray-600 text-black hover:bg-gray-200"
-                          size="sm"
-                        >
-                          <ExternalLinkIcon className="h-4 w-4 mr-2" />
-                          View Details
+                    <div>
+                      <h1 className="text-4xl font-orbitron font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                        My Tryouts
+                      </h1>
+                      <p className="text-gray-400 text-lg font-rajdhani">
+                        Track your tryout applications and manage your registrations
+                      </p>
+                    </div>
+                  </div>
+                  {user && (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                      <p className="text-blue-300 font-rajdhani">
+                        {user.emailAddresses[0]?.emailAddress}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <Link href="/tryouts/college">
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3">
+                    <SearchIcon className="h-5 w-5 mr-2" />
+                    Browse Tryouts
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Enhanced Filters and Search */}
+        <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
+          <div className="p-6 space-y-6">
+            {/* Status Filter Tabs */}
+            <div className="flex gap-3">
+              <Button 
+                variant={activeFilter === "upcoming" ? "default" : "ghost"}
+                className={`font-rajdhani font-semibold transition-all duration-300 ${
+                  activeFilter === "upcoming" 
+                    ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg" 
+                    : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                }`}
+                onClick={() => setActiveFilter("upcoming")}
+              >
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Upcoming
+              </Button>
+              <Button 
+                variant={activeFilter === "past" ? "default" : "ghost"}
+                className={`font-rajdhani font-semibold transition-all duration-300 ${
+                  activeFilter === "past" 
+                    ? "bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg" 
+                    : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                }`}
+                onClick={() => setActiveFilter("past")}
+              >
+                <ClockIcon className="h-4 w-4 mr-2" />
+                Past
+              </Button>
+              <Button 
+                variant={activeFilter === "all" ? "default" : "ghost"}
+                className={`font-rajdhani font-semibold transition-all duration-300 ${
+                  activeFilter === "all" 
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                    : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                }`}
+                onClick={() => setActiveFilter("all")}
+              >
+                <FilterIcon className="h-4 w-4 mr-2" />
+                All
+              </Button>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Enhanced Search */}
+              <div className="relative group">
+                <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
+                <Input
+                  placeholder="Search tryouts, schools, games..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 h-12 font-rajdhani"
+                />
+              </div>
+
+              {/* Enhanced Game Filter */}
+              <Select value={gameFilter} onValueChange={setGameFilter}>
+                <SelectTrigger className="bg-gray-800/50 border-gray-600 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 h-12 font-rajdhani">
+                  <SelectValue placeholder="All Games" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 backdrop-blur-sm">
+                  <SelectItem value="all" className="text-white font-rajdhani">All Games</SelectItem>
+                  {availableGames.map((game) => (
+                    <SelectItem key={game} value={game} className="text-white font-rajdhani">
+                      {game}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Enhanced Status Filter */}
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as RegistrationStatus | "all")}>
+                <SelectTrigger className="bg-gray-800/50 border-gray-600 text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-300 h-12 font-rajdhani">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 backdrop-blur-sm">
+                  <SelectItem value="all" className="text-white font-rajdhani">All Statuses</SelectItem>
+                  <SelectItem value="PENDING" className="text-white font-rajdhani">Pending</SelectItem>
+                  <SelectItem value="CONFIRMED" className="text-white font-rajdhani">Confirmed</SelectItem>
+                  <SelectItem value="WAITLISTED" className="text-white font-rajdhani">Waitlisted</SelectItem>
+                  <SelectItem value="DECLINED" className="text-white font-rajdhani">Declined</SelectItem>
+                  <SelectItem value="CANCELLED" className="text-white font-rajdhani">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Enhanced Results Count */}
+            {filteredRegistrations && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-700/30 rounded-lg border border-gray-600/30">
+                <StarIcon className="h-4 w-4 text-yellow-400" />
+                <span className="text-gray-300 font-rajdhani">
+                  Showing <span className="text-white font-semibold">{filteredRegistrations.length}</span> of <span className="text-white font-semibold">{registrations?.length ?? 0}</span> registrations
+                </span>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Enhanced Loading State */}
+        {isLoadingRegistrations && (
+          <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
+            <div className="p-12">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full animate-pulse" />
+                  <LoaderIcon className="absolute inset-0 w-16 h-16 text-blue-400 animate-spin" />
+                </div>
+                <h3 className="text-xl font-rajdhani font-semibold text-white">Loading Tryouts</h3>
+                <p className="text-gray-400 font-rajdhani">Fetching your registration data...</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Enhanced Error State */}
+        {registrationsError && (
+          <Card className="bg-gradient-to-br from-red-900/20 to-gray-900/80 border-red-500/30 backdrop-blur-sm shadow-xl">
+            <div className="p-12">
+              <div className="text-center space-y-6">
+                <div className="relative mx-auto w-24 h-24">
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-red-600/30 rounded-full blur-xl" />
+                  <div className="relative w-24 h-24 bg-red-900/30 rounded-full flex items-center justify-center border border-red-500/30">
+                    <XCircleIcon className="w-12 h-12 text-red-400" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-rajdhani font-bold text-white">Error Loading Tryouts</h3>
+                  <p className="text-red-300 max-w-md mx-auto font-rajdhani">
+                    {registrationsError.message}
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => void refetchRegistrations()} 
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <LoaderIcon className="h-4 w-4 mr-2" />
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Enhanced Tryouts List */}
+        {!isLoadingRegistrations && !registrationsError && (
+          <div className="space-y-6">
+            {filteredRegistrations.length === 0 ? (
+              /* Enhanced Empty State */
+              <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
+                <div className="p-12">
+                  <div className="text-center space-y-6">
+                    <div className="relative mx-auto w-24 h-24">
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full blur-xl" />
+                      <div className="relative w-24 h-24 bg-gray-800/50 rounded-full flex items-center justify-center border border-gray-600/50">
+                        <GamepadIcon className="w-12 h-12 text-gray-400" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-rajdhani font-bold text-white">
+                        {searchQuery || (gameFilter !== "all") || (statusFilter !== "all")
+                          ? "No tryouts match your filters" 
+                          : `No ${activeFilter === "all" ? "" : activeFilter} tryouts`
+                        }
+                      </h3>
+                      <p className="text-gray-400 max-w-lg mx-auto font-rajdhani text-lg">
+                        {searchQuery || (gameFilter !== "all") || (statusFilter !== "all")
+                          ? "Try adjusting your search or filter criteria to find more results."
+                          : activeFilter === "upcoming" 
+                            ? "You don't have any upcoming tryouts. Start by browsing available opportunities and submitting your applications."
+                            : activeFilter === "past"
+                              ? "You don't have any past tryouts to review."
+                              : "You haven't registered for any tryouts yet. Start exploring opportunities!"
+                        }
+                      </p>
+                    </div>
+                    {!searchQuery && (gameFilter === "all") && (statusFilter === "all") && (
+                      <Link href="/tryouts/college">
+                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3">
+                          <SearchIcon className="h-5 w-5 mr-2" />
+                          Browse Available Tryouts
                         </Button>
                       </Link>
-                      
-                      {canCancel && (
-                        <Button 
-                          variant="outline" 
-                          className="border-red-600 text-red-400 hover:bg-red-900/20"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRegistration(registration.id);
-                            setCancelDialogOpen(true);
-                          }}
-                        >
-                          Cancel Registration
-                        </Button>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  
-                  <div className="border-t border-gray-800 pt-4">
-                    <div className="flex justify-between items-center text-sm">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <SchoolIcon className="h-4 w-4" />
-                          <span className="text-white">{tryout.school.name}</span>
-                          <span className="text-gray-400">({tryout.school.state})</span>
-                        </div>
-                        {tryout.organizer && (
-                          <div className="text-gray-400">
-                            Organizer: <span className="text-white">{tryout.organizer.first_name} {tryout.organizer.last_name}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-gray-400">
-                        Registered: <span className="text-white">{formatDate(registration.registered_at)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })
-          )}
-        </div>
-      )}
+                </div>
+              </Card>
+            ) : (
+              /* Enhanced Tryouts Cards */
+              filteredRegistrations.map((registration) => {
+                const tryout = registration.tryout;
+                const isUpcoming = isTryoutUpcoming(tryout.date);
+                const canCancel = isUpcoming && registration.status !== "CANCELLED" && registration.status !== "DECLINED";
+                const gameGradient = getGameColor(tryout.game.name);
 
-      {/* Cancel Registration Dialog */}
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="bg-[#1a1a2e] border-gray-800 text-white">
-          <DialogHeader>
-            <DialogTitle>Cancel Registration</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Are you sure you want to cancel your registration for this tryout? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button 
-              variant="outline" 
-              className="border-gray-600 text-black" 
-              onClick={() => setCancelDialogOpen(false)}
-              disabled={cancelRegistrationMutation.isPending}
-            >
-              Keep Registration
-            </Button>
-            <Button 
-              variant="destructive" 
-              className="bg-red-600 hover:bg-red-700" 
-              onClick={handleCancelRegistration}
-              disabled={cancelRegistrationMutation.isPending}
-            >
-              {cancelRegistrationMutation.isPending ? (
-                <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
-              ) : null}
-              Cancel Registration
-            </Button>
+                return (
+                  <Card key={registration.id} className={`group relative bg-gradient-to-br ${gameGradient} backdrop-blur-sm border hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] overflow-hidden`}>
+                    {/* Background Animation */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    
+                    <div className="relative p-8">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="flex-1">
+                          {/* Enhanced Badges */}
+                          <div className="flex items-center gap-3 mb-4 flex-wrap">
+                            <Badge 
+                              variant="secondary" 
+                              className={`${getGameBadgeColor(tryout.game.name)} text-white shadow-lg font-rajdhani font-semibold`}
+                            >
+                              <GamepadIcon className="h-3 w-3 mr-1" />
+                              {tryout.game.short_name}
+                            </Badge>
+                            <Badge 
+                              variant="secondary" 
+                              className={`${getTypeColor(tryout.type)} text-white shadow-lg font-rajdhani font-semibold`}
+                            >
+                              {tryout.type}
+                            </Badge>
+                            <Badge 
+                              variant="secondary" 
+                              className={`${getStatusColor(registration.status)} text-white flex items-center gap-1 shadow-lg font-rajdhani font-semibold`}
+                            >
+                              {getStatusIcon(registration.status)}
+                              {registration.status}
+                            </Badge>
+                            {tryout.price === "Free" ? (
+                              <Badge variant="secondary" className="bg-green-600 text-white shadow-lg font-rajdhani font-semibold">
+                                <CrownIcon className="h-3 w-3 mr-1" />
+                                Free
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-gray-600 text-white shadow-lg font-rajdhani font-semibold">
+                                {tryout.price}
+                              </Badge>
+                            )}
+                            {!isUpcoming && (
+                              <Badge variant="secondary" className="bg-gray-500 text-white shadow-lg font-rajdhani font-semibold">
+                                Past Event
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {/* Enhanced Title and Description */}
+                          <h3 className="text-2xl font-orbitron font-bold text-white mb-3 group-hover:text-blue-200 transition-colors">
+                            {tryout.title}
+                          </h3>
+                          <p className="text-gray-300 mb-6 font-rajdhani text-lg leading-relaxed">
+                            {tryout.description}
+                          </p>
+                          
+                          {/* Enhanced Info Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                            <div className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
+                              <CalendarIcon className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs text-gray-400 font-rajdhani uppercase tracking-wide">Date</p>
+                                <p className="text-white font-rajdhani font-semibold">{formatDate(tryout.date)}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
+                              <ClockIcon className="h-5 w-5 text-green-400 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs text-gray-400 font-rajdhani uppercase tracking-wide">Time</p>
+                                <p className="text-white font-rajdhani font-semibold">{formatDateTimeInLocalTimezone(tryout.date, tryout.time_start ?? undefined, tryout.time_end ?? undefined, { showDate: false, showTime: true, showTimezone: true })}</p>
+                              </div>
+                            </div>
+                                                         <div className="flex items-start gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
+                               <MapPinIcon className="h-5 w-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                               <div className="min-w-0 flex-1">
+                                 <p className="text-xs text-gray-400 font-rajdhani uppercase tracking-wide">Location</p>
+                                 <p className="text-white font-rajdhani font-semibold break-words">{tryout.location}</p>
+                               </div>
+                             </div>
+                            <div className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
+                              <UsersIcon className="h-5 w-5 text-orange-400 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs text-gray-400 font-rajdhani uppercase tracking-wide">Spots</p>
+                                <p className="text-white font-rajdhani font-semibold">{tryout.max_spots - tryout.registered_spots} left</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Enhanced Registration Notes */}
+                          {registration.notes && (
+                            <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-lg p-4 mb-6">
+                              <Label className="text-blue-300 text-sm font-rajdhani font-semibold uppercase tracking-wide">Your Registration Notes:</Label>
+                              <p className="text-gray-200 mt-2 font-rajdhani">{registration.notes ?? ""}</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Enhanced Action Buttons */}
+                        <div className="flex flex-col gap-3 ml-8">
+                          <Link href={`/tryouts/college/${tryout.id}`}>
+                            <Button 
+                              variant="outline" 
+                              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 backdrop-blur-sm shadow-lg"
+                              size="sm"
+                            >
+                              <ExternalLinkIcon className="h-4 w-4 mr-2" />
+                              View Details
+                            </Button>
+                          </Link>
+                          
+                          {canCancel && (
+                            <Button 
+                              variant="outline" 
+                              className="bg-red-500/10 border-red-500/30 text-red-300 hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-300 backdrop-blur-sm shadow-lg"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRegistration(registration.id);
+                                setCancelDialogOpen(true);
+                              }}
+                            >
+                              Cancel Registration
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Enhanced Footer */}
+                      <div className="border-t border-gray-700/50 pt-6">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-2">
+                              <SchoolIcon className="h-5 w-5 text-gray-400" />
+                              <span className="text-white font-rajdhani font-semibold">{tryout.school.name}</span>
+                              <span className="text-gray-400 font-rajdhani">({tryout.school.state})</span>
+                            </div>
+                            {tryout.organizer && (
+                              <div className="text-gray-400 font-rajdhani">
+                                Organizer: <span className="text-white font-semibold">{tryout.organizer.first_name} {tryout.organizer.last_name}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-gray-400 font-rajdhani">
+                            Registered: <span className="text-white font-semibold">{formatDate(registration.registered_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+
+        {/* Enhanced Cancel Registration Dialog */}
+        <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+          <DialogContent className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 border-gray-700/50 text-white backdrop-blur-sm">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-orbitron font-bold">Cancel Registration</DialogTitle>
+              <DialogDescription className="text-gray-400 font-rajdhani text-lg">
+                Are you sure you want to cancel your registration for this tryout? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 pt-6">
+              <Button 
+                variant="outline" 
+                className="bg-gray-600/20 border-gray-500/30 text-gray-200 hover:bg-gray-600/30 font-rajdhani" 
+                onClick={() => setCancelDialogOpen(false)}
+                disabled={cancelRegistrationMutation.isPending}
+              >
+                Keep Registration
+              </Button>
+              <Button 
+                variant="destructive" 
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 font-rajdhani font-semibold" 
+                onClick={handleCancelRegistration}
+                disabled={cancelRegistrationMutation.isPending}
+              >
+                {cancelRegistrationMutation.isPending ? (
+                  <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Cancel Registration
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 } 

@@ -119,19 +119,24 @@ export default function PlayerDashboardClientLayout({
       >
         <div className="flex flex-col h-full">
           {/* Sidebar header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800">
-            <div>
-              <h2 className="text-xl font-orbitron font-bold text-white">
-                Player Dashboard
-              </h2>
-              <p className="text-xs text-gray-400 mt-1">
-                {user?.firstName} {user?.lastName}
-              </p>
+          <div className="flex items-center justify-between p-6 border-b border-gray-800/50 bg-gradient-to-r from-blue-600/10 to-purple-600/10">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <UserIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-orbitron font-bold text-white">
+                  Player Hub
+                </h2>
+                <p className="text-xs text-gray-400 font-rajdhani">
+                  {user?.firstName} {user?.lastName}
+                </p>
+              </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="lg:hidden text-gray-400 hover:text-white"
+              className="lg:hidden text-gray-400 hover:text-white hover:bg-gray-800/50"
               onClick={() => setSidebarOpen(false)}
             >
               <XIcon className="h-5 w-5" />
@@ -140,10 +145,13 @@ export default function PlayerDashboardClientLayout({
 
           {/* Navigation */}
           <nav className="flex-1 p-4">
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
+                const hasSubItems = item.subItems && item.subItems.length > 0;
+                const isProfileSection = item.href === '/dashboard/player/profile';
+                const hasActiveSubItem = hasSubItems && item.subItems.some(subItem => pathname === subItem.href);
                 
                 return (
                   <li key={item.href}>
@@ -151,20 +159,39 @@ export default function PlayerDashboardClientLayout({
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:text-white hover:bg-gray-800"
+                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
+                        isActive || hasActiveSubItem
+                          ? "bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-white border border-blue-500/30 shadow-lg shadow-blue-500/10"
+                          : "text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-gray-800/50 hover:to-gray-700/50 hover:border hover:border-gray-600/30"
                       )}
                       onClick={() => setSidebarOpen(false)}
                     >
-                      <Icon className="h-5 w-5" />
-                      {item.title}
+                      {/* Active indicator */}
+                      {(isActive || hasActiveSubItem) && (
+                        <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-400 to-purple-500 rounded-r-full" />
+                      )}
+                      
+                      {/* Icon with enhanced styling */}
+                      <div className={cn(
+                        "p-2 rounded-lg transition-all duration-200",
+                        isActive || hasActiveSubItem
+                          ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400"
+                          : "text-gray-400 group-hover:text-white group-hover:bg-gray-700/30"
+                      )}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      
+                      <span className="font-rajdhani font-medium">{item.title}</span>
+                      
+                      {/* Subtle glow effect for active items */}
+                      {(isActive || hasActiveSubItem) && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-xl" />
+                      )}
                     </Link>
 
-                    {/* Sub-items (only show if they exist) */}
-                    {item.subItems && item.subItems.length > 0 && (
-                      <ul className="ml-8 mt-2 space-y-1">
+                    {/* Sub-items with improved styling */}
+                    {hasSubItems && (isProfileSection || hasActiveSubItem) && (
+                      <ul className="ml-6 mt-2 space-y-1 border-l border-gray-700/50 pl-4">
                         {item.subItems.map((subItem) => {
                           const SubIcon = subItem.icon;
                           const isSubActive = pathname === subItem.href;
@@ -174,15 +201,22 @@ export default function PlayerDashboardClientLayout({
                               <Link
                                 href={subItem.href}
                                 className={cn(
-                                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative group",
                                   isSubActive
-                                    ? "bg-blue-500 text-white"
-                                    : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                    ? "bg-gradient-to-r from-blue-500/15 to-purple-500/15 text-blue-400 border border-blue-500/20"
+                                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                                 )}
                                 onClick={() => setSidebarOpen(false)}
                               >
-                                <SubIcon className="h-4 w-4" />
-                                {subItem.title}
+                                <div className={cn(
+                                  "p-1 rounded transition-all duration-200",
+                                  isSubActive
+                                    ? "text-blue-400"
+                                    : "text-gray-500 group-hover:text-gray-300"
+                                )}>
+                                  <SubIcon className="h-3 w-3" />
+                                </div>
+                                <span className="font-rajdhani text-xs">{subItem.title}</span>
                               </Link>
                             </li>
                           );
@@ -195,11 +229,23 @@ export default function PlayerDashboardClientLayout({
             </ul>
           </nav>
 
-          <Separator className="bg-gray-800" />
+          <Separator className="bg-gray-800/50" />
 
-          {/* Footer */}
-          <div className="p-4">
-            <p className="text-xs text-gray-400">
+          {/* Enhanced Footer */}
+          <div className="p-4 space-y-3">
+            {/* Quick Stats */}
+            <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/30 rounded-lg p-3 border border-gray-700/30">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400 font-rajdhani">Profile Status</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 font-rajdhani font-medium">Active</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Copyright */}
+            <p className="text-xs text-gray-500 text-center font-rajdhani">
               © 2024 EVAL Gaming
             </p>
           </div>
