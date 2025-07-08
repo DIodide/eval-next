@@ -291,9 +291,9 @@ export default function ProfilePage() {
       username: "",
       connected: false,
       icon: GamepadIcon,
-      displayName: "Epic Games",
-      color: "bg-gray-600",
-      requiresOAuth: false
+      displayName: "Rocket League (Epic Games)",
+      color: "bg-orange-600",
+      requiresOAuth: true // Epic Games uses OAuth for Rocket League
     },
     {
       platform: "startgg",
@@ -355,13 +355,24 @@ export default function ProfilePage() {
   const gameConnections = gameConnectionsConfig.map(config => {
     const dbConnection = profileData?.platform_connections?.find(conn => conn.platform === config.platform);
     
-    // Check for OAuth connections (like Valorant) from Clerk external accounts
+    // Check for OAuth connections (like Valorant and Epic Games) from Clerk external accounts
     let isOAuthConnected = false;
     let oauthUsername = "";
     
     if (config.requiresOAuth && config.platform === "valorant") {
       const externalAccount = user?.externalAccounts?.find(account => 
         account.provider.includes("valorant") || account.provider === "custom_valorant"
+      );
+      
+      if (externalAccount && externalAccount.verification?.status === "verified") {
+        isOAuthConnected = true;
+        oauthUsername = externalAccount.username ?? externalAccount.emailAddress ?? "Connected Account";
+      }
+    }
+    
+    if (config.requiresOAuth && config.platform === "epicgames") {
+      const externalAccount = user?.externalAccounts?.find(account => 
+        account.provider.includes("epic_games") || account.provider === "custom_epic_games"
       );
       
       if (externalAccount && externalAccount.verification?.status === "verified") {
@@ -539,10 +550,13 @@ export default function ProfilePage() {
     // Check if this is an OAuth connection that needs to be managed through external accounts
     if (type === 'game') {
       const platformConfig = gameConnectionsConfig.find(config => config.platform === platform);
-      const isOAuthConnection = platformConfig?.requiresOAuth && user?.externalAccounts?.some(account => 
-        (account.provider.includes("valorant") || account.provider === "custom_valorant") && 
-        account.verification?.status === "verified"
-      );
+      const isOAuthConnection = platformConfig?.requiresOAuth && user?.externalAccounts?.some(account => {
+        const isValorant = (account.provider.includes("valorant") || account.provider === "custom_valorant") && 
+                          account.verification?.status === "verified";
+        const isEpicGames = (account.provider.includes("epic_games") || account.provider === "custom_epic_games") && 
+                          account.verification?.status === "verified";
+        return isValorant || isEpicGames;
+      });
 
       if (isOAuthConnection) {
         // Redirect to external accounts management for OAuth connections
@@ -1121,6 +1135,14 @@ export default function ProfilePage() {
                             height={20}
                             className="object-contain mr-2"
                           />
+                        ) : platform.platform === "epicgames" ? (
+                          <Image 
+                            src="/rocket-league/logos/Rocket League Emblem.png"
+                            alt="Rocket League Logo"
+                            width={20}
+                            height={20}
+                            className="object-contain mr-2"
+                          />
                         ) : (
                           <platform.icon className="h-4 w-4 mr-2 text-white" />
                         )}
@@ -1143,33 +1165,49 @@ export default function ProfilePage() {
                             </p>
                           </div>
                         </div>
-                                                 {!user?.externalAccounts?.some(account => 
-                           account.provider.includes("valorant") || account.provider === "custom_valorant"
-                         ) ? (
-                          <div className="text-center">
-                                                         <p className="text-gray-300 text-sm mb-3">
-                               You need to connect your Valorant account first
-                             </p>
-                                                         <Button
-                               variant="outline"
-                               className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
-                               onClick={() => window.open('profile/external-accounts', '_blank')}
-                             >
-                               <LinkIcon className="h-4 w-4 mr-2" />
-                               Connect Valorant Account
-                             </Button>
-                          </div>
-                        ) : (
-                          <div className="text-center">
-                                                         <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
-                               <CheckIcon className="h-4 w-4" />
-                               <span className="text-sm">Valorant account connected</span>
-                             </div>
-                                                         <p className="text-gray-300 text-sm">
-                               Click &quot;Connect Account&quot; to link your Valorant profile
-                             </p>
-                          </div>
-                        )}
+                                                                         {(() => {
+                          const platformConfig = gameConnectionsConfig.find(p => p.platform === selectedPlatform);
+                          const hasRequiredOAuth = user?.externalAccounts?.some(account => {
+                            if (selectedPlatform === "valorant") {
+                              return account.provider.includes("valorant") || account.provider === "custom_valorant";
+                            } else if (selectedPlatform === "epicgames") {
+                              return account.provider.includes("epic_games") || account.provider === "custom_epic_games";
+                            }
+                            return false;
+                          });
+                          
+                          const getAccountTypeName = () => {
+                            if (selectedPlatform === "valorant") return "Valorant";
+                            if (selectedPlatform === "epicgames") return "Epic Games";
+                            return "OAuth";
+                          };
+                          
+                          return !hasRequiredOAuth ? (
+                            <div className="text-center">
+                              <p className="text-gray-300 text-sm mb-3">
+                                 You need to connect your {getAccountTypeName()} account first
+                               </p>
+                              <Button
+                                 variant="outline"
+                                 className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
+                                 onClick={() => window.open('profile/external-accounts', '_blank')}
+                               >
+                                 <LinkIcon className="h-4 w-4 mr-2" />
+                                 Connect {getAccountTypeName()} Account
+                               </Button>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+                                 <CheckIcon className="h-4 w-4" />
+                                 <span className="text-sm">{getAccountTypeName()} account connected</span>
+                               </div>
+                              <p className="text-gray-300 text-sm">
+                                 Click &quot;Connect Account&quot; to link your {selectedPlatform === "valorant" ? "Valorant" : "Rocket League"} profile
+                               </p>
+                            </div>
+                          );
+                        })()}
                       </div>
                     ) : (
                       // Manual username entry
@@ -1209,9 +1247,11 @@ export default function ProfilePage() {
                       updateOAuthMutation.isPending ||
                       !selectedPlatform || 
                                              (gameConnectionsConfig.find(p => p.platform === selectedPlatform)?.requiresOAuth 
-                         ? !user?.externalAccounts?.some(account => 
-                             account.provider.includes("valorant") || account.provider === "custom_valorant"
-                           )
+                         ? !user?.externalAccounts?.some(account => {
+                             const isValorant = account.provider.includes("valorant") || account.provider === "custom_valorant";
+                             const isEpicGames = account.provider.includes("epic_games") || account.provider === "custom_epic_games";
+                             return isValorant || isEpicGames;
+                           })
                          : !connectionUsername.trim()
                        )
                     }
@@ -1232,10 +1272,13 @@ export default function ProfilePage() {
               {gameConnections.some(conn => conn.connected) ? (
                 gameConnections.filter(conn => conn.connected).map((connection) => {
                   // Check if this is an OAuth connection
-                  const isOAuthConnection = connection.requiresOAuth && user?.externalAccounts?.some(account => 
-                    (account.provider.includes("valorant") || account.provider === "custom_valorant") && 
-                    account.verification?.status === "verified"
-                  );
+                  const isOAuthConnection = connection.requiresOAuth && user?.externalAccounts?.some(account => {
+                    const isValorant = (account.provider.includes("valorant") || account.provider === "custom_valorant") && 
+                                      account.verification?.status === "verified";
+                    const isEpicGames = (account.provider.includes("epic_games") || account.provider === "custom_epic_games") && 
+                                       account.verification?.status === "verified";
+                    return isValorant || isEpicGames;
+                  });
 
                   return (
                     <div key={connection.platform} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
@@ -1245,6 +1288,16 @@ export default function ProfilePage() {
                             <Image 
                               src="/valorant/logos/Valorant Logo Red Border.jpg"
                               alt="VALORANT Logo"
+                              width={28}
+                              height={28}
+                              className="object-contain"
+                            />
+                          </div>
+                        ) : connection.platform === "epicgames" ? (
+                          <div className="w-10 h-10 flex items-center justify-center">
+                            <Image 
+                              src="/rocket-league/logos/Rocket League Emblem.png"
+                              alt="Rocket League Logo"
                               width={28}
                               height={28}
                               className="object-contain"

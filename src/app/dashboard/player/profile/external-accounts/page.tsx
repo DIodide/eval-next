@@ -42,6 +42,9 @@ const getProviderDisplayName = (provider: string) => {
   if (provider === 'discord') {
     return 'Discord'
   }
+  if (provider === 'custom_epic_games' || provider === 'epic_games') {
+    return 'Rocket League (Epic Games)'
+  }
   return capitalize(provider)
 }
 
@@ -53,6 +56,9 @@ const getProviderIcon = (provider: string) => {
   if (provider === 'discord') {
     return 'discord-logo'
   }
+  if (provider === 'custom_epic_games' || provider === 'epic_games') {
+    return 'rocket-league-logo'
+  }
   return ShieldIcon // Default icon
 }
 
@@ -63,6 +69,9 @@ const getProviderColor = (provider: string) => {
   }
   if (provider === 'discord') {
     return 'bg-indigo-600'
+  }
+  if (provider === 'custom_epic_games' || provider === 'epic_games') {
+    return 'bg-orange-600'
   }
   return 'bg-gray-600'
 }
@@ -151,6 +160,13 @@ export default function ManageExternalAccounts() {
               'Content-Type': 'application/json',
             },
           })
+          break;
+        }
+        case 'custom_epic_games': {
+          // Epic Games connections don't require special metadata cleanup
+          // Just remove the OAuth connection
+          console.log('Removing Epic Games OAuth connection');
+          break;
         }
       }
       
@@ -174,8 +190,8 @@ export default function ManageExternalAccounts() {
   const accountDestroy = removeAccountWithCleanup;
 
   // List the options the user can select when adding a new external account
-  // Supporting Valorant and Discord OAuth
-  const options: OAuthStrategy[] = ['oauth_custom_valorant', 'oauth_discord']
+  // Supporting Valorant, Discord, and Epic Games OAuth
+  const options: OAuthStrategy[] = ['oauth_custom_valorant', 'oauth_discord', 'oauth_custom_epic_games' as OAuthStrategy]
 
   // Process Valorant OAuth to fetch PUUID
   const processValorantOAuth = async () => {
@@ -339,6 +355,16 @@ export default function ManageExternalAccounts() {
                            className="object-contain"
                          />
                        </div>
+                     ) : Icon === 'rocket-league-logo' ? (
+                       <div className="w-10 h-10 flex items-center justify-center">
+                         <Image 
+                           src="/rocket-league/logos/Rocket League Emblem.png"
+                           alt="Rocket League Logo"
+                           width={32}
+                           height={32}
+                           className="object-contain"
+                         />
+                       </div>
                      ) : (
                        <div className={`p-2 rounded ${providerColor}`}>
                          <Icon className="h-5 w-5 text-white" />
@@ -469,6 +495,16 @@ export default function ManageExternalAccounts() {
                            className="object-contain"
                          />
                        </div>
+                     ) : Icon === 'rocket-league-logo' ? (
+                       <div className="w-10 h-10 flex items-center justify-center">
+                         <Image 
+                           src="/rocket-league/logos/Rocket League Emblem.png"
+                           alt="Rocket League Logo"
+                           width={32}
+                           height={32}
+                           className="object-contain"
+                         />
+                       </div>
                      ) : (
                        <div className={`p-2 rounded ${providerColor}`}>
                          <Icon className="h-5 w-5 text-white" />
@@ -481,6 +517,8 @@ export default function ManageExternalAccounts() {
                           ? 'Connect your Riot account to link your Valorant profile'
                           : normalizedProvider === 'discord'
                           ? 'Connect your Discord account to showcase your gaming community'
+                          : normalizedProvider === 'custom_epic_games' || normalizedProvider === 'epic_games'
+                          ? 'Connect your Epic Games account to link your Rocket League profile'
                           : 'Connect your account to enhance your profile'
                         }
                       </p>
