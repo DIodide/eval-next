@@ -47,6 +47,69 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5
+    }
+  }
+};
+
+const cardHoverVariants = {
+  rest: { scale: 1, y: 0 },
+  hover: { 
+    scale: 1.02, 
+    y: -5,
+    transition: {
+      duration: 0.3
+    }
+  }
+};
+
+// Animated number component
+const AnimatedNumber = ({ value, duration = 2 }: { value: number; duration?: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    let startTime: number;
+    let animationId: number;
+    
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / (duration * 1000), 1);
+      
+      // Easing function for smooth animation
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.floor(value * easeOut));
+      
+      if (progress < 1) {
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, [value, duration]);
+  
+  return <span>{displayValue}</span>;
+};
+
 export default function HighlightsPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState("");
@@ -110,12 +173,24 @@ export default function HighlightsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
+    <motion.div 
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Enhanced Page Header */}
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          variants={itemVariants}
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 rounded-2xl blur-xl" />
-          <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-blue-500/20 backdrop-blur-sm shadow-2xl">
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-blue-500/20 backdrop-blur-sm shadow-2xl">
             <div className="p-8">
               <div className="flex justify-between items-start">
                 <div className="space-y-4">
@@ -244,12 +319,21 @@ export default function HighlightsPage() {
               </div>
             </div>
           </Card>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Enhanced Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div 
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+          variants={itemVariants}
+        >
           {/* Total Highlights */}
-          <Card className="bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 p-6 shadow-xl">
+          <motion.div
+            variants={cardHoverVariants}
+            initial="rest"
+            whileHover="hover"
+          >
+            <Card className="bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-500/20 rounded-xl">
                 <FileVideoIcon className="h-6 w-6 text-blue-400" />
@@ -258,12 +342,20 @@ export default function HighlightsPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-rajdhani font-semibold text-white">Total Highlights</h3>
-              <p className="text-3xl font-orbitron font-bold text-blue-400">{highlightStats.totalHighlights}</p>
+              <p className="text-3xl font-orbitron font-bold text-blue-400">
+                <AnimatedNumber value={highlightStats.totalHighlights} duration={1.5} />
+              </p>
               <p className="text-sm text-gray-400">Ready to upload your first?</p>
             </div>
           </Card>
+          </motion.div>
 
           {/* Total Views */}
+          <motion.div
+            variants={cardHoverVariants}
+            initial="rest"
+            whileHover="hover"
+          >
           <Card className="bg-gradient-to-br from-green-500/5 to-green-600/5 border-green-500/20 hover:border-green-400/40 transition-all duration-300 p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-green-500/20 rounded-xl">
@@ -273,46 +365,71 @@ export default function HighlightsPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-rajdhani font-semibold text-white">Total Views</h3>
-              <p className="text-3xl font-orbitron font-bold text-green-400">{highlightStats.totalViews}</p>
+              <p className="text-3xl font-orbitron font-bold text-green-400">
+                <AnimatedNumber value={highlightStats.totalViews} duration={1.7} />
+              </p>
               <p className="text-sm text-gray-400">Across all highlights</p>
             </div>
           </Card>
+          </motion.div>
 
           {/* Recruiter Views */}
-          <Card className="bg-gradient-to-br from-purple-500/5 to-purple-600/5 border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-500/20 rounded-xl">
-                <UsersIcon className="h-6 w-6 text-purple-400" />
+          <motion.div
+            variants={cardHoverVariants}
+            initial="rest"
+            whileHover="hover"
+          >
+            <Card className="bg-gradient-to-br from-purple-500/5 to-purple-600/5 border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-purple-500/20 rounded-xl">
+                  <UsersIcon className="h-6 w-6 text-purple-400" />
+                </div>
+                <TrophyIcon className="h-4 w-4 text-purple-400" />
               </div>
-              <TrophyIcon className="h-4 w-4 text-purple-400" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-rajdhani font-semibold text-white">Recruiter Views</h3>
-              <p className="text-3xl font-orbitron font-bold text-purple-400">{highlightStats.recruiterViews}</p>
-              <p className="text-sm text-gray-400">From college scouts</p>
-            </div>
-          </Card>
+              <div className="space-y-2">
+                <h3 className="text-lg font-rajdhani font-semibold text-white">Recruiter Views</h3>
+                <p className="text-3xl font-orbitron font-bold text-purple-400">
+                  <AnimatedNumber value={highlightStats.recruiterViews} duration={1.9} />
+                </p>
+                <p className="text-sm text-gray-400">From college scouts</p>
+              </div>
+            </Card>
+          </motion.div>
 
           {/* Average Rating */}
-          <Card className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/5 border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-yellow-500/20 rounded-xl">
-                <StarIcon className="h-6 w-6 text-yellow-400" />
+          <motion.div
+            variants={cardHoverVariants}
+            initial="rest"
+            whileHover="hover"
+          >
+            <Card className="bg-gradient-to-br from-yellow-500/5 to-yellow-600/5 border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-yellow-500/20 rounded-xl">
+                  <StarIcon className="h-6 w-6 text-yellow-400" />
+                </div>
+                <ZapIcon className="h-4 w-4 text-yellow-400" />
               </div>
-              <ZapIcon className="h-4 w-4 text-yellow-400" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-rajdhani font-semibold text-white">Avg Rating</h3>
-              <p className="text-3xl font-orbitron font-bold text-yellow-400">{highlightStats.avgRating || "—"}</p>
-              <p className="text-sm text-gray-400">Out of 5 stars</p>
-            </div>
-          </Card>
-        </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-rajdhani font-semibold text-white">Avg Rating</h3>
+                <p className="text-3xl font-orbitron font-bold text-yellow-400">{highlightStats.avgRating || "—"}</p>
+                <p className="text-sm text-gray-400">Out of 5 stars</p>
+              </div>
+            </Card>
+          </motion.div>
+        </motion.div>
 
         {/* Enhanced Upload Section & Tips */}
-        <div className="grid gap-8 lg:grid-cols-3">
+        <motion.div 
+          className="grid gap-8 lg:grid-cols-3"
+          variants={itemVariants}
+        >
           {/* Upload Card */}
-          <Card className="lg:col-span-1 bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
+          <motion.div
+            variants={cardHoverVariants}
+            initial="rest"
+            whileHover="hover"
+          >
+            <Card className="lg:col-span-1 bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
             <div className="p-8 text-center space-y-6">
               <div className="relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full mx-auto flex items-center justify-center mb-2">
@@ -343,9 +460,15 @@ export default function HighlightsPage() {
               </div>
             </div>
           </Card>
+          </motion.div>
 
           {/* Enhanced Tips Card */}
-          <Card className="lg:col-span-2 bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
+          <motion.div
+            variants={cardHoverVariants}
+            initial="rest"
+            whileHover="hover"
+          >
+            <Card className="lg:col-span-2 bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
             <div className="p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-yellow-500/20 rounded-lg">
@@ -368,9 +491,11 @@ export default function HighlightsPage() {
               </div>
             </div>
           </Card>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Enhanced Empty State */}
+        <motion.div variants={itemVariants}>
         <Card className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-xl">
           <div className="p-12 text-center space-y-8">
             <div className="relative">
@@ -429,7 +554,8 @@ export default function HighlightsPage() {
             </div>
           </div>
         </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 } 
