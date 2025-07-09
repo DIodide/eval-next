@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
+import Image from "next/image";
 import {
   TrophyIcon,
   EyeIcon,
@@ -60,6 +61,7 @@ function GameAnalyticsDashboard() {
       id: 'valorant' as const,
       name: 'VALORANT',
       icon: ShieldIcon,
+      image: '/valorant/logos/Valorant Logo Red Border.jpg',
       color: 'from-red-500 to-red-600',
       borderColor: 'border-red-500/30',
       platform: 'valorant'
@@ -68,6 +70,7 @@ function GameAnalyticsDashboard() {
       id: 'rocket-league' as const,
       name: 'Rocket League',
       icon: GamepadIcon,
+      image: '/rocket-league/logos/Rocket League Emblem.png',
       color: 'from-orange-500 to-orange-600',
       borderColor: 'border-orange-500/30',
       platform: 'epicgames'
@@ -76,6 +79,7 @@ function GameAnalyticsDashboard() {
       id: 'smash' as const,
       name: 'Smash Ultimate',
       icon: TrophyIcon,
+      image: '/smash/logos/Smash Ball White Logo.png',
       color: 'from-purple-500 to-purple-600',
       borderColor: 'border-purple-500/30',
       platform: 'startgg'
@@ -84,6 +88,7 @@ function GameAnalyticsDashboard() {
       id: 'overwatch' as const,
       name: 'Overwatch 2',
       icon: TargetIcon,
+      image: '/overwatch/logos/Overwatch 2 Primary Logo.png',
       color: 'from-blue-500 to-blue-600',
       borderColor: 'border-blue-500/30',
       platform: 'battlenet'
@@ -532,8 +537,14 @@ function GameAnalyticsDashboard() {
       <div className="flex flex-col gap-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 bg-gradient-to-r ${currentGame.color} rounded-lg`}>
-              <currentGame.icon className="h-5 w-5 text-white" />
+            <div className={`p-3 bg-gradient-to-r ${currentGame.color} rounded-lg flex items-center justify-center`}>
+              <Image 
+                src={currentGame.image}
+                alt={`${currentGame.name} Logo`}
+                width={24}
+                height={24}
+                className="object-contain"
+              />
             </div>
             <div>
               <h3 className="text-xl font-orbitron font-bold text-white">Game Analytics</h3>
@@ -588,7 +599,13 @@ function GameAnalyticsDashboard() {
                     : `border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/50`
                 }`}
               >
-                <game.icon className="h-4 w-4" />
+                <Image 
+                  src={game.image}
+                  alt={`${game.name} Logo`}
+                  width={16}
+                  height={16}
+                  className="object-contain"
+                />
                 <span className="text-sm">{game.name}</span>
                 {isConnected && <CheckCircleIcon className="h-3 w-3" />}
               </button>
