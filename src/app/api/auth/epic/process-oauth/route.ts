@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    console.log(`Successfully linked Epic Games account for user ${userId}: ${epicData.display_name} (${epicData.account_id})`);
+    console.log(`Successfully linked Epic Games account for user ${userId}: ${epicData.preferred_username} (${epicData.sub})`);
 
     return NextResponse.json({ 
       success: true,
