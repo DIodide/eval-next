@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: 'Join as a Player - Build Your Profile & Get Recruited',
     description: 'Build your profile and get recruited. Create your player account on EVAL Gaming to showcase your skills, connect with coaches, and join competitive esports programs.',
     images: [{
-      url: 'https://evalgaming.com/api/sign-up-players-og',
+      url: 'https://evalgaming.com/api/og/sign-up-players-og',
       width: 1200,
       height: 630,
       alt: 'Join EVAL Gaming as a Player'
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Join as a Player - Build Your Profile & Get Recruited',
     description: 'Build your profile and get recruited. Create your player account on EVAL Gaming to showcase your skills, connect with coaches, and join competitive esports programs.',
-    images: ['https://evalgaming.com/api/sign-up-players-og']
+    images: ['https://evalgaming.com/api/og/sign-up-players-og']
   }
 }
 

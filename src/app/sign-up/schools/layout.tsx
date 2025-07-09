@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: 'Join as a School - Build Your Esports Program & Recruit Talent',
     description: 'Build your esports program and recruit talent. Create your school account on EVAL Gaming to establish collegiate esports programs, recruit players, and manage teams.',
     images: [{
-      url: 'https://evalgaming.com/api/sign-up-schools-og',
+      url: 'https://evalgaming.com/api/og/sign-up-schools-og',
       width: 1200,
       height: 630,
       alt: 'Join EVAL Gaming as a School'
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Join as a School - Build Your Esports Program & Recruit Talent',
     description: 'Build your esports program and recruit talent. Create your school account on EVAL Gaming to establish collegiate esports programs, recruit players, and manage teams.',
-    images: ['https://evalgaming.com/api/sign-up-schools-og']
+    images: ['https://evalgaming.com/api/og/sign-up-schools-og']
   }
 }
 

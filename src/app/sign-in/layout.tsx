@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: 'Sign In - Access Your Esports Platform & Continue Your Journey',
     description: 'Access your esports platform and continue your journey. Sign in to your EVAL Gaming account to manage your profile, track stats, and connect with the esports community.',
     images: [{
-      url: 'https://evalgaming.com/api/sign-in-og',
+      url: 'https://evalgaming.com/api/og/sign-in-og',
       width: 1200,
       height: 630,
       alt: 'Sign In to EVAL Gaming'
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Sign In - Access Your Esports Platform & Continue Your Journey',
     description: 'Access your esports platform and continue your journey. Sign in to your EVAL Gaming account to manage your profile, track stats, and connect with the esports community.',
-    images: ['https://evalgaming.com/api/sign-in-og']
+    images: ['https://evalgaming.com/api/og/sign-in-og']
   }
 }
 

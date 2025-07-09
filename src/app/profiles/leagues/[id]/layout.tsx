@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: LeagueLayoutProps): Promise<M
         url: `https://evalgaming.com/profiles/leagues/${league.id}`,
         images: [
           {
-            url: `https://evalgaming.com/api/league-og/${league.id}`,
+            url: `https://evalgaming.com/api/og/league-og/${league.id}`,
             width: 1200,
             height: 630,
             alt: `${league.name} - EVAL League Profile`,
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: LeagueLayoutProps): Promise<M
         card: 'summary_large_image',
         title,
         description,
-        images: [`https://evalgaming.com/api/league-og/${league.id}`],
+        images: [`https://evalgaming.com/api/og/league-og/${league.id}`],
       },
     };
   } catch (error) {

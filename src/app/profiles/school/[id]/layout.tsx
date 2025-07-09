@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: SchoolLayoutProps): Promise<M
         url: `https://evalgaming.com/profiles/school/${school.id}`,
         images: [
           {
-            url: `https://evalgaming.com/api/school-og/${school.id}`,
+            url: `https://evalgaming.com/api/og/school-og/${school.id}`,
             width: 1200,
             height: 630,
             alt: `${school.name} - EVAL School Profile`,
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: SchoolLayoutProps): Promise<M
         card: 'summary_large_image',
         title,
         description,
-        images: [`https://evalgaming.com/api/school-og/${school.id}`],
+        images: [`https://evalgaming.com/api/og/school-og/${school.id}`],
       },
     };
   } catch (error) {
