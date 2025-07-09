@@ -111,7 +111,7 @@ export default function ManageExternalAccounts() {
     void initializeUser()
   }, [isLoaded, user])
   
-  // Handle OAuth callback and process Valorant data
+  // Handle OAuth callback and reprocess all external accounts (Valorant, Epic Games, etc.)
   useEffect(() => {
     const handleOAuthCallback = async () => {
       console.debug("DEBUG 0: handleOAuthCallback");

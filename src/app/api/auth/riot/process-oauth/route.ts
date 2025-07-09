@@ -17,8 +17,6 @@ export async function POST(req: NextRequest) {
 
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
-    
-    console.log("DEBUG 0: user", user.externalAccounts);
       
       
     // Find the Valorant external account

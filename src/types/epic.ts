@@ -5,8 +5,8 @@ export interface EpicGamesMetadata {
 }
 
 export interface EpicAccountResponse {
-  account_id: string;
-  display_name: string;
+  sub: string;
+  preferred_username: string;
 }
 
 // Extend Clerk's publicMetadata type
