@@ -10,18 +10,18 @@ EVAL Gaming bridges the gap between talented student gamers and college esports 
 
 ### Platform Homepage & Onboarding
 
-![EVAL Gaming Homepage](https://evalgaming.com/api/home-og)
+![EVAL Gaming Homepage](https://evalgaming.com/api/og/home-og)
 
 ### Sign-Up Experience
 
 <div style="display: flex; gap: 20px; margin: 20px 0;">
   <div style="flex: 1;">
     <h4>Player Registration</h4>
-    <img src="https://evalgaming.com/api/sign-up-players-og" alt="Player Sign-Up" style="width: 100%; border-radius: 8px;">
+    <img src="https://evalgaming.com/api/og/sign-up-players-og" alt="Player Sign-Up" style="width: 100%; border-radius: 8px;">
   </div>
   <div style="flex: 1;">
     <h4>School Registration</h4>
-    <img src="https://evalgaming.com/api/sign-up-schools-og" alt="School Sign-Up" style="width: 100%; border-radius: 8px;">
+    <img src="https://evalgaming.com/api/og/sign-up-schools-og" alt="School Sign-Up" style="width: 100%; border-radius: 8px;">
   </div>
 </div>
 
@@ -30,11 +30,11 @@ EVAL Gaming bridges the gap between talented student gamers and college esports 
 <div style="display: flex; gap: 20px; margin: 20px 0;">
   <div style="flex: 1;">
     <h4>Player Dashboard</h4>
-    <img src="https://evalgaming.com/api/player-dashboard-og" alt="Player Dashboard" style="width: 100%; border-radius: 8px;">
+    <img src="https://evalgaming.com/api/og/player-dashboard-og" alt="Player Dashboard" style="width: 100%; border-radius: 8px;">
   </div>
   <div style="flex: 1;">
     <h4>Coach Dashboard</h4>
-    <img src="https://evalgaming.com/api/coaches-dashboard-og" alt="Coach Dashboard" style="width: 100%; border-radius: 8px;">
+    <img src="https://evalgaming.com/api/og/coaches-dashboard-og" alt="Coach Dashboard" style="width: 100%; border-radius: 8px;">
   </div>
 </div>
 
@@ -43,19 +43,19 @@ EVAL Gaming bridges the gap between talented student gamers and college esports 
 <div style="display: flex; gap: 20px; margin: 20px 0;">
   <div style="flex: 1;">
     <h4>League Rankings</h4>
-    <img src="https://evalgaming.com/api/rankings-leagues-og" alt="League Rankings" style="width: 100%; border-radius: 8px;">
+    <img src="https://evalgaming.com/api/og/rankings-leagues-og" alt="League Rankings" style="width: 100%; border-radius: 8px;">
   </div>
   <div style="flex: 1;">
     <h4>Combine Rankings</h4>
-    <img src="https://evalgaming.com/api/rankings-combines-og" alt="Combine Rankings" style="width: 100%; border-radius: 8px;">
+    <img src="https://evalgaming.com/api/og/rankings-combines-og" alt="Combine Rankings" style="width: 100%; border-radius: 8px;">
   </div>
 </div>
 
 ### About & Support
 
-![About Our Team](https://evalgaming.com/api/team-og)
+![About Our Team](https://evalgaming.com/api/og/team-og)
 
-![Frequently Asked Questions](https://evalgaming.com/api/faq-og)
+![Frequently Asked Questions](https://evalgaming.com/api/og/faq-og)
 
 ## Key Features
 
