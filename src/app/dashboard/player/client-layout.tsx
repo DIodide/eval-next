@@ -124,13 +124,13 @@ export default function PlayerDashboardClientLayout({
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <UserIcon className="h-5 w-5 text-white" />
               </div>
-              <div>
+            <div>
                 <h2 className="text-lg font-orbitron font-bold text-white">
                   Player Hub
-                </h2>
+              </h2>
                 <p className="text-xs text-gray-400 font-rajdhani">
-                  {user?.firstName} {user?.lastName}
-                </p>
+                {user?.firstName} {user?.lastName}
+              </p>
               </div>
             </div>
             <Button

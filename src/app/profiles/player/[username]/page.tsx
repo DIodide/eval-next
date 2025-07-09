@@ -381,10 +381,10 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   <UserIcon className="h-12 w-12 text-red-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-orbitron font-bold text-white mb-4">Player Not Found</h1>
+          <h1 className="text-3xl font-orbitron font-bold text-white mb-4">Player Not Found</h1>
               <p className="text-gray-400 font-rajdhani text-lg">The player profile you&apos;re looking for doesn&apos;t exist.</p>
             </Card>
-          </div>
+        </div>
         </motion.div>
       </div>
     );
@@ -410,9 +410,9 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
             whileHover="hover"
           >
             <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-blue-500/20 backdrop-blur-sm shadow-2xl">
-              <CardContent className="p-8">
+          <CardContent className="p-8">
                 <div className="flex flex-col md:flex-row items-start gap-8">
-                  {/* Avatar and Basic Info */}
+              {/* Avatar and Basic Info */}
                   <motion.div 
                     className="flex flex-col items-center md:items-start"
                     variants={itemVariants}
@@ -422,20 +422,20 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                       transition={{ duration: 0.3 }}
                     >
                       <Avatar className="w-36 h-36 mb-6 ring-4 ring-blue-400/20 shadow-2xl">
-                        <AvatarImage src={player.image_url ?? undefined} alt={`${player.first_name} ${player.last_name}`} />
+                  <AvatarImage src={player.image_url ?? undefined} alt={`${player.first_name} ${player.last_name}`} />
                         <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-600 to-purple-600 text-white">
-                          {player.first_name?.[0] ?? ''}{player.last_name?.[0] ?? ''}
-                        </AvatarFallback>
-                      </Avatar>
+                    {player.first_name?.[0] ?? ''}{player.last_name?.[0] ?? ''}
+                  </AvatarFallback>
+                </Avatar>
                     </motion.div>
-                    <div className="text-center md:text-left">
+                <div className="text-center md:text-left">
                       <motion.h1 
                         className="text-4xl font-orbitron font-bold mb-3 text-white"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.6 }}
                       >
-                        {player.first_name} {player.last_name}
+                    {player.first_name} {player.last_name}
                       </motion.h1>
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -454,13 +454,13 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                           className="flex items-center gap-2"
                         >
                           <MapPinIcon className="h-4 w-4 text-gray-400" />
-                          <p className="text-gray-400 font-rajdhani">{player.location}</p>
+                  <p className="text-gray-400 font-rajdhani">{player.location}</p>
                         </motion.div>
                       )}
-                    </div>
+                </div>
                   </motion.div>
 
-                  {/* Player Details */}
+              {/* Player Details */}
                   <motion.div 
                     className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8"
                     variants={itemVariants}
@@ -480,8 +480,8 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                         <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
                           <div className="flex items-center gap-2">
                             <CalendarIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-400 font-rajdhani">Class:</span>
-                          </div>
+                      <span className="text-gray-400 font-rajdhani">Class:</span>
+                    </div>
                           <Badge variant="secondary" className="bg-blue-600/20 text-blue-400 border-blue-600/30">
                             {player.class_year ?? "N/A"}
                           </Badge>
@@ -489,8 +489,8 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                         <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
                           <div className="flex items-center gap-2">
                             <BookOpenIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-400 font-rajdhani">School:</span>
-                          </div>
+                      <span className="text-gray-400 font-rajdhani">School:</span>
+                    </div>
                           <span className="text-right text-sm text-gray-300 max-w-32 truncate">
                             {player.school_ref?.name ?? player.school ?? "N/A"}
                           </span>
@@ -498,24 +498,24 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                         <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
                           <div className="flex items-center gap-2">
                             <GamepadIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-400 font-rajdhani">Main Game:</span>
+                      <span className="text-gray-400 font-rajdhani">Main Game:</span>
                           </div>
                           <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                             {player.main_game?.name ?? "N/A"}
                           </Badge>
-                        </div>
-                        {player.game_profiles.length > 0 && player.game_profiles[0]?.role && (
+                    </div>
+                    {player.game_profiles.length > 0 && player.game_profiles[0]?.role && (
                           <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
                             <div className="flex items-center gap-2">
                               <Target className="h-4 w-4 text-gray-400" />
-                              <span className="text-gray-400 font-rajdhani">Role:</span>
+                        <span className="text-gray-400 font-rajdhani">Role:</span>
                             </div>
                             <span className="text-gray-300 font-rajdhani font-medium">
                               {player.game_profiles[0]?.role}
                             </span>
-                          </div>
-                        )}
                       </div>
+                    )}
+                  </div>
                     </motion.div>
 
                     <motion.div
@@ -529,55 +529,55 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                         </div>
                         <h3 className="font-orbitron font-semibold text-white text-xl">Performance</h3>
                       </div>
-                      <div className="space-y-4">
-                        {/* EVAL Score */}
-                        {player.game_profiles.length > 0 && player.game_profiles[0]?.combine_score && (
+                  <div className="space-y-4">
+                    {/* EVAL Score */}
+                    {player.game_profiles.length > 0 && player.game_profiles[0]?.combine_score && (
                           <motion.div 
                             className="bg-gradient-to-r from-purple-600/20 via-purple-500/20 to-pink-600/20 p-6 rounded-xl border border-purple-500/30 backdrop-blur-sm shadow-xl"
                             variants={statsCardVariants}
                             whileHover={{ scale: 1.02 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <div className="flex justify-between items-center">
-                              <div>
+                        <div className="flex justify-between items-center">
+                          <div>
                                 <p className="text-purple-300 font-rajdhani text-sm font-medium">EVAL Score</p>
                                 <p className="text-white font-orbitron text-3xl font-bold">
-                                  {Number(player.game_profiles[0]?.combine_score).toFixed(1)}
-                                </p>
-                              </div>
+                              {Number(player.game_profiles[0]?.combine_score).toFixed(1)}
+                            </p>
+                          </div>
                               <div className="p-3 bg-purple-500/20 rounded-full">
-                                <StarIcon className="w-8 h-8 text-purple-300" />
-                              </div>
-                            </div>
+                          <StarIcon className="w-8 h-8 text-purple-300" />
+                        </div>
+                      </div>
                           </motion.div>
-                        )}
+                    )}
 
-                        {/* League Score */}
-                        {player.game_profiles.length > 0 && player.game_profiles[0]?.league_score && (
+                    {/* League Score */}
+                    {player.game_profiles.length > 0 && player.game_profiles[0]?.league_score && (
                           <motion.div 
                             className="bg-gradient-to-r from-blue-600/20 via-blue-500/20 to-cyan-600/20 p-6 rounded-xl border border-blue-500/30 backdrop-blur-sm shadow-xl"
                             variants={statsCardVariants}
                             whileHover={{ scale: 1.02 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <div className="flex justify-between items-center">
-                              <div>
+                        <div className="flex justify-between items-center">
+                          <div>
                                 <p className="text-blue-300 font-rajdhani text-sm font-medium">League Score</p>
                                 <p className="text-white font-orbitron text-3xl font-bold">
-                                  {Number(player.game_profiles[0]?.league_score).toFixed(1)}
-                                </p>
-                              </div>
+                              {Number(player.game_profiles[0]?.league_score).toFixed(1)}
+                            </p>
+                          </div>
                               <div className="p-3 bg-blue-500/20 rounded-full">
                                 <AwardIcon className="w-8 h-8 text-blue-300" />
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
+                        </div>
                       </div>
+                          </motion.div>
+                    )}
+                  </div>
                     </motion.div>
                   </motion.div>
 
-                  {/* Action Buttons */}
+              {/* Action Buttons */}
                   <motion.div 
                     className="flex flex-col gap-3"
                     initial={{ opacity: 0, y: 20 }}
@@ -585,23 +585,23 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                     transition={{ delay: 0.8, duration: 0.6 }}
                   >
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        onClick={handleShareProfile}
+                <Button 
+                  onClick={handleShareProfile}
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-orbitron shadow-lg"
-                      >
-                        <Share2Icon className="w-4 h-4 mr-2" />
-                        Share Profile
-                      </Button>
+                >
+                  <Share2Icon className="w-4 h-4 mr-2" />
+                  Share Profile
+                </Button>
                     </motion.div>
-                    {canMessage && (
+                {canMessage && (
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <MessagePlayerDialog playerId={player.id} playerName={`${player.first_name} ${player.last_name}`} />
+                  <MessagePlayerDialog playerId={player.id} playerName={`${player.first_name} ${player.last_name}`} />
                       </motion.div>
-                    )}
+                )}
                   </motion.div>
-                </div>
-              </CardContent>
-            </Card>
+            </div>
+          </CardContent>
+        </Card>
           </motion.div>
         </motion.div>
 
@@ -618,15 +618,15 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
               whileHover="hover"
             >
               <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-blue-500/20 backdrop-blur-sm shadow-xl">
-                <CardHeader>
+            <CardHeader>
                   <CardTitle className="text-white font-orbitron text-2xl flex items-center gap-3">
                     <div className="p-2 bg-blue-500/20 rounded-lg">
                       <UserIcon className="h-6 w-6 text-blue-400" />
                     </div>
                     About
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <motion.p 
                     className="text-gray-300 font-rajdhani leading-relaxed text-lg"
                     initial={{ opacity: 0 }}
@@ -635,8 +635,8 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   >
                     {player.bio}
                   </motion.p>
-                </CardContent>
-              </Card>
+            </CardContent>
+          </Card>
             </motion.div>
           </motion.div>
         )}
@@ -654,17 +654,17 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
               whileHover="hover"
             >
               <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-green-500/20 backdrop-blur-sm shadow-xl">
-                <CardHeader>
+            <CardHeader>
                   <CardTitle className="text-white font-orbitron text-2xl flex items-center gap-3">
                     <div className="p-2 bg-green-500/20 rounded-lg">
                       <BookOpenIcon className="h-6 w-6 text-green-400" />
                     </div>
                     Academic & Recruiting Profile
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Academic Information */}
+                {/* Academic Information */}
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -675,35 +675,35 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                         Academic Information
                       </h3>
                       <div className="space-y-4">
-                        {recruitingInfo.intended_major && (
+                    {recruitingInfo.intended_major && (
                           <div className="p-4 bg-gray-800/50 rounded-lg backdrop-blur-sm border border-gray-700/50">
                             <span className="text-gray-400 font-rajdhani text-sm font-medium">Intended Major:</span>
                             <p className="text-gray-300 font-rajdhani text-lg mt-1">{recruitingInfo.intended_major}</p>
-                          </div>
-                        )}
-                        {recruitingInfo.graduation_date && (
+                      </div>
+                    )}
+                    {recruitingInfo.graduation_date && (
                           <div className="p-4 bg-gray-800/50 rounded-lg backdrop-blur-sm border border-gray-700/50">
                             <span className="text-gray-400 font-rajdhani text-sm font-medium">Expected Graduation:</span>
                             <p className="text-gray-300 font-rajdhani text-lg mt-1">{recruitingInfo.graduation_date}</p>
-                          </div>
-                        )}
-                        {recruitingInfo.gpa && (
+                      </div>
+                    )}
+                    {recruitingInfo.gpa && (
                           <div className="p-4 bg-gray-800/50 rounded-lg backdrop-blur-sm border border-gray-700/50">
                             <span className="text-gray-400 font-rajdhani text-sm font-medium">GPA:</span>
                             <p className="text-gray-300 font-rajdhani text-lg mt-1 font-bold">{Number(recruitingInfo.gpa).toFixed(2)}</p>
-                          </div>
-                        )}
-                        {recruitingInfo.academic_bio && (
+                      </div>
+                    )}
+                    {recruitingInfo.academic_bio && (
                           <div className="p-4 bg-gray-800/50 rounded-lg backdrop-blur-sm border border-gray-700/50">
                             <span className="text-gray-400 font-rajdhani text-sm font-medium">Academic Achievements:</span>
                             <p className="text-gray-300 font-rajdhani leading-relaxed mt-2">{recruitingInfo.academic_bio}</p>
-                          </div>
-                        )}
                       </div>
+                    )}
+                  </div>
                     </motion.div>
 
-                    {/* Extracurricular Activities */}
-                    {recruitingInfo.extra_curriculars && (
+                {/* Extracurricular Activities */}
+                {recruitingInfo.extra_curriculars && (
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -715,12 +715,12 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                         </h3>
                         <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 p-6 rounded-xl border border-gray-700/50 backdrop-blur-sm shadow-lg">
                           <p className="text-gray-300 font-rajdhani leading-relaxed text-lg">{recruitingInfo.extra_curriculars}</p>
-                        </div>
+                    </div>
                       </motion.div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
             </motion.div>
           </motion.div>
         )}
@@ -738,27 +738,27 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
               whileHover="hover"
             >
               <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-cyan-500/20 backdrop-blur-sm shadow-xl">
-                <CardHeader>
+            <CardHeader>
                   <CardTitle className="text-white font-orbitron text-2xl flex items-center gap-3">
                     <div className="p-2 bg-cyan-500/20 rounded-lg">
                       <MessageCircleIcon className="h-6 w-6 text-cyan-400" />
                     </div>
                     Connected Accounts
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Platform Connections */}
-                    {player.platform_connections.length > 0 && (
+                {/* Platform Connections */}
+                {player.platform_connections.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.6 }}
                       >
                         <h3 className="font-orbitron font-semibold text-white text-xl mb-6 flex items-center gap-2">
-                          <GamepadIcon className="w-5 h-5 text-cyan-400" />
-                          Gaming Platforms
-                        </h3>
+                      <GamepadIcon className="w-5 h-5 text-cyan-400" />
+                      Gaming Platforms
+                    </h3>
                         <div className="space-y-4">
                           {player.platform_connections.map((connection, index) => (
                             <motion.div 
@@ -771,31 +771,31 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                             >
                               <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getPlatformColor(connection.platform)} shadow-lg`}>
-                                  {getPlatformIcon(connection.platform)}
-                                </div>
-                                <div>
+                              {getPlatformIcon(connection.platform)}
+                            </div>
+                            <div>
                                   <p className="text-white font-rajdhani font-medium text-lg">{getPlatformDisplayName(connection.platform)}</p>
-                                  <p className="text-gray-400 text-sm">{connection.username}</p>
-                                </div>
-                              </div>
+                              <p className="text-gray-400 text-sm">{connection.username}</p>
+                            </div>
+                          </div>
                               <ExternalLinkIcon className="w-5 h-5 text-cyan-400" />
                             </motion.div>
-                          ))}
-                        </div>
+                      ))}
+                    </div>
                       </motion.div>
-                    )}
+                )}
 
-                    {/* Social Connections */}
-                    {player.social_connections.length > 0 && (
+                {/* Social Connections */}
+                {player.social_connections.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
                       >
                         <h3 className="font-orbitron font-semibold text-white text-xl mb-6 flex items-center gap-2">
-                          <MessageCircleIcon className="w-5 h-5 text-cyan-400" />
-                          Social Media
-                        </h3>
+                      <MessageCircleIcon className="w-5 h-5 text-cyan-400" />
+                      Social Media
+                    </h3>
                         <div className="space-y-4">
                           {player.social_connections.map((connection, index) => (
                             <motion.div 
@@ -808,22 +808,22 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                             >
                               <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getSocialColor(connection.platform)} shadow-lg`}>
-                                  {getSocialIcon(connection.platform)}
-                                </div>
-                                <div>
+                              {getSocialIcon(connection.platform)}
+                            </div>
+                            <div>
                                   <p className="text-white font-rajdhani font-medium text-lg">{getSocialDisplayName(connection.platform)}</p>
-                                  <p className="text-gray-400 text-sm">{connection.username}</p>
-                                </div>
-                              </div>
+                              <p className="text-gray-400 text-sm">{connection.username}</p>
+                            </div>
+                          </div>
                               <ExternalLinkIcon className="w-5 h-5 text-cyan-400" />
                             </motion.div>
-                          ))}
-                        </div>
+                      ))}
+                    </div>
                       </motion.div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
             </motion.div>
           </motion.div>
         )}
@@ -840,21 +840,21 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
             whileHover="hover"
           >
             <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-orange-500/20 backdrop-blur-sm shadow-xl">
-              <CardHeader>
+          <CardHeader>
                 <CardTitle className="text-white font-orbitron text-2xl flex items-center gap-3">
                   <div className="p-2 bg-orange-500/20 rounded-lg">
                     <TrophyIcon className="h-6 w-6 text-orange-400" />
                   </div>
                   Game Statistics
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs value={activeGame} onValueChange={setActiveGame}>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeGame} onValueChange={setActiveGame}>
                   <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-gray-700/80 to-gray-800/80 border-gray-600/50 backdrop-blur-sm">
                     <TabsTrigger value="valorant" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-orange-600 data-[state=active]:text-white font-orbitron">Valorant</TabsTrigger>
                     <TabsTrigger value="overwatch" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-yellow-600 data-[state=active]:text-white font-orbitron">Overwatch</TabsTrigger>
                     <TabsTrigger value="rocket-league" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white font-orbitron">Rocket League</TabsTrigger>
-                  </TabsList>
+              </TabsList>
 
               {/* Valorant Stats - Now using real API data */}
               <TabsContent value="valorant" className="mt-6">
