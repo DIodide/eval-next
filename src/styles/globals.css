@@ -341,6 +341,97 @@
     transition: all 0.3s ease;
   }
 
+  /* Clerk UserButton Styles */
+  .cl-userButtonPopoverMain {
+    background: rgba(15, 15, 26, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 
+      0 10px 40px rgba(6, 182, 212, 0.15),
+      0 0 0 1px rgba(6, 182, 212, 0.1) !important;
+  }
+
+  .cl-userPreview {
+    color: white !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .cl-userPreviewMainIdentifierText,
+  .cl-userPreviewSecondaryIdentifier {
+    color: white !important;
+    font-family: 'Rajdhani', sans-serif !important;
+  }
+
+  .cl-userPreviewMainIdentifierText {
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+  }
+
+  .cl-userPreviewSecondaryIdentifier {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 400 !important;
+    font-size: 0.75rem !important;
+  }
+
+  .cl-userButtonPopoverActionButton,
+  .cl-userButtonPopoverCustomItemButton {
+    background: transparent !important;
+    color: white !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.025em !important;
+    text-transform: none !important;
+    font-size: 0.75rem !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    margin: 0.125rem 0 !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid transparent !important;
+  }
+
+  .cl-userButtonPopoverActionButton:hover,
+  .cl-userButtonPopoverCustomItemButton:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(6, 182, 212, 0.3) !important;
+    box-shadow: 
+      0 0 20px rgba(6, 182, 212, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .cl-userButtonPopoverActionButtonIcon,
+  .cl-userButtonPopoverActionItemButtonIcon {
+    color: rgba(255, 255, 255, 0.8) !important;
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+
+  .cl-userButtonPopoverActionButton:hover .cl-userButtonPopoverActionButtonIcon,
+  .cl-userButtonPopoverCustomItemButton:hover .cl-userButtonPopoverActionItemButtonIcon {
+    color: #06b6d4 !important;
+  }
+
+  .cl-userButtonPopoverActions {
+    padding: 0.5rem !important;
+  }
+
+  /* Special styling for the custom DASHBOARD button */
+  .cl-userButtonPopoverCustomItemButton {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1)) !important;
+    border-color: rgba(6, 182, 212, 0.2) !important;
+  }
+
+  .cl-userButtonPopoverCustomItemButton:hover {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2)) !important;
+    border-color: rgba(6, 182, 212, 0.5) !important;
+    box-shadow: 
+      0 0 25px rgba(6, 182, 212, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+
   /* Rainbow Bottom Border for FAQ Items */
   .faq-rainbow-border {
     position: relative;
