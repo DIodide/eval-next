@@ -227,10 +227,18 @@ export default function Navbar() {
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: "w-10 h-10"
+                    avatarBox: "w-10 h-10 ring-2 ring-white/20 hover:ring-white/40 transition-all"
                   }
                 }}
-              />
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="Dashboard"
+                    labelIcon={<User className="w-4 h-4" />}
+                    href="/dashboard"
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </SignedIn>
           </div>
 
@@ -240,10 +248,18 @@ export default function Navbar() {
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: "w-8 h-8"
+                    avatarBox: "w-8 h-8 ring-2 ring-white/20 hover:ring-white/40 transition-all"
                   }
                 }}
-              />
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Link
+                    label="Dashboard"
+                    labelIcon={<User className="w-4 h-4" />}
+                    href="/dashboard"
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </SignedIn>
           </div>
 
