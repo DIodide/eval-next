@@ -23,7 +23,7 @@ export function ValorantTestComponent() {
   const handleTestCleanup = async () => {
     setTestingCleanup(true);
     try {
-      const response = await fetch('/api/valorant/cleanup-metadata', {
+      const response = await fetch('/api/auth/valorant/cleanup-metadata', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

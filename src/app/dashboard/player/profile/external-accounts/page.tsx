@@ -16,7 +16,8 @@ import {
   AlertTriangleIcon,
   LoaderIcon,
   ArrowLeftIcon,
-  ExternalLinkIcon
+  ExternalLinkIcon,
+  GamepadIcon
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -124,9 +125,19 @@ export default function ManageExternalAccounts() {
                     account.verification?.status === 'verified'
         );
         
+        const epicAccount = user.externalAccounts?.find(
+          account => account.provider === 'custom_epic_games' && 
+                    account.verification?.status === 'verified'
+        );
+        
         if (valorantAccount) {
           // Process the Valorant OAuth to get PUUID
           await processValorantOAuth();
+        }
+        
+        if (epicAccount) {
+          // Process the Epic Games OAuth to get account info
+          await processEpicGamesOAuth();
         }
         
         // Clean up URL
@@ -154,7 +165,7 @@ export default function ManageExternalAccounts() {
       switch (account.provider) {
         case 'custom_valorant': { 
           // Remove the valorant metadata from the user's public metadata by calling the cleanup route
-          await fetch('/api/valorant/cleanup-metadata', {
+          await fetch('/api/auth/valorant/cleanup-metadata', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -163,9 +174,13 @@ export default function ManageExternalAccounts() {
           break;
         }
         case 'custom_epic_games': {
-          // Epic Games connections don't require special metadata cleanup
-          // Just remove the OAuth connection
-          console.log('Removing Epic Games OAuth connection');
+          // Remove the Epic Games metadata from the user's public metadata by calling the cleanup route
+          await fetch('/api/auth/epic/cleanup-metadata', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
           break;
         }
       }
@@ -197,7 +212,7 @@ export default function ManageExternalAccounts() {
   const processValorantOAuth = async () => {
     try {
       setIsProcessingValorant(true)
-      const response = await fetch('/api/riot/process-oauth', {
+      const response = await fetch('/api/auth/riot/process-oauth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,6 +240,38 @@ export default function ManageExternalAccounts() {
       alert('An error occurred while processing your VALORANT connection.');
     } finally {
       setIsProcessingValorant(false)
+    }
+  };
+
+  // Process Epic Games OAuth to fetch account info
+  const processEpicGamesOAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/epic/process-oauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json() as { 
+        success?: boolean; 
+        accountId?: string; 
+        displayName?: string; 
+        error?: string; 
+      };
+      
+      if (data.success) {
+        // Show success notification
+        console.log(`Successfully connected Epic Games account: ${data.displayName} (${data.accountId})`)
+        // Refresh user data to show updated metadata
+        await user?.reload();
+      } else {
+        console.error('Failed to process Epic Games OAuth:', data.error);
+        alert('Failed to fetch Epic Games account data. Please try reconnecting.');
+      }
+    } catch (error) {
+      console.error('Error processing Epic Games OAuth:', error);
+      alert('An error occurred while processing your Epic Games connection.');
     }
   };
 
@@ -332,6 +379,10 @@ export default function ManageExternalAccounts() {
               const valorantData = account.provider === 'custom_valorant' ? 
                 user.publicMetadata?.valorant : null;
               
+              // Get Epic Games metadata if available
+              const epicData = account.provider === 'custom_epic_games' ? 
+                user.publicMetadata?.epicGames : null;
+              
                              return (
                  <div key={account.id} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
                    <div className="flex items-center gap-3">
@@ -380,6 +431,13 @@ export default function ManageExternalAccounts() {
                         </p>
                       )}
                       
+                      {/* Show Epic Games display name if available */}
+                      {account.provider === 'custom_epic_games' && epicData && 'displayName' in epicData && (
+                        <p className="text-orange-400 text-sm font-rajdhani">
+                          {epicData.displayName}
+                        </p>
+                      )}
+                      
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-gray-400 text-sm font-rajdhani">
                           Scopes: {account.approvedScopes}
@@ -396,6 +454,12 @@ export default function ManageExternalAccounts() {
                               <Badge className="bg-blue-600 text-white text-xs">
                                 <ShieldIcon className="h-3 w-3 mr-1" />
                                 PUUID Linked
+                              </Badge>
+                            )}
+                            {account.provider === 'custom_epic_games' && epicData && 'accountId' in epicData && (
+                              <Badge className="bg-orange-600 text-white text-xs">
+                                <GamepadIcon className="h-3 w-3 mr-1" />
+                                Account Linked
                               </Badge>
                             )}
                           </div>

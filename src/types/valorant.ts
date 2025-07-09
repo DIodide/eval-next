@@ -41,10 +41,3 @@ export interface ValorantAnalyticsData {
     clutchFactor: string;
   };
 }
-
-// Extend Clerk's publicMetadata type
-declare global {
-  interface UserPublicMetadata {
-    valorant?: ValorantMetadata | null;
-  }
-} 

@@ -70,7 +70,7 @@ export default function TestRiotOAuthPage() {
   const testProcessOAuth = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/riot/process-oauth', {
+      const response = await fetch('/api/auth/riot/process-oauth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ export default function TestRiotOAuthPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/cleanup-valorant-metadata', {
+      const response = await fetch('/api/auth/admin/cleanup-valorant-metadata', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,7 +360,7 @@ export default function TestRiotOAuthPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-gray-400 text-sm">
-                  Test the /api/riot/process-oauth endpoint directly. This requires an authenticated user with a connected Valorant account.
+                  Test the /api/auth/riot/process-oauth endpoint directly. This requires an authenticated user with a connected Valorant account.
                 </p>
                 <Button 
                   onClick={testProcessOAuth} 

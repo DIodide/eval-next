@@ -6,7 +6,8 @@ const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/user-profile(.*
 const isAdminRoute = createRouteMatcher([
   '/admin(.*)',
   '/test-(.*)', // Protect all test routes
-  '/api/admin(.*)' // Protect admin API routes
+  '/api/admin(.*)', // Protect admin API routes
+  '/api/auth/admin(.*)' // Protect auth API routes
 ])
 
 export default clerkMiddleware(async (auth, req) => {
