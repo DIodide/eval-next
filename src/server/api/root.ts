@@ -11,6 +11,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAssociationRequests";
 import { valorantStatsRouter } from "@/server/api/routers/valorantStats";
+import { rocketLeagueStatsRouter } from "@/server/api/routers/rocketLeagueStats";
 import { adminDirectoryRouter } from "@/server/api/routers/adminDirectory";
 import { adminManagementRouter } from "@/server/api/routers/adminManagement";
 
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   leagueAssociationRequests: leagueAssociationRequestsRouter,
   schoolAssociationRequests: schoolAssociationRequestsRouter,
   valorantStats: valorantStatsRouter,
+  rocketLeagueStats: rocketLeagueStatsRouter,
   adminDirectory: adminDirectoryRouter,
   adminManagement: adminManagementRouter,
 });
