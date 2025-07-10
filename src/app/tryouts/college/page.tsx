@@ -279,21 +279,6 @@ function TryoutsPageContent() {
             Discover and register for esports tryouts at top colleges and universities across the country.
           </p>
           
-          {user && (
-            <div className="mt-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-full px-4 py-2 border border-blue-400/30 max-w-fit mx-auto">
-              <p className="text-sm text-blue-300 font-medium">
-                Logged in as: {user.emailAddresses[0]?.emailAddress}
-              </p>
-            </div>
-          )}
-
-          {/* Cache Status Indicator */}
-          {tryoutsResponse && (
-            <div className="mt-4 text-xs text-gray-400 flex items-center justify-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400"></div>
-              <span>Real-time data • Smart caching • Instant filtering</span>
-            </div>
-          )}
         </div>
 
         {/* Enhanced Search and Filters */}
