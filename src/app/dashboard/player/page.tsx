@@ -1149,10 +1149,10 @@ export default function DashboardPage() {
                 <Badge variant="outline" className="border-blue-400/50 text-blue-400">
                   Player Dashboard
                 </Badge>
-                <div className="flex items-center gap-1 text-gray-400">
+                {/* <div className="flex items-center gap-1 text-gray-400">
                   <ClockIcon className="h-4 w-4" />
                   <span>Last active: Today</span>
-                </div>
+                </div> */}
               </div>
             </div>
             
