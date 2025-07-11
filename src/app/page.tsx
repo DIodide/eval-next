@@ -186,8 +186,102 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* What We Offer Section */}
+      <section className="bg-black/95 py-16 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 border border-blue-500/20">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">
+              WHAT WE OFFER
+            </h2>
+            <p className="text-xl text-gray-300 font-rajdhani max-w-3xl mx-auto">
+              Comprehensive solutions for players, coaches, and leagues in the esports ecosystem
+            </p>
+          </div>
+
+          {/* Dynamic Flow Layout */}
+          <div className="relative max-w-7xl mx-auto">
+            {/* Connecting Flow Line */}
+            <div className="relative top-[-25] left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 via-orange-400 to-purple-400 transform -translate-y-1/2 hidden lg:block opacity-30"></div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-4">
+              {/* For Players */}
+              <div className="relative group">
+                <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-xl p-6 border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-400/20">
+                  <div className="relative">
+                    
+                    <h3 className="font-orbitron text-2xl md:text-3xl text-cyan-400 font-black tracking-wide mb-4">
+                      FOR PLAYERS
+                    </h3>
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 to-cyan-600 mb-6"></div>
+                    <div className="space-y-4">
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Level up your game with advanced insights
+                      </p>
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Connect with verified college coaches
+                      </p>
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Showcase skills in EVAL Combines
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* For Coaches */}
+              <div className="relative group">
+                <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 rounded-xl p-6 border border-orange-400/20 hover:border-orange-400/40 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-400/20">
+                  <div className="relative">
+                    {/* <div className="absolute -top-2 -left-2 w-6 h-6 bg-orange-400 rounded-full hidden lg:block"></div> */}
+                    <h3 className="font-orbitron text-2xl md:text-3xl text-orange-400 font-black tracking-wide mb-4">
+                      FOR COACHES
+                    </h3>
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-orange-400 to-orange-600 mb-6"></div>
+                    <div className="space-y-4">
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Scout players with EVAL metrics
+                      </p>
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Host tryouts for your programs
+                      </p>
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Get recruiting consulting
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* For Leagues */}
+              <div className="relative group">
+                <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-xl p-6 border border-purple-400/20 hover:border-purple-400/40 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-400/20">
+                  <div className="relative">
+                    {/* <div className="absolute -top-2 -left-2 w-6 h-6 bg-purple-400 rounded-full hidden lg:block"></div> */}
+                    <h3 className="font-orbitron text-2xl md:text-3xl text-purple-400 font-black tracking-wide mb-4">
+                      FOR LEAGUES
+                    </h3>
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-purple-400 to-purple-600 mb-6"></div>
+                    <div className="space-y-4">
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Highlight players for scholarships
+                      </p>
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Enable competitive rankings
+                      </p>
+                      <p className="text-lg md:text-xl text-white font-rajdhani font-medium leading-relaxed">
+                        Create college pipelines
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Partners Section */}
-      <section className="bg-gray-900/98 py-16">
+      <section className="bg-black/95 py-16 bg-gradient-to-r from-blue-700/10 via-purple-700/10 to-pink-700/10 border border-blue-500/20">
         <div className="container mx-auto px-6">
           <h2 className="font-orbitron text-2xl text-center text-white mb-8 tracking-wide">TRUSTED BY</h2>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
@@ -198,7 +292,7 @@ export default function HomePage() {
       </section>
 
               {/* Upcoming Tournaments Section */}
-        <section className="bg-black/95 py-20">
+        <section className="bg-[#0e041f]/98 py-20 from-blue-700/10 via-purple-700/10 to-pink-700/10 border border-blue-500/20">
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">
@@ -329,7 +423,7 @@ export default function HomePage() {
       </section>
 
       {/* Our Games Section */}
-      <section className="bg-gray-900/98 py-20">
+      <section className="bg-black/95 py-20 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 border border-blue-500/20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-black text-white mb-4 cyber-text">OUR GAMES</h2>
