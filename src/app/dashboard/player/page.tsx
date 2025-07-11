@@ -968,7 +968,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           <Link href="/dashboard/player/profile">
-            <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:border-gray-500">
+            <Button variant="default" size="sm" className="bg-gradient-to-r hover:from-blue-500 hover:to-purple-500  from-blue-600 to-purple-600 border-gray-600 text-white hover:border-gray-500">
               Manage Connections
               <ArrowRightIcon className="h-4 w-4 ml-2" />
             </Button>
@@ -1239,42 +1239,66 @@ export default function DashboardPage() {
           <ZapIcon className="h-5 w-5 text-blue-400" />
           <h2 className="text-2xl font-orbitron font-bold text-white">Quick Actions</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {quickActions.map((action, index) => (
-            <Link key={index} href={action.href}>
-              <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-gray-600/70 transition-all duration-300 p-4 h-full cursor-pointer group shadow-lg hover:shadow-xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`p-2 bg-gradient-to-r ${action.color} rounded-lg group-hover:scale-110 transition-transform duration-200`}>
-                    <action.icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-rajdhani font-semibold text-white group-hover:text-blue-400 transition-colors">
-                        {action.title}
-                      </h3>
-                      
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-0">
+          {quickActions.map((action, index) => {
+            let roundedClasses = "";
+            
+            // Mobile (single column): 
+            // First card: rounded top, Last card: rounded bottom
+            if (index === 0) roundedClasses += " rounded-t-lg rounded-b-none";
+            if (index === 1) roundedClasses += " rounded-t-none rounded-b-none";
+            if (index === 2) roundedClasses += " rounded-t-none rounded-b-none";
+            if (index === quickActions.length - 1) roundedClasses += " rounded-b-lg rounded-t-none";
+            
+            // Medium screens (2 columns): 2x2 grid
+            // [0] [1]
+            // [2] [3]
+            if (index === 0) roundedClasses += " md:rounded-tl-lg md:rounded-bl-none md:rounded-tr-none md:rounded-br-none"; // top-left only
+            if (index === 1) roundedClasses += " md:rounded-tr-lg md:rounded-tl-none md:rounded-bl-none md:rounded-br-none"; // top-right only
+            if (index === 2) roundedClasses += " md:rounded-bl-lg md:rounded-tl-none md:rounded-tr-none md:rounded-br-none"; // bottom-left only
+            if (index === 3) roundedClasses += " md:rounded-br-lg md:rounded-tl-none md:rounded-tr-none md:rounded-bl-none"; // bottom-right only
+            
+            // Large screens (4 columns): single row
+            // [0] [1] [2] [3]
+            if (index === 0) roundedClasses += " lg:rounded-l-lg lg:rounded-r-none"; // left side only
+            if (index === 1 || index === 2) roundedClasses += " lg:rounded-none"; // middle cards: no rounding
+            if (index === 3) roundedClasses += " lg:rounded-r-lg lg:rounded-l-none"; // right side only
+
+            
+            return (
+              <Link key={index} href={action.href}>
+                <Card className={`quick-actions bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-gray-600/70 transition-all duration-300 p-4 h-full cursor-pointer group shadow-lg hover:shadow-xl ${roundedClasses}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    {/* <action.icon className="h-5 w-5 text-white" /> */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-rajdhani font-semibold text-white group-hover:text-blue-400 transition-colors">
+                          {action.title}
+                        </h3>
+                        
+                      </div>
+                      <p className="text-xs text-gray-400">{action.description}</p>
                     </div>
-                    <p className="text-xs text-gray-400">{action.description}</p>
+                    <ArrowRightIcon className="h-4 w-4 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-200" />
                   </div>
-                  <ArrowRightIcon className="h-4 w-4 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-200" />
-                </div>
-                {action.progress && (
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-gray-400">Progress</span>
-                      <span className="text-blue-400">{action.progress}%</span>
+                  {action.progress && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-400">Progress</span>
+                        <span className="text-blue-400">{action.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-1.5">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+                          style={{ width: `${action.progress}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-1.5">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                        style={{ width: `${action.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </Card>
-            </Link>
-          ))}
+                  )}
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
