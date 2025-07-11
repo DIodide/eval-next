@@ -953,12 +953,12 @@ function GameAnalyticsDashboard() {
       <div className="flex flex-col gap-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-3 bg-gradient-to-r ${currentGame.color} rounded-lg flex items-center justify-center`}>
+            <div className={`flex items-center justify-center`}>
               <Image 
                 src={currentGame.image}
                 alt={`${currentGame.name} Logo`}
-                width={24}
-                height={24}
+                width={32}
+                height={32}
                 className="object-contain"
               />
             </div>
