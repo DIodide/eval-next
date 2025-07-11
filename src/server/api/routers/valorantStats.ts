@@ -232,7 +232,7 @@ function transformToAnalyticsData(
   const stats = apiResponse.stats;
   
   // Calculate KAST percentage
-  const kastPercent = stats.rounds > 0 ? Math.round((stats.kast / stats.rounds) * 100) : 0;
+  const kastPercent = stats.kast.toFixed(2);
   
   // Format K/D/A string
   const kda = `${stats.avg_kills.toFixed(1)}/${stats.avg_deaths.toFixed(1)}/${stats.avg_assists.toFixed(1)}`;
