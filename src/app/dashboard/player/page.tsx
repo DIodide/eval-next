@@ -225,8 +225,8 @@ function GameAnalyticsDashboard() {
         )}
 
         {/* Core Performance Metrics - Top Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-lg p-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg rounded-bl-none rounded-tr-none rounded-br-none md:rounded-l-lg md:rounded-r-none p-4 text-center">
             <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">{stats.stats.evalScore}</div>
             <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
               EVAL SCORE
@@ -241,7 +241,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-lg p-4 text-center">
+          <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-red-300 mb-1">{stats.stats.rank}</div>
             <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
               RANK
@@ -256,7 +256,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-tl-none rounded-tr-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{stats.stats.gameWinRate}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               GAME WIN %
@@ -271,7 +271,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none md:rounded-r-lg md:rounded-l-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-blue-400 mb-1">{stats.stats.roundWinRate}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               ROUND WIN %
@@ -288,8 +288,8 @@ function GameAnalyticsDashboard() {
         </div>
 
         {/* Role, Agent, and Weapon Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+          <div className="bg-gray-900 border border-gray-700 rounded-t-lg rounded-b-none md:rounded-l-lg md:rounded-r-none p-4">
             <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
               MAIN ROLE
               <Tooltip>
@@ -304,7 +304,7 @@ function GameAnalyticsDashboard() {
             <div className="text-xl font-orbitron font-bold text-cyan-400">{stats.role}</div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-none md:rounded-none p-4">
             <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
               MAIN AGENT
               <Tooltip>
@@ -339,7 +339,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-b-lg rounded-t-none md:rounded-r-lg md:rounded-l-none p-4">
             <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
               MAIN WEAPON
               <Tooltip>
@@ -376,8 +376,8 @@ function GameAnalyticsDashboard() {
         </div>
 
         {/* Maps Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+          <div className="bg-gray-900 border border-gray-700 rounded-t-lg rounded-b-none md:rounded-l-lg md:rounded-r-none p-4">
             <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
               BEST MAP
               <Tooltip>
@@ -412,7 +412,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-b-lg rounded-t-none md:rounded-r-lg md:rounded-l-none p-4">
             <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
               WORST MAP
               <Tooltip>
@@ -449,8 +449,8 @@ function GameAnalyticsDashboard() {
         </div>
 
         {/* Detailed Performance Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div className="bg-gray-900 border border-gray-700 rounded-tl-lg rounded-bl-none rounded-tr-none rounded-br-none md:rounded-l-lg md:rounded-r-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-red-400 mb-1">{stats.stats.kda}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               K/D/A
@@ -465,7 +465,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-orange-400 mb-1">{stats.stats.acs}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               ACS
@@ -480,7 +480,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-tl-none rounded-tr-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-yellow-400 mb-1">{stats.stats.kastPercent}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               KAST%
@@ -495,7 +495,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none md:rounded-r-lg md:rounded-l-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-cyan-400 mb-1">{stats.stats.clutchFactor}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               CLUTCH FACTOR
