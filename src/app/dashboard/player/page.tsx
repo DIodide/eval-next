@@ -666,9 +666,11 @@ function GameAnalyticsDashboard() {
           </div>
         )}
 
-        {/* Core Performance Metrics - Top Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-lg p-4 text-center">
+        {/* Connected Stats Sections */}
+        <div className="space-y-0">
+          {/* Core Performance Metrics - Top Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg rounded-bl-none rounded-tr-none rounded-br-none md:rounded-tl-lg md:rounded-tr-none md:rounded-bl-none md:rounded-br-none p-4 text-center">
             <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">
               {currentPlaylistStats.eval_score?.toFixed(2) ?? 'N/A'}
             </div>
@@ -685,7 +687,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-lg p-4 text-center">
+          <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-red-300 mb-1">{currentPlaylistStats.rank}</div>
             <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
               RANK
@@ -700,7 +702,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-tl-none rounded-tr-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{Math.round(currentPlaylistStats.win_percentage * 100)}%</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               WIN RATE
@@ -715,16 +717,16 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none md:rounded-tr-lg md:rounded-tl-none md:rounded-bl-none md:rounded-br-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-blue-400 mb-1">{currentPlaylistStats.count}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              GAMES PLAYED
+              GAMES ANALYZED
               <Tooltip>
                 <TooltipTrigger asChild>
                   <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Total number of ranked games played in this playlist.</p>
+                  <p>Total number of ranked games played in this playlist found on ballchasing.com replays.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -732,8 +734,8 @@ function GameAnalyticsDashboard() {
         </div>
 
         {/* Core Rocket League Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-orange-400 mb-1">{currentPlaylistStats.goals.toFixed(2)}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               GOALS/GAME
@@ -748,7 +750,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-cyan-400 mb-1">{currentPlaylistStats.saves.toFixed(2)}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               SAVES/GAME
@@ -763,7 +765,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{currentPlaylistStats.assists.toFixed(2)}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               ASSISTS/GAME
@@ -778,7 +780,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-yellow-400 mb-1">{currentPlaylistStats.shots.toFixed(2)}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               SHOTS/GAME
@@ -795,8 +797,8 @@ function GameAnalyticsDashboard() {
         </div>
 
         {/* Secondary Performance Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-purple-400 mb-1">{currentPlaylistStats.mvps_per_game.toFixed(3)}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               MVP RATE
@@ -811,7 +813,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-pink-400 mb-1">{currentPlaylistStats.shooting_percentage.toFixed(1)}%</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               SHOOTING %
@@ -826,7 +828,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-indigo-400 mb-1">{currentPlaylistStats.speed.toFixed(1)}%</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               AVG SPEED
@@ -841,7 +843,7 @@ function GameAnalyticsDashboard() {
             </div>
           </div>
           
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
+          <div className="bg-gray-900 border border-gray-700 rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-teal-400 mb-1">{(currentPlaylistStats.clutch * 100).toFixed(1)}%</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               CLUTCH RATE
@@ -860,7 +862,7 @@ function GameAnalyticsDashboard() {
 
 
         {/* Boost Management Stats */}
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+        <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-br-lg rounded-tl-none rounded-tr-none p-6">
           <div className="flex items-center gap-2 mb-4">
             <div className="text-lg font-orbitron font-bold text-yellow-400">⚡ Boost Management</div>
             <Tooltip>
@@ -874,14 +876,14 @@ function GameAnalyticsDashboard() {
           </div>
 
           {/* Critical Boost Levels */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-center">
+          <div className="grid grid-cols-2 gap-0 mb-6">
+            <div className="bg-red-900/30 border border-red-700/50 rounded-none p-3 text-center">
               <div className="text-2xl font-orbitron font-bold text-red-400 mb-1">
                 {currentPlaylistStats.boost_empty.toFixed(1)}%
               </div>
               <div className="text-xs text-red-300 font-rajdhani">Empty (0%)</div>
             </div>
-            <div className="bg-green-900/30 border border-green-700/50 rounded-lg p-3 text-center">
+            <div className="bg-green-900/30 border border-green-700/50 rounded-none p-3 text-center">
               <div className="text-2xl font-orbitron font-bold text-green-400 mb-1">
                 {currentPlaylistStats.boost_full.toFixed(1)}%
               </div>
@@ -913,6 +915,7 @@ function GameAnalyticsDashboard() {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </div>
     );
