@@ -219,8 +219,8 @@ const platformConnectionSchema = z.object({
 
 // New schema for OAuth connections
 const oauthConnectionSchema = z.object({
-  platform: z.enum(["valorant"]), // Currently only Valorant supports OAuth
-  provider: z.string(), // OAuth provider (e.g., "custom_valorant")
+  platform: z.enum(["valorant", "start_gg"]), // Currently supports Valorant and start.gg OAuth
+  provider: z.string(), // OAuth provider (e.g., "custom_valorant", "custom_start_gg")
 });
 
 const socialConnectionSchema = z.object({

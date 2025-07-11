@@ -46,6 +46,9 @@ const getProviderDisplayName = (provider: string) => {
   if (provider === 'custom_epic_games' || provider === 'epic_games') {
     return 'Rocket League (Epic Games)'
   }
+  if (provider === 'custom_start_gg' || provider === 'start_gg') {
+    return 'Smash Ultimate (start.gg)'
+  }
   return capitalize(provider)
 }
 
@@ -59,6 +62,9 @@ const getProviderIcon = (provider: string) => {
   }
   if (provider === 'custom_epic_games' || provider === 'epic_games') {
     return 'rocket-league-logo'
+  }
+  if (provider === 'custom_start_gg' || provider === 'start_gg') {
+    return 'startgg-logo'
   }
   return ShieldIcon // Default icon
 }
@@ -74,6 +80,9 @@ const getProviderColor = (provider: string) => {
   if (provider === 'custom_epic_games' || provider === 'epic_games') {
     return 'bg-orange-600'
   }
+  if (provider === 'custom_start_gg' || provider === 'start_gg') {
+    return 'bg-purple-600'
+  }
   return 'bg-gray-600'
 }
 
@@ -86,29 +95,34 @@ export default function ManageExternalAccounts() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isUserReady, setIsUserReady] = useState(false)
   const [isProcessingValorant, setIsProcessingValorant] = useState(false)
+  const [isProcessingCallback, setIsProcessingCallback] = useState(false)
   
-  // Preload and warm up the user session
+  // Preload and warm up the user session (debounced to prevent excessive calls)
   useEffect(() => {
-    const initializeUser = async () => {
-      if (!isLoaded || !user) {
-        setIsUserReady(false)
-        return
+    const timer = setTimeout(() => {
+      const initializeUser = async () => {
+        if (!isLoaded || !user) {
+          setIsUserReady(false)
+          return
+        }
+        
+        // Wait a moment for all user methods to be fully available
+        await new Promise(resolve => setTimeout(resolve, 200))
+        
+        // Verify the createExternalAccount method is available and functional
+        if (user.createExternalAccount && typeof user.createExternalAccount === 'function') {
+          console.log('User session fully initialized')
+          setIsUserReady(true)
+        } else {
+          console.log('User createExternalAccount method not yet available')
+          setIsUserReady(false)
+        }
       }
       
-      // Wait a moment for all user methods to be fully available
-      await new Promise(resolve => setTimeout(resolve, 200))
-      
-      // Verify the createExternalAccount method is available and functional
-      if (user.createExternalAccount && typeof user.createExternalAccount === 'function') {
-        console.log('User session fully initialized')
-        setIsUserReady(true)
-      } else {
-        console.log('User createExternalAccount method not yet available')
-        setIsUserReady(false)
-      }
-    }
+      void initializeUser()
+    }, 100) // 100ms debounce
     
-    void initializeUser()
+    return () => clearTimeout(timer)
   }, [isLoaded, user])
   
   // Handle OAuth callback and reprocess all external accounts (Valorant, Epic Games, etc.)
@@ -116,38 +130,61 @@ export default function ManageExternalAccounts() {
     const handleOAuthCallback = async () => {
       console.debug("DEBUG 0: handleOAuthCallback");
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('callback') === 'true' && isUserReady && user) {
-        // Check if we just connected a Valorant account
-        await user.reload(); // Refresh user data
+      
+      // Guard against multiple simultaneous callbacks
+      if (urlParams.get('callback') === 'true' && isUserReady && user && !isProcessingCallback) {
+        setIsProcessingCallback(true);
         
-        const valorantAccount = user.externalAccounts?.find(
-          account => account.provider === 'custom_valorant' && 
-                    account.verification?.status === 'verified'
-        );
-        
-        const epicAccount = user.externalAccounts?.find(
-          account => account.provider === 'custom_epic_games' && 
-                    account.verification?.status === 'verified'
-        );
-        
-        if (valorantAccount) {
-          // Process the Valorant OAuth to get PUUID
-          await processValorantOAuth();
+        try {
+          // Only reload user data once at the beginning
+          await user.reload();
+          
+          const valorantAccount = user.externalAccounts?.find(
+            account => account.provider === 'custom_valorant' && 
+                      account.verification?.status === 'verified'
+          );
+          
+          const epicAccount = user.externalAccounts?.find(
+            account => account.provider === 'custom_epic_games' && 
+                      account.verification?.status === 'verified'
+          );
+          
+          const startggAccount = user.externalAccounts?.find(
+            account => account.provider === 'custom_start_gg' && 
+                      account.verification?.status === 'verified'
+          );
+          
+          // Process all OAuth accounts without individual reloads
+          const promises = [];
+          if (valorantAccount && !user.publicMetadata?.valorant) {
+            promises.push(processValorantOAuth(false)); // false = skip reload
+          }
+          if (epicAccount && !user.publicMetadata?.epicGames) {
+            promises.push(processEpicGamesOAuth(false));
+          }
+          if (startggAccount && !user.publicMetadata?.start_gg) {
+            promises.push(processStartGGOAuth(false));
+          }
+          
+          if (promises.length > 0) {
+            await Promise.all(promises);
+            // Single reload after all processing is complete
+            await user.reload();
+          }
+          
+          // Clean up URL
+          router.replace('/dashboard/player/profile/external-accounts');
+        } catch (error) {
+          console.error('Error processing OAuth callback:', error);
+        } finally {
+          setIsConnecting(false);
+          setIsProcessingCallback(false);
         }
-        
-        if (epicAccount) {
-          // Process the Epic Games OAuth to get account info
-          await processEpicGamesOAuth();
-        }
-        
-        // Clean up URL
-        router.replace('/dashboard/player/profile/external-accounts');
-        setIsConnecting(false);
       }
     };
 
     void handleOAuthCallback();
-  }, [isUserReady, user, router]);
+  }, [isUserReady, isProcessingCallback, router]); // Removed 'user' to prevent re-runs when user changes
   
   // Create reverification functions only when user is ready
   const createExternalAccount = useReverification((params: CreateExternalAccountParams) => {
@@ -183,15 +220,23 @@ export default function ManageExternalAccounts() {
           })
           break;
         }
+        case 'custom_start_gg': {
+          // Remove the start.gg metadata from the user's public metadata by calling the cleanup route
+          await fetch('/api/auth/startgg/cleanup-metadata', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          break;
+        }
       }
       
       // Remove the external account
       await account.destroy();
       console.log(`✅ Account removed: ${account.provider}`);
 
-      
-      
-      // Refresh user data to reflect changes
+      // Refresh user data to reflect changes (only once after all operations)
       await user?.reload();
       
       console.log('✅ Account removal complete');
@@ -205,11 +250,11 @@ export default function ManageExternalAccounts() {
   const accountDestroy = removeAccountWithCleanup;
 
   // List the options the user can select when adding a new external account
-  // Supporting Valorant, Discord, and Epic Games OAuth
-  const options: OAuthStrategy[] = ['oauth_custom_valorant', 'oauth_discord', 'oauth_custom_epic_games' as OAuthStrategy]
+  // Supporting Valorant, Discord, Epic Games, and start.gg OAuth
+  const options: OAuthStrategy[] = ['oauth_custom_valorant', 'oauth_discord', 'oauth_custom_epic_games' as OAuthStrategy, 'oauth_custom_start_gg' as OAuthStrategy]
 
   // Process Valorant OAuth to fetch PUUID
-  const processValorantOAuth = async () => {
+  const processValorantOAuth = async (shouldReload = true) => {
     try {
       setIsProcessingValorant(true)
       const response = await fetch('/api/auth/riot/process-oauth', {
@@ -229,8 +274,10 @@ export default function ManageExternalAccounts() {
       if (data.success) {
         // Show success notification
         console.log(`Successfully connected VALORANT account: ${data.gameName}#${data.tagLine}`)
-        // Refresh user data to show updated metadata
-        await user?.reload();
+        // Conditionally refresh user data to show updated metadata
+        if (shouldReload) {
+          await user?.reload();
+        }
       } else {
         console.error('Failed to process Valorant OAuth:', data.error);
         alert('Failed to fetch VALORANT account data. Please try reconnecting.');
@@ -244,7 +291,7 @@ export default function ManageExternalAccounts() {
   };
 
   // Process Epic Games OAuth to fetch account info
-  const processEpicGamesOAuth = async () => {
+  const processEpicGamesOAuth = async (shouldReload = true) => {
     try {
       const response = await fetch('/api/auth/epic/process-oauth', {
         method: 'POST',
@@ -263,8 +310,10 @@ export default function ManageExternalAccounts() {
       if (data.success) {
         // Show success notification
         console.log(`Successfully connected Epic Games account: ${data.displayName} (${data.accountId})`)
-        // Refresh user data to show updated metadata
-        await user?.reload();
+        // Conditionally refresh user data to show updated metadata
+        if (shouldReload) {
+          await user?.reload();
+        }
       } else {
         console.error('Failed to process Epic Games OAuth:', data.error);
         alert('Failed to fetch Epic Games account data. Please try reconnecting.');
@@ -272,6 +321,41 @@ export default function ManageExternalAccounts() {
     } catch (error) {
       console.error('Error processing Epic Games OAuth:', error);
       alert('An error occurred while processing your Epic Games connection.');
+    }
+  };
+
+  // Process start.gg OAuth to fetch user ID
+  const processStartGGOAuth = async (shouldReload = true) => {
+    try {
+      const response = await fetch('/api/auth/startgg/process-oauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json() as { 
+        success?: boolean; 
+        userId?: string; 
+        slug?: string; 
+        error?: string; 
+      };
+      
+      if (data.success) {
+        // Show success notification
+        console.log(`Successfully connected start.gg account: ${data.slug ?? 'User'} (${data.userId})`)
+        // Conditionally refresh user data to show updated metadata
+        if (shouldReload) {
+          await user?.reload();
+        }
+      } else {
+        console.error('Failed to process start.gg OAuth:', data.error);
+        console.error("DEBUG 1: data", data);
+        alert('Failed to fetch start.gg account data. Please try reconnecting.');
+      }
+    } catch (error) {
+      console.error('Error processing start.gg OAuth:', error);
+      alert('An error occurred while processing your start.gg connection.');
     }
   };
 
@@ -416,6 +500,16 @@ export default function ManageExternalAccounts() {
                            className="object-contain"
                          />
                        </div>
+                     ) : Icon === 'startgg-logo' ? (
+                       <div className="w-10 h-10 flex items-center justify-center">
+                         <Image 
+                           src="/smash/logos/Smash Ball White Logo.png"
+                           alt="start.gg Logo"
+                           width={32}
+                           height={32}
+                           className="object-contain"
+                         />
+                       </div>
                      ) : (
                        <div className={`p-2 rounded ${providerColor}`}>
                          <Icon className="h-5 w-5 text-white" />
@@ -435,6 +529,13 @@ export default function ManageExternalAccounts() {
                       {account.provider === 'custom_epic_games' && epicData && 'displayName' in epicData && (
                         <p className="text-orange-400 text-sm font-rajdhani">
                           {epicData.displayName}
+                        </p>
+                      )}
+                      
+                      {/* Show start.gg slug if available */}
+                      {account.provider === 'custom_start_gg' && user.publicMetadata?.start_gg && 'slug' in user.publicMetadata.start_gg && (
+                        <p className="text-purple-400 text-sm font-rajdhani">
+                          {user.publicMetadata.start_gg.slug}
                         </p>
                       )}
                       
@@ -460,6 +561,12 @@ export default function ManageExternalAccounts() {
                               <Badge className="bg-orange-600 text-white text-xs">
                                 <GamepadIcon className="h-3 w-3 mr-1" />
                                 Account Linked
+                              </Badge>
+                            )}
+                            {account.provider === 'custom_start_gg' && user.publicMetadata?.start_gg && 'userId' in user.publicMetadata.start_gg && (
+                              <Badge className="bg-purple-600 text-white text-xs">
+                                <GamepadIcon className="h-3 w-3 mr-1" />
+                                User ID Linked
                               </Badge>
                             )}
                           </div>
@@ -569,6 +676,16 @@ export default function ManageExternalAccounts() {
                            className="object-contain"
                          />
                        </div>
+                     ) : Icon === 'startgg-logo' ? (
+                       <div className="w-10 h-10 flex items-center justify-center">
+                         <Image 
+                           src="/smash/logos/Smash Ball White Logo.png"
+                           alt="start.gg Logo"
+                           width={32}
+                           height={32}
+                           className="object-contain"
+                         />
+                       </div>
                      ) : (
                        <div className={`p-2 rounded ${providerColor}`}>
                          <Icon className="h-5 w-5 text-white" />
@@ -583,6 +700,8 @@ export default function ManageExternalAccounts() {
                           ? 'Connect your Discord account to showcase your gaming community'
                           : normalizedProvider === 'custom_epic_games' || normalizedProvider === 'epic_games'
                           ? 'Connect your Epic Games account to link your Rocket League profile'
+                          : normalizedProvider === 'custom_start_gg' || normalizedProvider === 'start_gg'
+                          ? 'Connect your start.gg account to link your Smash Ultimate profile'
                           : 'Connect your account to enhance your profile'
                         }
                       </p>
