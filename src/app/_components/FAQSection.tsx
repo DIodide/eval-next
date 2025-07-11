@@ -14,7 +14,7 @@ const faqs = [
   {
     question: "How much does it cost to use EVAL?",
     answer:
-      "EVAL offers a free tier with basic features, providing all you need to get recruited. Premium plans start at $30 per year for enhanced visibility and advanced analytics.",
+      "EVAL is committed to providing a free and accessible platform for all players. We believe that every student should have the opportunity to get recruited for e-sports and gain a college scholarship.",
   },
   {
     question: "What games does EVAL support?",
