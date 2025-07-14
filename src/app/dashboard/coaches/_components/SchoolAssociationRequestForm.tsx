@@ -13,12 +13,77 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
+const US_STATES = [
+  { value: "AL", label: "Alabama" },
+  { value: "AK", label: "Alaska" },
+  { value: "AZ", label: "Arizona" },
+  { value: "AR", label: "Arkansas" },
+  { value: "CA", label: "California" },
+  { value: "CO", label: "Colorado" },
+  { value: "CT", label: "Connecticut" },
+  { value: "DE", label: "Delaware" },
+  { value: "FL", label: "Florida" },
+  { value: "GA", label: "Georgia" },
+  { value: "HI", label: "Hawaii" },
+  { value: "ID", label: "Idaho" },
+  { value: "IL", label: "Illinois" },
+  { value: "IN", label: "Indiana" },
+  { value: "IA", label: "Iowa" },
+  { value: "KS", label: "Kansas" },
+  { value: "KY", label: "Kentucky" },
+  { value: "LA", label: "Louisiana" },
+  { value: "ME", label: "Maine" },
+  { value: "MD", label: "Maryland" },
+  { value: "MA", label: "Massachusetts" },
+  { value: "MI", label: "Michigan" },
+  { value: "MN", label: "Minnesota" },
+  { value: "MS", label: "Mississippi" },
+  { value: "MO", label: "Missouri" },
+  { value: "MT", label: "Montana" },
+  { value: "NE", label: "Nebraska" },
+  { value: "NV", label: "Nevada" },
+  { value: "NH", label: "New Hampshire" },
+  { value: "NJ", label: "New Jersey" },
+  { value: "NM", label: "New Mexico" },
+  { value: "NY", label: "New York" },
+  { value: "NC", label: "North Carolina" },
+  { value: "ND", label: "North Dakota" },
+  { value: "OH", label: "Ohio" },
+  { value: "OK", label: "Oklahoma" },
+  { value: "OR", label: "Oregon" },
+  { value: "PA", label: "Pennsylvania" },
+  { value: "RI", label: "Rhode Island" },
+  { value: "SC", label: "South Carolina" },
+  { value: "SD", label: "South Dakota" },
+  { value: "TN", label: "Tennessee" },
+  { value: "TX", label: "Texas" },
+  { value: "UT", label: "Utah" },
+  { value: "VT", label: "Vermont" },
+  { value: "VA", label: "Virginia" },
+  { value: "WA", label: "Washington" },
+  { value: "WV", label: "West Virginia" },
+  { value: "WI", label: "Wisconsin" },
+  { value: "WY", label: "Wyoming" },
+  { value: "DC", label: "District of Columbia" },
+];
+
+const US_REGIONS = [
+  { value: "northeast", label: "Northeast" },
+  { value: "southeast", label: "Southeast" },
+  { value: "midwest", label: "Midwest" },
+  { value: "southwest", label: "Southwest" },
+  { value: "west", label: "West" },
+  { value: "pacific", label: "Pacific" },
+];
+
 export function SchoolAssociationRequestForm() {
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("");
   const [requestMessage, setRequestMessage] = useState("");
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNewSchoolRequest, setIsNewSchoolRequest] = useState(false);
+  const [stateComboboxOpen, setStateComboboxOpen] = useState(false);
+  const [regionComboboxOpen, setRegionComboboxOpen] = useState(false);
   const [newSchoolData, setNewSchoolData] = useState({
     name: "",
     type: undefined as "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY" | undefined,
@@ -38,6 +103,8 @@ export function SchoolAssociationRequestForm() {
       setSelectedSchoolId("");
       setRequestMessage("");
       setComboboxOpen(false);
+      setStateComboboxOpen(false);
+      setRegionComboboxOpen(false);
       setIsNewSchoolRequest(false);
       setNewSchoolData({
         name: "",
@@ -80,9 +147,26 @@ export function SchoolAssociationRequestForm() {
         toast.error("Please enter the school location");
         return;
       }
-      if (!newSchoolData.state.trim()) {
-        toast.error("Please enter the school state");
+      if (!newSchoolData.state) {
+        toast.error("Please select the school state");
         return;
+      }
+      // Validate website URL if provided
+      if (newSchoolData.website?.trim()) {
+        const url = newSchoolData.website.trim();
+        
+        // Require protocol (http:// or https://)
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          toast.error("Please enter a complete website URL starting with https:// or http://");
+          return;
+        }
+        
+        try {
+          new URL(url);
+        } catch {
+          toast.error("Please enter a valid website URL (e.g., https://example.com)");
+          return;
+        }
       }
     } else {
       if (!selectedSchoolId) {
@@ -126,8 +210,10 @@ export function SchoolAssociationRequestForm() {
                   setIsNewSchoolRequest(false);
                   setSelectedSchoolId("");
                   setComboboxOpen(false);
+                  setStateComboboxOpen(false);
+                  setRegionComboboxOpen(false);
                 }}
-                className={`${!isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600"} text-white border-gray-600`}
+                className={`${!isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-white"} text-white border-gray-600`}
               >
                 <BuildingIcon className="h-4 w-4 mr-2" />
                 Existing School
@@ -139,8 +225,10 @@ export function SchoolAssociationRequestForm() {
                   setIsNewSchoolRequest(true);
                   setSelectedSchoolId("");
                   setComboboxOpen(false);
+                  setStateComboboxOpen(false);
+                  setRegionComboboxOpen(false);
                 }}
-                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-gray-200"} text-white border-gray-600`}
+                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-white"} text-white border-gray-600`}
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Request New School
@@ -161,14 +249,14 @@ export function SchoolAssociationRequestForm() {
                       variant="outline"
                       role="combobox"
                       aria-expanded={comboboxOpen}
-                      className="w-full justify-between bg-gray-700 border-gray-600 text-white hover:bg-gray-600 hover:text-gray-200"
+                      className="w-full justify-between bg-gray-700 border-gray-600 text-white hover:bg-gray-600 hover:text-white"
                       disabled={isLoadingSchools}
                     >
                       {selectedSchoolId && selectedSchool ? (
                         <div className="flex flex-col text-left">
                           <span className="font-medium">{selectedSchool.name}</span>
                           <span className="text-sm text-gray-400">
-                            {selectedSchool.type.replace('_', ' ')} • {selectedSchool.location}, {selectedSchool.state}
+                            {selectedSchool.type.replace('_', ' ')} • {selectedSchool.location}, {US_STATES.find(s => s.value === selectedSchool.state)?.label ?? selectedSchool.state}
                           </span>
                         </div>
                       ) : (
@@ -194,6 +282,8 @@ export function SchoolAssociationRequestForm() {
                               onClick={() => {
                                 setIsNewSchoolRequest(true);
                                 setComboboxOpen(false);
+                                setStateComboboxOpen(false);
+                                setRegionComboboxOpen(false);
                               }}
                               className="bg-gray-600 hover:bg-gray-500 text-white border-gray-500"
                             >
@@ -211,7 +301,7 @@ export function SchoolAssociationRequestForm() {
                                 setSelectedSchoolId(school.id);
                                 setComboboxOpen(false);
                               }}
-                              className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                              className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                             >
                               <CheckIcon
                                 className={cn(
@@ -222,7 +312,7 @@ export function SchoolAssociationRequestForm() {
                               <div className="flex flex-col">
                                 <span className="font-medium text-white">{school.name}</span>
                                 <span className="text-sm text-gray-400">
-                                  {school.type.replace('_', ' ')} • {school.location}, {school.state}
+                                  {school.type.replace('_', ' ')} • {school.location}, {US_STATES.find(s => s.value === school.state)?.label ?? school.state}
                                 </span>
                               </div>
                             </CommandItem>
@@ -232,6 +322,8 @@ export function SchoolAssociationRequestForm() {
                             onSelect={() => {
                               setIsNewSchoolRequest(true);
                               setComboboxOpen(false);
+                              setStateComboboxOpen(false);
+                              setRegionComboboxOpen(false);
                             }}
                             className="text-cyan-400 hover:bg-gray-600 hover:text-cyan-300 data-[selected=true]:bg-gray-600 data-[selected=true]:text-cyan-300"
                           >
@@ -275,11 +367,11 @@ export function SchoolAssociationRequestForm() {
                         <Button
                           variant="outline"
                           role="combobox"
-                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500"
+                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500 hover:text-white"
                         >
                           {newSchoolData.type ? (
                             newSchoolData.type === "HIGH_SCHOOL" ? "High School" :
-                            newSchoolData.type === "COLLEGE" ? "College" : "University"
+                            newSchoolData.type === "COLLEGE" ? "2-year post secondary institution (College)" : "4-year post secondary institution (University)"
                           ) : "Select type..."}
                           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -290,7 +382,7 @@ export function SchoolAssociationRequestForm() {
                             <CommandGroup>
                               <CommandItem
                                 onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "HIGH_SCHOOL" }))}
-                                className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                                className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                               >
                                 <CheckIcon
                                   className={cn(
@@ -302,7 +394,7 @@ export function SchoolAssociationRequestForm() {
                               </CommandItem>
                               <CommandItem
                                 onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "COLLEGE" }))}
-                                className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                                className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                               >
                                 <CheckIcon
                                   className={cn(
@@ -310,11 +402,11 @@ export function SchoolAssociationRequestForm() {
                                     newSchoolData.type === "COLLEGE" ? "opacity-100" : "opacity-0"
                                   )}
                                 />
-                                College
+                                2-year post secondary institution (College)
                               </CommandItem>
                               <CommandItem
                                 onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "UNIVERSITY" }))}
-                                className="text-white hover:bg-gray-600 data-[selected=true]:bg-gray-600"
+                                className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                               >
                                 <CheckIcon
                                   className={cn(
@@ -322,7 +414,7 @@ export function SchoolAssociationRequestForm() {
                                     newSchoolData.type === "UNIVERSITY" ? "opacity-100" : "opacity-0"
                                   )}
                                 />
-                                University
+                                4-year post secondary institution (University)
                               </CommandItem>
                             </CommandGroup>
                           </CommandList>
@@ -338,10 +430,10 @@ export function SchoolAssociationRequestForm() {
                     <Input
                       id="schoolLocation"
                       type="text"
-                      placeholder="Enter city"
+                      placeholder="Enter city (e.g., Boston, San Francisco, etc.)"
                       value={newSchoolData.location}
                       onChange={(e) => setNewSchoolData(prev => ({ ...prev, location: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white"
+                      className="bg-gray-600 border-gray-500 text-white placeholder:text-gray-400"
                     />
                   </div>
                   
@@ -349,28 +441,126 @@ export function SchoolAssociationRequestForm() {
                     <Label htmlFor="schoolState" className="text-gray-300">
                       State *
                     </Label>
-                    <Input
-                      id="schoolState"
-                      type="text"
-                      placeholder="Enter state"
-                      value={newSchoolData.state}
-                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, state: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white"
-                    />
+                    <Popover open={stateComboboxOpen} onOpenChange={setStateComboboxOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={stateComboboxOpen}
+                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500 hover:text-white"
+                        >
+                          {newSchoolData.state ? US_STATES.find(s => s.value === newSchoolData.state)?.label : "Select state..."}
+                          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                        <Command className="bg-gray-700">
+                          <CommandInput 
+                            placeholder="Search states..." 
+                            className="bg-gray-700 text-white border-none"
+                          />
+                          <CommandList>
+                            <CommandEmpty className="py-6 text-center text-sm text-gray-400">
+                              <div className="space-y-2">
+                                <p>No states found.</p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                                                             {US_STATES.map((state) => (
+                                 <CommandItem
+                                   key={state.value}
+                                   value={state.label}
+                                   onSelect={() => {
+                                     setNewSchoolData(prev => ({ ...prev, state: state.value }));
+                                     setStateComboboxOpen(false);
+                                   }}
+                                   className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
+                                 >
+                                  <CheckIcon
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newSchoolData.state === state.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {state.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="schoolRegion" className="text-gray-300">
                       Region (Optional)
                     </Label>
-                    <Input
-                      id="schoolRegion"
-                      type="text"
-                      placeholder="Enter region"
-                      value={newSchoolData.region}
-                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, region: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white"
-                    />
+                    <Popover open={regionComboboxOpen} onOpenChange={setRegionComboboxOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={regionComboboxOpen}
+                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500 hover:text-white"
+                        >
+                          {newSchoolData.region ? US_REGIONS.find(r => r.value === newSchoolData.region)?.label : "Select region..."}
+                          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                        <Command className="bg-gray-700">
+                          <CommandInput 
+                            placeholder="Search regions..." 
+                            className="bg-gray-700 text-white border-none"
+                          />
+                          <CommandList>
+                            <CommandEmpty className="py-6 text-center text-sm text-gray-400">
+                              <div className="space-y-2">
+                                <p>No regions found.</p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                value=""
+                                onSelect={() => {
+                                  setNewSchoolData(prev => ({ ...prev, region: "" }));
+                                  setRegionComboboxOpen(false);
+                                }}
+                                className="text-gray-400 hover:bg-gray-600 hover:text-gray-400 data-[selected=true]:bg-gray-600 data-[selected=true]:text-gray-400"
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    !newSchoolData.region ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                No region selected
+                              </CommandItem>
+                              {US_REGIONS.map((region) => (
+                                <CommandItem
+                                  key={region.value}
+                                  value={region.label}
+                                  onSelect={() => {
+                                    setNewSchoolData(prev => ({ ...prev, region: region.value }));
+                                    setRegionComboboxOpen(false);
+                                  }}
+                                  className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
+                                >
+                                  <CheckIcon
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newSchoolData.region === region.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {region.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   
                   <div className="space-y-2">
@@ -380,10 +570,10 @@ export function SchoolAssociationRequestForm() {
                     <Input
                       id="schoolWebsite"
                       type="url"
-                      placeholder="Enter website URL"
+                      placeholder="https://example.com"
                       value={newSchoolData.website}
                       onChange={(e) => setNewSchoolData(prev => ({ ...prev, website: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white"
+                      className="bg-gray-600 border-gray-500 text-white placeholder:text-gray-400"
                     />
                   </div>
                 </div>
@@ -398,7 +588,7 @@ export function SchoolAssociationRequestForm() {
               <div className="text-sm text-gray-300 space-y-1">
                 <p><span className="font-medium">Name:</span> {selectedSchool.name}</p>
                 <p><span className="font-medium">Type:</span> {selectedSchool.type.replace('_', ' ')}</p>
-                <p><span className="font-medium">Location:</span> {selectedSchool.location}, {selectedSchool.state}</p>
+                <p><span className="font-medium">Location:</span> {selectedSchool.location}, {US_STATES.find(s => s.value === selectedSchool.state)?.label ?? selectedSchool.state}</p>
                 {selectedSchool.region && (
                   <p><span className="font-medium">Region:</span> {selectedSchool.region}</p>
                 )}
