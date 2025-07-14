@@ -18,7 +18,9 @@ import {
   TrashIcon,
   PinIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  ZapIcon,
+  ArrowRightIcon
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/trpc/react";
@@ -212,63 +214,80 @@ export default function CoachesDashboard() {
     {
       title: "Search Players",
       description: "Find and scout talented players",
-      icon: SearchIcon,
       href: "/dashboard/coaches/player-search",
-      color: "from-blue-600 to-blue-700",
+      color: "from-blue-500 to-blue-600",
       requiresOnboarding: true,
       comingSoon: true
     },
     {
       title: "Create Tryout",
       description: "Organize a new tryout event",
-      icon: PlusIcon,
       href: "/dashboard/coaches/tryouts",
-      color: "from-green-600 to-green-700",
+      color: "from-green-500 to-green-600",
       requiresOnboarding: true,
       comingSoon: false
     },
     {
       title: "View Profile",
       description: "Manage your coach profile",
-      icon: EyeIcon,
       href: "/dashboard/coaches/profile",
-      color: "from-purple-600 to-purple-700",
+      color: "from-purple-500 to-purple-600",
       requiresOnboarding: false,
       comingSoon: false
     },
+    {
+      title: "Messages",
+      description: "Connect with players",
+      href: "/dashboard/coaches/messages",
+      color: "from-pink-500 to-pink-600",
+      requiresOnboarding: true,
+      comingSoon: true
+    }
   ];
 
   const stats = [
     {
       title: "My Prospects",
       value: canAccess ? prospectsCount.toString() : "—",
-      icon: UsersIcon,
       description: canAccess ? "Players you're tracking" : "Available after onboarding",
       href: canAccess ? "/dashboard/coaches/prospects" : undefined,
+      color: "from-blue-500/5 to-blue-600/5",
+      borderColor: "border-blue-500/20",
+      textColor: "text-blue-400",
+      bgColor: "bg-blue-500/20"
     },
     {
       title: "Active Tryouts",
       value: canAccess ? activeTryoutsCount.toString() : "—",
-      icon: TrophyIcon,
       description: canAccess ? "Ongoing recruitment events" : "Available after onboarding",
       href: canAccess ? "/dashboard/coaches/tryouts" : undefined,
+      color: "from-green-500/5 to-green-600/5", 
+      borderColor: "border-green-500/20",
+      textColor: "text-green-400",
+      bgColor: "bg-green-500/20"
     },
     {
       title: "Unread Messages",
       value: canAccess ? unreadMessagesCount.toString() : "—",
-      icon: MessageSquareIcon,
       description: canAccess ? "New player inquiries" : "Available after onboarding",
       href: canAccess ? "/dashboard/coaches/messages" : undefined,
+      color: "from-purple-500/5 to-purple-600/5",
+      borderColor: "border-purple-500/20", 
+      textColor: "text-purple-400",
+      bgColor: "bg-purple-500/20"
     },
   ];
 
   if (isLoadingSchool) {
     return (
       <div className="space-y-8">
-        <div className="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg p-8 text-white">
-          <h1 className="text-3xl font-orbitron font-bold mb-2">
-            Loading Dashboard...
-          </h1>
+        <div className="relative">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDU5LCAxMzAsIDI0NiwgMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
+          <div className="relative z-10 p-8 rounded-2xl bg-gradient-to-r from-cyan-600/10 via-blue-600/10 to-purple-600/10 border border-cyan-500/20">
+            <h1 className="text-4xl font-orbitron font-bold text-white mb-2">
+              Loading Dashboard...
+            </h1>
+          </div>
         </div>
       </div>
     );
@@ -281,17 +300,35 @@ export default function CoachesDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg p-8 text-white">
-        <h1 className="text-3xl font-orbitron font-bold mb-2">
-          Welcome back, Coach {user?.firstName}!
-        </h1>
-        <p className="text-cyan-100 font-rajdhani text-lg">
-          {canAccess 
-            ? "Manage your recruitment pipeline and discover the next generation of esports talent."
-            : "Complete your onboarding to start recruiting talented esports players."
-          }
-        </p>
+      {/* Enhanced Hero Header */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDU5LCAxMzAsIDI0NiwgMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
+        
+        <div className="relative z-10 p-8 rounded-2xl bg-gradient-to-r from-cyan-600/10 via-blue-600/10 to-purple-600/10 border border-cyan-500/20">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-6 lg:mb-0">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-cyan-500/20 rounded-lg">
+                  <ZapIcon className="h-6 w-6 text-cyan-400" />
+                </div>
+                <h1 className="text-4xl font-orbitron font-bold text-white">
+                  Coach Dashboard
+                </h1>
+              </div>
+              <p className="text-gray-300 text-lg font-rajdhani mb-4">
+                {canAccess 
+                  ? `Welcome back, Coach ${user?.firstName}! Manage your recruitment pipeline and discover talent.`
+                  : "Complete your onboarding to start recruiting talented esports players."
+                }
+              </p>
+              <div className="flex items-center gap-4 text-sm">
+                <Badge variant="outline" className="border-cyan-400/50 text-cyan-400">
+                  Coach Dashboard
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Onboarding Status Card */}
@@ -387,28 +424,36 @@ export default function CoachesDashboard() {
         </Card>
       )}
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
+      {/* Enhanced Stats Grid */}
+      <div className="grid md:grid-cols-3 gap-0">
+        {stats.map((stat, index) => {
+          let roundedClasses = "";
+          
+          // Mobile (single column): first rounded top, last rounded bottom
+          if (index === 0) roundedClasses += " rounded-t-lg rounded-b-none";
+          if (index === 1) roundedClasses += " rounded-t-none rounded-b-none";
+          if (index === stats.length - 1) roundedClasses += " rounded-b-lg rounded-t-none";
+          
+          // Desktop (3 columns): single row [0] [1] [2]
+          if (index === 0) roundedClasses += " md:rounded-l-lg md:rounded-r-none"; // left side only
+          if (index === 1) roundedClasses += " md:rounded-none"; // middle card: no rounding
+          if (index === 2) roundedClasses += " md:rounded-r-lg md:rounded-l-none"; // right side only
+
           const StatCard = (
-            <Card key={stat.title} className={`bg-gray-900 border-gray-800 ${!canAccess ? 'opacity-60' : stat.href ? 'hover:border-cyan-400 cursor-pointer' : ''} transition-colors`}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm font-rajdhani">
-                      {stat.title}
-                    </p>
-                    <p className="text-3xl font-orbitron font-bold text-white">
-                      {stat.value}
-                    </p>
-                    <p className="text-gray-500 text-xs mt-1">
-                      {stat.description}
-                    </p>
-                  </div>
-                  <Icon className={`h-8 w-8 ${canAccess ? 'text-cyan-400' : 'text-gray-600'}`} />
+            <Card className={`bg-gradient-to-br ${stat.color} ${stat.borderColor} ${!canAccess ? 'opacity-60' : stat.href ? 'hover:border-cyan-400/40 cursor-pointer' : ''} transition-all duration-300 p-6 shadow-xl ${roundedClasses}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 ${stat.bgColor} rounded-xl`}>
+                  <div className={`w-2 h-2 ${stat.textColor.replace('text-', 'bg-')} rounded-full`}></div>
                 </div>
-              </CardContent>
+                <Badge variant="outline" className={`${stat.borderColor} ${stat.textColor}`}>
+                  Active
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-rajdhani font-semibold text-white">{stat.title}</h3>
+                <p className={`text-3xl font-orbitron font-bold ${stat.textColor}`}>{stat.value}</p>
+                <p className="text-sm text-gray-400">{stat.description}</p>
+              </div>
             </Card>
           );
 
@@ -417,81 +462,81 @@ export default function CoachesDashboard() {
               {StatCard}
             </Link>
           ) : (
-            StatCard
+            <div key={stat.title}>
+              {StatCard}
+            </div>
           );
         })}
       </div>
 
-      {/* Quick Actions Panel - Now Collapsible */}
-      <Collapsible open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
-        <Card className="bg-gray-900 border-gray-800">
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-gray-800 transition-colors">
-              <CardTitle className="text-white font-orbitron flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <PlusIcon className="w-5 h-5 text-cyan-400" />
-                  Quick Actions
-                </div>
-                {isQuickActionsOpen ? (
-                  <ChevronUpIcon className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <ChevronDownIcon className="w-5 h-5 text-gray-400" />
-                )}
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {quickActions.map((action) => {
-                  const Icon = action.icon;
-                  const isLocked = action.requiresOnboarding && !canAccess;
-                  const isComingSoon = action.comingSoon;
-                  
-                  return (
-                    <div key={action.title} className="relative">
-                      <Link
-                        href={isLocked || isComingSoon ? "#" : action.href}
-                        className={`block ${isLocked || isComingSoon ? 'cursor-not-allowed' : ''}`}
-                        onClick={(e) => {
-                          if (isLocked || isComingSoon) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        <div className={`bg-gradient-to-br ${action.color} p-6 rounded-lg text-white transform transition-all duration-200 hover:scale-105 hover:shadow-lg ${isLocked || isComingSoon ? 'opacity-60' : ''}`}>
-                          <div className="flex items-center gap-3 mb-2">
-                            {isLocked ? (
-                              <AlertCircleIcon className="w-6 h-6 text-gray-200" />
-                            ) : (
-                              <Icon className="w-6 h-6 text-white" />
-                            )}
-                            <h3 className="font-orbitron font-semibold text-lg">
-                              {action.title}
-                            </h3>
-                          </div>
-                          <p className="text-sm text-white/80 font-rajdhani">
-                            {isLocked ? "Available after onboarding" : action.description}
-                          </p>
+      {/* Quick Actions */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <ZapIcon className="h-5 w-5 text-cyan-400" />
+          <h2 className="text-2xl font-orbitron font-bold text-white">Quick Actions</h2>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-0">
+          {quickActions.map((action, index) => {
+            let roundedClasses = "";
+            
+            // Mobile (single column): 
+            if (index === 0) roundedClasses += " rounded-t-lg rounded-b-none";
+            if (index === 1) roundedClasses += " rounded-none";
+            if (index === 2) roundedClasses += " rounded-none";
+            if (index === quickActions.length - 1) roundedClasses += " rounded-b-lg rounded-t-none";
+            
+            // Medium screens (2 columns): 2x2 grid
+            if (index === 0) roundedClasses += " md:rounded-tl-lg md:rounded-bl-none md:rounded-tr-none md:rounded-br-none";
+            if (index === 1) roundedClasses += " md:rounded-tr-lg md:rounded-tl-none md:rounded-bl-none md:rounded-br-none";
+            if (index === 2) roundedClasses += " md:rounded-bl-lg md:rounded-tl-none md:rounded-tr-none md:rounded-br-none";
+            if (index === 3) roundedClasses += " md:rounded-br-lg md:rounded-tl-none md:rounded-tr-none md:rounded-bl-none";
+            
+            // Large screens (4 columns): single row
+            if (index === 0) roundedClasses += " lg:rounded-l-lg lg:rounded-r-none";
+            if (index === 1 || index === 2) roundedClasses += " lg:rounded-none";
+            if (index === 3) roundedClasses += " lg:rounded-r-lg lg:rounded-l-none";
+
+            const isLocked = action.requiresOnboarding && !canAccess;
+            const isComingSoon = action.comingSoon;
+            
+            return (
+              <div key={index} className="relative">
+                <Link
+                  href={isLocked || isComingSoon ? "#" : action.href}
+                  className={`block ${isLocked || isComingSoon ? 'cursor-not-allowed' : ''}`}
+                  onClick={(e) => {
+                    if (isLocked || isComingSoon) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <Card className={`bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 hover:border-gray-600/70 transition-all duration-300 p-4 h-full cursor-pointer group shadow-lg hover:shadow-xl ${isLocked || isComingSoon ? 'opacity-60' : ''} ${roundedClasses}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-rajdhani font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                            {action.title}
+                          </h3>
                         </div>
-                      </Link>
-                      
-                      {/* Coming Soon overlay for Search Players */}
-                      {isComingSoon && (
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-yellow-500 text-black font-orbitron text-xs px-2 py-1">
-                            Coming Soon
-                          </Badge>
-                        </div>
-                      )}
+                        <p className="text-xs text-gray-400">{isLocked ? "Available after onboarding" : action.description}</p>
+                      </div>
+                      <ArrowRightIcon className="h-4 w-4 text-gray-400 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all duration-200" />
                     </div>
-                  );
-                })}
+                  </Card>
+                </Link>
+                
+                {isComingSoon && (
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-yellow-500 text-black font-orbitron text-xs px-2 py-1">
+                      Coming Soon
+                    </Badge>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+            );
+          })}
+        </div>
+      </div>
 
       {/* School Announcements */}
       {canAccess && schoolId && (

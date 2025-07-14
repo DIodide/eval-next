@@ -57,6 +57,7 @@ export const schoolProfileRouter = createTRPCRouter({
           phone: true,
           bio: true,
           logo_url: true,
+          banner_url: true,
           created_at: true,
           coaches: {
             select: {
