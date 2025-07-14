@@ -1,22 +1,52 @@
 "use client"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Search, User, GraduationCap, X, Shield, Menu } from "lucide-react"
+import { ChevronDown, Search, User, GraduationCap, X, Shield, Menu, Trophy } from "lucide-react"
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { api } from "@/trpc/react"
+
+type SearchResult = {
+  id: string
+  type: "PLAYER" | "COACH" | "SCHOOL" | "LEAGUE"
+  title: string
+  subtitle: string
+  image_url: string | null
+  link: string | null
+  game?: {
+    name: string
+    short_name: string
+    icon: string | null
+    color: string | null
+  } | null
+  school?: {
+    id: string
+    name: string
+    type: string
+    logo_url: string | null
+  } | null
+}
 
 export default function Navbar() {
   const { user } = useUser()
   const pathname = usePathname()
+  const router = useRouter()
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [selectedUserType, setSelectedUserType] = useState<'player' | 'coach' | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  // Search functionality state
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showSearchResults, setShowSearchResults] = useState(false)
+  const [searchInputFocused, setSearchInputFocused] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchResultsRef = useRef<HTMLDivElement>(null)
   
   // Check if we're on a dashboard route
   const isDashboardRoute = pathname?.startsWith('/dashboard')
@@ -42,6 +72,50 @@ export default function Navbar() {
       setIsCheckingAdmin(false)
     }
   }, [user])
+
+  // Search functionality
+  const { data: searchResults, isLoading: isSearchLoading } = api.publicSearch.search.useQuery(
+    { query: searchQuery, limit: 8 },
+    { 
+      enabled: searchQuery.length >= 2, // Only search if query is at least 2 characters
+      staleTime: 30 * 1000, // Cache results for 30 seconds
+    }
+  )
+
+  // Handle clicking outside search to close results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchInputRef.current && 
+        !searchInputRef.current.contains(event.target as Node) &&
+        searchResultsRef.current &&
+        !searchResultsRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false)
+        setSearchInputFocused(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Show search results when we have results and input is focused
+  useEffect(() => {
+    setShowSearchResults(searchInputFocused && searchQuery.length >= 2 && (searchResults?.results.length ?? 0) > 0 && !isSearchLoading)
+  }, [searchInputFocused, searchQuery, searchResults, isSearchLoading])
+
+  const handleSearchResultClick = (result: SearchResult) => {
+    if (!result?.link) return
+    
+    // Navigate immediately for instant redirect
+    router.push(result.link)
+    
+    // Clean up state after navigation
+    setSearchQuery("")
+    setShowSearchResults(false)
+    setSearchInputFocused(false)
+  }
 
   const handleUserTypeSelect = (userType: 'player' | 'coach') => {
     setSelectedUserType(userType)
@@ -199,11 +273,118 @@ export default function Navbar() {
           {/* Search - Hidden on mobile, visible on md+ */}
           <div className="relative hidden md:block">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="SEARCH PLAYER"
-              className="search-rainbow font-orbitron glass-morphism text-premium text-white rounded-xl pl-4 pr-10 py-1 w-48 border-white/20"
+              placeholder="SEARCH PLAYERS, COACHES, SCHOOLS & LEAGUES"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchInputFocused(true)}
+              className="search-rainbow font-orbitron glass-morphism text-premium text-white rounded-xl pl-4 pr-10 py-2 w-64 border-white/20 transition-all duration-300 focus:w-72"
             />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            {isSearchLoading && searchQuery.length >= 2 ? (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-cyan-400 border-t-transparent"></div>
+              </div>
+            ) : (
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            )}
+            
+            {/* Search Results Dropdown */}
+            {(showSearchResults || (isSearchLoading && searchQuery.length >= 2)) && (
+              <div
+                ref={searchResultsRef}
+                className="absolute top-full left-0 mt-2 glass-morphism border border-white/20 rounded-xl shadow-lg z-50 min-w-96 w-max max-w-lg esports-card"
+                style={{
+                  maxHeight: searchResults && searchResults.results.length === 1 ? 'auto' : '20rem',
+                  overflowY: searchResults && searchResults.results.length <= 2 ? 'hidden' : 'auto',
+                  overflowX: 'hidden'
+                }}
+              >
+                {isSearchLoading && searchQuery.length >= 2 ? (
+                  <div className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-cyan-400 border-t-transparent"></div>
+                      <span className="text-gray-300 font-inter">Searching...</span>
+                    </div>
+                  </div>
+                ) : (
+                  searchResults?.results.map((result) => (
+                    <button
+                      key={result.id}
+                      onClick={() => handleSearchResultClick(result)}
+                      className="w-full px-6 py-4 text-left hover:bg-white/10 border-b border-white/10 last:border-b-0 transition-all duration-300 group"
+                    >
+                    <div className="flex items-center space-x-3">
+                      {/* Profile Image or Game Icon */}
+                      <div className="flex-shrink-0">
+                        {result.image_url ? (
+                          <img
+                            src={result.image_url}
+                            alt={result.title}
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300"
+                          />
+                        ) : result.type === "PLAYER" && result.game?.icon ? (
+                          <img
+                            src={result.game.icon}
+                            alt={result.game.name}
+                            className="w-10 h-10 rounded object-cover ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300"
+                          />
+                        ) : result.type === "SCHOOL" ? (
+                          <div className="w-10 h-10 rounded bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300">
+                            <GraduationCap className="w-5 h-5 text-white" />
+                          </div>
+                        ) : result.type === "LEAGUE" ? (
+                          <div className="w-10 h-10 rounded bg-gradient-to-br from-orange-500 to-yellow-600 flex items-center justify-center ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300">
+                            <Trophy className="w-5 h-5 text-white" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Result Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-semibold truncate font-inter group-hover:text-cyan-300 transition-colors duration-300">
+                          {result.title}
+                        </div>
+                        <div className="text-gray-300 text-sm truncate font-inter">
+                          {result.subtitle}
+                        </div>
+                        {result.type === "PLAYER" && result.game && (
+                          <div className="text-xs text-cyan-400 font-medium mt-1">
+                            {result.game.name}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Type Badge */}
+                      <div className="flex-shrink-0">
+                        <span className={`px-3 py-1 text-xs rounded-full font-semibold font-inter tracking-wide transition-all duration-300 ${
+                          result.type === "PLAYER" 
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white group-hover:from-cyan-400 group-hover:to-blue-500" 
+                            : result.type === "COACH"
+                            ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white group-hover:from-green-400 group-hover:to-emerald-500"
+                            : result.type === "LEAGUE"
+                            ? "bg-gradient-to-r from-orange-500 to-yellow-600 text-white group-hover:from-orange-400 group-hover:to-yellow-500"
+                            : "bg-gradient-to-r from-purple-500 to-violet-600 text-white group-hover:from-purple-400 group-hover:to-violet-500"
+                        }`}>
+                          {result.type}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                  ))
+                )}
+                
+                {!isSearchLoading && searchQuery.length >= 2 && searchResults?.results.length === 0 && (
+                  <div className="px-6 py-4 text-gray-400 text-center font-inter">
+                    No results found for &quot;{searchQuery}&quot;
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* User buttons - visible on desktop */}
@@ -286,12 +467,120 @@ export default function Navbar() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="PLAYER SEARCH"
-                className="search-rainbow w-full bg-gray-800 text-gray-300 rounded-full pl-4 pr-10 py-2"
+                placeholder="SEARCH PLAYERS, COACHES, SCHOOLS & LEAGUES"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchInputFocused(true)}
+                className="search-rainbow w-full glass-morphism text-white rounded-xl pl-4 pr-12 py-3 font-inter transition-all duration-300"
               />
-              <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <Search className="w-5 h-5 text-white" />
-              </button>
+              {isSearchLoading && searchQuery.length >= 2 ? (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-cyan-400 border-t-transparent"></div>
+                </div>
+              ) : (
+                <button type="button" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Search className="w-5 h-5 text-gray-400" />
+                </button>
+              )}
+              
+              {/* Mobile Search Results */}
+              {(showSearchResults || (isSearchLoading && searchQuery.length >= 2)) && (
+                <div 
+                  className="absolute top-full left-0 right-0 mt-2 glass-morphism border border-white/20 rounded-xl shadow-lg z-50 esports-card"
+                  style={{
+                    maxHeight: searchResults && searchResults.results.length === 1 ? 'auto' : '20rem',
+                    overflowY: searchResults && searchResults.results.length <= 2 ? 'hidden' : 'auto',
+                    overflowX: 'hidden'
+                  }}
+                >
+                  {isSearchLoading && searchQuery.length >= 2 ? (
+                    <div className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-cyan-400 border-t-transparent"></div>
+                        <span className="text-gray-300 font-inter">Searching...</span>
+                      </div>
+                    </div>
+                  ) : (
+                    searchResults?.results.map((result) => (
+                      <button
+                        key={result.id}
+                        onClick={() => {
+                          handleSearchResultClick(result)
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="w-full px-6 py-4 text-left hover:bg-white/10 border-b border-white/10 last:border-b-0 transition-all duration-300 group"
+                      >
+                      <div className="flex items-center space-x-3">
+                        {/* Profile Image or Game Icon */}
+                        <div className="flex-shrink-0">
+                          {result.image_url ? (
+                            <img
+                              src={result.image_url}
+                              alt={result.title}
+                              className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300"
+                            />
+                          ) : result.type === "PLAYER" && result.game?.icon ? (
+                            <img
+                              src={result.game.icon}
+                              alt={result.game.name}
+                              className="w-10 h-10 rounded object-cover ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300"
+                            />
+                          ) : result.type === "SCHOOL" ? (
+                            <div className="w-10 h-10 rounded bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300">
+                              <GraduationCap className="w-5 h-5 text-white" />
+                            </div>
+                          ) : result.type === "LEAGUE" ? (
+                            <div className="w-10 h-10 rounded bg-gradient-to-br from-orange-500 to-yellow-600 flex items-center justify-center ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300">
+                              <Trophy className="w-5 h-5 text-white" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center ring-2 ring-white/20 group-hover:ring-cyan-400/50 transition-all duration-300">
+                              <User className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Result Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white font-semibold truncate font-inter group-hover:text-cyan-300 transition-colors duration-300">
+                            {result.title}
+                          </div>
+                          <div className="text-gray-300 text-sm truncate font-inter">
+                            {result.subtitle}
+                          </div>
+                          {result.type === "PLAYER" && result.game && (
+                            <div className="text-xs text-cyan-400 font-medium mt-1">
+                              {result.game.name}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Type Badge */}
+                        <div className="flex-shrink-0">
+                          <span className={`px-3 py-1 text-xs rounded-full font-semibold font-inter tracking-wide transition-all duration-300 ${
+                            result.type === "PLAYER" 
+                              ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white group-hover:from-cyan-400 group-hover:to-blue-500" 
+                              : result.type === "COACH"
+                              ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white group-hover:from-green-400 group-hover:to-emerald-500"
+                              : result.type === "LEAGUE"
+                              ? "bg-gradient-to-r from-orange-500 to-yellow-600 text-white group-hover:from-orange-400 group-hover:to-yellow-500"
+                              : "bg-gradient-to-r from-purple-500 to-violet-600 text-white group-hover:from-purple-400 group-hover:to-violet-500"
+                          }`}>
+                            {result.type}
+                          </span>
+                        </div>
+                      </div>
+                      </button>
+                    ))
+                  )}
+                  
+                  {!isSearchLoading && searchQuery.length >= 2 && searchResults?.results.length === 0 && (
+                    <div className="px-6 py-4 text-gray-400 text-center font-inter">
+                      No results found for &quot;{searchQuery}&quot;
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Mobile Navigation Links */}

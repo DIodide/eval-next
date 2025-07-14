@@ -14,6 +14,7 @@ import { valorantStatsRouter } from "@/server/api/routers/valorantStats";
 import { rocketLeagueStatsRouter } from "@/server/api/routers/rocketLeagueStats";
 import { adminDirectoryRouter } from "@/server/api/routers/adminDirectory";
 import { adminManagementRouter } from "@/server/api/routers/adminManagement";
+import { publicSearchRouter } from "@/server/api/routers/publicSearch";
 
 /**
  * This is the primary router for your server.
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   combines: combinesRouter,
   messages: messagesRouter,
   playerSearch: playerSearchRouter,
+  publicSearch: publicSearchRouter,
   leagues: leaguesRouter,
   leagueAdminProfile: leagueAdminProfileRouter,
   leagueAssociationRequests: leagueAssociationRequestsRouter,
