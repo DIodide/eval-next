@@ -7,7 +7,7 @@ import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/app/_components/Navbar";
-import Footer from "@/app/_components/Footer";
+import ConditionalFooter from "@/app/_components/ConditionalFooter";
 import BackgroundManager from "@/app/_components/BackgroundManager";
 import { PostHogProvider } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
@@ -60,7 +60,7 @@ export default function RootLayout({
             <main className="flex-grow">
               {children}
             </main>
-            <Footer />
+            <ConditionalFooter />
             <Toaster richColors position="bottom-left" />
           </TRPCReactProvider>
           </PostHogProvider>
