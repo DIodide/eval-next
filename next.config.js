@@ -16,6 +16,12 @@ const config = {
       },
       {
         protocol: "https",
+        hostname: "fsbzgqemezbfaazaptuu.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
         hostname: "img.clerk.com",
         port: "",
         pathname: "/**",
