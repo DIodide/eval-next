@@ -21,7 +21,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="h-[calc(100vh-64px)] bg-gray-900">
       <AdminNavigation />
       <main className="container mx-auto px-4 py-8">
         {children}

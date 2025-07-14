@@ -179,7 +179,7 @@ export default function HighlightsPage() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto p-6 space-y-8">
         {/* Enhanced Page Header */}
         <motion.div 
           className="relative"

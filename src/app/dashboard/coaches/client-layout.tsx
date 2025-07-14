@@ -134,7 +134,7 @@ export function CoachesDashboardClientLayout({
   ];
 
   return (
-    <div className="flex h-screen bg-[#0f0f1a]">
+    <div className="flex max-h-[calc(100vh-80px)] bg-[#0f0f1a]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div

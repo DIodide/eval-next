@@ -198,7 +198,7 @@ export default function PlayerMessagesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-gray-900">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto p-6 space-y-8">
         {/* Enhanced Page Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 rounded-2xl blur-xl" />
