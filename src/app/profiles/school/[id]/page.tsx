@@ -223,11 +223,11 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             size="sm"
             onClick={prevSlide}
             disabled={totalPages <= 1}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="border-gray-700/50 text-gray-300 hover:bg-gray-700/30 hover:text-white hover:border-gray-600/70 backdrop-blur-sm bg-black/20 transition-all duration-300"
           >
             <ChevronLeftIcon className="w-4 h-4" />
           </Button>
-          <span className="text-gray-400 text-sm font-rajdhani">
+          <span className="text-gray-400 text-sm font-rajdhani bg-black/20 backdrop-blur-sm border border-gray-700/30 px-2 py-1 rounded">
             {currentIndex + 1} / {totalPages}
           </span>
           <Button
@@ -235,7 +235,7 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             size="sm"
             onClick={nextSlide}
             disabled={totalPages <= 1}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="border-gray-700/50 text-gray-300 hover:bg-gray-700/30 hover:text-white hover:border-gray-600/70 backdrop-blur-sm bg-black/20 transition-all duration-300"
           >
             <ChevronRightIcon className="w-4 h-4" />
           </Button>
@@ -251,12 +251,12 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             transition={{ delay: index * 0.05, duration: 0.3 }}
             variants={cardHoverVariants}
             whileHover="hover"
-            className={`relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border rounded-lg shadow-lg backdrop-blur-sm ${
-              coach.isPrimary ? 'border-cyan-500/50' : 'border-gray-700/50'
+            className={`relative bg-[#1a1a2e]/80 backdrop-blur-sm border shadow-xl hover:shadow-2xl transition-all duration-300 ${
+              coach.isPrimary ? 'border-cyan-500/30 hover:border-cyan-400/50' : 'border-gray-700/50 hover:border-gray-600/70'
             }`}
           >
             {coach.isPrimary && (
-              <Badge className="absolute -top-1.5 -right-1.5 bg-cyan-600 text-white font-orbitron text-xs z-10">
+              <Badge className="absolute -top-1.5 -right-1.5 bg-cyan-600/90 backdrop-blur-sm text-white font-orbitron text-xs z-10 border border-cyan-500/30">
                 Primary Contact
               </Badge>
             )}
@@ -266,9 +266,9 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Avatar className="w-12 h-12 ring-2 ring-cyan-400/20">
+                  <Avatar className="w-12 h-12 ring-2 ring-cyan-400/20 border border-gray-700/30">
                     <AvatarImage src={coach.image_url ?? undefined} alt={coach.name} />
-                    <AvatarFallback className="text-sm bg-gradient-to-br from-cyan-600 to-blue-600 text-white font-orbitron">
+                    <AvatarFallback className="text-sm bg-gradient-to-br from-cyan-600/80 to-blue-600/80 backdrop-blur-sm text-white font-orbitron border border-cyan-500/30">
                       {coach.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
@@ -298,8 +298,8 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
                   </div>
 
                   {/* Achievements */}
-                  <div>
-                    <div className="text-sm text-gray-400 mb-1 font-rajdhani">Recent Achievements:</div>
+                  <div className="bg-black/20 backdrop-blur-sm border border-gray-700/30 rounded p-3">
+                    <div className="text-sm text-gray-400 mb-2 font-rajdhani">Recent Achievements:</div>
                     <div className="space-y-1">
                       {coach.achievements.length > 0 ? (
                         coach.achievements.slice(0, 2).map((achievement) => (
@@ -333,8 +333,10 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-cyan-400' : 'bg-gray-600'
+              className={`w-2 h-2 rounded-full transition-all duration-300 backdrop-blur-sm border ${
+                index === currentIndex 
+                  ? 'bg-cyan-400/80 border-cyan-400/50 shadow-lg shadow-cyan-400/20' 
+                  : 'bg-gray-600/50 border-gray-600/30 hover:bg-gray-500/70 hover:border-gray-500/50'
               }`}
             />
           ))}
@@ -379,6 +381,44 @@ const getTypeColor = (type: string) => {
       return "bg-indigo-600";
     default:
       return "bg-gray-600";
+  }
+};
+
+// Helper function to get readable tryout type names
+const getReadableTypeName = (type: string): string => {
+  switch (type) {
+    case "ONLINE":
+      return "Online";
+    case "IN_PERSON":
+      return "In Person";
+    case "HYBRID":
+      return "Hybrid";
+    default:
+      return type;
+  }
+};
+
+// Helper function to get readable game names
+const getReadableGameName = (gameName: string): string => {
+  switch (gameName.toUpperCase()) {
+    case "VALORANT":
+      return "VALORANT";
+    case "OVERWATCH 2":
+      return "Overwatch 2";
+    case "SUPER SMASH BROS. ULTIMATE":
+      return "Smash Ultimate";
+    case "ROCKET LEAGUE":
+      return "Rocket League";
+    case "RL":
+      return "Rocket League";
+    case "VAL":
+      return "VALORANT";
+    case "OW2":
+      return "Overwatch 2";
+    case "SSBU":
+      return "Smash Ultimate";
+    default:
+      return gameName;
   }
 };
 
@@ -977,7 +1017,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     </div>
                     Program Tryouts
                   </CardTitle>
-                  <Badge variant="outline" className="text-orange-400 border-orange-400">
+                  <Badge variant="outline" className="text-orange-400 border-orange-400/50 bg-orange-400/10 backdrop-blur-sm">
                     {tryoutCounts.all} Total
                   </Badge>
                 </div>
@@ -986,33 +1026,33 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 {/* Tryout Filters */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   {/* Status Filter Tabs */}
-                  <div className="flex space-x-1 bg-gray-900/50 p-1 rounded-lg">
+                  <div className="flex space-x-1 bg-black/20 backdrop-blur-sm border border-gray-700/30 p-1 rounded">
                     <button
                       onClick={() => setTryoutFilter("all")}
-                      className={`px-3 py-1.5 rounded-md text-sm font-orbitron transition-colors ${
+                      className={`px-3 py-1.5 rounded text-sm font-orbitron transition-all duration-300 ${
                         tryoutFilter === "all" 
-                          ? "bg-orange-600 text-white" 
-                          : "text-gray-400 hover:text-white"
+                          ? "bg-orange-600/80 backdrop-blur-sm text-white border border-orange-500/30 shadow-lg shadow-orange-500/20" 
+                          : "text-gray-400 hover:text-white hover:bg-gray-700/30"
                       }`}
                     >
                       All ({tryoutCounts.all})
                     </button>
                     <button
                       onClick={() => setTryoutFilter("upcoming")}
-                      className={`px-3 py-1.5 rounded-md text-sm font-orbitron transition-colors ${
+                      className={`px-3 py-1.5 rounded text-sm font-orbitron transition-all duration-300 ${
                         tryoutFilter === "upcoming" 
-                          ? "bg-orange-600 text-white" 
-                          : "text-gray-400 hover:text-white"
+                          ? "bg-orange-600/80 backdrop-blur-sm text-white border border-orange-500/30 shadow-lg shadow-orange-500/20" 
+                          : "text-gray-400 hover:text-white hover:bg-gray-700/30"
                       }`}
                     >
                       Upcoming ({tryoutCounts.upcoming})
                     </button>
                     <button
                       onClick={() => setTryoutFilter("past")}
-                      className={`px-3 py-1.5 rounded-md text-sm font-orbitron transition-colors ${
+                      className={`px-3 py-1.5 rounded text-sm font-orbitron transition-all duration-300 ${
                         tryoutFilter === "past" 
-                          ? "bg-orange-600 text-white" 
-                          : "text-gray-400 hover:text-white"
+                          ? "bg-orange-600/80 backdrop-blur-sm text-white border border-orange-500/30 shadow-lg shadow-orange-500/20" 
+                          : "text-gray-400 hover:text-white hover:bg-gray-700/30"
                       }`}
                     >
                       Past ({tryoutCounts.past})
@@ -1024,7 +1064,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     <select
                       value={tryoutGameFilter}
                       onChange={(e) => setTryoutGameFilter(e.target.value)}
-                      className="bg-gray-900/50 border border-gray-600 rounded-md px-3 py-1.5 text-sm text-white font-rajdhani focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="bg-black/20 backdrop-blur-sm border border-gray-700/30 rounded px-3 py-1.5 text-sm text-white font-rajdhani focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300"
                     >
                       <option value="all">All Games</option>
                       {availableGames.map(game => (
@@ -1041,7 +1081,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                   {isLoadingTryouts ? (
                     <>
                       {Array.from({ length: 6 }).map((_, i) => (
-                        <Card key={i} className="bg-gray-900 border-gray-700">
+                        <Card key={i} className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 shadow-xl">
                           <CardContent className="p-4 space-y-3">
                             <div className="flex items-start justify-between">
                               <div className="flex items-center gap-3 flex-1">
@@ -1113,7 +1153,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                           variants={cardHoverVariants}
                           whileHover="hover"
                         >
-                          <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-700/50 shadow-lg hover:border-orange-400/50 transition-all duration-200 flex flex-col h-full">
+                          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 shadow-xl hover:border-orange-400/50 hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
                             <CardContent className="p-4 flex flex-col flex-1">
                               {/* Header */}
                               <div className="flex items-start justify-between mb-3">
@@ -1142,7 +1182,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                   {isUpcoming && spotsLeft <= 5 && spotsLeft > 0 && (
-                                    <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-400">
+                                    <Badge variant="outline" className="text-xs border-yellow-400/50 text-yellow-400 bg-yellow-400/10 backdrop-blur-sm">
                                       {spotsLeft} left
                                     </Badge>
                                   )}
@@ -1175,9 +1215,9 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                                   </div>
                                   <Badge 
                                     variant="outline" 
-                                    className={`text-xs border-0 text-white ${getTypeColor(tryout.type)}`}
+                                    className={`text-xs border-0 text-white backdrop-blur-sm ${getTypeColor(tryout.type)}/80`}
                                   >
-                                    {tryout.type}
+                                    {getReadableTypeName(tryout.type)}
                                   </Badge>
                                 </div>
 
@@ -1190,9 +1230,9 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                                   </div>
                                   <Badge 
                                     variant="outline" 
-                                    className={`text-xs border-0 text-white ${getGameColor(tryout.game.name)}`}
+                                    className={`text-xs border-0 text-white backdrop-blur-sm ${getGameColor(tryout.game.name)}/80`}
                                   >
-                                    {tryout.game.short_name ?? tryout.game.name}
+                                    {getReadableGameName(tryout.game.short_name ?? tryout.game.name)}
                                   </Badge>
                                 </div>
 
@@ -1240,7 +1280,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     <Button
                       asChild
                       variant="outline"
-                      className="border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-gray-900 font-orbitron shadow-lg"
+                      className="border-orange-400/50 text-orange-400 hover:bg-orange-400/10 hover:text-orange-300 hover:border-orange-400/70 font-orbitron shadow-xl backdrop-blur-sm bg-black/20 transition-all duration-300"
                     >
                       <a 
                         href="/tryouts/college"
