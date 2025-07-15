@@ -1,0 +1,4 @@
+# Schemas
+
+Whenever asked to curl from the evalgaming api, given the api url,
+make sure to curl the base api url /openapi.json to validate the schema.
