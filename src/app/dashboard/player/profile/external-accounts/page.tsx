@@ -434,10 +434,10 @@ export default function ManageExternalAccounts() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-orbitron font-bold text-white">
+        <h1 className=" text-3xl font-orbitron font-bold text-white">
           External Accounts
         </h1>
         <p className="text-gray-400 mt-2 font-rajdhani">
@@ -643,7 +643,7 @@ export default function ManageExternalAccounts() {
               const providerColor = getProviderColor(normalizedProvider)
               const displayName = getProviderDisplayName(normalizedProvider)
               
-                            return (
+              return (
                  <div key={strategy} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700">
                    <div className="flex items-center gap-3">
                      {Icon === 'valorant-logo' ? (

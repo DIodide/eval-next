@@ -300,7 +300,7 @@ export default function ProfilePage() {
       icon: GamepadIcon,
       displayName: "Smash Ultimate",
       color: "bg-gradient-to-r from-purple-500 to-purple-600",
-      requiresOAuth: false,
+      requiresOAuth: true,
       featured: true
     }
   ];
@@ -372,6 +372,17 @@ export default function ProfilePage() {
     if (config.requiresOAuth && config.platform === "epicgames") {
       const externalAccount = user?.externalAccounts?.find(account => 
         account.provider.includes("epic_games") || account.provider === "custom_epic_games"
+      );
+      
+      if (externalAccount && externalAccount.verification?.status === "verified") {
+        isOAuthConnected = true;
+        oauthUsername = externalAccount.username ?? externalAccount.emailAddress ?? "Connected Account";
+      }
+    }
+    
+    if (config.requiresOAuth && config.platform === "startgg") {
+      const externalAccount = user?.externalAccounts?.find(account => 
+        account.provider.includes("start_gg") || account.provider === "custom_start_gg"
       );
       
       if (externalAccount && externalAccount.verification?.status === "verified") {
@@ -554,7 +565,9 @@ export default function ProfilePage() {
                           account.verification?.status === "verified";
         const isEpicGames = (account.provider.includes("epic_games") || account.provider === "custom_epic_games") && 
                           account.verification?.status === "verified";
-        return isValorant || isEpicGames;
+        const isStartGG = (account.provider.includes("start_gg") || account.provider === "custom_start_gg") && 
+                         account.verification?.status === "verified";
+        return isValorant || isEpicGames || isStartGG;
       });
 
       if (isOAuthConnection) {
@@ -1556,7 +1569,8 @@ export default function ProfilePage() {
                          ? !user?.externalAccounts?.some(account => {
                              const isValorant = account.provider.includes("valorant") || account.provider === "custom_valorant";
                              const isEpicGames = account.provider.includes("epic_games") || account.provider === "custom_epic_games";
-                             return isValorant || isEpicGames;
+                             const isStartGG = account.provider.includes("start_gg") || account.provider === "custom_start_gg";
+                             return isValorant || isEpicGames || isStartGG;
                            })
                          : !connectionUsername.trim()
                        )
@@ -1583,7 +1597,9 @@ export default function ProfilePage() {
                                       account.verification?.status === "verified";
                     const isEpicGames = (account.provider.includes("epic_games") || account.provider === "custom_epic_games") && 
                                        account.verification?.status === "verified";
-                    return isValorant || isEpicGames;
+                    const isStartGG = (account.provider.includes("start_gg") || account.provider === "custom_start_gg") && 
+                                     account.verification?.status === "verified";
+                    return isValorant || isEpicGames || isStartGG;
                   });
 
                   return (

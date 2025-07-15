@@ -130,6 +130,16 @@ function GameAnalyticsDashboard() {
       }
     }
     
+    // Check start.gg connection for Smash Ultimate
+    if (currentGame.platform === 'startgg') {
+      const externalAccount = user?.externalAccounts?.find(account => 
+        account.provider.includes("start_gg") || account.provider === "custom_start_gg"
+      );
+      if (externalAccount && externalAccount.verification?.status === "verified") {
+        return true;
+      }
+    }
+    
     // Check platform_connections for other games
     return profileData?.platform_connections?.some(
       conn => conn.platform === currentGame.platform && conn.connected
@@ -935,11 +945,11 @@ function GameAnalyticsDashboard() {
           {!isGameConnected && (
             <>
               <p className="text-yellow-300 font-rajdhani text-xs mb-4">
-                Connect your {gameName} account now to be ready when analytics launch!
+                Connect your {gameName === 'Smash Ultimate' ? 'start.gg' : gameName} account now to be ready when analytics launch!
               </p>
-              <Link href="/dashboard/player/profile">
+              <Link href="/dashboard/player/profile/external-accounts">
                 <Button variant="outline" className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10">
-                  Connect {gameName} Account
+                  Connect {gameName === 'Smash Ultimate' ? 'start.gg' : gameName} Account
                   <ArrowRightIcon className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
@@ -1002,6 +1012,16 @@ function GameAnalyticsDashboard() {
                  }
                }
                
+               // Check start.gg connection for Smash Ultimate
+               if (game.platform === 'startgg') {
+                 const externalAccount = user?.externalAccounts?.find(account => 
+                   account.provider.includes("start_gg") || account.provider === "custom_start_gg"
+                 );
+                 if (externalAccount && externalAccount.verification?.status === "verified") {
+                   return true;
+                 }
+               }
+               
                // Check platform_connections for other games
                return profileData?.platform_connections?.some(
                  conn => conn.platform === game.platform && conn.connected
@@ -1049,7 +1069,8 @@ function GameAnalyticsDashboard() {
         {selectedGame === 'valorant' && !isGameConnected && renderComingSoon('VALORANT')}
         {selectedGame === 'rocket-league' && isGameConnected && renderRocketLeagueAnalytics()}
         {selectedGame === 'rocket-league' && !isGameConnected && renderComingSoon('Rocket League')}
-        {selectedGame === 'smash' && renderComingSoon('Smash Ultimate')}
+        {selectedGame === 'smash' && isGameConnected && renderComingSoon('Smash Ultimate')}
+        {selectedGame === 'smash' && !isGameConnected && renderComingSoon('Smash Ultimate')}
         {selectedGame === 'overwatch' && renderComingSoon('Overwatch 2')}
       </div>
     </Card>
