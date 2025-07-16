@@ -34,6 +34,8 @@ import Link from "next/link";
 import { api } from "@/trpc/react";
 import { neobrutalism } from "@clerk/themes";
 import { cn } from "@/lib/utils";
+import { FileUpload } from "@/components/ui/file-upload";
+import { toast } from "sonner";
 
 // Types for connections
 interface GameConnection {
@@ -165,6 +167,17 @@ export default function ProfilePage() {
     onError: (error) => {
       setConnectionError(error.message);
     }
+  });
+
+  // Banner update mutation
+  const updatePlayerBannerMutation = api.playerProfile.updatePlayerBanner.useMutation({
+    onSuccess: () => {
+      toast.success("Banner updated successfully!");
+      void refetchProfile();
+    },
+    onError: (error) => {
+      toast.error(`Failed to update banner: ${error.message}`);
+    },
   });
   
   // Editing states for each panel
@@ -664,6 +677,19 @@ export default function ProfilePage() {
     setRecruitingErrors({});
   };
 
+  // Banner upload handlers
+  const handleBannerUpload = (url: string) => {
+    updatePlayerBannerMutation.mutate({ banner_url: url });
+  };
+
+  const handleBannerRemove = () => {
+    updatePlayerBannerMutation.mutate({ banner_url: "" });
+  };
+
+  const handleBannerUploadError = (error: string) => {
+    toast.error(`Banner upload failed: ${error}`);
+  };
+
   const connectedGameAccounts = gameConnections.filter(conn => conn.connected).length;
   const connectedSocialAccounts = socialConnections.filter(conn => conn.connected).length;
   const hasBasicInfo = !!(editableProfileData.location || editableProfileData.bio);
@@ -858,6 +884,25 @@ export default function ProfilePage() {
                                     {profileErrors.bio}
                                   </p>
                                 )}
+                              </div>
+                              
+                              {/* Banner Upload */}
+                              <div className="md:col-span-2 group">
+                                <Label className="text-white font-rajdhani font-medium mb-2 block">
+                                  Banner Image
+                                </Label>
+                                <FileUpload
+                                  bucket="PLAYERS"
+                                  entityId={profileData?.id ?? ""}
+                                  assetType="BANNER"
+                                  currentImageUrl={profileData?.banner_url}
+                                  label="Profile Banner"
+                                  description="Upload a banner image for your public profile"
+                                  onUploadSuccess={handleBannerUpload}
+                                  onUploadError={handleBannerUploadError}
+                                  onRemove={handleBannerRemove}
+                                  disabled={updatePlayerBannerMutation.isPending}
+                                />
                               </div>
                             </>
                           ) : (

@@ -18,6 +18,7 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
       valorantStatsMutation.mutate({ playerId });
       setLastFetchedPlayerId(playerId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerId, lastFetchedPlayerId]);
 
   // Loading state
