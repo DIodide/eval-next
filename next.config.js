@@ -2,10 +2,11 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-import "./src/env.js";
+// import "./src/env.js";
+import withMDX from "@next/mdx";
 
-/** @type {import("next").NextConfig} */
-const config = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
@@ -26,8 +27,29 @@ const config = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["evalgaming.com", "localhost:3000"],
+    },
+  },
+  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
 };
 
-export default config;
+const withMDx = withMDX({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+    providerImportSource: "@mdx-js/react",
+  },
+});
+
+export default withMDx(nextConfig);

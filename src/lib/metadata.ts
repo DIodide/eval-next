@@ -346,4 +346,11 @@ export const staticPageMetadata = {
     image: 'https://evalgaming.com/api/og/cookie-policy-og',
     noIndex: false,
   }),
+
+  news: generateMetadata({
+    title: 'EVAL News - Latest Insights & Platform Updates',
+    description: 'Stay updated with the latest insights, platform updates, and industry news from the EVAL team. Get the latest in college esports and gaming recruitment.',
+    keywords: ['EVAL news', 'esports news', 'platform updates', 'college gaming news', 'esports insights', 'gaming industry news', 'EVAL', 'EVAL Gaming'],
+    image: 'https://evalgaming.com/api/og/news-og',
+  }),
 }; 

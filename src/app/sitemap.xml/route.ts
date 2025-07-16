@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
+import { getAllPosts } from '@/lib/blog';
 
 export async function GET() {
   try {
     // Fetch all dynamic data in parallel for better performance
-    const [players, schools, leagues, tryouts, combines] = await Promise.all([
+    const [players, schools, leagues, tryouts, combines, blogPosts] = await Promise.all([
       // Get all players with usernames for player profiles
       db.player.findMany({
         where: {
@@ -64,6 +65,9 @@ export async function GET() {
           updated_at: true,
         },
       }),
+      
+      // Get all published blog posts
+      getAllPosts(),
     ]);
 
     // Generate the sitemap XML
@@ -73,6 +77,7 @@ export async function GET() {
       leagues,
       tryouts,
       combines,
+      blogPosts,
     });
 
     return new NextResponse(sitemap, {
@@ -101,6 +106,7 @@ interface SitemapData {
   leagues: { id: string; updated_at: Date }[];
   tryouts: { id: string; updated_at: Date }[];
   combines: { id: string; updated_at: Date }[];
+  blogPosts: { slug: string; title: string; date: string; published: boolean }[];
 }
 
 function generateSitemapXML(data: SitemapData): string {
@@ -113,6 +119,7 @@ function generateSitemapXML(data: SitemapData): string {
     
     // Main sections
     { url: '/recruiting/', priority: '0.9', changefreq: 'weekly', lastmod: currentDate },
+    { url: '/news/', priority: '0.8', changefreq: 'weekly', lastmod: currentDate },
     { url: '/tryouts/college/', priority: '0.8', changefreq: 'weekly', lastmod: currentDate },
     { url: '/tryouts/combines/', priority: '0.8', changefreq: 'weekly', lastmod: currentDate },
     { url: '/rankings/', priority: '0.9', changefreq: 'daily', lastmod: currentDate },
@@ -211,6 +218,20 @@ function generateSitemapXML(data: SitemapData): string {
   </url>`;
   });
 
+  // Add blog posts
+  data.blogPosts.forEach(post => {
+    if (post.published) {
+      const lastmod = new Date(post.date).toISOString().split('T')[0];
+      xml += `
+  <url>
+    <loc>${baseUrl}/news/${encodeURIComponent(post.slug)}/</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+    }
+  });
+
   xml += `
 </urlset>`;
 
@@ -234,6 +255,12 @@ function generateBasicSitemap(): string {
     <lastmod>${currentDate}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/news/</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>${baseUrl}/tryouts/college/</loc>
