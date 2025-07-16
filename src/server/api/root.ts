@@ -12,6 +12,7 @@ import { playerSearchRouter } from "@/server/api/routers/playerSearch";
 import { schoolAssociationRequestsRouter } from "@/server/api/routers/schoolAssociationRequests";
 import { valorantStatsRouter } from "@/server/api/routers/valorantStats";
 import { rocketLeagueStatsRouter } from "@/server/api/routers/rocketLeagueStats";
+import { smashStatsRouter } from "@/server/api/routers/smashStats";
 import { adminDirectoryRouter } from "@/server/api/routers/adminDirectory";
 import { adminManagementRouter } from "@/server/api/routers/adminManagement";
 import { publicSearchRouter } from "@/server/api/routers/publicSearch";
@@ -36,6 +37,7 @@ export const appRouter = createTRPCRouter({
   schoolAssociationRequests: schoolAssociationRequestsRouter,
   valorantStats: valorantStatsRouter,
   rocketLeagueStats: rocketLeagueStatsRouter,
+  smashStats: smashStatsRouter,
   adminDirectory: adminDirectoryRouter,
   adminManagement: adminManagementRouter,
 });

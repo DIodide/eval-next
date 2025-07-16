@@ -135,6 +135,8 @@ export const rocketLeagueStatsRouter = createTRPCRouter({
           },
         });
 
+        console.log(`[RL Stats] Response Status:`, response.status);
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`[RL Stats] API request failed:`, {
@@ -148,13 +150,13 @@ export const rocketLeagueStatsRouter = createTRPCRouter({
             message: `Failed to fetch Rocket League stats: ${response.status} ${response.statusText}`
           });
         }
-
+        console.log(`[RL Stats] Awaiting response.json()`)
         const apiResponse: unknown = await response.json();
-        //console.log(`[RL Stats] Raw API response:`, apiResponse);
+        console.log(`[RL Stats] Raw API response:`, apiResponse);
 
         // Validate the response against our schema
         const validatedResponse = RocketLeagueAllPlaylistsResponseSchema.parse(apiResponse);
-        
+        console.log(`[RL Stats] Validated response status:`, validatedResponse.success);
         if (!validatedResponse.success) {
           return {
             success: false,

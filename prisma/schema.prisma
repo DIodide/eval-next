@@ -18,6 +18,7 @@ model Player {
   last_name                String
   username                 String?                    @unique
   image_url                String?
+  banner_url               String?
   external_accounts        Json?
   location                 String?
   bio                      String?

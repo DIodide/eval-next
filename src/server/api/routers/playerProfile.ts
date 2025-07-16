@@ -123,6 +123,7 @@ type PublicProfileData = {
   last_name: string;
   username: string | null;
   image_url: string | null;
+  banner_url: string | null;
   location: string | null;
   bio: string | null;
   class_year: string | null;
@@ -699,6 +700,7 @@ export const playerProfileRouter = createTRPCRouter({
               last_name: true,
               username: true,
               image_url: true,
+              banner_url: true,
               location: true,
               bio: true,
               class_year: true,
@@ -896,4 +898,35 @@ export const playerProfileRouter = createTRPCRouter({
       });
     }
   }),
+
+  // Update player banner
+  updatePlayerBanner: playerProcedure
+    .input(z.object({ 
+      banner_url: z.string().url().optional().or(z.literal("")) 
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const player = await ctx.db.player.update({
+          where: { clerk_id: ctx.auth.userId! },
+          data: {
+            banner_url: input.banner_url ?? null,
+            updated_at: new Date()
+          }
+        });
+        
+        // Clear cache for this player's public profile
+        if (player.username) {
+          const cacheKey = `profile:${player.username}`;
+          publicProfileCache.delete(cacheKey);
+        }
+        
+        return { success: true };
+      } catch (error) {
+        console.error('Error updating player banner:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update player banner',
+        });
+      }
+    }),
 }); 
