@@ -157,6 +157,9 @@ export default function Navbar() {
           <Link href="/recruiting" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
             RECRUITING
           </Link>
+          <Link href="/news" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
+            NEWS
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section text-sm text-white hover:text-gray-200 transition-colors tracking-wide flex items-center cursor-context-menu relative">
               RANKINGS <ChevronDown className="ml-1 h-4 w-4" />
@@ -625,6 +628,14 @@ export default function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 RECRUITING
+              </Link>
+
+              <Link 
+                href="/news" 
+                className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                NEWS
               </Link>
 
               {/* Rankings Submenu */}
