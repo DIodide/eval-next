@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, Search, User, GraduationCap, X, Shield, Menu, Trophy } from "lucide-react"
+import { ChevronDown, Search, User, GraduationCap, X, Shield, Menu, Trophy, DollarSign } from "lucide-react"
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -191,9 +191,11 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link href="/pricing" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
-            PRICING
-          </Link>
+          <SignedOut>
+            <Link href="/pricing" className="nav-link heading-section text-sm text-white hover:text-gray-200 transition-colors">
+              PRICING
+            </Link>
+          </SignedOut>
           <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section text-sm text-white hover:text-gray-200 transition-colors tracking-wide flex items-center cursor-context-menu relative">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
@@ -408,7 +410,12 @@ export default function Navbar() {
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: "w-10 h-10 ring-2 ring-white/20 hover:ring-white/40 transition-all"
+                    avatarBox: "w-10 h-10 ring-2 ring-white/20 hover:ring-white/40 transition-all",
+                    userButtonPopoverCard: "bg-slate-900 border border-white/20",
+                    userButtonPopoverActions: "bg-slate-900",
+                    userButtonPopoverActionButton: "text-white hover:bg-white/10 data-[active]:bg-white/20",
+                    userButtonPopoverActionButtonText: "text-white",
+                    userButtonPopoverActionButtonIcon: "text-white"
                   }
                 }}
               >
@@ -418,6 +425,12 @@ export default function Navbar() {
                     labelIcon={<User className="w-4 h-4" />}
                     href="/dashboard"
                   />
+                  <UserButton.Link
+                    label="Pricing"
+                    labelIcon={<DollarSign className="w-4 h-4" />}
+                    href="/pricing"
+                  />
+                  <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>
               </UserButton>
             </SignedIn>
@@ -429,7 +442,12 @@ export default function Navbar() {
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: "w-8 h-8 ring-2 ring-white/20 hover:ring-white/40 transition-all"
+                    avatarBox: "w-8 h-8 ring-2 ring-white/20 hover:ring-white/40 transition-all",
+                    userButtonPopoverCard: "bg-slate-900 border border-white/20",
+                    userButtonPopoverActions: "bg-slate-900",
+                    userButtonPopoverActionButton: "text-white hover:bg-white/10 data-[active]:bg-white/20",
+                    userButtonPopoverActionButtonText: "text-white",
+                    userButtonPopoverActionButtonIcon: "text-white"
                   }
                 }}
               >
@@ -439,6 +457,12 @@ export default function Navbar() {
                     labelIcon={<User className="w-4 h-4" />}
                     href="/dashboard"
                   />
+                  <UserButton.Link
+                    label="Pricing"
+                    labelIcon={<DollarSign className="w-4 h-4" />}
+                    href="/pricing"
+                  />
+                  <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>
               </UserButton>
             </SignedIn>
@@ -645,13 +669,25 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <Link 
-                href="/pricing" 
-                className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                PRICING
-              </Link>
+              <SignedOut>
+                <Link 
+                  href="/pricing" 
+                  className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  PRICING
+                </Link>
+              </SignedOut>
+
+              <SignedIn>
+                <Link 
+                  href="/pricing" 
+                  className="block font-orbitron text-white hover:text-cyan-400 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  PRICING
+                </Link>
+              </SignedIn>
 
 
               {/* About Us Submenu */}
