@@ -30,7 +30,7 @@ const founders = [
   },
   {
     name: "Erika Yeung",
-    role: "Chief Marketing Officer",
+    role: "Marketing & Operations",
     image: "/team/headshots/erica.png?height=200&width=200",
     quote:
       "Marketing is all about storytelling. At EVAL, we're creating a narrative where gaming talent meets real-world opportunities.",
@@ -40,10 +40,10 @@ const founders = [
   },
   {
     name: "Ibraheem Amin",
-    role: "Software Engineer",
+    role: "Lead Full-StackEngineer",
     image: "/team/headshots/ibraheem.png?height=200&width=200",
     quote:
-      "Data tells the story of performance. At EVAL, we're making sure every player's journey is backed by analytics and insight.",
+      "Data tells the story of performance and opens opportunity for students. At EVAL, we're making sure every player's journey is backed by analytics and insight.",
     background: "Full-Stack Development & Analytics",
     expertise: ["Engineering", "Analytics", "Platform Development"],
     color: "from-green-400 to-teal-500"
