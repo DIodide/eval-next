@@ -4,16 +4,33 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import UserTypeSelection from "./_components/UserTypeSelection";
+import { usePostHog } from 'posthog-js/react';
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [showUserTypeSelection, setShowUserTypeSelection] = useState(false);
+  const posthog = usePostHog();
 
   useEffect(() => {
     if (isLoaded && user) {
       const userType = user.unsafeMetadata?.userType as string;
+      const primaryEmail = user.emailAddresses[0]?.emailAddress;
       
+      // Only identify if we have both PostHog and a primary email
+      if (primaryEmail && posthog) {
+        const currentDistinctId = posthog.get_distinct_id();
+        
+        // Only identify if the current distinct ID is different from the user's email
+        // This prevents unnecessary identify calls
+        if (currentDistinctId !== primaryEmail) {
+          posthog.identify(primaryEmail, {
+            name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : undefined,
+            userType: userType || undefined
+          });
+        }
+      }
+
       if (userType === "coach") {
         router.push("/dashboard/coaches");
       } else if (userType === "player") {
@@ -26,7 +43,7 @@ export default function DashboardPage() {
         setShowUserTypeSelection(true);
       }
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user, router, posthog]);
 
   const handleUserTypeSelected = (userType: 'player' | 'coach' | 'league') => {
     // After userType is updated, redirect to the appropriate dashboard
