@@ -1233,15 +1233,15 @@ function GameAnalyticsDashboard() {
   };
 
   const renderComingSoon = (gameName: string) => (
-    console.log("renderComingSoon"),
-    console.log("isGameConnected", isGameConnected),
-    console.log("gameName", gameName),
-    console.log("selectedGame", selectedGame),
-    console.log("games", games),  
-    console.log("user", user),
-    console.log("profileData", profileData),
-    console.log("currentGame", currentGame),
-    console.log("games.map((game) => game.id)", games.map((game) => game.id)),
+    // console.log("renderComingSoon"),
+    // console.log("isGameConnected", isGameConnected),
+    // console.log("gameName", gameName),
+    // console.log("selectedGame", selectedGame),
+    // console.log("games", games),  
+    // console.log("user", user),
+    // console.log("profileData", profileData),
+    // console.log("currentGame", currentGame),
+    // console.log("games.map((game) => game.id)", games.map((game) => game.id)),
 
     <div className="space-y-6">
       <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-6 text-center">
@@ -1260,7 +1260,7 @@ function GameAnalyticsDashboard() {
               </p>
               <Link href="/dashboard/player/profile/external-accounts">
                 <Button variant="outline" className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10">
-                  Connect {gameName === 'Smash Ultimate' ? 'start.gg' : gameName} Account
+                  You&apos;ve connected your {gameName === 'Smash Ultimate' ? 'start.gg' : gameName} Account
                   <ArrowRightIcon className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
