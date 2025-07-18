@@ -16,6 +16,7 @@ import {
   UserIcon,
   CalendarIcon,
   TrendingUpIcon,
+  TrendingDownIcon,
   StarIcon,
   ArrowRightIcon,
   PlusIcon,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import type { ValorantAnalyticsData } from "@/server/api/routers/valorantStats";
+import type { SmashAnalyticsData } from "@/server/api/routers/smashStats";
 
 
 
@@ -59,9 +61,15 @@ function GameAnalyticsDashboard() {
     }
   );
 
+  // Add Smash Ultimate stats mutation
+  const smashStatsMutation = api.smashStats.getPlayerStatsByPlayerId.useMutation();
+
   useEffect(() => {
     if (playerId && selectedGame === 'valorant') {
       valorantStatsMutation.mutate({ playerId });
+    }
+    if (playerId && selectedGame === 'smash') {
+      smashStatsMutation.mutate({ playerId });
     }
   }, [playerId, selectedGame]);
 
@@ -234,289 +242,292 @@ function GameAnalyticsDashboard() {
           </div>
         )}
 
-        {/* Core Performance Metrics - Top Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg rounded-bl-none rounded-tr-none rounded-br-none md:rounded-l-lg md:rounded-r-none p-4 text-center">
-            <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">{stats.stats.evalScore}</div>
-            <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
-              EVAL SCORE
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-purple-500 hover:text-purple-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>EVAL&apos;s proprietary ranking score (0-100) based on performance across multiple metrics including aim, game sense, and impact.</p>
-                </TooltipContent>
-              </Tooltip>
+        {/* Connected Stats Sections */}
+        <div className="space-y-0">
+          {/* Core Performance Metrics - Top Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg md:rounded-tl-lg rounded-tr-none rounded-bl-none rounded-br-none p-4 text-center">
+              <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">{stats.stats.evalScore}</div>
+              <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
+                EVAL SCORE
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-purple-500 hover:text-purple-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>EVAL&apos;s proprietary ranking score (0-100) based on performance across multiple metrics including aim, game sense, and impact.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-tr-lg md:rounded-tr-none rounded-tl-none rounded-bl-none rounded-br-none p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-red-300 mb-1">{stats.stats.rank}</div>
+              <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
+                RANK
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-red-500 hover:text-red-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Current competitive rank in Valorant&apos;s ranked system. Higher ranks indicate better skill level.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{stats.stats.gameWinRate}</div>
+              <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
+                GAME WIN %
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Percentage of games won out of total games played. Measures overall team success rate.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-tr-lg p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-blue-400 mb-1">{stats.stats.roundWinRate}</div>
+              <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
+                ROUND WIN %
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Percentage of individual rounds won. More granular than game win rate and shows consistent performance.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-red-300 mb-1">{stats.stats.rank}</div>
-            <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
-              RANK
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-red-500 hover:text-red-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Current competitive rank in Valorant&apos;s ranked system. Higher ranks indicate better skill level.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-tl-none rounded-tr-none rounded-br-none md:rounded-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{stats.stats.gameWinRate}</div>
-            <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              GAME WIN %
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Percentage of games won out of total games played. Measures overall team success rate.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none md:rounded-r-lg md:rounded-l-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-blue-400 mb-1">{stats.stats.roundWinRate}</div>
-            <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              ROUND WIN %
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Percentage of individual rounds won. More granular than game win rate and shows consistent performance.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
-        </div>
 
-        {/* Role, Agent, and Weapon Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-          <div className="bg-gray-900 border border-gray-700 rounded-t-lg rounded-b-none md:rounded-l-lg md:rounded-r-none p-4">
-            <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
-              MAIN ROLE
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Primary role played in competitive matches. Duelists are entry fraggers who create space for the team.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="text-xl font-orbitron font-bold text-cyan-400">{stats.role}</div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-none md:rounded-none p-4">
-            <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
-              MAIN AGENT
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Most frequently played agent based on match history and performance statistics.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
-                {stats.mainAgent.image ? (
-                  <img 
-                    src={stats.mainAgent.image} 
-                    alt={stats.mainAgent.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const img = e.currentTarget as HTMLImageElement;
-                      const span = img.nextElementSibling as HTMLSpanElement;
-                      img.style.display = 'none';
-                      if (span) span.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <span className="text-xs text-gray-500" style={{ display: stats.mainAgent.image ? 'none' : 'flex' }}>
-                  IMG
-                </span>
+          {/* Role, Agent, and Weapon Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+            <div className="bg-gray-900 border border-gray-700 rounded-none p-4">
+              <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
+                MAIN ROLE
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Primary role played in competitive matches. Duelists are entry fraggers who create space for the team.</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div className="text-lg font-orbitron font-bold text-white">{stats.mainAgent.name}</div>
+              <div className="text-xl font-orbitron font-bold text-cyan-400">{stats.role}</div>
             </div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-b-lg rounded-t-none md:rounded-r-lg md:rounded-l-none p-4">
-            <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
-              MAIN WEAPON
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Primary weapon with highest kill count and best performance metrics.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
-                {stats.mainGun.image ? (
-                  <img 
-                    src={stats.mainGun.image} 
-                    alt={stats.mainGun.name}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      const img = e.currentTarget as HTMLImageElement;
-                      const span = img.nextElementSibling as HTMLSpanElement;
-                      img.style.display = 'none';
-                      if (span) span.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <span className="text-xs text-gray-500" style={{ display: stats.mainGun.image ? 'none' : 'flex' }}>
-                  IMG
-                </span>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-none p-4">
+              <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
+                MAIN AGENT
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Most frequently played agent based on match history and performance statistics.</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div className="text-lg font-orbitron font-bold text-white">{stats.mainGun.name}</div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
+                  {stats.mainAgent.image ? (
+                    <img 
+                      src={stats.mainAgent.image} 
+                      alt={stats.mainAgent.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        const span = img.nextElementSibling as HTMLSpanElement;
+                        img.style.display = 'none';
+                        if (span) span.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <span className="text-xs text-gray-500" style={{ display: stats.mainAgent.image ? 'none' : 'flex' }}>
+                    IMG
+                  </span>
+                </div>
+                <div className="text-lg font-orbitron font-bold text-white">{stats.mainAgent.name}</div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-none p-4">
+              <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
+                MAIN WEAPON
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Primary weapon with highest kill count and best performance metrics.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
+                  {stats.mainGun.image ? (
+                    <img 
+                      src={stats.mainGun.image} 
+                      alt={stats.mainGun.name}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        const span = img.nextElementSibling as HTMLSpanElement;
+                        img.style.display = 'none';
+                        if (span) span.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <span className="text-xs text-gray-500" style={{ display: stats.mainGun.image ? 'none' : 'flex' }}>
+                    IMG
+                  </span>
+                </div>
+                <div className="text-lg font-orbitron font-bold text-white">{stats.mainGun.name}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Maps Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-          <div className="bg-gray-900 border border-gray-700 rounded-t-lg rounded-b-none md:rounded-l-lg md:rounded-r-none p-4">
-            <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
-              BEST MAP
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Highest win rate and performance map. Shows where the player excels most consistently.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
-                {stats.bestMap.image ? (
-                  <img 
-                    src={stats.bestMap.image} 
-                    alt={stats.bestMap.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const img = e.currentTarget as HTMLImageElement;
-                      const span = img.nextElementSibling as HTMLSpanElement;
-                      img.style.display = 'none';
-                      if (span) span.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <span className="text-xs text-gray-500" style={{ display: stats.bestMap.image ? 'none' : 'flex' }}>
-                  IMG
-                </span>
+          {/* Maps Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div className="bg-gray-900 border border-gray-700 rounded-none p-4">
+              <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
+                BEST MAP
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Highest win rate and performance map. Shows where the player excels most consistently.</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div className="text-lg font-orbitron font-bold text-green-400">{stats.bestMap.name}</div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
+                  {stats.bestMap.image ? (
+                    <img 
+                      src={stats.bestMap.image} 
+                      alt={stats.bestMap.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        const span = img.nextElementSibling as HTMLSpanElement;
+                        img.style.display = 'none';
+                        if (span) span.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <span className="text-xs text-gray-500" style={{ display: stats.bestMap.image ? 'none' : 'flex' }}>
+                    IMG
+                  </span>
+                </div>
+                <div className="text-lg font-orbitron font-bold text-green-400">{stats.bestMap.name}</div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-none p-4">
+              <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
+                WORST MAP
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Lowest win rate and performance map. Indicates areas for improvement.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
+                  {stats.worstMap.image ? (
+                    <img 
+                      src={stats.worstMap.image} 
+                      alt={stats.worstMap.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        const span = img.nextElementSibling as HTMLSpanElement;
+                        img.style.display = 'none';
+                        if (span) span.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <span className="text-xs text-gray-500" style={{ display: stats.worstMap.image ? 'none' : 'flex' }}>
+                    IMG
+                  </span>
+                </div>
+                <div className="text-lg font-orbitron font-bold text-red-400">{stats.worstMap.name}</div>
+              </div>
             </div>
           </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-b-lg rounded-t-none md:rounded-r-lg md:rounded-l-none p-4">
-            <div className="text-xs text-gray-400 font-rajdhani mb-2 flex items-center gap-1">
-              WORST MAP
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Lowest win rate and performance map. Indicates areas for improvement.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-800 rounded border border-gray-600 flex items-center justify-center overflow-hidden">
-                {stats.worstMap.image ? (
-                  <img 
-                    src={stats.worstMap.image} 
-                    alt={stats.worstMap.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const img = e.currentTarget as HTMLImageElement;
-                      const span = img.nextElementSibling as HTMLSpanElement;
-                      img.style.display = 'none';
-                      if (span) span.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <span className="text-xs text-gray-500" style={{ display: stats.worstMap.image ? 'none' : 'flex' }}>
-                  IMG
-                </span>
-              </div>
-              <div className="text-lg font-orbitron font-bold text-red-400">{stats.worstMap.name}</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Detailed Performance Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
-          <div className="bg-gray-900 border border-gray-700 rounded-tl-lg rounded-bl-none rounded-tr-none rounded-br-none md:rounded-l-lg md:rounded-r-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-red-400 mb-1">{stats.stats.kda}</div>
-            <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              K/D/A
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Kills/Deaths/Assists ratio. Shows average performance per game in eliminations and team support.</p>
-                </TooltipContent>
-              </Tooltip>
+          {/* Detailed Performance Metrics - Bottom Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
+            <div className="bg-gray-900 border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-bl-lg p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-red-400 mb-1">{stats.stats.kda}</div>
+              <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
+                K/D/A
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Kills/Deaths/Assists ratio. Shows average performance per game in eliminations and team support.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-orange-400 mb-1">{stats.stats.acs}</div>
-            <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              ACS
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Average Combat Score - comprehensive metric measuring overall impact per round including damage, kills, and utility usage.</p>
-                </TooltipContent>
-              </Tooltip>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-br-none p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-orange-400 mb-1">{stats.stats.acs}</div>
+              <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
+                ACS
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Average Combat Score - comprehensive metric measuring overall impact per round including damage, kills, and utility usage.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-tl-none rounded-tr-none rounded-br-none md:rounded-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-yellow-400 mb-1">{stats.stats.kastPercent}</div>
-            <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              KAST%
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Percentage of rounds where the player got a Kill, Assist, Survived, or was Traded. Measures consistent round contribution.</p>
-                </TooltipContent>
-              </Tooltip>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-bl-lg md:rounded-bl-none rounded-tl-none rounded-tr-none rounded-br-none p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-yellow-400 mb-1">{stats.stats.kastPercent}</div>
+              <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
+                KAST%
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Percentage of rounds where the player got a Kill, Assist, Survived, or was Traded. Measures consistent round contribution.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
-          </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none md:rounded-r-lg md:rounded-l-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-cyan-400 mb-1">{stats.stats.clutchFactor}</div>
-            <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
-              CLUTCH FACTOR
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Win rate in 1vX clutch situations. Measures performance under pressure when outnumbered.</p>
-                </TooltipContent>
-              </Tooltip>
+            
+            <div className="bg-gray-900 border border-gray-700 rounded-br-lg md:rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none p-4 text-center">
+              <div className="text-xl font-orbitron font-bold text-cyan-400 mb-1">{stats.stats.clutchFactor}</div>
+              <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
+                CLUTCH FACTOR
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
+                    <p>Win rate in 1vX clutch situations. Measures performance under pressure when outnumbered.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </div>
@@ -931,7 +942,307 @@ function GameAnalyticsDashboard() {
     );
   };
 
+  const renderSmashAnalytics = () => {
+    // Helper functions for colors
+    const getWinRateColor = (winrate: number) => {
+      if (winrate >= 0.7) return "text-emerald-400";
+      if (winrate >= 0.6) return "text-yellow-400";
+      return "text-red-400";
+    };
+
+    const getScoreColor = (score: number) => {
+      if (score >= 80) return "text-emerald-400";
+      if (score >= 70) return "text-yellow-400";
+      return "text-red-400";
+    };
+
+    // Loading state
+    if (smashStatsMutation.isPending) {
+      return (
+        <div className="space-y-6">
+          <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-6 text-center">
+            <div className="mb-4">
+              <div className="w-12 h-12 mx-auto mb-4 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <h4 className="text-lg font-orbitron font-semibold text-blue-300 mb-2">Loading Smash Ultimate Analytics</h4>
+              <p className="text-xs text-blue-200 font-rajdhani">Please wait while we fetch your competitive performance data...</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Error state or no data
+    if (smashStatsMutation.isError || !smashStatsMutation.data?.success || !smashStatsMutation.data.data) {
+      const errorMessage = smashStatsMutation.data?.message ?? smashStatsMutation.error?.message ?? "Failed to load Smash Ultimate statistics";
+      
+      return (
+        <div className="space-y-6">
+          <div className="bg-red-900/20 border border-red-700/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <InfoIcon className="w-5 h-5 text-red-400 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-orbitron font-semibold text-red-300 mb-2">Smash Ultimate Stats Unavailable</h4>
+                <p className="text-xs text-red-200 font-rajdhani mb-3">{errorMessage}</p>
+                {errorMessage.includes("hasn't connected") && (
+                  <Link href="/dashboard/player/profile/external-accounts">
+                    <Button variant="outline" size="sm" className="border-red-400/50 text-red-400 hover:border-red-400 hover:bg-red-500/10">
+                      Connect start.gg Account
+                      <ArrowRightIcon className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const data = smashStatsMutation.data.data;
+    const { playerInfo, stats, recentPlacements } = data;
+
+    return (
+      <div className="space-y-6">
+        {/* Player Info Header */}
+        <div className="bg-gradient-to-r from-[#1a1a2e]/90 to-[#16213e]/90 backdrop-blur-sm border border-purple-500/20 rounded-lg p-6 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div>
+                <h2 className="text-2xl font-orbitron font-bold text-white">{playerInfo.prefix !== "Unknown" ? playerInfo.prefix : ""} {playerInfo.gamerTag}</h2>
+                <p className="text-gray-400 font-rajdhani">Competitive Player</p>
+              </div>
+              <div className="h-12 w-px bg-gray-700"></div>
+              <div>
+                <p className="text-sm text-gray-400 font-rajdhani">Main Character</p>
+                <p className="text-lg font-orbitron font-semibold text-purple-400">{playerInfo.mainCharacter}</p>
+              </div>
+              <div className="h-12 w-px bg-gray-700"></div>
+              <div>
+                <p className="text-sm text-gray-400 font-rajdhani">EVAL Score</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-orbitron font-semibold text-emerald-400">
+                    {Math.round((playerInfo.evalScore / 100) * 100)}/100
+                  </p>
+                  <div className="w-24 bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-emerald-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${(playerInfo.evalScore / 100) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Row: Stats, Mains and Recent Placements */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Performance Stats */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-lg font-orbitron font-bold text-white mb-4">Performance Stats</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrophyIcon className="h-4 w-4 text-yellow-500" />
+                  <span className="text-sm text-gray-300 font-rajdhani">Set Win Rate</span>
+                </div>
+                <span className="font-orbitron font-bold text-white">{(stats.set_win_rate * 100).toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <GamepadIcon className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-gray-300 font-rajdhani">Game Win Rate</span>
+                </div>
+                <span className="font-orbitron font-bold text-white">{(stats.game_win_rate * 100).toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ZapIcon className="h-4 w-4 text-purple-500" />
+                  <span className="text-sm text-gray-300 font-rajdhani">Clutch Factor</span>
+                </div>
+                <span className="font-orbitron font-bold text-white">{(stats.clutch_factor * 100).toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TargetIcon className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-gray-300 font-rajdhani">Events</span>
+                </div>
+                <span className="font-orbitron font-bold text-white">{stats.events}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Characters */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-lg font-orbitron font-bold text-white mb-4">Main Characters</h3>
+            <div className="space-y-3">
+              {Object.entries(stats.mains).map(([character, characterStats]) => (
+                <div key={character} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    <span className="font-rajdhani font-medium text-gray-200">{character}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 font-rajdhani">{characterStats.games} games</span>
+                    <div className="bg-purple-500/10 border border-purple-500/30 px-2 py-1 rounded text-purple-400 text-xs font-orbitron">
+                      {(characterStats.winrate * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Placements */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-lg font-orbitron font-bold text-white mb-4">Recent Placements</h3>
+            <div className="space-y-3">
+              {recentPlacements.slice(0, 3).map((result, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${result.placement <= 8 ? "bg-yellow-500" : "bg-gray-500"}`}
+                    ></div>
+                    <span className="text-gray-200 text-sm font-rajdhani">{result.event}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 font-rajdhani">{result.entrants} entrants</span>
+                    <div
+                      className={`px-2 py-1 rounded text-xs font-orbitron ${
+                        result.placement <= 8
+                          ? "bg-yellow-600/80 text-black"
+                          : "bg-gray-700/80 text-gray-300"
+                      }`}
+                    >
+                      #{result.placement}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Row: Matchups */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Best Matchups */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-emerald-400 font-orbitron font-bold text-lg mb-4 flex items-center gap-2">
+              <TrendingUpIcon className="h-4 w-4" />
+              Best Matchups
+            </h3>
+            <p className="text-gray-400 text-sm font-rajdhani mb-4">Your strongest character matchups</p>
+            <div className="space-y-3">
+              {Object.entries(stats.best_matchups).flatMap(([character, opponents]) =>
+                Object.entries(opponents).map(([opponent, data]) => (
+                  <div key={`${character}-${opponent}`} className="flex justify-between items-center p-2 bg-gray-800/50 rounded">
+                    <span className="font-rajdhani font-medium text-gray-200 text-sm">{character} vs {opponent}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-300 text-sm font-rajdhani">
+                        {data.wins}-{data.games - data.wins}
+                      </span>
+                      <span className={`text-sm font-orbitron ${getWinRateColor(data.winrate)}`}>
+                        {(data.winrate * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Worst Matchups */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-red-400 font-orbitron font-bold text-lg mb-4 flex items-center gap-2">
+              <TrendingDownIcon className="h-4 w-4" />
+              Worst Matchups
+            </h3>
+            <p className="text-gray-400 text-sm font-rajdhani mb-4">Matchups that need improvement</p>
+            <div className="space-y-3">
+              {Object.entries(stats.worst_matchups).flatMap(([character, opponents]) =>
+                Object.entries(opponents).map(([opponent, data]) => (
+                  <div key={`${character}-${opponent}`} className="flex justify-between items-center p-2 bg-gray-800/50 rounded">
+                    <span className="font-rajdhani font-medium text-gray-200 text-sm">{character} vs {opponent}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-300 text-sm font-rajdhani">
+                        {data.wins}-{data.games - data.wins}
+                      </span>
+                      <span className={`text-sm font-orbitron ${getWinRateColor(data.winrate)}`}>
+                        {(data.winrate * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row: Stages */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Best Stages */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-emerald-400 font-orbitron font-bold text-lg mb-4 flex items-center gap-2">
+              <TrendingUpIcon className="h-4 w-4" />
+              Best Stages
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(stats.best_stages).map(([stage, stageStats]) => (
+                <div key={stage} className="flex justify-between items-center p-2 bg-gray-800/50 rounded">
+                  <span className="text-gray-200 text-sm font-rajdhani">{stage}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-300 text-sm font-rajdhani">
+                      {stageStats.wins}-{stageStats.losses}
+                    </span>
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded text-emerald-400 text-xs font-orbitron">
+                      {(stageStats.winrate * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Worst Stages */}
+          <div className="bg-[#1a1a2e]/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6 shadow-xl">
+            <h3 className="text-red-400 font-orbitron font-bold text-lg mb-4 flex items-center gap-2">
+              <TrendingDownIcon className="h-4 w-4" />
+              Worst Stages
+            </h3>
+            <div className="space-y-3">
+              {Object.entries(stats.worst_stages).map(([stage, stageStats]) => (
+                <div key={stage} className="flex justify-between items-center p-2 bg-gray-800/50 rounded">
+                  <span className="text-gray-200 text-sm font-rajdhani">{stage}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-300 text-sm font-rajdhani">
+                      {stageStats.wins}-{stageStats.losses}
+                    </span>
+                    <div className="bg-red-500/10 border border-red-500/30 px-2 py-1 rounded text-red-400 text-xs font-orbitron">
+                      {(stageStats.winrate * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderComingSoon = (gameName: string) => (
+    console.log("renderComingSoon"),
+    console.log("isGameConnected", isGameConnected),
+    console.log("gameName", gameName),
+    console.log("selectedGame", selectedGame),
+    console.log("games", games),  
+    console.log("user", user),
+    console.log("profileData", profileData),
+    console.log("currentGame", currentGame),
+    console.log("games.map((game) => game.id)", games.map((game) => game.id)),
+
     <div className="space-y-6">
       <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-6 text-center">
         <div className="mb-4">
@@ -1069,7 +1380,7 @@ function GameAnalyticsDashboard() {
         {selectedGame === 'valorant' && !isGameConnected && renderComingSoon('VALORANT')}
         {selectedGame === 'rocket-league' && isGameConnected && renderRocketLeagueAnalytics()}
         {selectedGame === 'rocket-league' && !isGameConnected && renderComingSoon('Rocket League')}
-        {selectedGame === 'smash' && isGameConnected && renderComingSoon('Smash Ultimate')}
+        {selectedGame === 'smash' && isGameConnected && renderSmashAnalytics()}
         {selectedGame === 'smash' && !isGameConnected && renderComingSoon('Smash Ultimate')}
         {selectedGame === 'overwatch' && renderComingSoon('Overwatch 2')}
       </div>
@@ -1305,16 +1616,24 @@ export default function DashboardPage() {
                     </div>
                     <ArrowRightIcon className="h-4 w-4 text-gray-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-200" />
                   </div>
-                  {action.progress && (
+                  {action.progress !== undefined && (
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-400">Progress</span>
-                        <span className="text-blue-400">{action.progress}%</span>
+                        <span className="text-gray-400">
+                          {action.progress === 0 ? 'Fill out your profile to boost recruiting chances!' : 'Progress'}
+                        </span>
+                        <span className={`${action.progress === 0 ? 'text-orange-400' : 'text-blue-400'}`}>
+                          {action.progress}%
+                        </span>
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-1.5">
                         <div 
-                          className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                          style={{ width: `${action.progress}%` }}
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            action.progress === 0 
+                              ? 'bg-orange-500/50' 
+                              : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                          }`}
+                          style={{ width: `${Math.max(action.progress, 5)}%` }}
                         />
                       </div>
                     </div>
