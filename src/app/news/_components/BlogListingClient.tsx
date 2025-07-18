@@ -166,12 +166,12 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
                   <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 h-full cursor-pointer group">
                     {/* Cover Image */}
                     {post.coverImage && (
-                      <div className="relative h-48 overflow-hidden rounded-t-lg">
+                      <div className="bottom-6 relative h-48 overflow-hidden rounded-t-lg">
                         <Image
                           src={post.coverImage}
                           alt={post.title}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover group-hover:scale-101 transition-transform duration-300"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
                       </div>
