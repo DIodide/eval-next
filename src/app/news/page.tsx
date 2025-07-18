@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getAllPosts, getAllTags } from "@/lib/blog";
 import { BlogListingClient } from "./_components/BlogListingClient";
+import Image from "next/image";
 
 // Enable static generation with ISR (Incremental Static Regeneration)
 export const revalidate = 3600; // 1 hour
@@ -13,10 +14,18 @@ export default async function NewsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-orange-500/10 border-b border-white/10">
+      <div 
+        className="relative bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-orange-500/10 border-b border-white/10"
+        style={{
+          backgroundImage: 'url("/eval/news-bobbleheads.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-orbitron font-black text-white mb-6 leading-tight">
+            <h1 className=" text-4xl md:text-6xl font-orbitron font-black text-white mb-6 leading-tight">
               EVAL NEWS
             </h1>
             <p className="text-xl text-gray-300 font-rajdhani max-w-3xl mx-auto leading-relaxed">
