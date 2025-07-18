@@ -40,7 +40,7 @@ const founders = [
   },
   {
     name: "Ibraheem Amin",
-    role: "Lead Full-StackEngineer",
+    role: "Lead Full Stack Engineer",
     image: "/team/headshots/ibraheem.png?height=200&width=200",
     quote:
       "Data tells the story of performance and opens opportunity for students. At EVAL, we're making sure every player's journey is backed by analytics and insight.",
