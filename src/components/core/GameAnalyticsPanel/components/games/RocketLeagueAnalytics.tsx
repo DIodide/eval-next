@@ -206,7 +206,7 @@ export function RocketLeagueAnalytics({
         {/* Core Performance Metrics - Top Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
           <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg md:rounded-tl-lg rounded-tr-none rounded-bl-none rounded-br-none p-4 text-center">
-            <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">{currentPlaylistStats.eval_score?.toFixed(2) ?? 'N/A'}</div>
+            <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">{currentPlaylistStats.eval_score?.toFixed(1) ?? 'N/A'}</div>
             <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
               EVAL SCORE
               <Tooltip>

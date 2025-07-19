@@ -183,7 +183,7 @@ export function SmashAnalytics({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
         <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg md:rounded-tl-lg rounded-tr-none rounded-bl-none rounded-br-none p-4 text-center">
           <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">
-            {Math.round((playerInfo.evalScore / 100) * 100)}
+            {((playerInfo.evalScore / 100) * 100).toFixed(1)}
           </div>
           <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
             EVAL SCORE
