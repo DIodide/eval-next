@@ -11,6 +11,7 @@ export function ValorantAnalytics({
   isConnected: _isConnected,
   isLoading,
   error,
+  viewMode = "self",
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -30,7 +31,7 @@ export function ValorantAnalytics({
     );
   }
 
-  if (error || !stats) {
+  if (error && !isLoading) {
     const errorMessage = error?.message ?? "Failed to load Valorant statistics";
     
     return (
@@ -40,8 +41,14 @@ export function ValorantAnalytics({
             <InfoIcon className="w-5 h-5 text-red-400 mt-0.5" />
             <div>
               <h4 className="text-sm font-orbitron font-semibold text-red-300 mb-2">VALORANT Stats Unavailable</h4>
-              <p className="text-xs text-red-200 font-rajdhani mb-3">{errorMessage}</p>
-              {errorMessage.includes("hasn't connected") && (
+              <p className="text-xs text-red-200 font-rajdhani mb-3">
+                {errorMessage.includes("hasn't connected") 
+                  ? (viewMode === "other" 
+                      ? "This player hasn't connected their VALORANT account yet."
+                      : "You haven't connected your VALORANT account yet.")
+                  : errorMessage}
+              </p>
+              {errorMessage.includes("hasn't connected") && viewMode === "self" && (
                 onConnect ? (
                   <Button 
                     onClick={onConnect}
@@ -83,6 +90,27 @@ export function ValorantAnalytics({
   }
 
   const valorantStats = stats as ValorantStats;
+
+  // Early return if no stats data
+  if (!valorantStats) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gray-900/20 border border-gray-700/30 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <InfoIcon className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-orbitron font-semibold text-gray-300 mb-2">No VALORANT Data Available</h4>
+              <p className="text-xs text-gray-400 font-rajdhani">
+                {viewMode === "other" 
+                  ? "This player hasn't connected their VALORANT account yet."
+                  : "Connect your VALORANT account to view detailed statistics."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,7 +169,7 @@ export function ValorantAnalytics({
               </Tooltip>
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-tr-lg md:rounded-tr-none rounded-tl-none rounded-bl-none rounded-br-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-red-300 mb-1">{valorantStats.stats.rank}</div>
             <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
@@ -156,8 +184,8 @@ export function ValorantAnalytics({
               </Tooltip>
             </div>
           </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
+
+          <div className="border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{valorantStats.stats.gameWinRate}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               GAME WIN %
@@ -171,8 +199,8 @@ export function ValorantAnalytics({
               </Tooltip>
             </div>
           </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-tr-lg p-4 text-center">
+
+          <div className="border border-gray-700 rounded-tl-none rounded-tr-none rounded-bl-none rounded-br-none md:rounded-tr-lg p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-blue-400 mb-1">{valorantStats.stats.roundWinRate}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               ROUND WIN %

@@ -9,6 +9,7 @@ export function RocketLeagueAnalytics({
   isConnected: _isConnected,
   isLoading,
   error,
+  viewMode = "self",
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -17,14 +18,12 @@ export function RocketLeagueAnalytics({
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="bg-orange-900/20 border border-orange-700/30 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="w-5 h-5 bg-orange-400 rounded-full animate-pulse mt-0.5" />
-            <div>
-              <h4 className="text-sm font-orbitron font-semibold text-orange-300 mb-2">Loading Rocket League Statistics</h4>
-              <p className="text-xs text-orange-200 font-rajdhani">Please wait while we fetch your Rocket League performance data...</p>
-            </div>
+        <div className="bg-orange-900/20 border border-orange-700/30 rounded-lg p-6 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 bg-orange-500/20 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
+          <h4 className="text-lg font-orbitron font-semibold text-orange-300 mb-2">Loading Rocket League Statistics</h4>
+          <p className="text-sm text-orange-200 font-rajdhani">Please wait while we fetch your Rocket League performance data...</p>
         </div>
       </div>
     );
@@ -63,24 +62,30 @@ export function RocketLeagueAnalytics({
           <div className="flex items-start gap-3">
             <InfoIcon className="w-5 h-5 text-orange-400 mt-0.5" />
             <div>
-              <h4 className="text-sm font-orbitron font-semibold text-orange-300 mb-2">Connect Your Epic Games Account</h4>
+              <h4 className="text-sm font-orbitron font-semibold text-orange-300 mb-2">
+                {viewMode === "other" ? "Rocket League Account Not Connected" : "Connect Your Epic Games Account"}
+              </h4>
               <p className="text-xs text-orange-200 font-rajdhani mb-3">
-                To view your Rocket League statistics, you need to connect your Epic Games account first.
+                {viewMode === "other" 
+                  ? "This player hasn't connected their Epic Games account yet."
+                  : "To view your Rocket League statistics, you need to connect your Epic Games account first."}
               </p>
-              {onConnect ? (
-                <button
-                  onClick={onConnect}
-                  className="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-xs rounded-md transition-colors"
-                >
-                  Connect Epic Games
-                </button>
-              ) : (
-                <button
-                  onClick={() => window.open('/dashboard/player/profile/external-accounts', '_blank')}
-                  className="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-xs rounded-md transition-colors"
-                >
-                  Connect Epic Games
-                </button>
+              {viewMode === "self" && (
+                onConnect ? (
+                  <button
+                    onClick={onConnect}
+                    className="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-xs rounded-md transition-colors"
+                  >
+                    Connect Epic Games
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => window.open('/dashboard/player/profile/external-accounts', '_blank')}
+                    className="px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-xs rounded-md transition-colors"
+                  >
+                    Connect Epic Games
+                  </button>
+                )
               )}
             </div>
           </div>
@@ -90,6 +95,28 @@ export function RocketLeagueAnalytics({
   }
 
   const rocketLeagueStats = stats as RocketLeagueStats;
+
+  // Early return if no stats data
+  if (!rocketLeagueStats) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gray-900/20 border border-gray-700/30 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <InfoIcon className="w-5 h-5 text-gray-400 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-orbitron font-semibold text-gray-300 mb-2">No Rocket League Data Available</h4>
+              <p className="text-xs text-gray-400 font-rajdhani">
+                {viewMode === "other" 
+                  ? "This player hasn't connected their Epic Games account yet."
+                  : "Connect your Epic Games account to view detailed statistics."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const currentPlaylistStats = rocketLeagueStats[selectedPlaylist];
 
   if (!currentPlaylistStats) {
@@ -178,10 +205,8 @@ export function RocketLeagueAnalytics({
       <div className="space-y-0">
         {/* Core Performance Metrics - Top Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg rounded-bl-none rounded-tr-none rounded-br-none md:rounded-tl-lg md:rounded-tr-none md:rounded-bl-none md:rounded-br-none p-4 text-center">
-            <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">
-              {currentPlaylistStats.eval_score?.toFixed(2) ?? 'N/A'}
-            </div>
+          <div className="bg-gradient-to-r from-purple-900/50 to-purple-800/50 border border-purple-700/30 rounded-tl-lg md:rounded-tl-lg rounded-tr-none rounded-bl-none rounded-br-none p-4 text-center">
+            <div className="text-3xl font-orbitron font-bold text-purple-300 mb-1">{currentPlaylistStats.eval_score?.toFixed(2) ?? 'N/A'}</div>
             <div className="text-xs text-purple-400 font-rajdhani flex items-center justify-center gap-1">
               EVAL SCORE
               <Tooltip>
@@ -189,28 +214,28 @@ export function RocketLeagueAnalytics({
                   <InfoIcon className="w-3 h-3 text-purple-500 hover:text-purple-300 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>EVAL&apos;s proprietary ranking score (0-100) based on performance across multiple metrics including mechanics, positioning, and game impact.</p>
+                  <p>Comprehensive performance metric based on mechanics, positioning, and game impact in competitive matches.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 border border-red-700/30 rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none md:rounded-none p-4 text-center">
-            <div className="text-xl font-orbitron font-bold text-red-300 mb-1">{currentPlaylistStats.rank}</div>
-            <div className="text-xs text-red-400 font-rajdhani flex items-center justify-center gap-1">
-              RANK
+
+          <div className="bg-gradient-to-r from-orange-900/50 to-orange-800/50 border border-orange-700/30 rounded-none p-4 text-center md:rounded-none">
+            <div className="text-3xl font-orbitron font-bold text-orange-300 mb-1">{currentPlaylistStats.rank}</div>
+            <div className="text-xs text-orange-400 font-rajdhani flex items-center justify-center gap-1">
+              CURRENT RANK
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoIcon className="w-3 h-3 text-red-500 hover:text-red-300 cursor-help" />
+                  <InfoIcon className="w-3 h-3 text-orange-500 hover:text-orange-300 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Current competitive rank in Rocket League&apos;s ranked system. Higher ranks indicate better skill level.</p>
+                  <p>Your current competitive rank tier in this playlist.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
           </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-bl-lg rounded-tl-none rounded-tr-none rounded-br-none md:rounded-none p-4 text-center">
+
+          <div className="border border-gray-700 rounded-none p-4 text-center md:rounded-none">
             <div className="text-xl font-orbitron font-bold text-green-400 mb-1">{Math.round(currentPlaylistStats.win_percentage * 100)}%</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               WIN RATE
@@ -219,13 +244,13 @@ export function RocketLeagueAnalytics({
                   <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Percentage of games won out of total games played. Measures overall success rate in ranked matches.</p>
+                  <p>Percentage of competitive matches won in this playlist.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
           </div>
-          
-          <div className="bg-gray-900 border border-gray-700 rounded-br-lg rounded-tl-none rounded-tr-none rounded-bl-none md:rounded-tr-lg md:rounded-tl-none md:rounded-bl-none md:rounded-br-none p-4 text-center">
+
+          <div className="border border-gray-700 rounded-tr-lg md:rounded-tr-lg rounded-tl-none rounded-bl-none rounded-br-none p-4 text-center">
             <div className="text-xl font-orbitron font-bold text-blue-400 mb-1">{currentPlaylistStats.count}</div>
             <div className="text-xs text-gray-400 font-rajdhani flex items-center justify-center gap-1">
               GAMES ANALYZED
@@ -234,7 +259,7 @@ export function RocketLeagueAnalytics({
                   <InfoIcon className="w-3 h-3 text-gray-500 hover:text-gray-300 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="bg-black text-white border-gray-600 max-w-48 md:max-w-56">
-                  <p>Total number of ranked games played in this playlist found on ballchasing.com replays.</p>
+                  <p>Total number of competitive games analyzed for this playlist.</p>
                 </TooltipContent>
               </Tooltip>
             </div>

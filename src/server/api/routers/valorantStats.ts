@@ -441,7 +441,7 @@ export const valorantStatsRouter = createTRPCRouter({
         message: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .query(async ({ input, ctx }) => {
       try {
         // Get the player from database to get their Clerk ID
         const player = await ctx.db.player.findUnique({

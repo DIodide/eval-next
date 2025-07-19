@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense } from "react";
+import React, { useEffect, Suspense, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import Link from "next/link";
 
 // Hooks
 import { useGameSelection } from "./hooks/useGameSelection";
-import { useGameConnection } from "./hooks/useGameConnection";
+import { useGameConnection, useAllGameConnections } from "./hooks/useGameConnection";
 import { useGameStats } from "./hooks/useGameStats";
 
 // Components
@@ -25,15 +25,19 @@ import { ComingSoon } from "./components/games/ComingSoon";
 // Types and constants
 import type { GameAnalyticsPanelProps, GameId } from "./types";
 import { GAME_CONFIGS } from "./utils/constants";
+import { isDemoUser } from "./utils/mockData";
 import { api } from "@/trpc/react";
 
 export function GameAnalyticsPanel({
   playerId,
   viewMode: _viewMode = "self",
+  targetPlayerProfile,
   defaultGame = "valorant",
   allowedGames,
   showHeader = true,
+  publicHeader = false,
   showConnectionPrompts = true,
+  openLinksInNewTab = false,
   className = "",
   headerClassName = "",
   contentClassName = "",
@@ -47,10 +51,10 @@ export function GameAnalyticsPanel({
 }: GameAnalyticsPanelProps) {
   const { user } = useUser();
   
-  // Get player profile data
+  // Only get player profile data if no playerId is provided (meaning it's the user's own profile)
   const { data: profileData } = api.playerProfile.getProfile.useQuery(
     undefined,
-    { enabled: !!user || !!playerId }
+    { enabled: !!user && !playerId }
   );
 
   // Determine effective player ID
@@ -69,15 +73,44 @@ export function GameAnalyticsPanel({
   // Get current game config
   const currentGame = availableGames.find(g => g.id === selectedGame);
 
-  // Connection detection
-  const { isConnected, connectionType: _connectionType } = useGameConnection(selectedGame, playerId);
-
   // Stats fetching
   const { data: stats, isLoading, error, refetch } = useGameStats(
     selectedGame,
     effectivePlayerId ?? "",
     cacheStrategy
   );
+
+  // Connection detection
+  const { isConnected: platformConnected, connectionType: _connectionType } = useGameConnection(selectedGame, playerId, targetPlayerProfile);
+  
+  // Check if this is a demo user
+  const isDemo = isDemoUser(effectivePlayerId ?? "");
+  
+  // Smart connection detection: if we have stats data, the account is connected
+  // Also treat demo users as connected
+  const isConnected = isDemo || platformConnected || (stats !== null && stats !== undefined);
+  
+  // Get all game connections for the GameSelector
+  const basePlatformConnections = useAllGameConnections(playerId, targetPlayerProfile);
+  
+  // Create smart connections that also check if we have stats data
+  const allConnections = useMemo(() => {
+    const smartConnections = { ...basePlatformConnections };
+    
+    // If this is a demo user, mark all games as connected
+    if (isDemo) {
+      GAME_CONFIGS.forEach((game) => {
+        smartConnections[game.id] = true;
+      });
+    }
+    
+    // If we have stats for the current game, mark it as connected
+    if (stats !== null && stats !== undefined) {
+      smartConnections[selectedGame] = true;
+    }
+    
+    return smartConnections;
+  }, [basePlatformConnections, stats, selectedGame, isDemo]);
 
   // Handle game selection changes
   const handleGameSelect = (gameId: string) => {
@@ -127,6 +160,7 @@ export function GameAnalyticsPanel({
       isConnected,
       isLoading,
       error,
+      viewMode: _viewMode,
       onRetry: handleDataRefresh,
       onConnect: showConnectionPrompts ? handleConnectionClick : undefined,
     };
@@ -162,14 +196,50 @@ export function GameAnalyticsPanel({
   const content = (
     <Card className={`bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 p-6 shadow-xl ${className}`}>
       {/* Header */}
-      {showHeader && (
+      {(showHeader || publicHeader) && (
         <div className={`flex flex-col gap-6 mb-6 ${headerClassName}`}>
-          <div className="flex items-center justify-between">
+          {/* Regular Header - Full header with manage connections */}
+          {showHeader && !publicHeader && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center">
+                  <Image
+                    src={currentGame?.image ?? "/eval/logos/emblem.png"}
+                    alt={`${currentGame?.name ?? "Game"} Logo`}
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-orbitron font-bold text-white">Game Analytics</h3>
+                  <p className="text-xs text-gray-400 font-rajdhani">Comprehensive performance insights</p>
+                </div>
+              </div>
+              <Link 
+                href="/dashboard/player/profile"
+                target={openLinksInNewTab ? "_blank" : undefined}
+                rel={openLinksInNewTab ? "noopener noreferrer" : undefined}
+              >
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 from-blue-600 to-purple-600 border-gray-600 text-white hover:border-gray-500"
+                >
+                  Manage Connections
+                  <ArrowRightIcon className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Public Header - Just the title, no manage connections */}
+          {publicHeader && (
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center">
                 <Image
-                                     src={currentGame?.image ?? "/eval/logos/emblem.png"}
-                   alt={`${currentGame?.name ?? "Game"} Logo`}
+                  src={currentGame?.image ?? "/eval/logos/emblem.png"}
+                  alt={`${currentGame?.name ?? "Game"} Logo`}
                   width={32}
                   height={32}
                   className="object-contain"
@@ -177,32 +247,17 @@ export function GameAnalyticsPanel({
               </div>
               <div>
                 <h3 className="text-xl font-orbitron font-bold text-white">Game Analytics</h3>
-                <p className="text-xs text-gray-400 font-rajdhani">Comprehensive performance insights</p>
+                <p className="text-xs text-gray-400 font-rajdhani">Performance insights across all games</p>
               </div>
             </div>
-            <Link href="/dashboard/player/profile">
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 from-blue-600 to-purple-600 border-gray-600 text-white hover:border-gray-500"
-              >
-                Manage Connections
-                <ArrowRightIcon className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
+          )}
 
-          {/* Game Selection */}
+          {/* Game Selection - Show for both regular and public headers */}
           <div onKeyDown={handleKeyboardNavigation}>
             <GameSelector
               games={availableGames}
               selectedGame={selectedGame}
-              connections={{
-                valorant: selectedGame === "valorant" ? isConnected : false,
-                "rocket-league": selectedGame === "rocket-league" ? isConnected : false,
-                smash: selectedGame === "smash" ? isConnected : false,
-                overwatch: selectedGame === "overwatch" ? isConnected : false,
-              }}
+              connections={allConnections}
               onSelect={handleGameSelect}
             />
           </div>

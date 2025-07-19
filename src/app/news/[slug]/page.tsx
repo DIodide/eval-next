@@ -10,7 +10,7 @@ import { ShareButton } from "./_components/ShareButton";
 import { EnhancedTableOfContents } from "@/components/ui/enhanced-table-of-contents";
 import BlogPostContent from "./_components/BlogPostContent";
 import GameConnectionsPanel from "./_components/GameConnectionsPanel";
-import GameAnalyticsPanel from "./_components/GameAnalyticsPanel";
+import BlogGameAnalyticsPanel from "./_components/BlogGameAnalyticsPanel";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -168,7 +168,7 @@ const mdxComponents = {
   ),
   // Custom components for MDX
   GameConnectionsPanel,
-  GameAnalyticsPanel,
+  GameAnalyticsPanel: BlogGameAnalyticsPanel,
 };
 
 // Extract headings from MDX content for table of contents

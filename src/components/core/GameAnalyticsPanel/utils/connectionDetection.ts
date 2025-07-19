@@ -72,7 +72,8 @@ export function getConnectionStatus(
 export function getGameConnectionStatus(
   user: UserResource | null | undefined,
   profileData: PlayerProfileData | null | undefined,
-  gameId: GameId
+  gameId: GameId,
+  viewMode: 'self' | 'other' = 'self'
 ): {
   isConnected: boolean;
   connectionType: 'oauth' | 'platform' | 'none';
@@ -85,17 +86,25 @@ export function getGameConnectionStatus(
   };
 
   const platform = platformMap[gameId];
+  
+  // When viewing someone else's profile, only check platform connections
+  if (viewMode === 'other') {
+    return getConnectionStatus(null, profileData, platform);
+  }
+  
+  // When viewing own profile, check both OAuth and platform connections
   return getConnectionStatus(user, profileData, platform);
 }
 
 export function getAllConnectionStatuses(
   user: UserResource | null | undefined,
-  profileData: PlayerProfileData | null | undefined
+  profileData: PlayerProfileData | null | undefined,
+  viewMode: 'self' | 'other' = 'self'
 ): Record<GameId, boolean> {
   const games: GameId[] = ['valorant', 'rocket-league', 'smash', 'overwatch'];
   
   return games.reduce((acc, gameId) => {
-    const status = getGameConnectionStatus(user, profileData, gameId);
+    const status = getGameConnectionStatus(user, profileData, gameId, viewMode);
     acc[gameId] = status.isConnected;
     return acc;
   }, {} as Record<GameId, boolean>);

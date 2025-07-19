@@ -1,7 +1,8 @@
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { api } from "@/trpc/react";
 import type { GameId, GameStatsResult, CacheStrategy, GameStats } from "../types";
 import { DEFAULT_CACHE_STRATEGY } from "../utils/constants";
+import { isDemoUser, getMockStatsForGame } from "../utils/mockData";
 
 export function useGameStats(
   gameId: GameId,
@@ -13,52 +14,70 @@ export function useGameStats(
     ...options,
   };
 
-  // VALORANT stats (mutation)
-  const valorantStatsMutation = api.valorantStats.getPlayerStatsByPlayerId.useMutation();
+  // Check if this is a demo user
+  const isDemo = isDemoUser(playerId);
 
-  // Rocket League stats (query with caching)
-  const rocketLeagueStatsQuery = api.rocketLeagueStats.getAllPlayerStats.useQuery(
+  // VALORANT stats (query with caching) - disabled for demo users
+  const valorantStatsQuery = api.valorantStats.getPlayerStatsByPlayerId.useQuery(
     { playerId },
     {
-      enabled: gameId === "rocket-league" && !!playerId,
+      enabled: gameId === "valorant" && !!playerId && !isDemo,
       ...cacheOptions,
     }
   );
 
-  // Smash Ultimate stats (mutation)
-  const smashStatsMutation = api.smashStats.getPlayerStatsByPlayerId.useMutation();
+  // Rocket League stats (query with caching) - disabled for demo users
+  const rocketLeagueStatsQuery = api.rocketLeagueStats.getAllPlayerStats.useQuery(
+    { playerId },
+    {
+      enabled: gameId === "rocket-league" && !!playerId && !isDemo,
+      ...cacheOptions,
+    }
+  );
 
-  // Trigger mutations when needed
-  useEffect(() => {
-    if (playerId && gameId === 'valorant') {
-      valorantStatsMutation.mutate({ playerId });
+  // Smash Ultimate stats (query with caching) - disabled for demo users
+  const smashStatsQuery = api.smashStats.getPlayerStatsByPlayerId.useQuery(
+    { playerId },
+    {
+      enabled: gameId === "smash" && !!playerId && !isDemo,
+      ...cacheOptions,
     }
-    if (playerId && gameId === 'smash') {
-      smashStatsMutation.mutate({ playerId });
-    }
-  }, [playerId, gameId]); // Removed mutation objects from dependencies
+  );
 
   // Create unified interface
   const getStatsForGame = useCallback((): GameStatsResult => {
+    // Handle demo mode
+    if (isDemo) {
+      const mockStats = getMockStatsForGame(gameId);
+      return {
+        data: mockStats,
+        isLoading: false,
+        error: null,
+        refetch: () => {
+          // No-op for demo mode
+        },
+      };
+    }
+
     switch (gameId) {
       case 'valorant': {
-        const error = valorantStatsMutation.error ? 
-          new Error(valorantStatsMutation.error.message) : 
-          (!valorantStatsMutation.data?.success ? 
-            new Error(valorantStatsMutation.data?.message) : null);
+        const error = valorantStatsQuery.error ? 
+          new Error(valorantStatsQuery.error.message) : 
+          (valorantStatsQuery.data && !valorantStatsQuery.data.success ? 
+            new Error(valorantStatsQuery.data.message) : null);
         
         return {
-          data: valorantStatsMutation.data?.data as GameStats | null,
-          isLoading: valorantStatsMutation.isPending,
+          data: valorantStatsQuery.data?.data as GameStats | null,
+          isLoading: valorantStatsQuery.isLoading,
           error,
-          refetch: () => valorantStatsMutation.mutate({ playerId }),
+          refetch: () => void valorantStatsQuery.refetch(),
         };
       }
       case 'rocket-league': {
         const error = rocketLeagueStatsQuery.error ? 
           new Error(rocketLeagueStatsQuery.error.message) : 
-          (!rocketLeagueStatsQuery.data?.success ? 
-            new Error(rocketLeagueStatsQuery.data?.message) : null);
+          (rocketLeagueStatsQuery.data && !rocketLeagueStatsQuery.data.success ? 
+            new Error(rocketLeagueStatsQuery.data.message) : null);
         
         return {
           data: rocketLeagueStatsQuery.data?.data as GameStats | null,
@@ -68,16 +87,16 @@ export function useGameStats(
         };
       }
       case 'smash': {
-        const error = smashStatsMutation.error ? 
-          new Error(smashStatsMutation.error.message) : 
-          (!smashStatsMutation.data?.success ? 
-            new Error(smashStatsMutation.data?.message) : null);
+        const error = smashStatsQuery.error ? 
+          new Error(smashStatsQuery.error.message) : 
+          (smashStatsQuery.data && !smashStatsQuery.data.success ? 
+            new Error(smashStatsQuery.data.message) : null);
         
         return {
-          data: smashStatsMutation.data?.data as GameStats | null,
-          isLoading: smashStatsMutation.isPending,
+          data: smashStatsQuery.data?.data as GameStats | null,
+          isLoading: smashStatsQuery.isLoading,
           error,
-          refetch: () => smashStatsMutation.mutate({ playerId }),
+          refetch: () => void smashStatsQuery.refetch(),
         };
       }
       case 'overwatch':
@@ -93,29 +112,34 @@ export function useGameStats(
     }
   }, [
     gameId,
-    playerId,
-    valorantStatsMutation,
+    isDemo,
+    valorantStatsQuery,
     rocketLeagueStatsQuery,
-    smashStatsMutation,
+    smashStatsQuery,
   ]);
 
   return getStatsForGame();
 }
 
-export function useValorantStats(playerId: string, enabled = true) {
-  const mutation = api.valorantStats.getPlayerStatsByPlayerId.useMutation();
+export function useValorantStats(playerId: string, enabled = true, options?: CacheStrategy) {
+  const cacheOptions = {
+    ...DEFAULT_CACHE_STRATEGY,
+    ...options,
+  };
 
-  useEffect(() => {
-    if (enabled && playerId) {
-      mutation.mutate({ playerId });
+  const query = api.valorantStats.getPlayerStatsByPlayerId.useQuery(
+    { playerId },
+    {
+      enabled: enabled && !!playerId,
+      ...cacheOptions,
     }
-  }, [playerId, enabled]); // Removed mutation object from dependencies
+  );
 
   return {
-    data: mutation.data?.data ?? null,
-    isLoading: mutation.isPending,
-    error: mutation.error ?? (!mutation.data?.success ? new Error(mutation.data?.message) : null),
-    refetch: () => mutation.mutate({ playerId }),
+    data: query.data?.data ?? null,
+    isLoading: query.isLoading,
+    error: query.error ?? (query.data && !query.data.success ? new Error(query.data.message) : null),
+    refetch: () => query.refetch(),
   };
 }
 
@@ -136,24 +160,29 @@ export function useRocketLeagueStats(playerId: string, enabled = true, options?:
   return {
     data: query.data?.data ?? null,
     isLoading: query.isLoading,
-    error: query.error ?? (!query.data?.success ? new Error(query.data?.message) : null),
+    error: query.error ?? (query.data && !query.data.success ? new Error(query.data.message) : null),
     refetch: () => query.refetch(),
   };
 }
 
-export function useSmashStats(playerId: string, enabled = true) {
-  const mutation = api.smashStats.getPlayerStatsByPlayerId.useMutation();
+export function useSmashStats(playerId: string, enabled = true, options?: CacheStrategy) {
+  const cacheOptions = {
+    ...DEFAULT_CACHE_STRATEGY,
+    ...options,
+  };
 
-  useEffect(() => {
-    if (enabled && playerId) {
-      mutation.mutate({ playerId });
+  const query = api.smashStats.getPlayerStatsByPlayerId.useQuery(
+    { playerId },
+    {
+      enabled: enabled && !!playerId,
+      ...cacheOptions,
     }
-  }, [playerId, enabled]); // Removed mutation object from dependencies
+  );
 
   return {
-    data: mutation.data?.data ?? null,
-    isLoading: mutation.isPending,
-    error: mutation.error ?? (!mutation.data?.success ? new Error(mutation.data?.message) : null),
-    refetch: () => mutation.mutate({ playerId }),
+    data: query.data?.data ?? null,
+    isLoading: query.isLoading,
+    error: query.error ?? (query.data && !query.data.success ? new Error(query.data.message) : null),
+    refetch: () => query.refetch(),
   };
 } 

@@ -4,6 +4,12 @@ export type GameId = 'valorant' | 'rocket-league' | 'smash' | 'overwatch';
 
 export type PlatformType = 'valorant' | 'epicgames' | 'startgg' | 'battlenet';
 
+export interface PlayerProfileData {
+  id: string;
+  platform_connections?: { platform: string; connected: boolean }[];
+  social_connections?: unknown[];
+}
+
 export interface GameConfig {
   id: GameId;
   name: string;
@@ -33,12 +39,15 @@ export interface GameAnalyticsPanelProps {
   // Player identification
   playerId?: string;
   viewMode?: 'self' | 'other';
+  targetPlayerProfile?: PlayerProfileData; // Target player's profile data for connection detection
   
   // Display configuration
   defaultGame?: GameId;
   allowedGames?: GameId[];
   showHeader?: boolean;
+  publicHeader?: boolean;
   showConnectionPrompts?: boolean;
+  openLinksInNewTab?: boolean; // For blog/news context where links should open in new tab
   
   // Styling
   className?: string;
@@ -196,6 +205,7 @@ export interface GameComponentProps {
   isConnected: boolean;
   isLoading: boolean;
   error: Error | null;
+  viewMode?: 'self' | 'other';
   onRetry?: () => void;
   onConnect?: () => void;
 }

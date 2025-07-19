@@ -15,6 +15,7 @@ export function ComingSoon({
   gameId: _gameId,
   platform,
   isConnected,
+  viewMode = "self",
   onConnect,
 }: ComingSoonProps) {
   return (
@@ -31,27 +32,31 @@ export function ComingSoon({
           {!isConnected && (
             <>
               <p className="text-yellow-300 font-rajdhani text-xs mb-4">
-                Connect your {platform === 'startgg' ? 'start.gg' : gameName} account now to be ready when analytics launch!
+                {viewMode === "other" 
+                  ? `This player hasn't connected their ${platform === 'startgg' ? 'start.gg' : gameName} account yet.`
+                  : `Connect your ${platform === 'startgg' ? 'start.gg' : gameName} account now to be ready when analytics launch!`}
               </p>
-              {onConnect ? (
-                <Button
-                  onClick={onConnect}
-                  variant="outline"
-                  className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
-                >
-                  Connect {platform === 'startgg' ? 'start.gg' : gameName} Account
-                  <ArrowRightIcon className="h-4 w-4 ml-2" />
-                </Button>
-              ) : (
-                <Link href="/dashboard/player/profile/external-accounts">
+              {viewMode === "self" && (
+                onConnect ? (
                   <Button
+                    onClick={onConnect}
                     variant="outline"
                     className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
                   >
                     Connect {platform === 'startgg' ? 'start.gg' : gameName} Account
                     <ArrowRightIcon className="h-4 w-4 ml-2" />
                   </Button>
-                </Link>
+                ) : (
+                  <Link href="/dashboard/player/profile/external-accounts">
+                    <Button
+                      variant="outline"
+                      className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
+                    >
+                      Connect {platform === 'startgg' ? 'start.gg' : gameName} Account
+                      <ArrowRightIcon className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                )
               )}
             </>
           )}
@@ -60,7 +65,9 @@ export function ComingSoon({
               <div className="flex items-center justify-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                 <span className="text-green-300 font-rajdhani text-sm">
-                  {gameName} account connected - you&apos;re ready for analytics!
+                  {viewMode === "other" 
+                    ? `This player has connected their ${gameName} account - ready for analytics!`
+                    : `${gameName} account connected - you're ready for analytics!`}
                 </span>
               </div>
             </div>

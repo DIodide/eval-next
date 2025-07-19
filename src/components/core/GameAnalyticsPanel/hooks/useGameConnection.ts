@@ -9,48 +9,54 @@ import {
   type PlayerProfileData 
 } from "../utils/connectionDetection";
 
-export function useGameConnection(gameId: GameId, _playerId?: string): GameConnectionResult {
+export function useGameConnection(gameId: GameId, playerId?: string, targetPlayerProfile?: PlayerProfileData): GameConnectionResult {
   const { user } = useUser();
   const { data: profileData } = api.playerProfile.getProfile.useQuery(
     undefined,
     {
-      enabled: !!user,
+      enabled: !!user && !playerId,
     }
   );
 
   const connectionStatus = useMemo(() => {
-    return getGameConnectionStatus(user, profileData as PlayerProfileData, gameId);
-  }, [user, profileData, gameId]);
+    // If viewing someone else's profile, use their profile data
+    const profileToCheck = playerId ? targetPlayerProfile : profileData;
+    const viewMode = playerId ? 'other' : 'self';
+    return getGameConnectionStatus(user, profileToCheck, gameId, viewMode);
+  }, [user, profileData, targetPlayerProfile, gameId, playerId]);
 
   return {
     isConnected: connectionStatus.isConnected,
     connectionType: connectionStatus.connectionType,
-    profileData,
+    profileData: playerId ? targetPlayerProfile : profileData,
   };
 }
 
-export function useAllGameConnections(_playerId?: string): Record<GameId, boolean> {
+export function useAllGameConnections(playerId?: string, targetPlayerProfile?: PlayerProfileData): Record<GameId, boolean> {
   const { user } = useUser();
   const { data: profileData } = api.playerProfile.getProfile.useQuery(
     undefined,
     {
-      enabled: !!user,
+      enabled: !!user && !playerId,
     }
   );
 
   const connectionStatuses = useMemo(() => {
-    return getAllConnectionStatuses(user, profileData as PlayerProfileData);
-  }, [user, profileData]);
+    // If viewing someone else's profile, use their profile data
+    const profileToCheck = playerId ? targetPlayerProfile : profileData;
+    const viewMode = playerId ? 'other' : 'self';
+    return getAllConnectionStatuses(user, profileToCheck, viewMode);
+  }, [user, profileData, targetPlayerProfile, playerId]);
 
   return connectionStatuses;
 }
 
-export function useConnectionCheck(gameId: GameId, _playerId?: string) {
+export function useConnectionCheck(gameId: GameId, playerId?: string) {
   const { user } = useUser();
   const { data: profileData, isLoading, error } = api.playerProfile.getProfile.useQuery(
     undefined,
     {
-      enabled: !!user,
+      enabled: !!user && !playerId,
     }
   );
 
@@ -63,12 +69,13 @@ export function useConnectionCheck(gameId: GameId, _playerId?: string) {
       };
     }
 
-    const status = getGameConnectionStatus(user, profileData as PlayerProfileData, gameId);
+    const viewMode = playerId ? 'other' : 'self';
+    const status = getGameConnectionStatus(user, profileData as PlayerProfileData, gameId, viewMode);
     return {
       ...status,
       isLoading: false,
     };
-  }, [user, profileData, gameId, isLoading]);
+  }, [user, profileData, gameId, isLoading, playerId]);
 
   return {
     ...connectionStatus,

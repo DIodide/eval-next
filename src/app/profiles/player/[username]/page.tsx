@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +37,7 @@ import {
 import { hasPermission } from "@/lib/permissions";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
-import { ValorantAnalytics } from "./ValorantAnalytics";
+import { GameAnalyticsPanel } from "@/components/core/GameAnalyticsPanel";
 
 // Animation variants
 const containerVariants = {
@@ -307,7 +306,6 @@ function MessagePlayerDialog({ playerId, playerName }: { playerId: string; playe
 }
 
 export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
-  const [activeGame, setActiveGame] = useState("valorant");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copying" | "copied">("idle");
   const { user } = useUser();
   const canMessage = user ? hasPermission(user, "message_player") : false;
@@ -970,188 +968,14 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
             whileHover="hover"
           >
             <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-orange-500/20 backdrop-blur-sm shadow-xl">
-          <CardHeader>
-                <CardTitle className="text-white font-orbitron text-2xl flex items-center gap-3">
-                  <div className="p-2 bg-orange-500/20 rounded-lg">
-                    <TrophyIcon className="h-6 w-6 text-orange-400" />
-                  </div>
-                  Game Statistics
-                </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeGame} onValueChange={setActiveGame}>
-                  <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-gray-700/80 to-gray-800/80 border-gray-600/50 backdrop-blur-sm">
-                    <TabsTrigger value="valorant" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-orange-600 data-[state=active]:text-white font-orbitron">Valorant</TabsTrigger>
-                    <TabsTrigger value="overwatch" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-yellow-600 data-[state=active]:text-white font-orbitron">Overwatch</TabsTrigger>
-                    <TabsTrigger value="rocket-league" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white font-orbitron">Rocket League</TabsTrigger>
-              </TabsList>
-
-              {/* Valorant Stats - Now using real API data */}
-              <TabsContent value="valorant" className="mt-6">
-                <ValorantAnalytics playerId={player.id} />
-              </TabsContent>
-
-              {/* Overwatch Stats */}
-              <TabsContent value="overwatch" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Role & Heroes */}
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-white font-orbitron">Role & Best Heroes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge className="mb-3 bg-cyan-600 text-white">{mockGameStats.overwatch.role}</Badge>
-                      <div className="space-y-2">
-                        {mockGameStats.overwatch.bestHeroes.map((hero, index) => (
-                          <div key={hero} className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-cyan-600 rounded-full flex items-center justify-center text-sm font-orbitron font-bold text-white">
-                              {index + 1}
-                            </div>
-                            <span className="text-gray-300 font-rajdhani">{hero}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Best Map */}
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-white font-orbitron">Best Map</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center">
-                        <div className="w-full h-32 bg-gray-800 rounded-lg mb-3 flex items-center justify-center border border-gray-700">
-                          <span className="text-gray-500 font-rajdhani">Map Image</span>
-                        </div>
-                        <p className="font-orbitron font-semibold text-white">{mockGameStats.overwatch.bestMap.name}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-red-400">
-                        {mockGameStats.overwatch.stats.eliminations}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Elims/10min</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-gray-400">
-                        {mockGameStats.overwatch.stats.deaths}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Deaths/10min</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-orange-400">
-                        {mockGameStats.overwatch.stats.damage}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Damage/10min</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-purple-400">
-                        {mockGameStats.overwatch.stats.rank}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Rank</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-green-400">
-                        {mockGameStats.overwatch.stats.winRate}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Win Rate</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              {/* Rocket League Stats */}
-              <TabsContent value="rocket-league" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-white font-orbitron">Position</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge className="mb-3 bg-cyan-600 text-white">{mockGameStats["rocket-league"].position}</Badge>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-white font-orbitron">Overall Performance</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="w-32 h-32 bg-gray-800 rounded-full flex items-center justify-center mx-auto border border-gray-700">
-                        <span className="text-gray-500 font-rajdhani">Chart</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mt-6">
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-blue-400">
-                        {mockGameStats["rocket-league"].stats.goals}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Goals/Game</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-green-400">
-                        {mockGameStats["rocket-league"].stats.saves}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Saves/Game</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-yellow-400">
-                        {mockGameStats["rocket-league"].stats.assists}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Assists/Game</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-orange-400">
-                        {mockGameStats["rocket-league"].stats.score}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Score/Game</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-green-400">
-                        {mockGameStats["rocket-league"].stats.winRate}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Win Rate</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gray-900 border-gray-700">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-orbitron font-bold text-purple-400">
-                        {mockGameStats["rocket-league"].stats.rank}
-                      </div>
-                      <div className="text-sm text-gray-400 font-rajdhani">Rank</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            </Tabs>
+          <CardContent className="relative bottom-6 p-0">
+            <GameAnalyticsPanel 
+              playerId={player.id}
+              viewMode="other"
+              targetPlayerProfile={player}
+              showConnectionPrompts={true}
+              publicHeader={true}
+            />
           </CardContent>
         </Card>
           </motion.div>

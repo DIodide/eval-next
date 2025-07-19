@@ -10,19 +10,17 @@ interface ValorantAnalyticsProps {
 }
 
 export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
-  const [lastFetchedPlayerId, setLastFetchedPlayerId] = useState<string | null>(null);
-  const valorantStatsMutation = api.valorantStats.getPlayerStatsByPlayerId.useMutation();
-
-  useEffect(() => {
-    if (playerId && playerId !== lastFetchedPlayerId) {
-      valorantStatsMutation.mutate({ playerId });
-      setLastFetchedPlayerId(playerId);
+  const valorantStatsQuery = api.valorantStats.getPlayerStatsByPlayerId.useQuery(
+    { playerId },
+    {
+      enabled: !!playerId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerId, lastFetchedPlayerId]);
+  );
 
   // Loading state
-  if (valorantStatsMutation.isPending) {
+  if (valorantStatsQuery.isLoading) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -44,8 +42,8 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
   }
 
   // Error state or no data
-  if (valorantStatsMutation.isError || !valorantStatsMutation.data?.success || !valorantStatsMutation.data.data) {
-    const errorMessage = valorantStatsMutation.data?.message ?? valorantStatsMutation.error?.message ?? "Failed to load Valorant statistics";
+  if (valorantStatsQuery.isError || !valorantStatsQuery.data?.success || !valorantStatsQuery.data.data) {
+    const errorMessage = valorantStatsQuery.data?.message ?? valorantStatsQuery.error?.message ?? "Failed to load Valorant statistics";
     
     return (
       <div className="text-center py-8">
@@ -69,7 +67,7 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
     );
   }
 
-  const stats = valorantStatsMutation.data.data;
+  const stats = valorantStatsQuery.data.data;
 
   return (
     <div className="space-y-4">

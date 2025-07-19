@@ -37,13 +37,17 @@ interface GameConnection {
 export default function GameConnectionsPanel() {
   const { user } = useUser();
   
-  // tRPC hooks - only run if user is signed in
+  // Check if user is a player
+  const userType = user?.unsafeMetadata?.userType;
+  const isPlayer = userType === "player";
+  
+  // tRPC hooks - only run if user is signed in AND is a player
   const { 
     data: profileData, 
     isLoading: isLoadingProfile, 
     refetch: refetchProfile 
   } = api.playerProfile.getProfile.useQuery(undefined, {
-    enabled: !!user
+    enabled: !!user && isPlayer
   });
   
   // Connection mutations
@@ -276,6 +280,67 @@ export default function GameConnectionsPanel() {
               Sign In to Connect Games
             </Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Show different message for non-player users
+  if (!isPlayer) {
+    return (
+      <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border border-gray-700/50 rounded-lg p-6 my-8">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <GamepadIcon className="w-8 h-8 text-blue-400" />
+          </div>
+          <h3 className="text-white font-orbitron font-bold text-xl mb-2">Game Connections</h3>
+          <p className="text-gray-300 font-rajdhani mb-6">
+            This feature is available for players to connect their game accounts and unlock detailed analytics. 
+            {userType === "coach" ? " As a coach, you can view player profiles to see their connected games and statistics." : ""}
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {gameConnectionsConfig.map((game) => (
+              <div
+                key={game.platform}
+                className="p-4 rounded-xl border-2 border-gray-600/50 bg-gray-800/30"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 mb-3 flex items-center justify-center">
+                    {game.platform === "valorant" ? (
+                      <Image 
+                        src="/valorant/logos/Valorant Logo Red Border.jpg"
+                        alt="VALORANT Logo"
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
+                    ) : game.platform === "epicgames" ? (
+                      <Image 
+                        src="/rocket-league/logos/Rocket League Emblem.png"
+                        alt="Rocket League Logo"
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
+                    ) : game.platform === "battlenet" ? (
+                      <Image 
+                        src="/overwatch/logos/Overwatch 2 Primary Logo.png"
+                        alt="Overwatch 2 Logo"
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className={`p-2 rounded ${game.color}`}>
+                        <game.icon className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-white font-medium text-sm">{game.displayName}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
