@@ -330,7 +330,7 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-lg border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-3 text-center">
           <div className="font-orbitron text-2xl font-bold text-purple-300">
-            {stats.stats.evalScore}
+            {stats.stats.evalScore.toFixed(1)}
           </div>
           <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-purple-400">
             EVAL SCORE
