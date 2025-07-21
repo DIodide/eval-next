@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, leagueAdminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { withRetry } from "@/lib/db-utils";
+import { withRetry } from "@/lib/server/db-utils";
 import { clerkClient } from "@clerk/nextjs/server";
 import { logLeagueAssociationRequest } from "@/lib/discord-logger";
 import type { LeagueAssociationRequestData } from "@/lib/discord-logger";
@@ -723,4 +723,331 @@ export const leagueAdminProfileRouter = createTRPCRouter({
         });
       }
     }),
+
+  // School Management Endpoints
+
+  // Search available schools that aren't already in the league
+  searchAvailableSchools: leagueAdminProcedure
+    .input(z.object({
+      search: z.string().min(1).max(100),
+      limit: z.number().min(1).max(50).default(10),
+      type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]).optional(),
+      state: z.string().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { league_id: true },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to search schools',
+          });
+        }
+
+        // Get schools that are NOT already in this league
+        const where = {
+          AND: [
+            // Text search conditions
+            {
+              OR: [
+                { name: { contains: input.search, mode: 'insensitive' as const } },
+                { location: { contains: input.search, mode: 'insensitive' as const } },
+                { state: { contains: input.search, mode: 'insensitive' as const } },
+              ],
+            },
+            // Filter conditions
+            ...(input.type ? [{ type: input.type }] : []),
+            ...(input.state ? [{ state: { contains: input.state, mode: 'insensitive' as const } }] : []),
+            // Exclude schools already in the league
+            {
+              NOT: {
+                league_memberships: {
+                  some: {
+                    league_id: leagueAdmin.league_id,
+                  },
+                },
+              },
+            },
+          ],
+        };
+
+        const schools = await withRetry(() =>
+          ctx.db.school.findMany({
+            where,
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              location: true,
+              state: true,
+              region: true,
+              logo_url: true,
+              _count: {
+                select: {
+                  players: true,
+                  coaches: true,
+                  teams: true,
+                },
+              },
+            },
+            orderBy: [
+              { name: 'asc' },
+            ],
+            take: input.limit,
+          })
+        );
+
+        return schools;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error searching available schools:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to search schools',
+        });
+      }
+    }),
+
+  // Get schools already in the league
+  getLeagueSchools: leagueAdminProcedure
+    .query(async ({ ctx }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { league_id: true },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to view league schools',
+          });
+        }
+
+        const leagueSchools = await withRetry(() =>
+          ctx.db.leagueSchool.findMany({
+            where: {
+              league_id: leagueAdmin.league_id!,
+            },
+            include: {
+              school: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  location: true,
+                  state: true,
+                  region: true,
+                  logo_url: true,
+                  _count: {
+                    select: {
+                      players: true,
+                      coaches: true,
+                      teams: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              joined_at: 'asc',
+            },
+          })
+        );
+
+        return leagueSchools;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error fetching league schools:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch league schools',
+        });
+      }
+    }),
+
+  // Add an existing school to the league
+  addSchoolToLeague: leagueAdminProcedure
+    .input(z.object({
+      school_id: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { 
+            league_id: true,
+            league_ref: {
+              select: {
+                season: true,
+              },
+            },
+          },
+        });
+
+        if (!leagueAdmin?.league_id || !leagueAdmin.league_ref) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to add schools',
+          });
+        }
+
+        // Verify the school exists
+        const school = await ctx.db.school.findUnique({
+          where: { id: input.school_id },
+          select: { id: true, name: true },
+        });
+
+        if (!school) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'School not found',
+          });
+        }
+
+        // Check if school is already in the league
+        const existingLeagueSchool = await ctx.db.leagueSchool.findUnique({
+          where: {
+            league_id_school_id_season: {
+              league_id: leagueAdmin.league_id,
+              school_id: input.school_id,
+              season: leagueAdmin.league_ref.season || "2024", // Default season if null
+            },
+          },
+        });
+
+        if (existingLeagueSchool) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'School is already part of this league',
+          });
+        }
+
+        // Add the school to the league
+        const leagueSchool = await withRetry(() =>
+          ctx.db.leagueSchool.create({
+            data: {
+              league_id: leagueAdmin.league_id!,
+              school_id: input.school_id,
+              season: leagueAdmin.league_ref!.season || "2024", // Default season if null
+            },
+            include: {
+              school: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  location: true,
+                  state: true,
+                  logo_url: true,
+                },
+              },
+            },
+          })
+        );
+
+        return leagueSchool;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error adding school to league:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to add school to league',
+        });
+      }
+    }),
+
+  // Remove a school from the league
+  removeSchoolFromLeague: leagueAdminProcedure
+    .input(z.object({
+      league_school_id: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { league_id: true },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You must be associated with a league to remove schools',
+          });
+        }
+
+        // Verify the league school exists and belongs to this league
+        const leagueSchool = await ctx.db.leagueSchool.findUnique({
+          where: { id: input.league_school_id },
+          select: { 
+            id: true, 
+            league_id: true,
+            school: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        });
+
+        if (!leagueSchool) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'League school relationship not found',
+          });
+        }
+
+        if (leagueSchool.league_id !== leagueAdmin.league_id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You can only remove schools from your own league',
+          });
+        }
+
+        // Remove the school from the league
+        await withRetry(() =>
+          ctx.db.leagueSchool.delete({
+            where: { id: input.league_school_id },
+          })
+        );
+
+        return { 
+          success: true, 
+          message: `${leagueSchool.school.name} has been removed from the league` 
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error('Error removing school from league:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to remove school from league',
+        });
+      }
+    }),
+
+
 }); 
