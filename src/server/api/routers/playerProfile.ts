@@ -7,7 +7,7 @@
 // It uses the playerProcedure from the trpc router to ensure that the user is authenticated as a player.
 
 
-import { withRetry } from "@/lib/db-utils";
+import { withRetry } from "@/lib/server/db-utils";
 import type { createTRPCContext } from "@/server/api/trpc";
 import { createTRPCRouter, onboardedCoachProcedure, playerProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";

@@ -1,3 +1,4 @@
+import 'server-only';
 import type { Metadata } from 'next';
 
 const SITE_NAME = 'EVAL';

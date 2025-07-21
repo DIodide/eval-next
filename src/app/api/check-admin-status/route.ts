@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { isCurrentUserAdmin } from "@/lib/admin-utils";
+import { isCurrentUserAdmin } from "@/lib/server/admin-utils";
 
 export async function GET(req: NextRequest) {
   try {

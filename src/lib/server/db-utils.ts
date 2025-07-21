@@ -1,3 +1,4 @@
+import 'server-only';
 // src/lib/db-utils.ts
 // This file contains the database utility functions for the API.
 // It is used to handle connection issues and prepared statement errors.

@@ -6,7 +6,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, playerProcedure, onboardedCoachProcedure, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { withRetry } from "@/lib/db-utils";
+import { withRetry } from "@/lib/server/db-utils";
 import type { Prisma } from "@prisma/client";
 import { type Combine, type EventType } from "@prisma/client";
 

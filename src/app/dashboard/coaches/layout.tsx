@@ -1,4 +1,4 @@
-import { staticPageMetadata } from "@/lib/metadata";
+import { staticPageMetadata } from "@/lib/server/metadata";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = staticPageMetadata.coachesDashboard;
@@ -12,8 +12,6 @@ export default function CoachesDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <CoachesDashboardClientLayout>
-      {children}
-    </CoachesDashboardClientLayout>
+    <CoachesDashboardClientLayout>{children}</CoachesDashboardClientLayout>
   );
-} 
+}

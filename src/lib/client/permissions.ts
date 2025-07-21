@@ -1,3 +1,8 @@
+// src/lib/permissions.ts
+// This file contains the permissions utility functions for the API.
+// It is used to handle role-based access control.
+// Not really used, relying on trpc procedures to handle most.
+
 import { type User } from "@clerk/nextjs/server";
 import { type UserResource } from "@clerk/types";
 

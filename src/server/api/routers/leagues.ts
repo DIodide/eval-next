@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { withRetry } from "@/lib/db-utils";
+import { withRetry } from "@/lib/server/db-utils";
 
 export const leaguesRouter = createTRPCRouter({
   // Get all leagues

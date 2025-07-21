@@ -1,4 +1,4 @@
-import { staticPageMetadata } from "@/lib/metadata";
+import { staticPageMetadata } from "@/lib/server/metadata";
 import type { Metadata } from "next";
 import PlayerDashboardClientLayout from "./client-layout";
 
@@ -9,9 +9,5 @@ export default function PlayerDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <PlayerDashboardClientLayout>
-      {children}
-    </PlayerDashboardClientLayout>
-  );
-} 
+  return <PlayerDashboardClientLayout>{children}</PlayerDashboardClientLayout>;
+}

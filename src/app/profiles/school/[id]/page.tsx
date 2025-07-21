@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users, Share2Icon, SchoolIcon, GraduationCapIcon, BuildingIcon, InfoIcon } from "lucide-react";
-import { hasPermission } from "@/lib/permissions";
+import { hasPermission } from "@/lib/client/permissions";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import Image from "next/image";

@@ -21,7 +21,7 @@ import {
   BuildingIcon,
   BarChart3Icon
 } from "lucide-react";
-import { isLeagueAdminOnboarded } from "@/lib/permissions";
+import { isLeagueAdminOnboarded } from "@/lib/client/permissions";
 import { api } from "@/trpc/react";
 
 // Define protected routes that require onboarding
@@ -115,6 +115,13 @@ export function LeaguesDashboardClientLayout({
       icon: TrophyIcon,
       requiresOnboarding: true,
       enabled: false,
+    },
+    {
+      title: "Manage Schools",
+      href: "/dashboard/leagues/schools",
+      icon: BuildingIcon,
+      requiresOnboarding: true,
+      enabled: true,
     },
     {
       title: "Manage Rankings",

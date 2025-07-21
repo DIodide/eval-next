@@ -22,7 +22,7 @@ import {
   uploadAsset,
   deleteAsset,
   validateFile 
-} from '@/lib/storage'
+} from '@/lib/client/storage'
 
 interface FileUploadProps {
   /** The storage bucket to upload to */

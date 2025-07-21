@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Image from "next/image";
-import { type BlogMetadata } from "@/lib/blog";
+import { type BlogMetadata } from "@/lib/server/blog";
 
 interface BlogListingClientProps {
   initialPosts: BlogMetadata[];
@@ -23,9 +23,9 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
+      delayChildren: 0.2,
+    },
+  },
 };
 
 const itemVariants = {
@@ -34,45 +34,51 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5
-    }
-  }
+      duration: 0.5,
+    },
+  },
 };
 
 const cardHoverVariants = {
   rest: { scale: 1, y: 0 },
-  hover: { 
-    scale: 1.02, 
+  hover: {
+    scale: 1.02,
     y: -5,
     transition: {
-      duration: 0.3
-    }
-  }
+      duration: 0.3,
+    },
+  },
 };
 
-export function BlogListingClient({ initialPosts, initialTags }: BlogListingClientProps) {
+export function BlogListingClient({
+  initialPosts,
+  initialTags,
+}: BlogListingClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
 
   // Filter posts based on search and tag
   const filteredPosts = useMemo(() => {
-    return initialPosts.filter(post => {
-      const matchesSearch = searchQuery === "" || 
+    return initialPosts.filter((post) => {
+      const matchesSearch =
+        searchQuery === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+        post.tags.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+
       const matchesTag = selectedTag === "" || post.tags.includes(selectedTag);
-      
+
       return matchesSearch && matchesTag;
     });
   }, [initialPosts, searchQuery, selectedTag]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -90,27 +96,28 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
         transition={{ delay: 0.2, duration: 0.5 }}
       >
         {/* Search Bar */}
-        <div className="relative max-w-md mx-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <div className="relative mx-auto max-w-md">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
           <Input
             type="text"
             placeholder="Search articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20"
+            className="border-gray-700 bg-gray-800/50 pl-10 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20"
           />
         </div>
 
         {/* Tags Filter */}
         {initialTags.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap justify-center gap-2">
             <Button
               variant={selectedTag === "" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedTag("")}
-              className={selectedTag === "" 
-                ? "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white"
-                : "border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white"
+              className={
+                selectedTag === ""
+                  ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:from-cyan-600 hover:to-purple-700"
+                  : "border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white"
               }
             >
               All Posts
@@ -121,12 +128,13 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
                 variant={selectedTag === tag ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleTagClick(tag)}
-                className={selectedTag === tag 
-                  ? "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white"
-                  : "border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white"
+                className={
+                  selectedTag === tag
+                    ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:from-cyan-600 hover:to-purple-700"
+                    : "border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white"
                 }
               >
-                <Tag className="w-3 h-3 mr-1" />
+                <Tag className="mr-1 h-3 w-3" />
                 {tag}
               </Button>
             ))}
@@ -136,20 +144,22 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
 
       {/* Posts Grid */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {filteredPosts.length === 0 ? (
           <motion.div
-            className="col-span-full text-center py-12"
+            className="col-span-full py-12 text-center"
             variants={itemVariants}
           >
-            <div className="text-gray-400 text-lg font-rajdhani">
-              {searchQuery || selectedTag ? "No posts found matching your criteria." : "No blog posts available yet."}
+            <div className="font-rajdhani text-lg text-gray-400">
+              {searchQuery || selectedTag
+                ? "No posts found matching your criteria."
+                : "No blog posts available yet."}
             </div>
-            <p className="text-gray-500 mt-2 font-rajdhani">
+            <p className="font-rajdhani mt-2 text-gray-500">
               Check back soon for exciting updates from the EVAL team!
             </p>
           </motion.div>
@@ -163,44 +173,48 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
             >
               <Link href={`/news/${post.slug}`} className="cursor-pointer">
                 <motion.div variants={cardHoverVariants}>
-                  <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 h-full cursor-pointer group">
+                  <Card className="group h-full cursor-pointer border-gray-700/50 bg-gradient-to-br from-gray-800/90 to-gray-900/90 transition-all duration-300 hover:border-cyan-500/50">
                     {/* Cover Image */}
                     {post.coverImage && (
-                      <div className="bottom-6 relative h-48 overflow-hidden rounded-t-lg">
+                      <div className="relative bottom-6 h-48 overflow-hidden rounded-t-lg">
                         <Image
                           src={post.coverImage}
                           alt={post.title}
                           fill
-                          className="object-cover group-hover:scale-101 transition-transform duration-300"
+                          className="object-cover transition-transform duration-300 group-hover:scale-101"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
                       </div>
                     )}
-                    
+
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
+                      <div className="mb-2 flex items-center justify-between text-sm text-gray-400">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span className="font-rajdhani">{formatDate(post.date)}</span>
+                            <Calendar className="h-3 w-3" />
+                            <span className="font-rajdhani">
+                              {formatDate(post.date)}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span className="font-rajdhani">{post.readingTime.text}</span>
+                            <Clock className="h-3 w-3" />
+                            <span className="font-rajdhani">
+                              {post.readingTime.text}
+                            </span>
                           </div>
                         </div>
                       </div>
-                      
-                      <CardTitle className="text-white font-orbitron text-lg group-hover:text-cyan-400 transition-colors line-clamp-2">
+
+                      <CardTitle className="font-orbitron line-clamp-2 text-lg text-white transition-colors group-hover:text-cyan-400">
                         {post.title}
                       </CardTitle>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
-                      <p className="text-gray-300 font-rajdhani line-clamp-3">
+                      <p className="font-rajdhani line-clamp-3 text-gray-300">
                         {post.excerpt}
                       </p>
-                      
+
                       {/* Tags */}
                       {post.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2">
@@ -208,7 +222,7 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
                             <Badge
                               key={tag}
                               variant="outline"
-                              className="text-xs border-gray-600 text-gray-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors"
+                              className="border-gray-600 text-xs text-gray-400 transition-colors hover:border-cyan-400 hover:text-cyan-400"
                             >
                               {tag}
                             </Badge>
@@ -216,23 +230,23 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
                           {post.tags.length > 3 && (
                             <Badge
                               variant="outline"
-                              className="text-xs border-gray-600 text-gray-400"
+                              className="border-gray-600 text-xs text-gray-400"
                             >
                               +{post.tags.length - 3} more
                             </Badge>
                           )}
                         </div>
                       )}
-                      
+
                       {/* Author and Read More */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                      <div className="flex items-center justify-between border-t border-gray-700/50 pt-4">
                         <div className="flex items-center gap-2 text-sm text-gray-400">
-                          <User className="w-3 h-3" />
+                          <User className="h-3 w-3" />
                           <span className="font-rajdhani">{post.author}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                        <div className="flex items-center gap-1 text-sm text-cyan-400 transition-colors group-hover:text-cyan-300">
                           <span className="font-rajdhani">Read More</span>
-                          <ChevronRight className="w-3 h-3" />
+                          <ChevronRight className="h-3 w-3" />
                         </div>
                       </div>
                     </CardContent>
@@ -245,4 +259,4 @@ export function BlogListingClient({ initialPosts, initialTags }: BlogListingClie
       </motion.div>
     </>
   );
-} 
+}

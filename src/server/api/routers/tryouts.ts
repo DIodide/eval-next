@@ -6,7 +6,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure, playerProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { withRetry } from "@/lib/db-utils";
+import { withRetry } from "@/lib/server/db-utils";
 import type { Prisma } from "@prisma/client";
 
 // Helper function to extract time from UTC ISO string

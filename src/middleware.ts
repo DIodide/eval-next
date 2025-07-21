@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { checkAdminAccess } from "@/lib/admin-utils";
+import { checkAdminAccess } from "@/lib/server/admin-utils";
 import { NextResponse } from "next/server";
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/user-profile(.*)'])

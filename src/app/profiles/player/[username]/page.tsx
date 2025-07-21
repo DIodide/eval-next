@@ -34,7 +34,7 @@ import {
   CheckIcon,
   LoaderIcon
 } from "lucide-react";
-import { hasPermission } from "@/lib/permissions";
+import { hasPermission } from "@/lib/client/permissions";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import { GameAnalyticsPanel } from "@/components/core/GameAnalyticsPanel";

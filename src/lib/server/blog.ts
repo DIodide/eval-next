@@ -1,3 +1,7 @@
+import 'server-only';
+// src/lib/blog.ts
+// This file contains the blog utility functions for the API.
+// It is used to handle blog posts and metadata.
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';

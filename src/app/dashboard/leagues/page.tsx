@@ -12,12 +12,13 @@ import {
   BuildingIcon,
   PlusIcon,
   EyeIcon,
-  BarChart3Icon
+  BarChart3Icon,
+  Building2Icon
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { LeagueAssociationRequestForm } from "./_components/LeagueAssociationRequestForm";
-import { isLeagueAdminOnboarded } from "@/lib/permissions";
+import { isLeagueAdminOnboarded } from "@/lib/client/permissions";
 import { api } from "@/trpc/react";
 
 export default function LeagueDashboardPage() {
@@ -252,6 +253,22 @@ export default function LeagueDashboardPage() {
             <CardContent>
               <p className="text-gray-400 text-sm">
                 Organize teams, manage rosters, and track performance.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/leagues/schools">
+          <Card className="bg-[#1a1a2e] border-gray-800 hover:border-purple-500 transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Building2Icon className="h-5 w-5 text-purple-400" />
+                Manage Schools
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-400 text-sm">
+                Add schools to your league and manage their participation.
               </p>
             </CardContent>
           </Card>

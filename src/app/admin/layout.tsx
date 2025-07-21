@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { isCurrentUserAdmin } from "@/lib/admin-utils";
+import { isCurrentUserAdmin } from "@/lib/server/admin-utils";
 import { AdminNavigation } from "./_components/AdminNavigation";
 
 export default async function AdminLayout({
@@ -9,13 +9,13 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect("/sign-in");
   }
 
   const isAdmin = await isCurrentUserAdmin();
-  
+
   if (!isAdmin) {
     redirect("/dashboard");
   }
@@ -23,9 +23,7 @@ export default async function AdminLayout({
   return (
     <div className="h-[calc(100vh-64px)] bg-gray-900">
       <AdminNavigation />
-      <main className="container mx-auto px-4 py-8">
-        {children}
-      </main>
+      <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   );
-} 
+}

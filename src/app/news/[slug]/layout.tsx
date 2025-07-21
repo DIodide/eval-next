@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPostBySlug } from "@/lib/blog";
+import { getPostBySlug } from "@/lib/server/blog";
 import type { Metadata } from "next";
 
 interface BlogPostLayoutProps {
@@ -7,7 +7,9 @@ interface BlogPostLayoutProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: BlogPostLayoutProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: BlogPostLayoutProps): Promise<Metadata> {
   const { slug } = await params;
   const post = getPostBySlug(slug);
 
@@ -25,12 +27,12 @@ export async function generateMetadata({ params }: BlogPostLayoutProps): Promise
     description: post.excerpt,
     keywords: [
       ...post.tags,
-      'EVAL news',
-      'esports news',
-      'college esports',
-      'gaming industry',
-      'EVAL',
-      'EVAL Gaming',
+      "EVAL news",
+      "esports news",
+      "college esports",
+      "gaming industry",
+      "EVAL",
+      "EVAL Gaming",
       post.author,
     ],
     openGraph: {
@@ -46,7 +48,7 @@ export async function generateMetadata({ params }: BlogPostLayoutProps): Promise
           width: 1200,
           height: 630,
           alt: post.title,
-        }
+        },
       ],
     },
     twitter: {
@@ -64,4 +66,4 @@ export default function BlogPostLayout({
   children: React.ReactNode;
 }) {
   return children;
-} 
+}

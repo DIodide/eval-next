@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircleIcon, LockIcon } from "lucide-react";
-import { isCoachOnboarded } from "@/lib/permissions";
+import { isCoachOnboarded } from "@/lib/client/permissions";
 
 interface OnboardingGuardProps {
   children: React.ReactNode;

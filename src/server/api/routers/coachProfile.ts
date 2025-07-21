@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, coachProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { withRetry } from "@/lib/db-utils";
+import { withRetry } from "@/lib/server/db-utils";
 import { clerkClient } from "@clerk/nextjs/server";
 import { logSchoolAssociationRequest } from "@/lib/discord-logger";
 

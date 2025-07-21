@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllPosts, getAllTags } from '@/lib/blog';
+import { getAllPosts, getAllTags } from '@/lib/server/blog';
 
 // Cache the API response for 1 hour
 export const revalidate = 3600;
