@@ -148,7 +148,7 @@ async function verifyBucketDeleted(bucketName: string) {
   try {
     const { data, error } = await supabase.storage.getBucket(bucketName);
 
-    if (error && error.message.includes("not found")) {
+    if (error?.message.includes("not found")) {
       console.log(`   ✅ Bucket '${bucketName}' successfully deleted`);
       return true;
     }
