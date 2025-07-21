@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -177,9 +178,11 @@ export function MultiSelectGames({
                     />
                     <div className="flex items-center gap-2">
                       {game.icon && (
-                        <img
+                        <Image
                           src={game.icon}
                           alt={game.name}
+                          width={16}
+                          height={16}
                           className="h-4 w-4"
                         />
                       )}
@@ -215,7 +218,13 @@ export function MultiSelectGames({
                 className="flex items-center gap-1 border-blue-500 bg-blue-600/20 text-blue-400"
               >
                 {game.icon && (
-                  <img src={game.icon} alt={game.name} className="h-3 w-3" />
+                  <Image
+                    src={game.icon}
+                    alt={game.name}
+                    width={12}
+                    height={12}
+                    className="h-3 w-3"
+                  />
                 )}
                 {game.name}
                 <button

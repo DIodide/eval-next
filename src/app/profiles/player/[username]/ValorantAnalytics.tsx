@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Tooltip,
   TooltipContent,
@@ -183,16 +184,12 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
               {stats.mainAgent.image ? (
-                <img
+                <Image
                   src={stats.mainAgent.image}
                   alt={stats.mainAgent.name}
+                  width={32}
+                  height={32}
                   className="h-full w-full object-cover"
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    const span = img.nextElementSibling as HTMLSpanElement;
-                    img.style.display = "none";
-                    if (span) span.style.display = "flex";
-                  }}
                 />
               ) : null}
               <span
@@ -226,16 +223,12 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-16 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
               {stats.mainGun.image ? (
-                <img
+                <Image
                   src={stats.mainGun.image}
                   alt={stats.mainGun.name}
+                  width={64}
+                  height={40}
                   className="h-full w-full object-contain"
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    const span = img.nextElementSibling as HTMLSpanElement;
-                    img.style.display = "none";
-                    if (span) span.style.display = "flex";
-                  }}
                 />
               ) : null}
               <span
@@ -272,16 +265,12 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
               {stats.bestMap.image ? (
-                <img
+                <Image
                   src={stats.bestMap.image}
                   alt={stats.bestMap.name}
+                  width={32}
+                  height={32}
                   className="h-full w-full object-cover"
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    const span = img.nextElementSibling as HTMLSpanElement;
-                    img.style.display = "none";
-                    if (span) span.style.display = "flex";
-                  }}
                 />
               ) : null}
               <span
@@ -315,16 +304,12 @@ export function ValorantAnalytics({ playerId }: ValorantAnalyticsProps) {
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
               {stats.worstMap.image ? (
-                <img
+                <Image
                   src={stats.worstMap.image}
                   alt={stats.worstMap.name}
+                  width={32}
+                  height={32}
                   className="h-full w-full object-cover"
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement;
-                    const span = img.nextElementSibling as HTMLSpanElement;
-                    img.style.display = "none";
-                    if (span) span.style.display = "flex";
-                  }}
                 />
               ) : null}
               <span

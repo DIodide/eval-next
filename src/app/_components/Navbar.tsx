@@ -384,15 +384,19 @@ export default function Navbar() {
                         {/* Profile Image or Game Icon */}
                         <div className="flex-shrink-0">
                           {result.image_url ? (
-                            <img
+                            <Image
                               src={result.image_url}
                               alt={result.title}
+                              width={40}
+                              height={40}
                               className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
                             />
                           ) : result.type === "PLAYER" && result.game?.icon ? (
-                            <img
+                            <Image
                               src={result.game.icon}
                               alt={result.game.name}
+                              width={40}
+                              height={40}
                               className="h-10 w-10 rounded object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
                             />
                           ) : result.type === "SCHOOL" ? (
@@ -627,16 +631,20 @@ export default function Navbar() {
                           {/* Profile Image or Game Icon */}
                           <div className="flex-shrink-0">
                             {result.image_url ? (
-                              <img
+                              <Image
                                 src={result.image_url}
                                 alt={result.title}
+                                width={40}
+                                height={40}
                                 className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
                               />
                             ) : result.type === "PLAYER" &&
                               result.game?.icon ? (
-                              <img
+                              <Image
                                 src={result.game.icon}
                                 alt={result.game.name}
+                                width={40}
+                                height={40}
                                 className="h-10 w-10 rounded object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
                               />
                             ) : result.type === "SCHOOL" ? (
