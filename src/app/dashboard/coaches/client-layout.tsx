@@ -21,7 +21,7 @@ import {
   LockIcon,
   GraduationCapIcon
 } from "lucide-react";
-import { isCoachOnboarded } from "@/lib/permissions";
+import { isCoachOnboarded } from "@/lib/client/permissions";
 import { api } from "@/trpc/react";
 
 // Define protected routes that require onboarding
