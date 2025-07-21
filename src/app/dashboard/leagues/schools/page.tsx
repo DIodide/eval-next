@@ -605,7 +605,7 @@ interface SchoolCreationRequest {
 }
 
 interface SchoolRequestFormData {
-  requestId: string;
+  request_id: string;
   proposed_school_name: string;
   proposed_school_type: "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY";
   proposed_school_location: string;
@@ -665,7 +665,7 @@ function EditSchoolRequestDialog({
     e.preventDefault();
     if (!request) return;
     onSubmit({
-      requestId: request.id,
+      request_id: request.id,
       ...formData,
     });
   };
@@ -1029,7 +1029,7 @@ export default function LeagueSchoolsPage() {
 
   const handleConfirmDeleteRequest = () => {
     deleteSchoolRequestMutation.mutate({
-      requestId: deleteRequestDialog.requestId,
+      request_id: deleteRequestDialog.requestId,
     });
   };
 
