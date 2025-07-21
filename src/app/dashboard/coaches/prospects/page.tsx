@@ -7,11 +7,11 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable react/no-unescaped-entities */
 
-import { useState } from "react";
-import { api } from "@/trpc/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
   DialogContent,
@@ -19,44 +19,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DataTable } from "@/components/ui/data-table";
-import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
-import Link from "next/link";
-import {
-  Heart,
-  Star,
-  Edit,
-  Trash2,
-  MessageCircle,
-  ExternalLink,
-  Search,
-  Filter,
-  Users,
-  School,
-  Calendar,
-  TrophyIcon,
-  GraduationCap,
-  MapPin,
-  Mail,
-  Eye,
-  MoreVertical,
-  Plus,
-  UserCheck,
-  Target,
-  BookOpen,
-  Award,
-  GamepadIcon,
-  X,
-  Clock,
-  Bookmark,
-  MoreHorizontal,
-} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,6 +27,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { api } from "@/trpc/react";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Bookmark,
+  BookOpen,
+  Clock,
+  Edit,
+  Eye,
+  Filter,
+  GamepadIcon,
+  GraduationCap,
+  Heart,
+  Mail,
+  MapPin,
+  MessageCircle,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Target,
+  Trash2,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface Prospect {
   id: string;

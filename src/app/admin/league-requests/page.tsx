@@ -23,7 +23,6 @@ import {
   UserIcon,
   CalendarIcon,
   MessageSquareIcon,
-  GamepadIcon,
   GlobeIcon,
 } from "lucide-react";
 import { api } from "@/trpc/react";

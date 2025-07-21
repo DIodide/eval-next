@@ -196,6 +196,7 @@ export const coachProfileRouter = createTRPCRouter({
 
       return coach;
     } catch (error) {
+      console.error("Error fetching basic profile:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch basic profile",
@@ -255,6 +256,7 @@ export const coachProfileRouter = createTRPCRouter({
 
       return coach;
     } catch (error) {
+      console.error("Error fetching school info:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch school info",
@@ -458,6 +460,7 @@ export const coachProfileRouter = createTRPCRouter({
 
       return schools;
     } catch (error) {
+      console.error("Error fetching available schools:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch available schools",

@@ -16,7 +16,6 @@ import {
   Filter,
   Trophy,
   Star,
-  ChevronRight,
   Medal,
   Crown,
   Award,

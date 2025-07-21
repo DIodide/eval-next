@@ -14,14 +14,12 @@ import {
 } from "@/components/ui/select";
 import {
   Search,
-  Filter,
   Users,
   Trophy,
   MapPin,
   Calendar,
   ChevronRight,
   Loader2,
-  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/trpc/react";

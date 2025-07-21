@@ -32,8 +32,6 @@ import {
   StarIcon,
   LoaderIcon,
   SchoolIcon,
-  MapPinIcon,
-  TrophyIcon,
   PlusIcon,
   MessageCircleIcon,
   MailIcon,

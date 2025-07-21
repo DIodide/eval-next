@@ -4,12 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  UsersIcon,
-  TrophyIcon,
-  MessageSquareIcon,
-  SearchIcon,
   PlusIcon,
-  EyeIcon,
   AlertCircleIcon,
   ClockIcon,
   BuildingIcon,
@@ -17,8 +12,6 @@ import {
   EditIcon,
   TrashIcon,
   PinIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   ZapIcon,
   ArrowRightIcon,
 } from "lucide-react";
@@ -26,15 +19,8 @@ import Link from "next/link";
 import { api } from "@/trpc/react";
 import { SchoolAssociationRequestForm } from "./_components/SchoolAssociationRequestForm";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
+
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,11 +33,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+
+
 import { toast } from "sonner";
 
 // Type definitions matching the Prisma schema and tRPC return types

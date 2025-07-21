@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getAllPosts, getAllTags } from "@/lib/server/blog";
 import { BlogListingClient } from "./_components/BlogListingClient";
-import Image from "next/image";
 
 // Enable static generation with ISR (Incremental Static Regeneration)
 export const revalidate = 3600; // 1 hour

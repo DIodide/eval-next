@@ -14,9 +14,7 @@ import {
   Mail,
   Calendar,
   School,
-  Building,
   ExternalLink,
-  User,
 } from "lucide-react";
 import { db } from "@/server/db";
 

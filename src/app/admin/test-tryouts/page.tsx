@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@clerk/nextjs";
-import { TRPCError } from "@trpc/server";
 
 type EventType = "ONLINE" | "IN_PERSON" | "HYBRID";
 type RegistrationStatus =

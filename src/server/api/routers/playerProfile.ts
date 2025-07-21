@@ -17,7 +17,6 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
-import type { ValorantMetadata } from "@/types/valorant";
 
 // Type for the tRPC context
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;

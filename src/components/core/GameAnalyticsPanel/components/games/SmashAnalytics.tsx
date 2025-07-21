@@ -2,9 +2,6 @@ import React from "react";
 import {
   InfoIcon,
   TrophyIcon,
-  GamepadIcon,
-  ZapIcon,
-  TargetIcon,
   TrendingUpIcon,
   TrendingDownIcon,
   ArrowRightIcon,

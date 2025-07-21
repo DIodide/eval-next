@@ -19,7 +19,6 @@ import {
   Shield,
   Activity,
   Settings,
-  School,
   UserCheck,
   ClipboardList,
   Crown,

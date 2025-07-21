@@ -10,9 +10,7 @@ import {
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/server/db-utils";
-import { clerkClient } from "@clerk/nextjs/server";
 import { logLeagueAssociationRequest } from "@/lib/discord-logger";
-import type { LeagueAssociationRequestData } from "@/lib/discord-logger";
 
 // Define custom game schema
 const customGameSchema = z.object({

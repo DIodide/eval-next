@@ -39,8 +39,6 @@ import {
   Eye,
   MessageCircle,
   Mail,
-  School,
-  Calendar,
   MapPin,
   GraduationCap,
   GamepadIcon,

@@ -26,7 +26,6 @@ import { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import type { TRPCError } from "@trpc/server";
 
 export default function LeagueProfilePage() {
   const { toast } = useToast();

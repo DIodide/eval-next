@@ -14,7 +14,7 @@ import {
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/server/db-utils";
 import type { Prisma } from "@prisma/client";
-import { type Combine, type EventType } from "@prisma/client";
+import { type EventType } from "@prisma/client";
 
 // Helper function to extract time from UTC ISO string
 // This is needed because frontend sends UTC ISO strings but we store times as strings

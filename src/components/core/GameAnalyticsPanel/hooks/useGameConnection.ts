@@ -1,5 +1,4 @@
 import { useUser } from "@clerk/nextjs";
-import type { UserResource } from "@clerk/types";
 import { api } from "@/trpc/react";
 import { useMemo } from "react";
 import type { GameId, GameConnectionResult } from "../types";

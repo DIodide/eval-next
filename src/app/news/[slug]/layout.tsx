@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/server/blog";
 import type { Metadata } from "next";
 

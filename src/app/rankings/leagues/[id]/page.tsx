@@ -11,12 +11,9 @@ import {
   Users,
   MapPin,
   ChevronRight,
-  Award,
   TrendingUp,
   User,
   Loader2,
-  Calendar,
-  DollarSign,
   Globe,
   ExternalLink,
 } from "lucide-react";

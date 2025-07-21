@@ -18,7 +18,6 @@ import {
   ZapIcon,
   PlayIcon,
   AwardIcon,
-  ClockIcon,
   CheckCircleIcon,
 } from "lucide-react";
 import { api } from "@/trpc/react";

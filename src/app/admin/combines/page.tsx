@@ -39,9 +39,6 @@ import {
   MapPin,
   Users,
   Trophy,
-  Eye,
-  Power,
-  PowerOff,
   Check,
   X,
   ExternalLink,
@@ -65,7 +62,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { z } from "zod";
 import {
   getUserTimezoneAbbreviation,

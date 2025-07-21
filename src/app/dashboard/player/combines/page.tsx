@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -20,7 +19,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import {
@@ -41,9 +39,7 @@ import {
   TrophyIcon,
   StarIcon,
   LockIcon,
-  CrownIcon,
   BoltIcon,
-  AwardIcon,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";

@@ -8,7 +8,6 @@ import type {
   OAuthStrategy,
 } from "@clerk/types";
 import { useRouter } from "next/navigation";
-import type { ValorantMetadata } from "@/types/valorant";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,11 +18,9 @@ import {
   CheckIcon,
   AlertTriangleIcon,
   LoaderIcon,
-  ArrowLeftIcon,
   ExternalLinkIcon,
   GamepadIcon,
 } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 
 // Capitalize the first letter of the provider name

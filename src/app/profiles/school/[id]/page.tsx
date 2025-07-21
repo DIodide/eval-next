@@ -35,7 +35,6 @@ import {
   SchoolIcon,
   GraduationCapIcon,
   BuildingIcon,
-  InfoIcon,
 } from "lucide-react";
 import { hasPermission } from "@/lib/client/permissions";
 import { toast } from "sonner";

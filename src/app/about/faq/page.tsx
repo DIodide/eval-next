@@ -14,7 +14,6 @@ import {
   MessageSquare,
   Mail,
   Phone,
-  Clock,
 } from "lucide-react";
 import Link from "next/link";
 

@@ -15,7 +15,6 @@ import {
   Calendar,
   School,
   Star,
-  Trophy,
   ExternalLink,
 } from "lucide-react";
 import { db } from "@/server/db";

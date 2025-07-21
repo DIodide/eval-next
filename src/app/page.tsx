@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { User, Quote, GraduationCap, Calendar } from "lucide-react";
 import FAQSection from "./_components/FAQSection";
-import { FlipWords } from "@/components/ui/flip-words";
 import {
   Dialog,
   DialogContent,

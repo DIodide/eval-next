@@ -37,7 +37,6 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { toast } from "sonner";
 import { FileUpload } from "@/components/ui/file-upload";
-import type { TRPCError } from "@trpc/server";
 
 interface ValidationErrors {
   bio?: string;

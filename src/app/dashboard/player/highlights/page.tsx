@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,12 +38,10 @@ import {
   PlusIcon,
   ImageIcon,
   TagIcon,
-  CalendarIcon,
   BarChartIcon,
   ExternalLinkIcon,
   InfoIcon,
   CheckCircleIcon,
-  AlertTriangleIcon,
 } from "lucide-react";
 import Link from "next/link";
 

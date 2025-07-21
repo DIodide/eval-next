@@ -12,7 +12,6 @@ import BackgroundManager from "@/app/_components/BackgroundManager";
 import { PostHogProvider } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { dark, neobrutalism } from "@clerk/themes";
-import { cn } from "@/lib/utils";
 import { staticPageMetadata } from "@/lib/server/metadata";
 
 export const metadata: Metadata = {

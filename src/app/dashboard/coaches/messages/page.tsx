@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -28,14 +27,10 @@ import {
   SearchIcon,
   PlusIcon,
   SendIcon,
-  UserPlusIcon,
   FilterIcon,
-  ClockIcon,
   CheckIcon,
   MoreVerticalIcon,
   StarIcon,
-  ArchiveIcon,
-  TrashIcon,
   LoaderIcon,
 } from "lucide-react";
 import { format } from "date-fns";

@@ -17,8 +17,6 @@ import {
   MessageSquareIcon,
   MenuIcon,
   XIcon,
-  UsersIcon,
-  ShieldCheckIcon,
   ZapIcon,
   LinkIcon,
   ExternalLinkIcon,

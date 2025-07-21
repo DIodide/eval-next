@@ -1,6 +1,5 @@
 import {
   createTRPCRouter,
-  playerProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
