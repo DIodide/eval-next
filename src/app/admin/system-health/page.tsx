@@ -55,6 +55,7 @@ async function getSystemHealth() {
       responseTime: Date.now() - start,
     };
   } catch (error) {
+    console.error("API health check error:", error);
     healthChecks.api = {
       status: "error",
       message: "API services unavailable",
@@ -72,6 +73,7 @@ async function getSystemHealth() {
       responseTime: Date.now() - start,
     };
   } catch (error) {
+    console.error("Clerk health check error:", error);
     healthChecks.clerk = {
       status: "error",
       message: "Authentication service unavailable",

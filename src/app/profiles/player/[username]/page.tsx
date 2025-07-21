@@ -194,53 +194,6 @@ function getSocialDisplayName(platform: string) {
   }
 }
 
-// Mock data for game statistics (excluding Valorant which now uses real data)
-const mockGameStats = {
-  overwatch: {
-    role: "DPS",
-    bestHeroes: ["Tracer", "Genji", "Widow"],
-    bestMap: {
-      name: "King's Row",
-      image: "/overwatch/maps/kings-row.png",
-    },
-    stats: {
-      eliminations: "24.3",
-      deaths: "8.1",
-      damage: "11,240",
-      rank: "Diamond 3",
-      winRate: "71%",
-    },
-  },
-  "rocket-league": {
-    position: "Striker",
-    stats: {
-      goals: "1.8",
-      saves: "2.3",
-      assists: "1.2",
-      score: "487",
-      winRate: "74%",
-      rank: "Champion II",
-    },
-  },
-};
-
-// Mock data - replace with actual API calls later
-// Note: mockPlayerData is currently unused but kept for future reference
-// const mockPlayerData = {
-//   id: "player-123",
-//   avatar: null, // Will use Clerk's imageUrl
-//   firstName: "John",
-//   lastName: "Doe",
-//   username: "johndoe_pro",
-//   class: "2025",
-//   teamSchool: "University of California, Berkeley",
-//   location: "Los Angeles, CA",
-//   mainGame: "Valorant",
-//   role: "Duelist",
-//   evalScore: 4.2,
-//   leagueScore: 3.8,
-//   games: ["valorant", "overwatch", "rocket-league"]
-// };
 
 interface PlayerProfilePageProps {
   params: Promise<{

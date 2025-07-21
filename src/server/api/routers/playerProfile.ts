@@ -883,8 +883,6 @@ export const playerProfileRouter = createTRPCRouter({
 
   // Refresh Valorant data by calling the process-oauth endpoint
   refreshValorantData: playerProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.auth.userId!;
-
     try {
       // Call our internal API to process the Valorant OAuth
       const response = await fetch(

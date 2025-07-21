@@ -574,6 +574,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
       await navigator.clipboard.writeText(urlWithSchoolName);
       toast.success("School profile URL copied to clipboard!");
     } catch (err) {
+      console.error(err);
       // Fallback for browsers that don't support clipboard API
       toast.error("Unable to copy to clipboard. Please copy the URL manually.");
     }

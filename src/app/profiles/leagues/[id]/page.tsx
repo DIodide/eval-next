@@ -138,6 +138,7 @@ export default function LeagueProfilePage({ params }: LeagueProfilePageProps) {
       await navigator.clipboard.writeText(url);
       toast.success("League profile URL copied to clipboard!");
     } catch (err) {
+      console.error(err);
       // Fallback for browsers that don't support clipboard API
       toast.error("Unable to copy to clipboard. Please copy the URL manually.");
     }

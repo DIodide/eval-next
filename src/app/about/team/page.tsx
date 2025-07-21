@@ -60,37 +60,6 @@ const founders = [
   },
 ];
 
-const values = [
-  {
-    icon: Target,
-    title: "Excellence",
-    description:
-      "We strive for excellence in everything we do, from our platform to our partnerships.",
-    color: "from-cyan-400 to-blue-500",
-  },
-  {
-    icon: Users,
-    title: "Community",
-    description:
-      "Building a supportive community where every gamer can thrive and succeed.",
-    color: "from-purple-400 to-pink-500",
-  },
-  {
-    icon: Heart,
-    title: "Passion",
-    description:
-      "Fueled by our love for gaming and dedication to student success.",
-    color: "from-orange-400 to-red-500",
-  },
-  {
-    icon: Rocket,
-    title: "Innovation",
-    description:
-      "Continuously pushing boundaries to create better opportunities for players.",
-    color: "from-green-400 to-teal-500",
-  },
-];
-
 export default function TeamPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
