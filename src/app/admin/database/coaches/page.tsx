@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -152,9 +153,11 @@ export default async function CoachesManagementPage({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     {coach.image_url ? (
-                      <img
+                      <Image
                         src={coach.image_url}
                         alt={`${coach.first_name} ${coach.last_name}`}
+                        width={48}
+                        height={48}
                         className="h-12 w-12 rounded-full"
                       />
                     ) : (

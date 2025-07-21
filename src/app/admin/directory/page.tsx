@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -436,9 +437,11 @@ export default function AdminDirectoryPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {school.logo_url ? (
-                                <img
+                                <Image
                                   src={school.logo_url}
                                   alt={`${school.name} logo`}
+                                  width={64}
+                                  height={64}
                                   className="h-16 w-16 rounded-lg border border-white/10 object-cover"
                                 />
                               ) : (
@@ -616,9 +619,11 @@ export default function AdminDirectoryPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {player.image_url ? (
-                                <img
+                                <Image
                                   src={player.image_url}
                                   alt={`${player.first_name} ${player.last_name}`}
+                                  width={64}
+                                  height={64}
                                   className="h-16 w-16 rounded-lg border border-white/10 object-cover"
                                 />
                               ) : (
@@ -840,9 +845,11 @@ export default function AdminDirectoryPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {league.logo_url ? (
-                                <img
+                                <Image
                                   src={league.logo_url}
                                   alt={`${league.name} logo`}
+                                  width={64}
+                                  height={64}
                                   className="h-16 w-16 rounded-lg border border-white/10 object-cover"
                                 />
                               ) : (

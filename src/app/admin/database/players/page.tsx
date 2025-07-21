@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -173,9 +174,11 @@ export default async function PlayersManagementPage({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     {player.image_url ? (
-                      <img
+                      <Image
                         src={player.image_url}
                         alt={`${player.first_name} ${player.last_name}`}
+                        width={48}
+                        height={48}
                         className="h-12 w-12 rounded-full"
                       />
                     ) : (

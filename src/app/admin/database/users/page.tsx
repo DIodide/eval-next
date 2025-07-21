@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -165,9 +166,11 @@ export default async function UsersManagementPage({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     {user.imageUrl ? (
-                      <img
+                      <Image
                         src={user.imageUrl}
                         alt={`${user.firstName} ${user.lastName}`}
+                        width={48}
+                        height={48}
                         className="h-12 w-12 rounded-full"
                       />
                     ) : (
