@@ -4,11 +4,22 @@ import { useState } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@clerk/nextjs";
 
-type PlatformType = "steam" | "valorant" | "battlenet" | "epicgames" | "startgg";
+type PlatformType =
+  | "steam"
+  | "valorant"
+  | "battlenet"
+  | "epicgames"
+  | "startgg";
 type SocialPlatformType = "github" | "discord" | "instagram" | "twitch" | "x";
 
 export default function PlayerProfileTestPage() {
@@ -46,28 +57,36 @@ export default function PlayerProfileTestPage() {
   });
 
   const [removePlatform, setRemovePlatform] = useState<PlatformType>("steam");
-  const [removeSocial, setRemoveSocial] = useState<SocialPlatformType>("discord");
+  const [removeSocial, setRemoveSocial] =
+    useState<SocialPlatformType>("discord");
 
   // tRPC mutations
   const updateProfileMutation = api.playerProfile.updateProfile.useMutation();
-  const updatePlatformMutation = api.playerProfile.updatePlatformConnection.useMutation();
-  const updateSocialMutation = api.playerProfile.updateSocialConnection.useMutation();
-  const removePlatformMutation = api.playerProfile.removePlatformConnection.useMutation();
-  const removeSocialMutation = api.playerProfile.removeSocialConnection.useMutation();
+  const updatePlatformMutation =
+    api.playerProfile.updatePlatformConnection.useMutation();
+  const updateSocialMutation =
+    api.playerProfile.updateSocialConnection.useMutation();
+  const removePlatformMutation =
+    api.playerProfile.removePlatformConnection.useMutation();
+  const removeSocialMutation =
+    api.playerProfile.removeSocialConnection.useMutation();
 
   const utils = api.useUtils();
 
-  const handleTest = async (testName: string, testFn: () => Promise<unknown>) => {
-    setLoading(prev => ({ ...prev, [testName]: true }));
-    setErrors(prev => ({ ...prev, [testName]: null }));
-    
+  const handleTest = async (
+    testName: string,
+    testFn: () => Promise<unknown>,
+  ) => {
+    setLoading((prev) => ({ ...prev, [testName]: true }));
+    setErrors((prev) => ({ ...prev, [testName]: null }));
+
     try {
       const result = await testFn();
-      setResults(prev => ({ ...prev, [testName]: result }));
+      setResults((prev) => ({ ...prev, [testName]: result }));
     } catch (error: unknown) {
-      setErrors(prev => ({ ...prev, [testName]: error }));
+      setErrors((prev) => ({ ...prev, [testName]: error }));
     } finally {
-      setLoading(prev => ({ ...prev, [testName]: false }));
+      setLoading((prev) => ({ ...prev, [testName]: false }));
     }
   };
 
@@ -87,7 +106,8 @@ export default function PlayerProfileTestPage() {
 
   const testUpdatePlatformConnection = () => {
     return handleTest("updatePlatformConnection", async () => {
-      const result = await updatePlatformMutation.mutateAsync(platformConnection);
+      const result =
+        await updatePlatformMutation.mutateAsync(platformConnection);
       return result;
     });
   };
@@ -101,14 +121,18 @@ export default function PlayerProfileTestPage() {
 
   const testRemovePlatformConnection = () => {
     return handleTest("removePlatformConnection", async () => {
-      const result = await removePlatformMutation.mutateAsync({ platform: removePlatform });
+      const result = await removePlatformMutation.mutateAsync({
+        platform: removePlatform,
+      });
       return result;
     });
   };
 
   const testRemoveSocialConnection = () => {
     return handleTest("removeSocialConnection", async () => {
-      const result = await removeSocialMutation.mutateAsync({ platform: removeSocial });
+      const result = await removeSocialMutation.mutateAsync({
+        platform: removeSocial,
+      });
       return result;
     });
   };
@@ -126,29 +150,33 @@ export default function PlayerProfileTestPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Player Profile tRPC Test Page</h1>
-        <p className="text-muted-foreground">Test all playerProfile router endpoints</p>
+        <h1 className="mb-2 text-3xl font-bold">
+          Player Profile tRPC Test Page
+        </h1>
+        <p className="text-muted-foreground">
+          Test all playerProfile router endpoints
+        </p>
         {user && (
-          <p className="text-sm text-blue-600 mt-2">
+          <p className="mt-2 text-sm text-blue-600">
             Logged in as: {user.emailAddresses[0]?.emailAddress}
           </p>
         )}
         {!user && (
-          <p className="text-sm text-red-600 mt-2">
+          <p className="mt-2 text-sm text-red-600">
             Not logged in - you need to authenticate to test these endpoints
           </p>
         )}
       </div>
 
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="mb-6 flex justify-center gap-4">
         <Button onClick={clearResults} variant="outline">
           Clear Results
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Query Endpoints */}
         <Card>
           <CardHeader>
@@ -157,7 +185,7 @@ export default function PlayerProfileTestPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Button 
+              <Button
                 onClick={testGetProfile}
                 disabled={loading.getProfile}
                 className="w-full"
@@ -165,14 +193,16 @@ export default function PlayerProfileTestPage() {
                 {loading.getProfile ? "Loading..." : "Test getProfile"}
               </Button>
             </div>
-            
+
             <div>
-              <Button 
+              <Button
                 onClick={testGetAvailableGames}
                 disabled={loading.getAvailableGames}
                 className="w-full"
               >
-                {loading.getAvailableGames ? "Loading..." : "Test getAvailableGames"}
+                {loading.getAvailableGames
+                  ? "Loading..."
+                  : "Test getAvailableGames"}
               </Button>
             </div>
           </CardContent>
@@ -191,7 +221,12 @@ export default function PlayerProfileTestPage() {
                 <Input
                   id="first_name"
                   value={profileData.first_name}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, first_name: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      first_name: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -199,20 +234,30 @@ export default function PlayerProfileTestPage() {
                 <Input
                   id="last_name"
                   value={profileData.last_name}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, last_name: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      last_name: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="school">School</Label>
               <Input
                 id="school"
                 value={profileData.school}
-                onChange={(e) => setProfileData(prev => ({ ...prev, school: e.target.value }))}
+                onChange={(e) =>
+                  setProfileData((prev) => ({
+                    ...prev,
+                    school: e.target.value,
+                  }))
+                }
               />
             </div>
-            
+
             <div>
               <Label htmlFor="gpa">GPA</Label>
               <Input
@@ -222,31 +267,43 @@ export default function PlayerProfileTestPage() {
                 min="0"
                 max="4"
                 value={profileData.gpa}
-                onChange={(e) => setProfileData(prev => ({ ...prev, gpa: parseFloat(e.target.value) }))}
+                onChange={(e) =>
+                  setProfileData((prev) => ({
+                    ...prev,
+                    gpa: parseFloat(e.target.value),
+                  }))
+                }
               />
             </div>
-            
+
             <div>
               <Label htmlFor="bio">Bio</Label>
               <Input
                 id="bio"
                 value={profileData.bio}
-                onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                onChange={(e) =>
+                  setProfileData((prev) => ({ ...prev, bio: e.target.value }))
+                }
                 placeholder="Professional esports player..."
               />
             </div>
-            
+
             <div>
               <Label htmlFor="academic_bio">Academic Bio</Label>
               <Input
                 id="academic_bio"
                 value={profileData.academic_bio}
-                onChange={(e) => setProfileData(prev => ({ ...prev, academic_bio: e.target.value }))}
+                onChange={(e) =>
+                  setProfileData((prev) => ({
+                    ...prev,
+                    academic_bio: e.target.value,
+                  }))
+                }
                 placeholder="Dean's list student with strong academic performance..."
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testUpdateProfile}
               disabled={loading.updateProfile}
               className="w-full"
@@ -260,7 +317,9 @@ export default function PlayerProfileTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Platform Connections</CardTitle>
-            <CardDescription>Test platform connection operations</CardDescription>
+            <CardDescription>
+              Test platform connection operations
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -268,8 +327,13 @@ export default function PlayerProfileTestPage() {
               <select
                 id="platform"
                 value={platformConnection.platform}
-                onChange={(e) => setPlatformConnection(prev => ({ ...prev, platform: e.target.value as PlatformType }))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={(e) =>
+                  setPlatformConnection((prev) => ({
+                    ...prev,
+                    platform: e.target.value as PlatformType,
+                  }))
+                }
+                className="w-full rounded-md border px-3 py-2"
               >
                 <option value="steam">Steam</option>
                 <option value="valorant">Valorant</option>
@@ -278,31 +342,40 @@ export default function PlayerProfileTestPage() {
                 <option value="startgg">Start.gg</option>
               </select>
             </div>
-            
+
             <div>
               <Label htmlFor="platform_username">Username</Label>
               <Input
                 id="platform_username"
                 value={platformConnection.username}
-                onChange={(e) => setPlatformConnection(prev => ({ ...prev, username: e.target.value }))}
+                onChange={(e) =>
+                  setPlatformConnection((prev) => ({
+                    ...prev,
+                    username: e.target.value,
+                  }))
+                }
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testUpdatePlatformConnection}
               disabled={loading.updatePlatformConnection}
               className="w-full"
             >
-              {loading.updatePlatformConnection ? "Loading..." : "Test updatePlatformConnection"}
+              {loading.updatePlatformConnection
+                ? "Loading..."
+                : "Test updatePlatformConnection"}
             </Button>
-            
+
             <div className="border-t pt-4">
               <Label htmlFor="remove_platform">Remove Platform</Label>
               <select
                 id="remove_platform"
                 value={removePlatform}
-                onChange={(e) => setRemovePlatform(e.target.value as PlatformType)}
-                className="w-full px-3 py-2 border rounded-md mb-2"
+                onChange={(e) =>
+                  setRemovePlatform(e.target.value as PlatformType)
+                }
+                className="mb-2 w-full rounded-md border px-3 py-2"
               >
                 <option value="steam">Steam</option>
                 <option value="valorant">Valorant</option>
@@ -310,14 +383,16 @@ export default function PlayerProfileTestPage() {
                 <option value="epicgames">Epic Games</option>
                 <option value="startgg">Start.gg</option>
               </select>
-              
-              <Button 
+
+              <Button
                 onClick={testRemovePlatformConnection}
                 disabled={loading.removePlatformConnection}
                 variant="destructive"
                 className="w-full"
               >
-                {loading.removePlatformConnection ? "Loading..." : "Test removePlatformConnection"}
+                {loading.removePlatformConnection
+                  ? "Loading..."
+                  : "Test removePlatformConnection"}
               </Button>
             </div>
           </CardContent>
@@ -335,8 +410,13 @@ export default function PlayerProfileTestPage() {
               <select
                 id="social_platform"
                 value={socialConnection.platform}
-                onChange={(e) => setSocialConnection(prev => ({ ...prev, platform: e.target.value as SocialPlatformType }))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={(e) =>
+                  setSocialConnection((prev) => ({
+                    ...prev,
+                    platform: e.target.value as SocialPlatformType,
+                  }))
+                }
+                className="w-full rounded-md border px-3 py-2"
               >
                 <option value="github">GitHub</option>
                 <option value="discord">Discord</option>
@@ -345,31 +425,40 @@ export default function PlayerProfileTestPage() {
                 <option value="x">X (Twitter)</option>
               </select>
             </div>
-            
+
             <div>
               <Label htmlFor="social_username">Username</Label>
               <Input
                 id="social_username"
                 value={socialConnection.username}
-                onChange={(e) => setSocialConnection(prev => ({ ...prev, username: e.target.value }))}
+                onChange={(e) =>
+                  setSocialConnection((prev) => ({
+                    ...prev,
+                    username: e.target.value,
+                  }))
+                }
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testUpdateSocialConnection}
               disabled={loading.updateSocialConnection}
               className="w-full"
             >
-              {loading.updateSocialConnection ? "Loading..." : "Test updateSocialConnection"}
+              {loading.updateSocialConnection
+                ? "Loading..."
+                : "Test updateSocialConnection"}
             </Button>
-            
+
             <div className="border-t pt-4">
               <Label htmlFor="remove_social">Remove Social</Label>
               <select
                 id="remove_social"
                 value={removeSocial}
-                onChange={(e) => setRemoveSocial(e.target.value as SocialPlatformType)}
-                className="w-full px-3 py-2 border rounded-md mb-2"
+                onChange={(e) =>
+                  setRemoveSocial(e.target.value as SocialPlatformType)
+                }
+                className="mb-2 w-full rounded-md border px-3 py-2"
               >
                 <option value="github">GitHub</option>
                 <option value="discord">Discord</option>
@@ -377,14 +466,16 @@ export default function PlayerProfileTestPage() {
                 <option value="twitch">Twitch</option>
                 <option value="x">X (Twitter)</option>
               </select>
-              
-              <Button 
+
+              <Button
                 onClick={testRemoveSocialConnection}
                 disabled={loading.removeSocialConnection}
                 variant="destructive"
                 className="w-full"
               >
-                {loading.removeSocialConnection ? "Loading..." : "Test removeSocialConnection"}
+                {loading.removeSocialConnection
+                  ? "Loading..."
+                  : "Test removeSocialConnection"}
               </Button>
             </div>
           </CardContent>
@@ -400,31 +491,39 @@ export default function PlayerProfileTestPage() {
         <CardContent>
           <div className="space-y-4">
             {Object.entries(results).map(([testName, result]) => (
-              <div key={testName} className="border rounded-lg p-4">
-                <h3 className="font-semibold text-green-600 mb-2">✅ {testName}</h3>
-                <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-40">
+              <div key={testName} className="rounded-lg border p-4">
+                <h3 className="mb-2 font-semibold text-green-600">
+                  ✅ {testName}
+                </h3>
+                <pre className="max-h-40 overflow-auto rounded bg-gray-100 p-3 text-sm">
                   {JSON.stringify(result, null, 2)}
                 </pre>
               </div>
             ))}
-            
+
             {Object.entries(errors).map(([testName, error]) => (
-              <div key={testName} className="border border-red-200 rounded-lg p-4">
-                <h3 className="font-semibold text-red-600 mb-2">❌ {testName}</h3>
-                <pre className="bg-red-50 p-3 rounded text-sm overflow-auto max-h-40">
+              <div
+                key={testName}
+                className="rounded-lg border border-red-200 p-4"
+              >
+                <h3 className="mb-2 font-semibold text-red-600">
+                  ❌ {testName}
+                </h3>
+                <pre className="max-h-40 overflow-auto rounded bg-red-50 p-3 text-sm">
                   {JSON.stringify(error, null, 2)}
                 </pre>
               </div>
             ))}
-            
-            {Object.keys(results).length === 0 && Object.keys(errors).length === 0 && (
-              <p className="text-muted-foreground text-center py-8">
-                No test results yet. Run some tests to see results here.
-              </p>
-            )}
+
+            {Object.keys(results).length === 0 &&
+              Object.keys(errors).length === 0 && (
+                <p className="text-muted-foreground py-8 text-center">
+                  No test results yet. Run some tests to see results here.
+                </p>
+              )}
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

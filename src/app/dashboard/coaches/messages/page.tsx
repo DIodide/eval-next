@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -16,16 +16,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  MessageSquareIcon, 
-  SearchIcon, 
+import {
+  MessageSquareIcon,
+  SearchIcon,
   PlusIcon,
   SendIcon,
   UserPlusIcon,
@@ -36,7 +36,7 @@ import {
   StarIcon,
   ArchiveIcon,
   TrashIcon,
-  LoaderIcon
+  LoaderIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -88,29 +88,36 @@ interface Conversation {
 }
 
 export default function CoachMessagesPage() {
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<
+    string | null
+  >(null);
   const [newMessageContent, setNewMessageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "unread" | "starred" | "archived">("all");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "unread" | "starred" | "archived"
+  >("all");
   const [newConversationOpen, setNewConversationOpen] = useState(false);
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
   const [messageTemplate, setMessageTemplate] = useState("");
 
   // tRPC queries and mutations
-  const { data: conversationsData, isLoading: conversationsLoading } = api.messages.getConversations.useQuery({
-    search: searchQuery,
-    filter: filterStatus,
-    limit: 50,
-  });
+  const { data: conversationsData, isLoading: conversationsLoading } =
+    api.messages.getConversations.useQuery({
+      search: searchQuery,
+      filter: filterStatus,
+      limit: 50,
+    });
 
-  const { data: selectedConversation, isLoading: conversationLoading } = api.messages.getConversation.useQuery(
-    { conversationId: selectedConversationId! },
-    { enabled: !!selectedConversationId }
-  );
+  const { data: selectedConversation, isLoading: conversationLoading } =
+    api.messages.getConversation.useQuery(
+      { conversationId: selectedConversationId! },
+      { enabled: !!selectedConversationId },
+    );
 
-  const { data: availablePlayers, isLoading: playersLoading } = api.messages.getAvailablePlayers.useQuery({
-    limit: 50,
-  });
+  const { data: availablePlayers, isLoading: playersLoading } =
+    api.messages.getAvailablePlayers.useQuery({
+      limit: 50,
+    });
 
   const sendMessageMutation = api.messages.sendMessage.useMutation({
     onSuccess: () => {
@@ -163,14 +170,14 @@ export default function CoachMessagesPage() {
     if (selectedPlayers.length === 0 || !messageTemplate.trim()) return;
 
     sendBulkMessageMutation.mutate({
-      playerIds: selectedPlayers.map(p => p.id),
+      playerIds: selectedPlayers.map((p) => p.id),
       content: messageTemplate,
     });
   };
 
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversationId(conversation.id);
-    
+
     // Mark unread messages as read
     if (conversation.unreadCount > 0) {
       markAsReadMutation.mutate({
@@ -186,7 +193,7 @@ export default function CoachMessagesPage() {
 
   const getGameIcon = (game: string) => {
     const icons: Record<string, string> = {
-      "VALORANT": "🎯",
+      VALORANT: "🎯",
       "Overwatch 2": "⚡",
       "Rocket League": "🚀",
       "League of Legends": "⚔️",
@@ -197,8 +204,10 @@ export default function CoachMessagesPage() {
 
   const formatLastSeen = (date: Date) => {
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60),
+    );
+
     if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -209,105 +218,156 @@ export default function CoachMessagesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-orbitron font-bold text-white">Messages</h1>
-        <p className="text-gray-400 font-rajdhani">Communicate with prospective players</p>
+        <h1 className="font-orbitron text-3xl font-bold text-white">
+          Messages
+        </h1>
+        <p className="font-rajdhani text-gray-400">
+          Communicate with prospective players
+        </p>
       </div>
 
-
-
       {/* Messages Layout */}
-      <div className="grid gap-6 lg:grid-cols-3 h-[700px]">
+      <div className="grid h-[700px] gap-6 lg:grid-cols-3">
         {/* Conversations List */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="border-gray-800 bg-gray-900">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-white font-orbitron">Conversations</CardTitle>
-              <Badge variant="outline" className="border-gray-600 text-gray-300">
+              <CardTitle className="font-orbitron text-white">
+                Conversations
+              </CardTitle>
+              <Badge
+                variant="outline"
+                className="border-gray-600 text-gray-300"
+              >
                 {conversations.length}
               </Badge>
             </div>
-            
+
             {/* Search and Filter */}
             <div className="space-y-3">
               <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input 
+                <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search conversations..." 
-                  className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 pl-10"
+                  placeholder="Search conversations..."
+                  className="border-gray-700 bg-gray-800 pl-10 text-white placeholder-gray-400"
                 />
               </div>
-              
+
               <div className="flex space-x-2">
-                <Select value={filterStatus} onValueChange={(value: "all" | "unread" | "starred" | "archived") => setFilterStatus(value)}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white flex-1">
-                    <FilterIcon className="w-4 h-4 mr-2" />
+                <Select
+                  value={filterStatus}
+                  onValueChange={(
+                    value: "all" | "unread" | "starred" | "archived",
+                  ) => setFilterStatus(value)}
+                >
+                  <SelectTrigger className="flex-1 border-gray-700 bg-gray-800 text-white">
+                    <FilterIcon className="mr-2 h-4 w-4" />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="all" className="text-white hover:bg-gray-700">All Messages</SelectItem>
-                    <SelectItem value="unread" className="text-white hover:bg-gray-700">Unread</SelectItem>
-                    <SelectItem value="starred" className="text-white hover:bg-gray-700">Starred</SelectItem>
-                    <SelectItem value="archived" className="text-white hover:bg-gray-700">Archived</SelectItem>
+                  <SelectContent className="border-gray-700 bg-gray-800">
+                    <SelectItem
+                      value="all"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      All Messages
+                    </SelectItem>
+                    <SelectItem
+                      value="unread"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      Unread
+                    </SelectItem>
+                    <SelectItem
+                      value="starred"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      Starred
+                    </SelectItem>
+                    <SelectItem
+                      value="archived"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      Archived
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                
-                <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
+
+                <Dialog
+                  open={newConversationOpen}
+                  onOpenChange={setNewConversationOpen}
+                >
                   <DialogTrigger asChild>
-                    <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron whitespace-nowrap">
-                      <PlusIcon className="w-4 h-4 mr-1" />
+                    <Button
+                      size="sm"
+                      className="font-orbitron bg-cyan-600 whitespace-nowrap text-white hover:bg-cyan-700"
+                    >
+                      <PlusIcon className="mr-1 h-4 w-4" />
                       New Message
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto border-gray-800 bg-gray-900 text-white">
                     <DialogHeader>
-                      <DialogTitle className="font-orbitron text-xl">Start New Conversation</DialogTitle>
+                      <DialogTitle className="font-orbitron text-xl">
+                        Start New Conversation
+                      </DialogTitle>
                       <DialogDescription className="text-gray-400">
                         Select players to message and compose your message
                       </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="space-y-6">
                       {/* Player Selection */}
                       <div>
-                        <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Select Players</h3>
+                        <h3 className="font-orbitron mb-4 text-lg text-cyan-400">
+                          Select Players
+                        </h3>
                         {playersLoading ? (
                           <div className="flex items-center justify-center py-8">
-                            <LoaderIcon className="w-6 h-6 animate-spin text-cyan-400" />
+                            <LoaderIcon className="h-6 w-6 animate-spin text-cyan-400" />
                           </div>
                         ) : (
-                          <div className="grid gap-3 max-h-60 overflow-y-auto">
+                          <div className="grid max-h-60 gap-3 overflow-y-auto">
                             {players.map((player) => (
                               <div
                                 key={player.id}
                                 className={cn(
-                                  "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors",
+                                  "flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors",
                                   selectedPlayers.includes(player)
                                     ? "border-cyan-400 bg-cyan-900/20"
-                                    : "border-gray-700 hover:border-gray-600"
+                                    : "border-gray-700 hover:border-gray-600",
                                 )}
                                 onClick={() => {
-                                  setSelectedPlayers(prev =>
+                                  setSelectedPlayers((prev) =>
                                     prev.includes(player)
-                                      ? prev.filter(p => p.id !== player.id)
-                                      : [...prev, player]
+                                      ? prev.filter((p) => p.id !== player.id)
+                                      : [...prev, player],
                                   );
                                 }}
                               >
                                 <div className="flex items-center space-x-3">
-                                  <Avatar className="w-10 h-10">
-                                    <AvatarImage src={player.avatar ?? undefined} />
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage
+                                      src={player.avatar ?? undefined}
+                                    />
                                     <AvatarFallback className="bg-gray-700 text-white">
-                                      {player.name.split(' ').map(n => n[0]).join('')}
+                                      {player.name
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <h4 className="font-orbitron font-bold text-white text-sm">{player.name}</h4>
+                                    <h4 className="font-orbitron text-sm font-bold text-white">
+                                      {player.name}
+                                    </h4>
                                     <div className="flex items-center space-x-2 text-xs text-gray-400">
                                       {player.mainGame && (
                                         <>
-                                          <span>{getGameIcon(player.mainGame)}</span>
+                                          <span>
+                                            {getGameIcon(player.mainGame)}
+                                          </span>
                                           <span>{player.mainGame}</span>
                                         </>
                                       )}
@@ -321,7 +381,7 @@ export default function CoachMessagesPage() {
                                   </div>
                                 </div>
                                 {selectedPlayers.includes(player) && (
-                                  <CheckIcon className="w-5 h-5 text-cyan-400" />
+                                  <CheckIcon className="h-5 w-5 text-cyan-400" />
                                 )}
                               </div>
                             ))}
@@ -329,10 +389,16 @@ export default function CoachMessagesPage() {
                         )}
                         {selectedPlayers.length > 0 && (
                           <div className="mt-3">
-                            <p className="text-sm text-gray-400 mb-2">Selected players ({selectedPlayers.length}):</p>
+                            <p className="mb-2 text-sm text-gray-400">
+                              Selected players ({selectedPlayers.length}):
+                            </p>
                             <div className="flex flex-wrap gap-2">
                               {selectedPlayers.map((player) => (
-                                <Badge key={player.id} variant="outline" className="border-cyan-400 text-cyan-400">
+                                <Badge
+                                  key={player.id}
+                                  variant="outline"
+                                  className="border-cyan-400 text-cyan-400"
+                                >
                                   {player.name}
                                 </Badge>
                               ))}
@@ -343,15 +409,17 @@ export default function CoachMessagesPage() {
 
                       {/* Message Template */}
                       <div>
-                        <h3 className="font-orbitron text-lg text-cyan-400 mb-4">Compose Message</h3>
+                        <h3 className="font-orbitron mb-4 text-lg text-cyan-400">
+                          Compose Message
+                        </h3>
                         <Textarea
                           value={messageTemplate}
                           onChange={(e) => setMessageTemplate(e.target.value)}
                           placeholder="Write your message here..."
-                          className="bg-gray-800 border-gray-700 text-white min-h-32"
+                          className="min-h-32 border-gray-700 bg-gray-800 text-white"
                           rows={6}
                         />
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="mt-2 text-xs text-gray-500">
                           This message will be sent to all selected players
                         </p>
                       </div>
@@ -361,19 +429,23 @@ export default function CoachMessagesPage() {
                         <Button
                           variant="outline"
                           onClick={() => setNewConversationOpen(false)}
-                          className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                          className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                         >
                           Cancel
                         </Button>
                         <Button
                           onClick={handleStartNewConversation}
-                          disabled={selectedPlayers.length === 0 || !messageTemplate.trim() || sendBulkMessageMutation.isPending}
-                          className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                          disabled={
+                            selectedPlayers.length === 0 ||
+                            !messageTemplate.trim() ||
+                            sendBulkMessageMutation.isPending
+                          }
+                          className="bg-cyan-600 text-white hover:bg-cyan-700"
                         >
                           {sendBulkMessageMutation.isPending ? (
-                            <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                            <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
                           ) : (
-                            <SendIcon className="w-4 h-4 mr-2" />
+                            <SendIcon className="mr-2 h-4 w-4" />
                           )}
                           Send Messages ({selectedPlayers.length})
                         </Button>
@@ -384,71 +456,87 @@ export default function CoachMessagesPage() {
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="p-0">
-            <div className="space-y-1 max-h-[500px] overflow-y-auto">
+            <div className="max-h-[500px] space-y-1 overflow-y-auto">
               {conversationsLoading ? (
-                <div className="text-center py-12 px-4">
-                  <LoaderIcon className="w-8 h-8 text-cyan-400 mx-auto mb-4 animate-spin" />
-                  <p className="text-gray-400 text-sm">Loading conversations...</p>
+                <div className="px-4 py-12 text-center">
+                  <LoaderIcon className="mx-auto mb-4 h-8 w-8 animate-spin text-cyan-400" />
+                  <p className="text-sm text-gray-400">
+                    Loading conversations...
+                  </p>
                 </div>
               ) : conversations.length === 0 ? (
-                <div className="text-center py-12 px-4">
-                  <MessageSquareIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400 text-sm">No conversations yet</p>
-                  <p className="text-gray-500 text-xs mt-2">Start messaging players to see conversations here</p>
+                <div className="px-4 py-12 text-center">
+                  <MessageSquareIcon className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                  <p className="text-sm text-gray-400">No conversations yet</p>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Start messaging players to see conversations here
+                  </p>
                 </div>
               ) : (
                 conversations.map((conversation) => (
                   <div
                     key={conversation.id}
                     className={cn(
-                      "p-4 cursor-pointer transition-colors border-l-4",
+                      "cursor-pointer border-l-4 p-4 transition-colors",
                       selectedConversationId === conversation.id
-                        ? "bg-cyan-900/20 border-l-cyan-400"
-                        : "hover:bg-gray-800/50 border-l-transparent"
+                        ? "border-l-cyan-400 bg-cyan-900/20"
+                        : "border-l-transparent hover:bg-gray-800/50",
                     )}
                     onClick={() => handleConversationSelect(conversation)}
                   >
                     <div className="flex items-start space-x-3">
                       <div className="relative">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={conversation.player.avatar ?? undefined} />
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={conversation.player.avatar ?? undefined}
+                          />
                           <AvatarFallback className="bg-gray-700 text-white">
-                            {conversation.player.name.split(' ').map(n => n[0]).join('')}
+                            {conversation.player.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </AvatarFallback>
                         </Avatar>
                       </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
+
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1 flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <h4 className="font-orbitron font-bold text-white text-sm truncate">
+                            <h4 className="font-orbitron truncate text-sm font-bold text-white">
                               {conversation.player.name}
                             </h4>
                             {conversation.isStarred && (
-                              <StarIcon 
-                                className="w-3 h-3 text-yellow-400 fill-current cursor-pointer" 
-                                onClick={(e) => handleToggleStar(conversation.id, e)}
+                              <StarIcon
+                                className="h-3 w-3 cursor-pointer fill-current text-yellow-400"
+                                onClick={(e) =>
+                                  handleToggleStar(conversation.id, e)
+                                }
                               />
                             )}
                           </div>
                           <div className="flex items-center space-x-1">
                             {conversation.unreadCount > 0 && (
-                              <Badge className="bg-cyan-600 text-white text-xs px-1.5 py-0.5">
+                              <Badge className="bg-cyan-600 px-1.5 py-0.5 text-xs text-white">
                                 {conversation.unreadCount}
                               </Badge>
                             )}
                             <span className="text-xs text-gray-500">
-                              {conversation.lastMessage && formatLastSeen(conversation.lastMessage.timestamp)}
+                              {conversation.lastMessage &&
+                                formatLastSeen(
+                                  conversation.lastMessage.timestamp,
+                                )}
                             </span>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-2 text-xs text-gray-400 mb-2">
+
+                        <div className="mb-2 flex items-center space-x-2 text-xs text-gray-400">
                           {conversation.player.mainGame && (
                             <>
-                              <span>{getGameIcon(conversation.player.mainGame)}</span>
+                              <span>
+                                {getGameIcon(conversation.player.mainGame)}
+                              </span>
                               <span>{conversation.player.mainGame}</span>
                             </>
                           )}
@@ -459,10 +547,11 @@ export default function CoachMessagesPage() {
                             </>
                           )}
                         </div>
-                        
+
                         {conversation.lastMessage && (
-                          <p className="text-sm text-gray-400 truncate">
-                            {conversation.lastMessage.senderType === "COACH" && "You: "}
+                          <p className="truncate text-sm text-gray-400">
+                            {conversation.lastMessage.senderType === "COACH" &&
+                              "You: "}
                             {conversation.lastMessage.content}
                           </p>
                         )}
@@ -477,7 +566,7 @@ export default function CoachMessagesPage() {
 
         {/* Chat Area */}
         <div className="lg:col-span-2">
-          <Card className="bg-gray-900 border-gray-800 h-full flex flex-col">
+          <Card className="flex h-full flex-col border-gray-800 bg-gray-900">
             {selectedConversationId && selectedConversation ? (
               <>
                 {/* Chat Header */}
@@ -485,10 +574,17 @@ export default function CoachMessagesPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="relative">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={selectedConversation.player.avatar ?? undefined} />
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage
+                            src={
+                              selectedConversation.player.avatar ?? undefined
+                            }
+                          />
                           <AvatarFallback className="bg-gray-700 text-white">
-                            {selectedConversation.player.name.split(' ').map(n => n[0]).join('')}
+                            {selectedConversation.player.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </AvatarFallback>
                         </Avatar>
                       </div>
@@ -499,8 +595,14 @@ export default function CoachMessagesPage() {
                         <div className="flex items-center space-x-2 text-sm text-gray-400">
                           {selectedConversation.player.mainGame && (
                             <>
-                              <span>{getGameIcon(selectedConversation.player.mainGame)}</span>
-                              <span>{selectedConversation.player.mainGame}</span>
+                              <span>
+                                {getGameIcon(
+                                  selectedConversation.player.mainGame,
+                                )}
+                              </span>
+                              <span>
+                                {selectedConversation.player.mainGame}
+                              </span>
                             </>
                           )}
                           {selectedConversation.player.school && (
@@ -512,70 +614,90 @@ export default function CoachMessagesPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
-                        onClick={() => handleToggleStar(selectedConversation.id, {} as React.MouseEvent)}
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+                        onClick={() =>
+                          handleToggleStar(
+                            selectedConversation.id,
+                            {} as React.MouseEvent,
+                          )
+                        }
                       >
-                        <StarIcon className={cn("w-4 h-4", selectedConversation.isStarred && "fill-current text-yellow-400")} />
+                        <StarIcon
+                          className={cn(
+                            "h-4 w-4",
+                            selectedConversation.isStarred &&
+                              "fill-current text-yellow-400",
+                          )}
+                        />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                       >
-                        <MoreVerticalIcon className="w-4 h-4" />
+                        <MoreVerticalIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 </CardHeader>
 
                 {/* Messages */}
-                <CardContent className="flex-1 p-4 overflow-hidden">
+                <CardContent className="flex-1 overflow-hidden p-4">
                   <div className="h-full overflow-y-auto">
                     {conversationLoading ? (
-                      <div className="flex items-center justify-center h-full">
-                        <LoaderIcon className="w-8 h-8 animate-spin text-cyan-400" />
+                      <div className="flex h-full items-center justify-center">
+                        <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400" />
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {(selectedConversation?.messages ?? []).map((message: Message) => (
-                        <div
-                          key={message.id}
-                          className={cn(
-                            "flex",
-                            message.senderType === "COACH" ? "justify-end" : "justify-start"
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "max-w-[70%] rounded-lg px-4 py-2",
-                              message.senderType === "COACH"
-                                ? "bg-cyan-600 text-white"
-                                : "bg-gray-800 text-white"
-                            )}
-                          >
-                            <p className="text-sm">{message.content}</p>
-                            <div className="flex items-center justify-end space-x-1 mt-1">
-                              <span className="text-xs opacity-70">
-                                {format(message.timestamp, "HH:mm")}
-                              </span>
-                              {message.senderType === "COACH" && (
-                                <CheckIcon className="w-3 h-3 opacity-70" />
+                        {(selectedConversation?.messages ?? []).map(
+                          (message: Message) => (
+                            <div
+                              key={message.id}
+                              className={cn(
+                                "flex",
+                                message.senderType === "COACH"
+                                  ? "justify-end"
+                                  : "justify-start",
                               )}
+                            >
+                              <div
+                                className={cn(
+                                  "max-w-[70%] rounded-lg px-4 py-2",
+                                  message.senderType === "COACH"
+                                    ? "bg-cyan-600 text-white"
+                                    : "bg-gray-800 text-white",
+                                )}
+                              >
+                                <p className="text-sm">{message.content}</p>
+                                <div className="mt-1 flex items-center justify-end space-x-1">
+                                  <span className="text-xs opacity-70">
+                                    {format(message.timestamp, "HH:mm")}
+                                  </span>
+                                  {message.senderType === "COACH" && (
+                                    <CheckIcon className="h-3 w-3 opacity-70" />
+                                  )}
+                                </div>
+                              </div>
                             </div>
+                          ),
+                        )}
+                        {(selectedConversation?.messages ?? []).length ===
+                          0 && (
+                          <div className="py-8 text-center">
+                            <MessageSquareIcon className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                            <p className="text-sm text-gray-400">
+                              No messages yet
+                            </p>
+                            <p className="mt-2 text-xs text-gray-500">
+                              Start the conversation by sending a message
+                            </p>
                           </div>
-                        </div>
-                      ))}
-                      {(selectedConversation?.messages ?? []).length === 0 && (
-                        <div className="text-center py-8">
-                          <MessageSquareIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-400 text-sm">No messages yet</p>
-                          <p className="text-gray-500 text-xs mt-2">Start the conversation by sending a message</p>
-                        </div>
                         )}
                       </div>
                     )}
@@ -589,7 +711,7 @@ export default function CoachMessagesPage() {
                       value={newMessageContent}
                       onChange={(e) => setNewMessageContent(e.target.value)}
                       placeholder="Type your message..."
-                      className="bg-gray-800 border-gray-700 text-white resize-none"
+                      className="resize-none border-gray-700 bg-gray-800 text-white"
                       rows={2}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
@@ -600,39 +722,44 @@ export default function CoachMessagesPage() {
                     />
                     <Button
                       onClick={handleSendMessage}
-                      disabled={!newMessageContent.trim() || sendMessageMutation.isPending}
-                      className="bg-cyan-600 hover:bg-cyan-700 text-white self-end"
+                      disabled={
+                        !newMessageContent.trim() ||
+                        sendMessageMutation.isPending
+                      }
+                      className="self-end bg-cyan-600 text-white hover:bg-cyan-700"
                     >
                       {sendMessageMutation.isPending ? (
-                        <LoaderIcon className="w-4 h-4 animate-spin" />
+                        <LoaderIcon className="h-4 w-4 animate-spin" />
                       ) : (
-                        <SendIcon className="w-4 h-4" />
+                        <SendIcon className="h-4 w-4" />
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="mt-2 text-xs text-gray-500">
                     Press Enter to send, Shift+Enter for new line
                   </p>
                 </div>
               </>
             ) : (
               /* Empty Chat State */
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-gray-800 rounded-full mx-auto flex items-center justify-center">
-                    <MessageSquareIcon className="w-8 h-8 text-gray-400" />
+              <div className="flex h-full items-center justify-center">
+                <div className="space-y-4 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-800">
+                    <MessageSquareIcon className="h-8 w-8 text-gray-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-orbitron font-bold text-white">Select a Conversation</h3>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <h3 className="font-orbitron text-lg font-bold text-white">
+                      Select a Conversation
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-400">
                       Choose a conversation from the list to start messaging
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => setNewConversationOpen(true)}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                    className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
                   >
-                    <PlusIcon className="w-4 h-4 mr-2" />
+                    <PlusIcon className="mr-2 h-4 w-4" />
                     Start New Conversation
                   </Button>
                 </div>
@@ -643,4 +770,4 @@ export default function CoachMessagesPage() {
       </div>
     </div>
   );
-} 
+}

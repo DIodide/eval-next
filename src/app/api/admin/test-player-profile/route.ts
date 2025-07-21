@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
- 
- 
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
 
@@ -14,7 +13,7 @@ import { db } from "@/server/db";
 // Test results interface
 interface TestResult {
   name: string;
-  status: 'PASS' | 'FAIL' | 'SKIP';
+  status: "PASS" | "FAIL" | "SKIP";
   message: string;
   duration?: number;
 }
@@ -22,7 +21,7 @@ interface TestResult {
 // Mock auth context for testing
 const createTestContext = (userId: string) => ({
   db,
-  auth: { 
+  auth: {
     userId,
     sessionClaims: {},
     sessionId: "test-session",
@@ -54,13 +53,13 @@ export async function GET() {
       });
       results.push({
         name: "Setup: Create Test Player",
-        status: 'PASS',
+        status: "PASS",
         message: `Created player with ID: ${testPlayer.id}`,
       });
     } catch (error) {
       results.push({
         name: "Setup: Create Test Player",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Failed to create test player: ${(error as Error).message}`,
       });
       return NextResponse.json({ success: false, results });
@@ -74,18 +73,18 @@ export async function GET() {
       const startTime = Date.now();
       const profile = await caller.getProfile();
       const duration = Date.now() - startTime;
-      
+
       if (profile && profile.id === testPlayer.id) {
         results.push({
           name: "getProfile",
-          status: 'PASS',
+          status: "PASS",
           message: `Successfully retrieved profile for player ${profile.id}`,
           duration,
         });
       } else {
         results.push({
           name: "getProfile",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Profile returned but doesn't match expected player",
           duration,
         });
@@ -93,7 +92,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "getProfile",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -108,23 +107,25 @@ export async function GET() {
         location: "Test City, Test State",
         gpa: 3.75,
       };
-      
+
       const updatedProfile = await caller.updateProfile(updateData);
       const duration = Date.now() - startTime;
-      
-      if (updatedProfile && 
-          updatedProfile.first_name === "Updated" && 
-          updatedProfile.bio === "This is a test bio for comprehensive testing") {
+
+      if (
+        updatedProfile &&
+        updatedProfile.first_name === "Updated" &&
+        updatedProfile.bio === "This is a test bio for comprehensive testing"
+      ) {
         results.push({
           name: "updateProfile",
-          status: 'PASS',
+          status: "PASS",
           message: "Successfully updated player profile with all fields",
           duration,
         });
       } else {
         results.push({
           name: "updateProfile",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Profile updated but values don't match expected",
           duration,
         });
@@ -132,7 +133,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "updateProfile",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -145,18 +146,22 @@ export async function GET() {
         username: "teststeamuser123",
       });
       const duration = Date.now() - startTime;
-      
-      if (connection && connection.platform === "steam" && connection.username === "teststeamuser123") {
+
+      if (
+        connection &&
+        connection.platform === "steam" &&
+        connection.username === "teststeamuser123"
+      ) {
         results.push({
           name: "updatePlatformConnection (Steam)",
-          status: 'PASS',
+          status: "PASS",
           message: `Created Steam connection: ${connection.username}`,
           duration,
         });
       } else {
         results.push({
           name: "updatePlatformConnection (Steam)",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Connection created but values don't match",
           duration,
         });
@@ -164,7 +169,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "updatePlatformConnection (Steam)",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -177,18 +182,18 @@ export async function GET() {
         username: "updatedsteamuser456",
       });
       const duration = Date.now() - startTime;
-      
+
       if (connection && connection.username === "updatedsteamuser456") {
         results.push({
           name: "updatePlatformConnection (Update)",
-          status: 'PASS',
+          status: "PASS",
           message: `Updated Steam connection: ${connection.username}`,
           duration,
         });
       } else {
         results.push({
           name: "updatePlatformConnection (Update)",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Connection updated but username doesn't match",
           duration,
         });
@@ -196,7 +201,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "updatePlatformConnection (Update)",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -209,18 +214,18 @@ export async function GET() {
         username: "testuser#1234",
       });
       const duration = Date.now() - startTime;
-      
+
       if (socialConnection && socialConnection.platform === "discord") {
         results.push({
           name: "updateSocialConnection (Discord)",
-          status: 'PASS',
+          status: "PASS",
           message: `Created Discord connection: ${socialConnection.username}`,
           duration,
         });
       } else {
         results.push({
           name: "updateSocialConnection (Discord)",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Social connection created but values don't match",
           duration,
         });
@@ -228,7 +233,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "updateSocialConnection (Discord)",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -238,18 +243,18 @@ export async function GET() {
       const startTime = Date.now();
       const games = await caller.getAvailableGames();
       const duration = Date.now() - startTime;
-      
+
       if (Array.isArray(games)) {
         results.push({
           name: "getAvailableGames",
-          status: 'PASS',
+          status: "PASS",
           message: `Retrieved ${games.length} available games`,
           duration,
         });
       } else {
         results.push({
           name: "getAvailableGames",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Games returned but not in expected format",
           duration,
         });
@@ -257,7 +262,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "getAvailableGames",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -269,18 +274,18 @@ export async function GET() {
         platform: "steam",
       });
       const duration = Date.now() - startTime;
-      
+
       if (result && result.success) {
         results.push({
           name: "removePlatformConnection",
-          status: 'PASS',
+          status: "PASS",
           message: "Successfully removed Steam connection",
           duration,
         });
       } else {
         results.push({
           name: "removePlatformConnection",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Operation completed but success flag not set",
           duration,
         });
@@ -288,7 +293,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "removePlatformConnection",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -300,18 +305,18 @@ export async function GET() {
         platform: "discord",
       });
       const duration = Date.now() - startTime;
-      
+
       if (result && result.success) {
         results.push({
           name: "removeSocialConnection",
-          status: 'PASS',
+          status: "PASS",
           message: "Successfully removed Discord connection",
           duration,
         });
       } else {
         results.push({
           name: "removeSocialConnection",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Operation completed but success flag not set",
           duration,
         });
@@ -319,7 +324,7 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "removeSocialConnection",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error: ${(error as Error).message}`,
       });
     }
@@ -328,26 +333,29 @@ export async function GET() {
     try {
       const invalidCtx = createTestContext("invalid-user-id");
       const invalidCaller = playerProfileRouter.createCaller(invalidCtx);
-      
+
       try {
         await invalidCaller.getProfile();
         results.push({
           name: "Error Handling - Invalid User",
-          status: 'FAIL',
+          status: "FAIL",
           message: "Expected error but operation succeeded",
         });
       } catch (error) {
         const message = (error as Error).message;
-        if (message.includes("Player profile not found") || message.includes("FORBIDDEN")) {
+        if (
+          message.includes("Player profile not found") ||
+          message.includes("FORBIDDEN")
+        ) {
           results.push({
             name: "Error Handling - Invalid User",
-            status: 'PASS',
+            status: "PASS",
             message: "Correctly rejected invalid user",
           });
         } else {
           results.push({
             name: "Error Handling - Invalid User",
-            status: 'FAIL',
+            status: "FAIL",
             message: `Unexpected error: ${message}`,
           });
         }
@@ -355,15 +363,14 @@ export async function GET() {
     } catch (error) {
       results.push({
         name: "Error Handling - Invalid User",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Setup error: ${(error as Error).message}`,
       });
     }
-
   } catch (error) {
     results.push({
       name: "Test Suite Error",
-      status: 'FAIL',
+      status: "FAIL",
       message: `Critical error: ${(error as Error).message}`,
     });
   } finally {
@@ -381,16 +388,16 @@ export async function GET() {
         await db.player.delete({
           where: { id: testPlayer.id },
         });
-        
+
         results.push({
           name: "Cleanup",
-          status: 'PASS',
+          status: "PASS",
           message: "Successfully cleaned up test data",
         });
       } catch (error) {
         results.push({
           name: "Cleanup",
-          status: 'FAIL',
+          status: "FAIL",
           message: `Cleanup failed: ${(error as Error).message}`,
         });
       }
@@ -398,8 +405,8 @@ export async function GET() {
   }
 
   // Calculate summary
-  const passed = results.filter(r => r.status === 'PASS').length;
-  const failed = results.filter(r => r.status === 'FAIL').length;
+  const passed = results.filter((r) => r.status === "PASS").length;
+  const failed = results.filter((r) => r.status === "FAIL").length;
   const total = results.length;
 
   console.log("\n📊 Test Results Summary:");
@@ -408,9 +415,9 @@ export async function GET() {
   console.log(`📈 Total: ${total}`);
   console.log(`💯 Success Rate: ${((passed / total) * 100).toFixed(1)}%`);
 
-  results.forEach(result => {
-    const icon = result.status === 'PASS' ? '✅' : '❌';
-    const duration = result.duration ? ` (${result.duration}ms)` : '';
+  results.forEach((result) => {
+    const icon = result.status === "PASS" ? "✅" : "❌";
+    const duration = result.duration ? ` (${result.duration}ms)` : "";
     console.log(`${icon} ${result.name}${duration}: ${result.message}`);
   });
 
@@ -420,8 +427,8 @@ export async function GET() {
       passed,
       failed,
       total,
-      successRate: ((passed / total) * 100).toFixed(1) + '%'
+      successRate: ((passed / total) * 100).toFixed(1) + "%",
     },
     results,
   });
-} 
+}

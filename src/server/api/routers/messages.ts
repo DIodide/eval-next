@@ -2,21 +2,25 @@
  * =================================================================
  * MESSAGES TRPC ROUTER
  * =================================================================
- * 
+ *
  * This router handles messaging functionality between coaches and players.
- * 
+ *
  * Features:
  * - Get conversations for coaches
  * - Send messages between coaches and players
  * - Mark messages as read
  * - Get available players for messaging
  * - Player-specific endpoints for viewing and responding to messages
- * 
+ *
  * =================================================================
  */
 
 import { z } from "zod";
-import { createTRPCRouter, onboardedCoachProcedure, playerProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  onboardedCoachProcedure,
+  playerProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
 export const messagesRouter = createTRPCRouter({
@@ -24,11 +28,13 @@ export const messagesRouter = createTRPCRouter({
    * Get conversations for the authenticated coach
    */
   getConversations: onboardedCoachProcedure
-    .input(z.object({
-      search: z.string().optional(),
-      filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
-      limit: z.number().min(1).max(100).default(50),
-    }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
@@ -51,31 +57,39 @@ export const messagesRouter = createTRPCRouter({
             },
           },
           messages: {
-            orderBy: { created_at: 'desc' },
+            orderBy: { created_at: "desc" },
             take: 1,
           },
         },
-        orderBy: { updated_at: 'desc' },
+        orderBy: { updated_at: "desc" },
         take: input.limit,
       });
 
       // Filter by search if provided
       const filteredConversations = input.search
-        ? conversations.filter(conv => 
-            `${conv.player.first_name} ${conv.player.last_name}`.toLowerCase().includes(input.search!.toLowerCase()) ||
-            conv.player.school?.toLowerCase().includes(input.search!.toLowerCase())
+        ? conversations.filter(
+            (conv) =>
+              `${conv.player.first_name} ${conv.player.last_name}`
+                .toLowerCase()
+                .includes(input.search!.toLowerCase()) ||
+              conv.player.school
+                ?.toLowerCase()
+                .includes(input.search!.toLowerCase()),
           )
         : conversations;
 
       // Filter by unread if specified
-      const finalConversations = input.filter === "unread"
-        ? filteredConversations.filter(conv => 
-            conv.messages.some(msg => !msg.is_read && msg.sender_type === "PLAYER")
-          )
-        : filteredConversations;
+      const finalConversations =
+        input.filter === "unread"
+          ? filteredConversations.filter((conv) =>
+              conv.messages.some(
+                (msg) => !msg.is_read && msg.sender_type === "PLAYER",
+              ),
+            )
+          : filteredConversations;
 
       return {
-        conversations: finalConversations.map(conv => ({
+        conversations: finalConversations.map((conv) => ({
           id: conv.id,
           player: {
             id: conv.player.id,
@@ -85,23 +99,29 @@ export const messagesRouter = createTRPCRouter({
             school: conv.player.school,
             classYear: conv.player.class_year,
             location: conv.player.location,
-            gpa: conv.player.gpa ? parseFloat(conv.player.gpa.toString()) : null,
+            gpa: conv.player.gpa
+              ? parseFloat(conv.player.gpa.toString())
+              : null,
             mainGame: conv.player.main_game?.name,
-            gameProfiles: conv.player.game_profiles.map(profile => ({
+            gameProfiles: conv.player.game_profiles.map((profile) => ({
               game: profile.game.name,
               rank: profile.rank,
               role: profile.role,
               username: profile.username,
             })),
           },
-          lastMessage: conv.messages[0] ? {
-            id: conv.messages[0].id,
-            content: conv.messages[0].content,
-            senderType: conv.messages[0].sender_type,
-            timestamp: conv.messages[0].created_at,
-            isRead: conv.messages[0].is_read,
-          } : null,
-          unreadCount: conv.messages.filter(msg => !msg.is_read && msg.sender_type === "PLAYER").length,
+          lastMessage: conv.messages[0]
+            ? {
+                id: conv.messages[0].id,
+                content: conv.messages[0].content,
+                senderType: conv.messages[0].sender_type,
+                timestamp: conv.messages[0].created_at,
+                isRead: conv.messages[0].is_read,
+              }
+            : null,
+          unreadCount: conv.messages.filter(
+            (msg) => !msg.is_read && msg.sender_type === "PLAYER",
+          ).length,
           isStarred: conv.is_starred,
           isArchived: conv.is_archived,
           updatedAt: conv.updated_at,
@@ -113,30 +133,29 @@ export const messagesRouter = createTRPCRouter({
   /**
    * Get count of unread messages for coach dashboard
    */
-  getUnreadCount: onboardedCoachProcedure
-    .query(async ({ ctx }) => {
-      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+  getUnreadCount: onboardedCoachProcedure.query(async ({ ctx }) => {
+    const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
-      try {
-        const count = await ctx.db.message.count({
-          where: {
-            conversation: {
-              coach_id: coachId,
-            },
-            sender_type: "PLAYER",
-            is_read: false,
+    try {
+      const count = await ctx.db.message.count({
+        where: {
+          conversation: {
+            coach_id: coachId,
           },
-        });
+          sender_type: "PLAYER",
+          is_read: false,
+        },
+      });
 
-        return count;
-      } catch (error) {
-        console.error('Error fetching unread messages count:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch unread messages count',
-        });
-      }
-    }),
+      return count;
+    } catch (error) {
+      console.error("Error fetching unread messages count:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch unread messages count",
+      });
+    }
+  }),
 
   /**
    * Get detailed conversation with message history
@@ -164,7 +183,7 @@ export const messagesRouter = createTRPCRouter({
             },
           },
           messages: {
-            orderBy: { created_at: 'asc' },
+            orderBy: { created_at: "asc" },
           },
         },
       });
@@ -186,16 +205,18 @@ export const messagesRouter = createTRPCRouter({
           school: conversation.player.school,
           classYear: conversation.player.class_year,
           location: conversation.player.location,
-          gpa: conversation.player.gpa ? parseFloat(conversation.player.gpa.toString()) : null,
+          gpa: conversation.player.gpa
+            ? parseFloat(conversation.player.gpa.toString())
+            : null,
           mainGame: conversation.player.main_game?.name,
-          gameProfiles: conversation.player.game_profiles.map(profile => ({
+          gameProfiles: conversation.player.game_profiles.map((profile) => ({
             game: profile.game.name,
             rank: profile.rank,
             role: profile.role,
             username: profile.username,
           })),
         },
-        messages: conversation.messages.map(msg => ({
+        messages: conversation.messages.map((msg) => ({
           id: msg.id,
           senderId: msg.sender_id,
           senderType: msg.sender_type,
@@ -212,15 +233,17 @@ export const messagesRouter = createTRPCRouter({
    * Send a message to a player
    */
   sendMessage: onboardedCoachProcedure
-    .input(z.object({
-      conversationId: z.string().uuid().optional(),
-      playerId: z.string().uuid().optional(),
-      content: z.string().min(1).max(2000).trim(),
-    }))
+    .input(
+      z.object({
+        conversationId: z.string().uuid().optional(),
+        playerId: z.string().uuid().optional(),
+        content: z.string().min(1).max(2000).trim(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
-             // Either conversationId or playerId must be provided
+      // Either conversationId or playerId must be provided
       if (!input.conversationId && !input.playerId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -322,17 +345,19 @@ export const messagesRouter = createTRPCRouter({
    * Send bulk messages to multiple players
    */
   sendBulkMessage: onboardedCoachProcedure
-    .input(z.object({
-      playerIds: z.array(z.string().uuid()).min(1).max(50),
-      content: z.string().min(1).max(2000).trim(),
-    }))
+    .input(
+      z.object({
+        playerIds: z.array(z.string().uuid()).min(1).max(50),
+        content: z.string().min(1).max(2000).trim(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       // Coach ID is available from onboardedCoachProcedure context
 
       return {
         success: true,
         messagesSent: input.playerIds.length,
-        results: input.playerIds.map(playerId => ({
+        results: input.playerIds.map((playerId) => ({
           playerId,
           conversationId: `mock-conversation-${playerId}`,
           messageId: `mock-message-${playerId}`,
@@ -344,10 +369,12 @@ export const messagesRouter = createTRPCRouter({
    * Mark messages as read
    */
   markAsRead: onboardedCoachProcedure
-    .input(z.object({
-      conversationId: z.string().uuid(),
-      messageIds: z.array(z.string().uuid()).optional(),
-    }))
+    .input(
+      z.object({
+        conversationId: z.string().uuid(),
+        messageIds: z.array(z.string().uuid()).optional(),
+      }),
+    )
     .mutation(async ({ ctx }) => {
       // Coach ID is available from onboardedCoachProcedure context
 
@@ -361,9 +388,11 @@ export const messagesRouter = createTRPCRouter({
    * Star or unstar a conversation
    */
   toggleStar: onboardedCoachProcedure
-    .input(z.object({
-      conversationId: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        conversationId: z.string().uuid(),
+      }),
+    )
     .mutation(async ({ ctx }) => {
       // Coach ID is available from onboardedCoachProcedure context
 
@@ -377,11 +406,13 @@ export const messagesRouter = createTRPCRouter({
    * Get available players for messaging
    */
   getAvailablePlayers: onboardedCoachProcedure
-    .input(z.object({
-      search: z.string().optional(),
-      gameId: z.string().uuid().optional(),
-      limit: z.number().min(1).max(100).default(50),
-    }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        gameId: z.string().uuid().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+    )
     .query(async ({ ctx }) => {
       // Coach ID is available from onboardedCoachProcedure context
 
@@ -396,10 +427,7 @@ export const messagesRouter = createTRPCRouter({
           main_game: true,
         },
         take: 50,
-        orderBy: [
-          { first_name: "asc" },
-          { last_name: "asc" },
-        ],
+        orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
       });
 
       return players.map((player) => ({
@@ -429,11 +457,13 @@ export const messagesRouter = createTRPCRouter({
    * Get conversations for the authenticated player
    */
   getPlayerConversations: playerProcedure
-    .input(z.object({
-      search: z.string().optional(),
-      filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
-      limit: z.number().min(1).max(100).default(50),
-    }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const playerId = ctx.playerId; // Available from playerProcedure context
 
@@ -451,31 +481,39 @@ export const messagesRouter = createTRPCRouter({
             },
           },
           messages: {
-            orderBy: { created_at: 'desc' },
+            orderBy: { created_at: "desc" },
             take: 1,
           },
         },
-        orderBy: { updated_at: 'desc' },
+        orderBy: { updated_at: "desc" },
         take: input.limit,
       });
 
       // Filter by search if provided
       const filteredConversations = input.search
-        ? conversations.filter(conv => 
-            `${conv.coach.first_name} ${conv.coach.last_name}`.toLowerCase().includes(input.search!.toLowerCase()) ||
-            conv.coach.school?.toLowerCase().includes(input.search!.toLowerCase())
+        ? conversations.filter(
+            (conv) =>
+              `${conv.coach.first_name} ${conv.coach.last_name}`
+                .toLowerCase()
+                .includes(input.search!.toLowerCase()) ||
+              conv.coach.school
+                ?.toLowerCase()
+                .includes(input.search!.toLowerCase()),
           )
         : conversations;
 
       // Filter by unread if specified
-      const finalConversations = input.filter === "unread"
-        ? filteredConversations.filter(conv => 
-            conv.messages.some(msg => !msg.is_read && msg.sender_type === "COACH")
-          )
-        : filteredConversations;
+      const finalConversations =
+        input.filter === "unread"
+          ? filteredConversations.filter((conv) =>
+              conv.messages.some(
+                (msg) => !msg.is_read && msg.sender_type === "COACH",
+              ),
+            )
+          : filteredConversations;
 
       return {
-        conversations: finalConversations.map(conv => ({
+        conversations: finalConversations.map((conv) => ({
           id: conv.id,
           coach: {
             id: conv.coach.id,
@@ -486,14 +524,18 @@ export const messagesRouter = createTRPCRouter({
             schoolId: conv.coach.school_ref?.id,
             schoolName: conv.coach.school_ref?.name,
           },
-          lastMessage: conv.messages[0] ? {
-            id: conv.messages[0].id,
-            content: conv.messages[0].content,
-            senderType: conv.messages[0].sender_type,
-            timestamp: conv.messages[0].created_at,
-            isRead: conv.messages[0].is_read,
-          } : null,
-          unreadCount: conv.messages.filter(msg => !msg.is_read && msg.sender_type === "COACH").length,
+          lastMessage: conv.messages[0]
+            ? {
+                id: conv.messages[0].id,
+                content: conv.messages[0].content,
+                senderType: conv.messages[0].sender_type,
+                timestamp: conv.messages[0].created_at,
+                isRead: conv.messages[0].is_read,
+              }
+            : null,
+          unreadCount: conv.messages.filter(
+            (msg) => !msg.is_read && msg.sender_type === "COACH",
+          ).length,
           isStarred: conv.is_starred,
           isArchived: conv.is_archived,
           updatedAt: conv.updated_at,
@@ -523,7 +565,7 @@ export const messagesRouter = createTRPCRouter({
             },
           },
           messages: {
-            orderBy: { created_at: 'asc' },
+            orderBy: { created_at: "asc" },
           },
         },
       });
@@ -546,7 +588,7 @@ export const messagesRouter = createTRPCRouter({
           schoolId: conversation.coach.school_ref?.id,
           schoolName: conversation.coach.school_ref?.name,
         },
-        messages: conversation.messages.map(msg => ({
+        messages: conversation.messages.map((msg) => ({
           id: msg.id,
           senderId: msg.sender_id,
           senderType: msg.sender_type,
@@ -563,11 +605,13 @@ export const messagesRouter = createTRPCRouter({
    * Send a message from player to coach
    */
   sendPlayerMessage: playerProcedure
-    .input(z.object({
-      conversationId: z.string().uuid().optional(),
-      coachId: z.string().uuid().optional(),
-      content: z.string().min(1).max(2000).trim(),
-    }))
+    .input(
+      z.object({
+        conversationId: z.string().uuid().optional(),
+        coachId: z.string().uuid().optional(),
+        content: z.string().min(1).max(2000).trim(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const playerId = ctx.playerId; // Available from playerProcedure context
 
@@ -579,7 +623,11 @@ export const messagesRouter = createTRPCRouter({
         });
       }
 
-      let conversation: { id: string; coach_id: string; player_id: string } | null = null;
+      let conversation: {
+        id: string;
+        coach_id: string;
+        player_id: string;
+      } | null = null;
 
       if (input.conversationId) {
         // Use existing conversation
@@ -679,10 +727,12 @@ export const messagesRouter = createTRPCRouter({
    * Mark messages as read for player
    */
   markPlayerMessagesAsRead: playerProcedure
-    .input(z.object({
-      conversationId: z.string().uuid(),
-      messageIds: z.array(z.string().uuid()).optional(),
-    }))
+    .input(
+      z.object({
+        conversationId: z.string().uuid(),
+        messageIds: z.array(z.string().uuid()).optional(),
+      }),
+    )
     .mutation(async ({ ctx }) => {
       // Player ID is available from playerProcedure context
 
@@ -696,9 +746,11 @@ export const messagesRouter = createTRPCRouter({
    * Star or unstar a conversation for player
    */
   togglePlayerStar: playerProcedure
-    .input(z.object({
-      conversationId: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        conversationId: z.string().uuid(),
+      }),
+    )
     .mutation(async ({ ctx }) => {
       // Player ID is available from playerProcedure context
 
@@ -712,10 +764,12 @@ export const messagesRouter = createTRPCRouter({
    * Get available coaches for messaging (player endpoint)
    */
   getAvailableCoaches: playerProcedure
-    .input(z.object({
-      search: z.string().optional(),
-      limit: z.number().min(1).max(100).default(50),
-    }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+    )
     .query(async ({ ctx }) => {
       // Player ID is available from playerProcedure context
 
@@ -725,10 +779,7 @@ export const messagesRouter = createTRPCRouter({
           school_ref: true,
         },
         take: 50,
-        orderBy: [
-          { first_name: "asc" },
-          { last_name: "asc" },
-        ],
+        orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
       });
 
       return coaches.map((coach) => ({
@@ -741,4 +792,4 @@ export const messagesRouter = createTRPCRouter({
         username: coach.username,
       }));
     }),
-}); 
+});

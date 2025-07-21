@@ -1,5 +1,5 @@
-import 'server-only';
-import { clerkClient, auth } from '@clerk/nextjs/server';
+import "server-only";
+import { clerkClient, auth } from "@clerk/nextjs/server";
 
 /**
  * Server-side admin utilities for checking admin privileges
@@ -13,9 +13,9 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
   try {
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
-    return user.privateMetadata?.role === 'admin';
+    return user.privateMetadata?.role === "admin";
   } catch (error) {
-    console.error('Error checking admin status:', error);
+    console.error("Error checking admin status:", error);
     return false;
   }
 }
@@ -29,7 +29,7 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
     if (!userId) return false;
     return await isUserAdmin(userId);
   } catch (error) {
-    console.error('Error checking current user admin status:', error);
+    console.error("Error checking current user admin status:", error);
     return false;
   }
 }
@@ -37,7 +37,9 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
 /**
  * Middleware helper to check admin access
  */
-export async function checkAdminAccess(userId?: string | null): Promise<boolean> {
+export async function checkAdminAccess(
+  userId?: string | null,
+): Promise<boolean> {
   if (!userId) return false;
   return await isUserAdmin(userId);
-} 
+}

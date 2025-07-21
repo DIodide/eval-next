@@ -7,12 +7,18 @@ export const leaguesRouter = createTRPCRouter({
   // Get all leagues
   getAll: publicProcedure
     .input(
-      z.object({
-        game_id: z.string().uuid().optional(),
-        state: z.string().optional(),
-        tier: z.enum(["ELITE", "PROFESSIONAL", "COMPETITIVE", "DEVELOPMENTAL"]).optional(),
-        status: z.enum(["ACTIVE", "COMPLETED", "UPCOMING", "CANCELLED"]).optional(),
-      }).optional()
+      z
+        .object({
+          game_id: z.string().uuid().optional(),
+          state: z.string().optional(),
+          tier: z
+            .enum(["ELITE", "PROFESSIONAL", "COMPETITIVE", "DEVELOPMENTAL"])
+            .optional(),
+          status: z
+            .enum(["ACTIVE", "COMPLETED", "UPCOMING", "CANCELLED"])
+            .optional(),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -92,20 +98,16 @@ export const leaguesRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: [
-              { status: 'asc' },
-              { tier: 'asc' },
-              { name: 'asc' },
-            ],
-          })
+            orderBy: [{ status: "asc" }, { tier: "asc" }, { name: "asc" }],
+          }),
         );
 
         return leagues;
       } catch (error) {
-        console.error('Error fetching leagues:', error);
+        console.error("Error fetching leagues:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch leagues',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch leagues",
         });
       }
     }),
@@ -161,7 +163,7 @@ export const leaguesRouter = createTRPCRouter({
                   },
                 },
                 orderBy: {
-                  joined_at: 'asc',
+                  joined_at: "asc",
                 },
               },
               teams: {
@@ -198,10 +200,7 @@ export const leaguesRouter = createTRPCRouter({
                     },
                   },
                 },
-                orderBy: [
-                  { points: 'desc' },
-                  { wins: 'desc' },
-                ],
+                orderBy: [{ points: "desc" }, { wins: "desc" }],
               },
               player_participants: {
                 include: {
@@ -228,9 +227,7 @@ export const leaguesRouter = createTRPCRouter({
                     },
                   },
                 },
-                orderBy: [
-                  { eval_score: 'desc' },
-                ],
+                orderBy: [{ eval_score: "desc" }],
               },
               matches: {
                 select: {
@@ -262,18 +259,18 @@ export const leaguesRouter = createTRPCRouter({
                   },
                 },
                 orderBy: {
-                  scheduled_at: 'desc',
+                  scheduled_at: "desc",
                 },
                 take: 10,
               },
             },
-          })
+          }),
         );
 
         if (!league) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'League not found',
+            code: "NOT_FOUND",
+            message: "League not found",
           });
         }
 
@@ -282,10 +279,10 @@ export const leaguesRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error fetching league:', error);
+        console.error("Error fetching league:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch league details',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch league details",
         });
       }
     }),
@@ -296,7 +293,7 @@ export const leaguesRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         limit: z.number().min(1).max(100).default(10),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -336,13 +333,9 @@ export const leaguesRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: [
-              { points: 'desc' },
-              { wins: 'desc' },
-              { losses: 'asc' },
-            ],
+            orderBy: [{ points: "desc" }, { wins: "desc" }, { losses: "asc" }],
             take: input.limit,
-          })
+          }),
         );
 
         return leagueTeams.map((leagueTeam, index) => ({
@@ -357,10 +350,10 @@ export const leaguesRouter = createTRPCRouter({
           members: leagueTeam.team.members,
         }));
       } catch (error) {
-        console.error('Error fetching league leaderboard:', error);
+        console.error("Error fetching league leaderboard:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch league leaderboard',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch league leaderboard",
         });
       }
     }),
@@ -371,7 +364,7 @@ export const leaguesRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         limit: z.number().min(1).max(100).default(10),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       try {
@@ -402,17 +395,17 @@ export const leaguesRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: [
-              { eval_score: 'desc' },
-            ],
+            orderBy: [{ eval_score: "desc" }],
             take: input.limit,
-          })
+          }),
         );
 
         return topPlayers.map((playerLeague, index) => ({
           rank: index + 1,
           player_id: playerLeague.player.id,
-          username: playerLeague.player.username ?? `${playerLeague.player.first_name} ${playerLeague.player.last_name}`,
+          username:
+            playerLeague.player.username ??
+            `${playerLeague.player.first_name} ${playerLeague.player.last_name}`,
           first_name: playerLeague.player.first_name,
           last_name: playerLeague.player.last_name,
           school: playerLeague.player.school,
@@ -426,55 +419,51 @@ export const leaguesRouter = createTRPCRouter({
           game_profile: playerLeague.player.game_profiles[0] ?? null,
         }));
       } catch (error) {
-        console.error('Error fetching top players:', error);
+        console.error("Error fetching top players:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch top players',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch top players",
         });
       }
     }),
 
   // Get leagues available for association requests (simplified data)
-  getAvailableForAssociation: publicProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const leagues = await withRetry(() =>
-          ctx.db.league.findMany({
-            where: {
-              status: { in: ["ACTIVE", "UPCOMING"] }, // Show active and upcoming leagues for association
-            },
-            select: {
-              id: true,
-              name: true,
-              short_name: true,
-              tier: true,
-              region: true,
-              state: true,
-              league_games: {
-                include: {
-                  game: {
-                    select: {
-                      name: true,
-                      short_name: true,
-                    },
+  getAvailableForAssociation: publicProcedure.query(async ({ ctx }) => {
+    try {
+      const leagues = await withRetry(() =>
+        ctx.db.league.findMany({
+          where: {
+            status: { in: ["ACTIVE", "UPCOMING"] }, // Show active and upcoming leagues for association
+          },
+          select: {
+            id: true,
+            name: true,
+            short_name: true,
+            tier: true,
+            region: true,
+            state: true,
+            league_games: {
+              include: {
+                game: {
+                  select: {
+                    name: true,
+                    short_name: true,
                   },
                 },
               },
             },
-            orderBy: [
-              { tier: 'asc' },
-              { name: 'asc' },
-            ],
-          })
-        );
+          },
+          orderBy: [{ tier: "asc" }, { name: "asc" }],
+        }),
+      );
 
-        return leagues;
-      } catch (error) {
-        console.error('Error fetching available leagues:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch available leagues',
-        });
-      }
-    }),
-}); 
+      return leagues;
+    } catch (error) {
+      console.error("Error fetching available leagues:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch available leagues",
+      });
+    }
+  }),
+});

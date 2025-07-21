@@ -5,20 +5,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
-  Filter, 
-  Calendar, 
-  MapPin, 
-  Users, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  Calendar,
+  MapPin,
+  Users,
   Trophy,
   Eye,
   Power,
@@ -31,7 +50,7 @@ import {
   ChevronUp,
   Code,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/hooks/use-toast";
@@ -48,31 +67,65 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { z } from "zod";
-import { getUserTimezoneAbbreviation, convertLocalTimeToUTC } from "@/lib/time-utils";
+import {
+  getUserTimezoneAbbreviation,
+  convertLocalTimeToUTC,
+} from "@/lib/time-utils";
 
-type CombineStatus = "UPCOMING" | "REGISTRATION_OPEN" | "REGISTRATION_CLOSED" | "IN_PROGRESS" | "COMPLETED";
+type CombineStatus =
+  | "UPCOMING"
+  | "REGISTRATION_OPEN"
+  | "REGISTRATION_CLOSED"
+  | "IN_PROGRESS"
+  | "COMPLETED";
 type EventType = "ONLINE" | "IN_PERSON" | "HYBRID";
-type RegistrationStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED";
+type RegistrationStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "WAITLISTED"
+  | "DECLINED"
+  | "CANCELLED";
 
 // Validation schema matching the API
 const createCombineSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters"),
+  title: z
+    .string()
+    .min(5, "Title must be at least 5 characters")
+    .max(200, "Title must be less than 200 characters"),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(500, "Description must be less than 500 characters"),
   long_description: z.string().optional(),
   game_id: z.string().min(1, "Game selection is required"),
   date: z.date({ required_error: "Date is required" }),
   time_start: z.string().optional(),
   time_end: z.string().optional(),
-  location: z.string().min(5, "Location must be at least 5 characters").max(200, "Location must be less than 200 characters"),
+  location: z
+    .string()
+    .min(5, "Location must be at least 5 characters")
+    .max(200, "Location must be less than 200 characters"),
   type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]),
   year: z.string().min(4, "Year is required"),
-  max_spots: z.number().int().min(1, "Max spots must be between 1 and 1000").max(1000, "Max spots must be between 1 and 1000"),
+  max_spots: z
+    .number()
+    .int()
+    .min(1, "Max spots must be between 1 and 1000")
+    .max(1000, "Max spots must be between 1 and 1000"),
   registration_deadline: z.date().optional(),
   min_gpa: z.number().min(0).max(4.0).optional(),
   class_years: z.array(z.string()).default([]),
   required_roles: z.array(z.string()).default([]),
   prize_pool: z.string().default("TBD"),
-  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).default("UPCOMING"),
+  status: z
+    .enum([
+      "UPCOMING",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+    ])
+    .default("UPCOMING"),
   requirements: z.string().default("None specified"),
   invite_only: z.boolean().default(false),
 });
@@ -108,14 +161,18 @@ type RegistrationStats = {
 
 export default function AdminCombinesPage() {
   const { toast } = useToast();
-  
+
   // State
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<CombineStatus | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<CombineStatus | "ALL">(
+    "ALL",
+  );
   const [gameFilter, setGameFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<EventType | "ALL">("ALL");
   const [yearFilter, setYearFilter] = useState<string>("ALL");
-  const [registrationStatusFilter, setRegistrationStatusFilter] = useState<RegistrationStatus | "ALL">("ALL");
+  const [registrationStatusFilter, setRegistrationStatusFilter] = useState<
+    RegistrationStatus | "ALL"
+  >("ALL");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedCombine, setSelectedCombine] = useState<string | null>(null);
   const [showOutputPanel, setShowOutputPanel] = useState(false);
@@ -130,16 +187,18 @@ export default function AdminCombinesPage() {
   // Inline edit state
   const [editingCombine, setEditingCombine] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
-    title: '',
-    description: '',
-    location: '',
+    title: "",
+    description: "",
+    location: "",
     max_spots: 0,
     date: new Date(),
-    type: 'ONLINE' as EventType,
-    status: 'UPCOMING' as CombineStatus,
-    invite_only: false
+    type: "ONLINE" as EventType,
+    status: "UPCOMING" as CombineStatus,
+    invite_only: false,
   });
-  const [editValidationErrors, setEditValidationErrors] = useState<Record<string, string>>({});
+  const [editValidationErrors, setEditValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   // Form state
   const [createForm, setCreateForm] = useState<CreateCombineData>({
@@ -165,44 +224,49 @@ export default function AdminCombinesPage() {
   });
 
   // Form validation errors
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   // API queries and mutations
   const { data: games = [] } = api.playerProfile.getAvailableGames.useQuery();
-  
-  const { data: combinesData, refetch: refetchCombines } = api.combines.getAllForAdmin.useQuery({
-    search: searchTerm || undefined,
-    game_id: gameFilter !== "ALL" ? gameFilter : undefined,
-    type: typeFilter !== "ALL" ? typeFilter : undefined,
-    status: statusFilter !== "ALL" ? statusFilter : undefined,
-    year: yearFilter !== "ALL" ? yearFilter : undefined,
-    page: 1,
-    limit: 50
-  });
+
+  const { data: combinesData, refetch: refetchCombines } =
+    api.combines.getAllForAdmin.useQuery({
+      search: searchTerm || undefined,
+      game_id: gameFilter !== "ALL" ? gameFilter : undefined,
+      type: typeFilter !== "ALL" ? typeFilter : undefined,
+      status: statusFilter !== "ALL" ? statusFilter : undefined,
+      year: yearFilter !== "ALL" ? yearFilter : undefined,
+      page: 1,
+      limit: 50,
+    });
 
   // Get detailed combine data for editing (includes registrations)
-  const { data: editingCombineData, refetch: refetchEditingCombine } = api.combines.getByIdForAdmin.useQuery(
-    { id: editingCombine! },
-    { enabled: !!editingCombine }
-  );
+  const { data: editingCombineData, refetch: refetchEditingCombine } =
+    api.combines.getByIdForAdmin.useQuery(
+      { id: editingCombine! },
+      { enabled: !!editingCombine },
+    );
 
   // Get registration statistics for selected combine
-  const { data: registrationStats } = api.combines.getRegistrationStats.useQuery(
-    { combine_id: selectedCombine! },
-    { enabled: !!selectedCombine }
-  );
-  
+  const { data: registrationStats } =
+    api.combines.getRegistrationStats.useQuery(
+      { combine_id: selectedCombine! },
+      { enabled: !!selectedCombine },
+    );
+
   const createCombineMutation = api.combines.create.useMutation({
     onSuccess: (data) => {
-      toast({ 
-        title: "Success", 
-        description: "Combine created successfully!" 
+      toast({
+        title: "Success",
+        description: "Combine created successfully!",
       });
       setOutputData({
         lastOperation: "Create Combine",
         success: true,
         data: data,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       setShowOutputPanel(true); // Auto-open panel on success
       resetForm();
@@ -210,153 +274,149 @@ export default function AdminCombinesPage() {
       void refetchCombines();
     },
     onError: (error) => {
-      toast({ 
-        title: "Error", 
+      toast({
+        title: "Error",
         description: error.message || "Failed to create combine",
-        variant: "destructive" 
+        variant: "destructive",
       });
       setOutputData({
         lastOperation: "Create Combine",
         success: false,
         error: error.message || "Failed to create combine",
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       setShowOutputPanel(true); // Auto-open panel on error
-    }
-  });
-
-
-
-  const updateRegistrationStatusMutation = api.combines.updateRegistrationStatus.useMutation({
-    onSuccess: (data) => {
-      toast({ 
-        title: "Success", 
-        description: "Registration status updated successfully!" 
-      });
-      setOutputData({
-        lastOperation: "Update Registration Status",
-        success: true,
-        data: data,
-        timestamp: new Date()
-      });
-      setShowOutputPanel(true); // Auto-open panel on success
-      void refetchCombines();
-      if (editingCombine) void refetchEditingCombine();
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Failed to update registration status",
-        variant: "destructive" 
-      });
-      setOutputData({
-        lastOperation: "Update Registration Status",
-        success: false,
-        error: error.message || "Failed to update registration status",
-        timestamp: new Date()
-      });
-      setShowOutputPanel(true); // Auto-open panel on error
-    }
   });
+
+  const updateRegistrationStatusMutation =
+    api.combines.updateRegistrationStatus.useMutation({
+      onSuccess: (data) => {
+        toast({
+          title: "Success",
+          description: "Registration status updated successfully!",
+        });
+        setOutputData({
+          lastOperation: "Update Registration Status",
+          success: true,
+          data: data,
+          timestamp: new Date(),
+        });
+        setShowOutputPanel(true); // Auto-open panel on success
+        void refetchCombines();
+        if (editingCombine) void refetchEditingCombine();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update registration status",
+          variant: "destructive",
+        });
+        setOutputData({
+          lastOperation: "Update Registration Status",
+          success: false,
+          error: error.message || "Failed to update registration status",
+          timestamp: new Date(),
+        });
+        setShowOutputPanel(true); // Auto-open panel on error
+      },
+    });
 
   const updateCombineMutation = api.combines.update.useMutation({
     onSuccess: (data) => {
-      toast({ 
-        title: "Success", 
-        description: "Combine updated successfully!" 
+      toast({
+        title: "Success",
+        description: "Combine updated successfully!",
       });
       setOutputData({
         lastOperation: "Update Combine",
         success: true,
         data: data,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       setShowOutputPanel(true);
       setEditingCombine(null);
       void refetchCombines();
     },
     onError: (error) => {
-      toast({ 
-        title: "Error", 
+      toast({
+        title: "Error",
         description: error.message || "Failed to update combine",
-        variant: "destructive" 
+        variant: "destructive",
       });
       setOutputData({
         lastOperation: "Update Combine",
         success: false,
         error: error.message || "Failed to update combine",
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       setShowOutputPanel(true);
-    }
+    },
   });
 
-  const removeRegistrationMutation = api.combines.removeRegistration.useMutation({
-    onSuccess: (data) => {
-      toast({ 
-        title: "Success", 
-        description: "Registration removed successfully!" 
-      });
-      setOutputData({
-        lastOperation: "Remove Registration",
-        success: true,
-        data: data,
-        timestamp: new Date()
-      });
-      setShowOutputPanel(true);
-      void refetchEditingCombine();
-      void refetchCombines();
-    },
-    onError: (error) => {
-      toast({ 
-        title: "Error", 
-        description: error.message || "Failed to remove registration",
-        variant: "destructive" 
-      });
-      setOutputData({
-        lastOperation: "Remove Registration",
-        success: false,
-        error: error.message || "Failed to remove registration",
-        timestamp: new Date()
-      });
-      setShowOutputPanel(true);
-    }
-  });
+  const removeRegistrationMutation =
+    api.combines.removeRegistration.useMutation({
+      onSuccess: (data) => {
+        toast({
+          title: "Success",
+          description: "Registration removed successfully!",
+        });
+        setOutputData({
+          lastOperation: "Remove Registration",
+          success: true,
+          data: data,
+          timestamp: new Date(),
+        });
+        setShowOutputPanel(true);
+        void refetchEditingCombine();
+        void refetchCombines();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to remove registration",
+          variant: "destructive",
+        });
+        setOutputData({
+          lastOperation: "Remove Registration",
+          success: false,
+          error: error.message || "Failed to remove registration",
+          timestamp: new Date(),
+        });
+        setShowOutputPanel(true);
+      },
+    });
 
   const deleteCombineMutation = api.combines.delete.useMutation({
     onSuccess: (data) => {
-      toast({ 
-        title: "Success", 
-        description: "Combine deleted successfully!" 
+      toast({
+        title: "Success",
+        description: "Combine deleted successfully!",
       });
       setOutputData({
         lastOperation: "Delete Combine",
         success: true,
         data: data,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       setShowOutputPanel(true);
       void refetchCombines();
     },
     onError: (error) => {
-      toast({ 
-        title: "Error", 
+      toast({
+        title: "Error",
         description: error.message || "Failed to delete combine",
-        variant: "destructive" 
+        variant: "destructive",
       });
       setOutputData({
         lastOperation: "Delete Combine",
         success: false,
         error: error.message || "Failed to delete combine",
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       setShowOutputPanel(true);
-    }
+    },
   });
-
-
-
-
 
   // Helper functions
   const resetForm = () => {
@@ -385,54 +445,61 @@ export default function AdminCombinesPage() {
   };
 
   // Instant field validation like tryouts
-  const validateField = (fieldName: string, value: string | number | Date | undefined | null) => {
+  const validateField = (
+    fieldName: string,
+    value: string | number | Date | undefined | null,
+  ) => {
     const errors: Record<string, string> = {};
 
     switch (fieldName) {
-      case 'title':
-        if (typeof value === 'string' && value.length < 5) {
+      case "title":
+        if (typeof value === "string" && value.length < 5) {
           errors.title = "Title must be at least 5 characters";
-        } else if (typeof value === 'string' && value.length > 200) {
+        } else if (typeof value === "string" && value.length > 200) {
           errors.title = "Title must be less than 200 characters";
         }
         break;
-      
-      case 'description':
-        if (typeof value === 'string' && value.length < 10) {
+
+      case "description":
+        if (typeof value === "string" && value.length < 10) {
           errors.description = "Description must be at least 10 characters";
-        } else if (typeof value === 'string' && value.length > 500) {
+        } else if (typeof value === "string" && value.length > 500) {
           errors.description = "Description must be less than 500 characters";
         }
         break;
-      
-      case 'location':
-        if (typeof value === 'string' && value.length < 5) {
+
+      case "location":
+        if (typeof value === "string" && value.length < 5) {
           errors.location = "Location must be at least 5 characters";
-        } else if (typeof value === 'string' && value.length > 200) {
+        } else if (typeof value === "string" && value.length > 200) {
           errors.location = "Location must be less than 200 characters";
         }
         break;
-      
-      case 'max_spots':
-        if (typeof value === 'number' && (value < 1 || value > 1000)) {
+
+      case "max_spots":
+        if (typeof value === "number" && (value < 1 || value > 1000)) {
           errors.max_spots = "Max spots must be between 1 and 1000";
         }
         break;
-      
-      case 'year':
-        if (typeof value === 'string' && value.length < 4) {
+
+      case "year":
+        if (typeof value === "string" && value.length < 4) {
           errors.year = "Year must be 4 digits";
         }
         break;
-      
-      case 'date':
+
+      case "date":
         if (value instanceof Date && value < new Date()) {
           errors.date = "Date must be in the future";
         }
         break;
-      
-      case 'registration_deadline':
-        if (value instanceof Date && createForm.date && value > createForm.date) {
+
+      case "registration_deadline":
+        if (
+          value instanceof Date &&
+          createForm.date &&
+          value > createForm.date
+        ) {
           errors.registration_deadline = "Deadline must be before combine date";
         }
         break;
@@ -442,11 +509,14 @@ export default function AdminCombinesPage() {
   };
 
   // Update validation errors when fields change
-  const handleFieldChange = (fieldName: string, value: string | number | Date | undefined | null) => {
-    setCreateForm(prev => ({ ...prev, [fieldName]: value }));
-    
+  const handleFieldChange = (
+    fieldName: string,
+    value: string | number | Date | undefined | null,
+  ) => {
+    setCreateForm((prev) => ({ ...prev, [fieldName]: value }));
+
     // Clear existing error for this field
-    setValidationErrors(prev => {
+    setValidationErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[fieldName];
       return newErrors;
@@ -455,16 +525,19 @@ export default function AdminCombinesPage() {
     // Validate field and set new errors
     const fieldErrors = validateField(fieldName, value);
     if (Object.keys(fieldErrors).length > 0) {
-      setValidationErrors(prev => ({ ...prev, ...fieldErrors }));
+      setValidationErrors((prev) => ({ ...prev, ...fieldErrors }));
     }
 
     // Also validate registration deadline if date changes
-    if (fieldName === 'date' && createForm.registration_deadline) {
-      const deadlineErrors = validateField('registration_deadline', createForm.registration_deadline);
+    if (fieldName === "date" && createForm.registration_deadline) {
+      const deadlineErrors = validateField(
+        "registration_deadline",
+        createForm.registration_deadline,
+      );
       if (Object.keys(deadlineErrors).length > 0) {
-        setValidationErrors(prev => ({ ...prev, ...deadlineErrors }));
+        setValidationErrors((prev) => ({ ...prev, ...deadlineErrors }));
       } else {
-        setValidationErrors(prev => {
+        setValidationErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.registration_deadline;
           return newErrors;
@@ -494,10 +567,10 @@ export default function AdminCombinesPage() {
 
   const handleCreateCombine = () => {
     if (!validateForm()) {
-      toast({ 
-        title: "Validation Error", 
+      toast({
+        title: "Validation Error",
         description: "Please fix the errors in the form",
-        variant: "destructive" 
+        variant: "destructive",
       });
       return;
     }
@@ -505,22 +578,32 @@ export default function AdminCombinesPage() {
     // Convert local times to UTC before submitting
     const formDataWithUTC = {
       ...createForm,
-      time_start: createForm.time_start ? convertLocalTimeToUTC(createForm.date, createForm.time_start) : undefined,
-      time_end: createForm.time_end ? convertLocalTimeToUTC(createForm.date, createForm.time_end) : undefined,
+      time_start: createForm.time_start
+        ? convertLocalTimeToUTC(createForm.date, createForm.time_start)
+        : undefined,
+      time_end: createForm.time_end
+        ? convertLocalTimeToUTC(createForm.date, createForm.time_end)
+        : undefined,
     };
 
     createCombineMutation.mutate(formDataWithUTC);
   };
 
   const handleDeleteCombine = (combineId: string, combineTitle?: string) => {
-    if (confirm(`Are you sure you want to delete "${combineTitle ?? 'this combine'}"? This action cannot be undone.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete "${combineTitle ?? "this combine"}"? This action cannot be undone.`,
+      )
+    ) {
       deleteCombineMutation.mutate({ id: combineId });
     }
   };
 
-
-
-  const handleUpdateRegistrationStatus = (registrationId: string, status: "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED", qualified?: boolean) => {
+  const handleUpdateRegistrationStatus = (
+    registrationId: string,
+    status: "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED",
+    qualified?: boolean,
+  ) => {
     updateRegistrationStatusMutation.mutate({
       registration_id: registrationId,
       status,
@@ -529,7 +612,7 @@ export default function AdminCombinesPage() {
   };
 
   const handleViewPlayerProfile = (username: string) => {
-    window.open(`/profiles/player/${username}`, '_blank');
+    window.open(`/profiles/player/${username}`, "_blank");
   };
 
   // Edit handlers
@@ -552,7 +635,7 @@ export default function AdminCombinesPage() {
       date: new Date(combine.date),
       type: combine.type,
       status: combine.status,
-      invite_only: combine.invite_only
+      invite_only: combine.invite_only,
     });
     setEditValidationErrors({});
     setEditingCombine(combine.id);
@@ -561,24 +644,27 @@ export default function AdminCombinesPage() {
   const handleCancelEdit = () => {
     setEditingCombine(null);
     setEditForm({
-      title: '',
-      description: '',
-      location: '',
+      title: "",
+      description: "",
+      location: "",
       max_spots: 0,
       date: new Date(),
-      type: 'ONLINE',
-      status: 'UPCOMING',
-      invite_only: false
+      type: "ONLINE",
+      status: "UPCOMING",
+      invite_only: false,
     });
     setEditValidationErrors({});
   };
 
-  const handleEditFieldChange = (fieldName: string, value: string | number | Date | boolean) => {
-    setEditForm(prev => ({ ...prev, [fieldName]: value }));
-    
+  const handleEditFieldChange = (
+    fieldName: string,
+    value: string | number | Date | boolean,
+  ) => {
+    setEditForm((prev) => ({ ...prev, [fieldName]: value }));
+
     // Clear validation error when user starts typing
     if (editValidationErrors[fieldName]) {
-      setEditValidationErrors(prev => ({ ...prev, [fieldName]: '' }));
+      setEditValidationErrors((prev) => ({ ...prev, [fieldName]: "" }));
     }
   };
 
@@ -614,12 +700,19 @@ export default function AdminCombinesPage() {
       date: editForm.date,
       type: editForm.type,
       status: editForm.status,
-      invite_only: editForm.invite_only
+      invite_only: editForm.invite_only,
     });
   };
 
-  const handleRemoveRegistration = (registrationId: string, playerName?: string) => {
-    if (confirm(`Are you sure you want to remove ${playerName ? `${playerName}'s` : 'this'} registration? This action cannot be undone.`)) {
+  const handleRemoveRegistration = (
+    registrationId: string,
+    playerName?: string,
+  ) => {
+    if (
+      confirm(
+        `Are you sure you want to remove ${playerName ? `${playerName}'s` : "this"} registration? This action cannot be undone.`,
+      )
+    ) {
       removeRegistrationMutation.mutate({ registration_id: registrationId });
     }
   };
@@ -630,7 +723,7 @@ export default function AdminCombinesPage() {
       lastOperation: "Test: Get All Combines",
       success: true,
       data: combinesData,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
     setShowOutputPanel(true); // Auto-open panel for test
   };
@@ -648,273 +741,361 @@ export default function AdminCombinesPage() {
           status: statusFilter,
           game: gameFilter,
           type: typeFilter,
-          year: yearFilter
-        }
+          year: yearFilter,
+        },
       },
-      timestamp: new Date()
+      timestamp: new Date(),
     });
     setShowOutputPanel(true); // Auto-open panel for test
   };
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(new Date(date));
   };
 
   const getStatusColor = (status: CombineStatus) => {
     switch (status) {
-      case "UPCOMING": return "bg-blue-600 text-blue-100";
-      case "REGISTRATION_OPEN": return "bg-green-600 text-green-100";
-      case "REGISTRATION_CLOSED": return "bg-yellow-600 text-yellow-100";
-      case "IN_PROGRESS": return "bg-purple-600 text-purple-100";
-      case "COMPLETED": return "bg-gray-600 text-gray-100";
-      default: return "bg-gray-600 text-gray-100";
+      case "UPCOMING":
+        return "bg-blue-600 text-blue-100";
+      case "REGISTRATION_OPEN":
+        return "bg-green-600 text-green-100";
+      case "REGISTRATION_CLOSED":
+        return "bg-yellow-600 text-yellow-100";
+      case "IN_PROGRESS":
+        return "bg-purple-600 text-purple-100";
+      case "COMPLETED":
+        return "bg-gray-600 text-gray-100";
+      default:
+        return "bg-gray-600 text-gray-100";
     }
   };
 
   const getTypeIcon = (type: EventType) => {
     switch (type) {
-      case "ONLINE": return "🌐";
-      case "IN_PERSON": return "📍";
-      case "HYBRID": return "🔄";
-      default: return "❓";
+      case "ONLINE":
+        return "🌐";
+      case "IN_PERSON":
+        return "📍";
+      case "HYBRID":
+        return "🔄";
+      default:
+        return "❓";
     }
   };
 
   // Registration table columns
-  const registrationColumns: ColumnDef<Registration>[] = React.useMemo(() => [
-    {
-      accessorKey: "avatar",
-      header: "",
-      cell: ({ row }) => {
-        const registration = row.original;
-        return (
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={registration.player.image_url ?? undefined} />
-            <AvatarFallback className="bg-gray-700 text-white text-xs">
-              {registration.player.first_name.charAt(0)}{registration.player.last_name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        );
+  const registrationColumns: ColumnDef<Registration>[] = React.useMemo(
+    () => [
+      {
+        accessorKey: "avatar",
+        header: "",
+        cell: ({ row }) => {
+          const registration = row.original;
+          return (
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={registration.player.image_url ?? undefined} />
+              <AvatarFallback className="bg-gray-700 text-xs text-white">
+                {registration.player.first_name.charAt(0)}
+                {registration.player.last_name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "player",
-      header: "Player",
-      cell: ({ row }) => {
-        const registration = row.original;
-        return (
-          <div className="space-y-1">
-            <div className="font-medium text-white">
-              {registration.player.first_name} {registration.player.last_name}
+      {
+        accessorKey: "player",
+        header: "Player",
+        cell: ({ row }) => {
+          const registration = row.original;
+          return (
+            <div className="space-y-1">
+              <div className="font-medium text-white">
+                {registration.player.first_name} {registration.player.last_name}
+              </div>
+              <div className="text-sm text-gray-400">
+                @{registration.player.username ?? "No username"}
+              </div>
             </div>
-            <div className="text-sm text-gray-400">
-              @{registration.player.username ?? 'No username'}
+          );
+        },
+      },
+      {
+        accessorKey: "email",
+        header: "Email",
+        cell: ({ row }) => {
+          const registration = row.original;
+          return (
+            <div className="font-mono text-sm text-white">
+              {registration.player.email}
             </div>
-          </div>
-        );
+          );
+        },
       },
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => {
-        const registration = row.original;
-        return (
-          <div className="text-white font-mono text-sm">
-            {registration.player.email}
-          </div>
-        );
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const registration = row.original;
+          const getStatusColor = (status: RegistrationStatus) => {
+            switch (status) {
+              case "CONFIRMED":
+                return "bg-green-600 text-white";
+              case "PENDING":
+                return "bg-yellow-600 text-white";
+              case "DECLINED":
+                return "bg-red-600 text-white";
+              case "CANCELLED":
+                return "bg-gray-600 text-gray-200 line-through";
+              case "WAITLISTED":
+                return "bg-orange-600 text-white";
+              default:
+                return "bg-gray-600 text-white";
+            }
+          };
+
+          return (
+            <Badge className={getStatusColor(registration.status)}>
+              {registration.status}
+            </Badge>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const registration = row.original;
-        const getStatusColor = (status: RegistrationStatus) => {
-          switch (status) {
-            case "CONFIRMED": return "bg-green-600 text-white";
-            case "PENDING": return "bg-yellow-600 text-white";
-            case "DECLINED": return "bg-red-600 text-white";
-            case "CANCELLED": return "bg-gray-600 text-gray-200 line-through";
-            case "WAITLISTED": return "bg-orange-600 text-white";
-            default: return "bg-gray-600 text-white";
+      {
+        accessorKey: "qualified",
+        header: "Qualified",
+        cell: ({ row }) => {
+          const registration = row.original;
+          if (registration.qualified === null) {
+            return <span className="text-sm text-gray-400">Not set</span>;
           }
-        };
-        
-        return (
-          <Badge className={getStatusColor(registration.status)}>
-            {registration.status}
-          </Badge>
-        );
+          return (
+            <Badge
+              className={
+                registration.qualified
+                  ? "bg-green-600 text-white"
+                  : "bg-red-600 text-white"
+              }
+            >
+              {registration.qualified ? "Yes" : "No"}
+            </Badge>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "qualified",
-      header: "Qualified",
-      cell: ({ row }) => {
-        const registration = row.original;
-        if (registration.qualified === null) {
-          return <span className="text-gray-400 text-sm">Not set</span>;
-        }
-        return (
-          <Badge className={registration.qualified ? "bg-green-600 text-white" : "bg-red-600 text-white"}>
-            {registration.qualified ? "Yes" : "No"}
-          </Badge>
-        );
+      {
+        accessorKey: "registered_at",
+        header: "Registered",
+        cell: ({ row }) => {
+          const registration = row.original;
+          return (
+            <div className="text-sm text-gray-400">
+              {formatDate(new Date(registration.registered_at))}
+            </div>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "registered_at",
-      header: "Registered",
-      cell: ({ row }) => {
-        const registration = row.original;
-        return (
-          <div className="text-gray-400 text-sm">
-            {formatDate(new Date(registration.registered_at))}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const registration = row.original;
-        const isProcessing = updateRegistrationStatusMutation.isPending;
-        
-        return (
-          <div className="flex items-center gap-2">
-            {registration.status === "PENDING" && (
-              <>
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const registration = row.original;
+          const isProcessing = updateRegistrationStatusMutation.isPending;
+
+          return (
+            <div className="flex items-center gap-2">
+              {registration.status === "PENDING" && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      handleUpdateRegistrationStatus(
+                        registration.id,
+                        "CONFIRMED",
+                        true,
+                      )
+                    }
+                    disabled={isProcessing}
+                    className="text-green-400 hover:bg-green-700 hover:text-white"
+                    title="Accept Registration"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      handleUpdateRegistrationStatus(
+                        registration.id,
+                        "WAITLISTED",
+                      )
+                    }
+                    disabled={isProcessing}
+                    className="text-yellow-400 hover:bg-yellow-700 hover:text-white"
+                    title="Move to Waitlist"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      handleUpdateRegistrationStatus(
+                        registration.id,
+                        "DECLINED",
+                      )
+                    }
+                    disabled={isProcessing}
+                    className="text-red-400 hover:bg-red-700 hover:text-white"
+                    title="Decline Registration"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+
+              {registration.status === "WAITLISTED" && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleUpdateRegistrationStatus(registration.id, "CONFIRMED", true)}
+                  onClick={() =>
+                    handleUpdateRegistrationStatus(
+                      registration.id,
+                      "CONFIRMED",
+                      true,
+                    )
+                  }
                   disabled={isProcessing}
-                  className="hover:bg-green-700 hover:text-white text-green-400"
-                  title="Accept Registration"
+                  className="text-green-400 hover:bg-green-700 hover:text-white"
+                  title="Promote from Waitlist"
                 >
-                  <Check className="h-4 w-4" />
+                  <ChevronUp className="h-4 w-4" />
                 </Button>
+              )}
+
+              {registration.status === "CONFIRMED" && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleUpdateRegistrationStatus(registration.id, "WAITLISTED")}
+                  onClick={() =>
+                    handleUpdateRegistrationStatus(
+                      registration.id,
+                      "WAITLISTED",
+                    )
+                  }
                   disabled={isProcessing}
-                  className="hover:bg-yellow-700 hover:text-white text-yellow-400"
+                  className="text-yellow-400 hover:bg-yellow-700 hover:text-white"
                   title="Move to Waitlist"
                 >
                   <ChevronDown className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleUpdateRegistrationStatus(registration.id, "DECLINED")}
-                  disabled={isProcessing}
-                  className="hover:bg-red-700 hover:text-white text-red-400"
-                  title="Decline Registration"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            )}
+              )}
 
-            {registration.status === "WAITLISTED" && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleUpdateRegistrationStatus(registration.id, "CONFIRMED", true)}
-                disabled={isProcessing}
-                className="hover:bg-green-700 hover:text-white text-green-400"
-                title="Promote from Waitlist"
+                onClick={() =>
+                  handleViewPlayerProfile(
+                    registration.player.username ?? registration.player.id,
+                  )
+                }
+                className="text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="View Player Profile"
               >
-                <ChevronUp className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
               </Button>
-            )}
 
-            {registration.status === "CONFIRMED" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleUpdateRegistrationStatus(registration.id, "WAITLISTED")}
-                disabled={isProcessing}
-                className="hover:bg-yellow-700 hover:text-white text-yellow-400"
-                title="Move to Waitlist"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            )}
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleViewPlayerProfile(registration.player.username ?? registration.player.id)}
-              className="hover:bg-gray-700 hover:text-white text-gray-400"
-              title="View Player Profile"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:bg-gray-700 hover:text-white">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(registration.player.email)}
-                  className="text-gray-300 focus:text-white focus:bg-gray-700"
-                >
-                  Copy email
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleViewPlayerProfile(registration.player.username ?? registration.player.id)}
-                  className="text-gray-300 focus:text-white focus:bg-gray-700"
-                >
-                  View full profile
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-gray-700" />
-                {registration.status === "CONFIRMED" && (
-                  <DropdownMenuItem
-                    onClick={() => handleUpdateRegistrationStatus(registration.id, "DECLINED")}
-                    className="text-red-300 focus:text-red-100 focus:bg-gray-700"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:bg-gray-700 hover:text-white"
                   >
-                    Decline registration
-                  </DropdownMenuItem>
-                )}
-                {registration.status === "DECLINED" && (
-                  <DropdownMenuItem
-                    onClick={() => handleUpdateRegistrationStatus(registration.id, "CONFIRMED", true)}
-                    className="text-green-300 focus:text-green-100 focus:bg-gray-700"
-                  >
-                    Accept registration
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem
-                  onClick={() => handleRemoveRegistration(registration.id, `${registration.player.first_name} ${registration.player.last_name}`)}
-                  className="text-red-300 focus:text-red-100 focus:bg-gray-700"
-                  disabled={removeRegistrationMutation.isPending}
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="border-gray-700 bg-gray-800"
                 >
-                  Remove registration
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
+                  <DropdownMenuLabel className="text-gray-300">
+                    Actions
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigator.clipboard.writeText(registration.player.email)
+                    }
+                    className="text-gray-300 focus:bg-gray-700 focus:text-white"
+                  >
+                    Copy email
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleViewPlayerProfile(
+                        registration.player.username ?? registration.player.id,
+                      )
+                    }
+                    className="text-gray-300 focus:bg-gray-700 focus:text-white"
+                  >
+                    View full profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-gray-700" />
+                  {registration.status === "CONFIRMED" && (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        handleUpdateRegistrationStatus(
+                          registration.id,
+                          "DECLINED",
+                        )
+                      }
+                      className="text-red-300 focus:bg-gray-700 focus:text-red-100"
+                    >
+                      Decline registration
+                    </DropdownMenuItem>
+                  )}
+                  {registration.status === "DECLINED" && (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        handleUpdateRegistrationStatus(
+                          registration.id,
+                          "CONFIRMED",
+                          true,
+                        )
+                      }
+                      className="text-green-300 focus:bg-gray-700 focus:text-green-100"
+                    >
+                      Accept registration
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator className="bg-gray-700" />
+                  <DropdownMenuItem
+                    onClick={() =>
+                      handleRemoveRegistration(
+                        registration.id,
+                        `${registration.player.first_name} ${registration.player.last_name}`,
+                      )
+                    }
+                    className="text-red-300 focus:bg-gray-700 focus:text-red-100"
+                    disabled={removeRegistrationMutation.isPending}
+                  >
+                    Remove registration
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        },
       },
-    },
-  ], [updateRegistrationStatusMutation.isPending]);
+    ],
+    [updateRegistrationStatusMutation.isPending],
+  );
 
   // Mock data for testing
   const mockGames = [
@@ -928,7 +1109,8 @@ export default function AdminCombinesPage() {
     {
       id: "1",
       title: "VALORANT Spring Regional Combine",
-      description: "Elite VALORANT combine showcasing the region's top competitive talent.",
+      description:
+        "Elite VALORANT combine showcasing the region's top competitive talent.",
       status: "REGISTRATION_OPEN" as CombineStatus,
       type: "ONLINE" as EventType,
       date: new Date("2024-04-15T09:00:00"),
@@ -940,7 +1122,7 @@ export default function AdminCombinesPage() {
       year: "2024",
     },
     {
-      id: "2", 
+      id: "2",
       title: "Overwatch 2 Tank Mastery Combine",
       description: "Premier Overwatch 2 combine focusing on tank role mastery.",
       status: "UPCOMING" as CombineStatus,
@@ -956,7 +1138,8 @@ export default function AdminCombinesPage() {
     {
       id: "3",
       title: "Rocket League Championship Combine",
-      description: "High-stakes Rocket League combine for championship-level players.",
+      description:
+        "High-stakes Rocket League combine for championship-level players.",
       status: "COMPLETED" as CombineStatus,
       type: "IN_PERSON" as EventType,
       date: new Date("2024-03-20T14:00:00"),
@@ -970,7 +1153,8 @@ export default function AdminCombinesPage() {
     {
       id: "4",
       title: "Smash Ultimate Winter Series",
-      description: "Ultimate fighting game combine featuring the best Smash players.",
+      description:
+        "Ultimate fighting game combine featuring the best Smash players.",
       status: "REGISTRATION_CLOSED" as CombineStatus,
       type: "ONLINE" as EventType,
       date: new Date("2025-01-15T11:00:00"),
@@ -988,12 +1172,16 @@ export default function AdminCombinesPage() {
   const totalCombines = combinesData?.total ?? 0;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">EVAL Combines Management</h1>
-          <p className="text-gray-300">Create and manage competitive combines</p>
+          <h1 className="text-3xl font-bold text-white">
+            EVAL Combines Management
+          </h1>
+          <p className="text-gray-300">
+            Create and manage competitive combines
+          </p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -1028,11 +1216,11 @@ export default function AdminCombinesPage() {
                     filters: {
                       search: searchTerm,
                       game: gameFilter,
-                      status: statusFilter
-                    }
-                  }
+                      status: statusFilter,
+                    },
+                  },
                 },
-                timestamp: new Date()
+                timestamp: new Date(),
               });
               setShowOutputPanel(true);
             }}
@@ -1047,8 +1235,9 @@ export default function AdminCombinesPage() {
               setOutputData({
                 lastOperation: "Manual Test - Error",
                 success: false,
-                error: "This is a simulated error to test the error display functionality in the output panel.",
-                timestamp: new Date()
+                error:
+                  "This is a simulated error to test the error display functionality in the output panel.",
+                timestamp: new Date(),
               });
               setShowOutputPanel(true);
             }}
@@ -1059,197 +1248,297 @@ export default function AdminCombinesPage() {
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600">
+            <Button className="flex items-center gap-2 border-blue-600 bg-blue-600 text-white hover:bg-blue-700">
               <Plus className="h-4 w-4" />
               Create Combine
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-800 border-gray-700 text-white">
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-gray-700 bg-gray-800 text-white">
             <DialogHeader>
-              <DialogTitle className="text-white">Create New Combine</DialogTitle>
+              <DialogTitle className="text-white">
+                Create New Combine
+              </DialogTitle>
               <DialogDescription className="text-gray-300">
                 Set up a new EVAL combine for competitive assessment
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <Label htmlFor="title" className="text-gray-300">Title *</Label>
+                <Label htmlFor="title" className="text-gray-300">
+                  Title *
+                </Label>
                 <Input
                   id="title"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    validationErrors.title ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                    validationErrors.title
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
                   value={createForm.title}
-                  onChange={(e) => handleFieldChange('title', e.target.value)}
+                  onChange={(e) => handleFieldChange("title", e.target.value)}
                   placeholder="e.g., VALORANT Spring Regional Combine"
                 />
-                <div className="flex justify-between items-center mt-1">
+                <div className="mt-1 flex items-center justify-between">
                   <p className="text-xs text-gray-500">
                     {createForm.title.length}/200 characters
                   </p>
                   {validationErrors.title && (
-                    <p className="text-xs text-red-400">{validationErrors.title}</p>
+                    <p className="text-xs text-red-400">
+                      {validationErrors.title}
+                    </p>
                   )}
                 </div>
               </div>
-              
+
               <div>
-                <Label htmlFor="game" className="text-gray-300">Game *</Label>
-                <Select 
-                  value={createForm.game_id} 
-                  onValueChange={(value) => handleFieldChange('game_id', value)}
+                <Label htmlFor="game" className="text-gray-300">
+                  Game *
+                </Label>
+                <Select
+                  value={createForm.game_id}
+                  onValueChange={(value) => handleFieldChange("game_id", value)}
                 >
-                  <SelectTrigger className={`bg-gray-700 border-gray-600 text-white ${
-                    validationErrors.game_id ? "border-red-500" : ""
-                  }`}>
+                  <SelectTrigger
+                    className={`border-gray-600 bg-gray-700 text-white ${
+                      validationErrors.game_id ? "border-red-500" : ""
+                    }`}
+                  >
                     <SelectValue placeholder="Select a game" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
+                  <SelectContent className="border-gray-600 bg-gray-800">
                     {games.map((game) => (
-                      <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
+                      <SelectItem
+                        key={game.id}
+                        value={game.id}
+                        className="text-white hover:bg-gray-700"
+                      >
                         {game.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {validationErrors.game_id && (
-                  <p className="text-xs text-red-400 mt-1">{validationErrors.game_id}</p>
+                  <p className="mt-1 text-xs text-red-400">
+                    {validationErrors.game_id}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="type" className="text-gray-300">Event Type *</Label>
-                <Select 
-                  value={createForm.type} 
-                  onValueChange={(value: EventType) => handleFieldChange('type', value)}
+                <Label htmlFor="type" className="text-gray-300">
+                  Event Type *
+                </Label>
+                <Select
+                  value={createForm.type}
+                  onValueChange={(value: EventType) =>
+                    handleFieldChange("type", value)
+                  }
                 >
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600">
-                    <SelectItem value="ONLINE" className="text-white hover:bg-gray-700">🌐 Online</SelectItem>
-                    <SelectItem value="IN_PERSON" className="text-white hover:bg-gray-700">📍 In Person</SelectItem>
-                    <SelectItem value="HYBRID" className="text-white hover:bg-gray-700">🔄 Hybrid</SelectItem>
+                  <SelectContent className="border-gray-600 bg-gray-800">
+                    <SelectItem
+                      value="ONLINE"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      🌐 Online
+                    </SelectItem>
+                    <SelectItem
+                      value="IN_PERSON"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      📍 In Person
+                    </SelectItem>
+                    <SelectItem
+                      value="HYBRID"
+                      className="text-white hover:bg-gray-700"
+                    >
+                      🔄 Hybrid
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="date" className="text-gray-300">Date & Time *</Label>
+                <Label htmlFor="date" className="text-gray-300">
+                  Date & Time *
+                </Label>
                 <Input
                   id="date"
                   type="datetime-local"
-                  className={`bg-gray-700 border-gray-600 text-white ${
-                    validationErrors.date ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white ${
+                    validationErrors.date
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
                   value={createForm.date.toISOString().slice(0, 16)}
-                  onChange={(e) => handleFieldChange('date', new Date(e.target.value))}
+                  onChange={(e) =>
+                    handleFieldChange("date", new Date(e.target.value))
+                  }
                 />
                 {validationErrors.date && (
-                  <p className="text-xs text-red-400 mt-1">{validationErrors.date}</p>
+                  <p className="mt-1 text-xs text-red-400">
+                    {validationErrors.date}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="location" className="text-gray-300">Location *</Label>
+                <Label htmlFor="location" className="text-gray-300">
+                  Location *
+                </Label>
                 <Input
                   id="location"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    validationErrors.location ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                    validationErrors.location
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
                   value={createForm.location}
-                  onChange={(e) => handleFieldChange('location', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("location", e.target.value)
+                  }
                   placeholder="e.g., Online - Custom Servers"
                 />
-                <div className="flex justify-between items-center mt-1">
+                <div className="mt-1 flex items-center justify-between">
                   <p className="text-xs text-gray-500">
                     {createForm.location.length}/200 characters
                   </p>
                   {validationErrors.location && (
-                    <p className="text-xs text-red-400">{validationErrors.location}</p>
+                    <p className="text-xs text-red-400">
+                      {validationErrors.location}
+                    </p>
                   )}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="max_spots" className="text-gray-300">Max Spots</Label>
+                <Label htmlFor="max_spots" className="text-gray-300">
+                  Max Spots
+                </Label>
                 <Input
                   id="max_spots"
                   type="number"
                   min="1"
                   max="1000"
-                  className={`bg-gray-700 border-gray-600 text-white ${
-                    validationErrors.max_spots ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white ${
+                    validationErrors.max_spots
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
                   value={createForm.max_spots ?? ""}
-                  onChange={(e) => handleFieldChange('max_spots', e.target.value ? parseInt(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "max_spots",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
                 />
                 {validationErrors.max_spots && (
-                  <p className="text-xs text-red-400 mt-1">{validationErrors.max_spots}</p>
+                  <p className="mt-1 text-xs text-red-400">
+                    {validationErrors.max_spots}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="year" className="text-gray-300">Year *</Label>
+                <Label htmlFor="year" className="text-gray-300">
+                  Year *
+                </Label>
                 <Input
                   id="year"
-                  className={`bg-gray-700 border-gray-600 text-white ${
-                    validationErrors.year ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white ${
+                    validationErrors.year
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
                   value={createForm.year}
-                  onChange={(e) => handleFieldChange('year', e.target.value)}
+                  onChange={(e) => handleFieldChange("year", e.target.value)}
                 />
                 {validationErrors.year && (
-                  <p className="text-xs text-red-400 mt-1">{validationErrors.year}</p>
+                  <p className="mt-1 text-xs text-red-400">
+                    {validationErrors.year}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="registration_deadline" className="text-gray-300">Registration Deadline</Label>
+                <Label
+                  htmlFor="registration_deadline"
+                  className="text-gray-300"
+                >
+                  Registration Deadline
+                </Label>
                 <Input
                   id="registration_deadline"
                   type="datetime-local"
-                  className={`bg-gray-700 border-gray-600 text-white ${
-                    validationErrors.registration_deadline ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white ${
+                    validationErrors.registration_deadline
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
-                  value={createForm.registration_deadline?.toISOString().slice(0, 16) ?? ""}
-                  onChange={(e) => handleFieldChange('registration_deadline', e.target.value ? new Date(e.target.value) : undefined)}
+                  value={
+                    createForm.registration_deadline
+                      ?.toISOString()
+                      .slice(0, 16) ?? ""
+                  }
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "registration_deadline",
+                      e.target.value ? new Date(e.target.value) : undefined,
+                    )
+                  }
                 />
                 {validationErrors.registration_deadline && (
-                  <p className="text-xs text-red-400 mt-1">{validationErrors.registration_deadline}</p>
+                  <p className="mt-1 text-xs text-red-400">
+                    {validationErrors.registration_deadline}
+                  </p>
                 )}
               </div>
 
               <div className="md:col-span-2">
-                <Label htmlFor="description" className="text-gray-300">Description *</Label>
+                <Label htmlFor="description" className="text-gray-300">
+                  Description *
+                </Label>
                 <Textarea
                   id="description"
-                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                    validationErrors.description ? "border-red-500 focus-visible:border-red-500" : ""
+                  className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                    validationErrors.description
+                      ? "border-red-500 focus-visible:border-red-500"
+                      : ""
                   }`}
                   value={createForm.description}
-                  onChange={(e) => handleFieldChange('description', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("description", e.target.value)
+                  }
                   placeholder="Brief description of the combine..."
                   rows={3}
                 />
-                <div className="flex justify-between items-center mt-1">
+                <div className="mt-1 flex items-center justify-between">
                   <p className="text-xs text-gray-500">
                     {createForm.description.length}/500 characters
                   </p>
                   {validationErrors.description && (
-                    <p className="text-xs text-red-400">{validationErrors.description}</p>
+                    <p className="text-xs text-red-400">
+                      {validationErrors.description}
+                    </p>
                   )}
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <Label htmlFor="long_description" className="text-gray-300">Detailed Description</Label>
+                <Label htmlFor="long_description" className="text-gray-300">
+                  Detailed Description
+                </Label>
                 <Textarea
                   id="long_description"
-                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  className="border-gray-600 bg-gray-700 text-white placeholder-gray-400"
                   value={createForm.long_description ?? ""}
-                  onChange={(e) => handleFieldChange('long_description', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("long_description", e.target.value)
+                  }
                   placeholder="Detailed description including rules, format, etc..."
                   rows={4}
                 />
@@ -1257,47 +1546,63 @@ export default function AdminCombinesPage() {
 
               <div>
                 <Label htmlFor="time_start" className="text-gray-300">
-                  Start Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                  Start Time{" "}
+                  <span className="text-sm text-gray-400">
+                    ({getUserTimezoneAbbreviation()})
+                  </span>
                 </Label>
                 <Input
                   id="time_start"
                   type="time"
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="border-gray-600 bg-gray-700 text-white"
                   value={createForm.time_start ?? ""}
-                  onChange={(e) => handleFieldChange('time_start', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("time_start", e.target.value)
+                  }
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter time in your local timezone
+                </p>
               </div>
 
               <div>
                 <Label htmlFor="time_end" className="text-gray-300">
-                  End Time <span className="text-sm text-gray-400">({getUserTimezoneAbbreviation()})</span>
+                  End Time{" "}
+                  <span className="text-sm text-gray-400">
+                    ({getUserTimezoneAbbreviation()})
+                  </span>
                 </Label>
                 <Input
                   id="time_end"
                   type="time"
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="border-gray-600 bg-gray-700 text-white"
                   value={createForm.time_end ?? ""}
-                  onChange={(e) => handleFieldChange('time_end', e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("time_end", e.target.value)
+                  }
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter time in your local timezone</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter time in your local timezone
+                </p>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 mt-6">
-              <Button 
-                variant="outline" 
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
+                variant="outline"
                 className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                 onClick={() => setShowCreateDialog(false)}
               >
                 Cancel
               </Button>
-              <Button 
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+              <Button
+                className="bg-blue-600 text-white hover:bg-blue-700"
                 onClick={handleCreateCombine}
                 disabled={createCombineMutation.isPending}
               >
-                {createCombineMutation.isPending ? "Creating..." : "Create Combine"}
+                {createCombineMutation.isPending
+                  ? "Creating..."
+                  : "Create Combine"}
               </Button>
             </div>
           </DialogContent>
@@ -1305,67 +1610,87 @@ export default function AdminCombinesPage() {
       </div>
 
       {/* Registration Overview Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        <Card className="bg-gray-800 border-gray-700">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-300">Total Combines</CardTitle>
+            <CardTitle className="text-sm text-gray-300">
+              Total Combines
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{combinesData?.total ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-300">Registration Open</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-400">
-              {combines.filter(c => c.status === "REGISTRATION_OPEN").length}
+            <div className="text-2xl font-bold text-white">
+              {combinesData?.total ?? 0}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-gray-300">
+              Registration Open
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-400">
+              {combines.filter((c) => c.status === "REGISTRATION_OPEN").length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-gray-300">Upcoming</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-400">
-              {combines.filter(c => c.status === "UPCOMING").length}
+              {combines.filter((c) => c.status === "UPCOMING").length}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-300">Active Registrations</CardTitle>
+            <CardTitle className="text-sm text-gray-300">
+              Active Registrations
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-400">
-              {combines.reduce((total, combine) => total + (combine.registered_spots ?? 0), 0)}
+              {combines.reduce(
+                (total, combine) => total + (combine.registered_spots ?? 0),
+                0,
+              )}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-300">Total Registrations</CardTitle>
+            <CardTitle className="text-sm text-gray-300">
+              Total Registrations
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {combines.reduce((total, combine) => total + combine._count.registrations, 0)}
+              {combines.reduce(
+                (total, combine) => total + combine._count.registrations,
+                0,
+              )}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-300">Filtered Results</CardTitle>
+            <CardTitle className="text-sm text-gray-300">
+              Filtered Results
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-400">{combines.length}</div>
+            <div className="text-2xl font-bold text-purple-400">
+              {combines.length}
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="border-gray-700 bg-gray-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Filter className="h-5 w-5" />
@@ -1373,14 +1698,16 @@ export default function AdminCombinesPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
             <div>
-              <Label htmlFor="search" className="text-gray-300">Search</Label>
+              <Label htmlFor="search" className="text-gray-300">
+                Search
+              </Label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   id="search"
-                  className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  className="border-gray-600 bg-gray-700 pl-10 text-white placeholder-gray-400"
                   placeholder="Search combines..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -1389,15 +1716,26 @@ export default function AdminCombinesPage() {
             </div>
 
             <div>
-              <Label htmlFor="game-filter" className="text-gray-300">Game</Label>
+              <Label htmlFor="game-filter" className="text-gray-300">
+                Game
+              </Label>
               <Select value={gameFilter} onValueChange={setGameFilter}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="ALL" className="text-white hover:bg-gray-700">All Games</SelectItem>
+                <SelectContent className="border-gray-600 bg-gray-800">
+                  <SelectItem
+                    value="ALL"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    All Games
+                  </SelectItem>
                   {mockGames.map((game) => (
-                    <SelectItem key={game.id} value={game.id} className="text-white hover:bg-gray-700">
+                    <SelectItem
+                      key={game.id}
+                      value={game.id}
+                      className="text-white hover:bg-gray-700"
+                    >
                       {game.name}
                     </SelectItem>
                   ))}
@@ -1406,64 +1744,185 @@ export default function AdminCombinesPage() {
             </div>
 
             <div>
-              <Label htmlFor="status-filter" className="text-gray-300">Status</Label>
-              <Select value={statusFilter} onValueChange={(value: CombineStatus | "ALL") => setStatusFilter(value)}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <Label htmlFor="status-filter" className="text-gray-300">
+                Status
+              </Label>
+              <Select
+                value={statusFilter}
+                onValueChange={(value: CombineStatus | "ALL") =>
+                  setStatusFilter(value)
+                }
+              >
+                <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="ALL" className="text-white hover:bg-gray-700">All Statuses</SelectItem>
-                  <SelectItem value="UPCOMING" className="text-white hover:bg-gray-700">Upcoming</SelectItem>
-                  <SelectItem value="REGISTRATION_OPEN" className="text-white hover:bg-gray-700">Registration Open</SelectItem>
-                  <SelectItem value="REGISTRATION_CLOSED" className="text-white hover:bg-gray-700">Registration Closed</SelectItem>
-                  <SelectItem value="IN_PROGRESS" className="text-white hover:bg-gray-700">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED" className="text-white hover:bg-gray-700">Completed</SelectItem>
+                <SelectContent className="border-gray-600 bg-gray-800">
+                  <SelectItem
+                    value="ALL"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    All Statuses
+                  </SelectItem>
+                  <SelectItem
+                    value="UPCOMING"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    Upcoming
+                  </SelectItem>
+                  <SelectItem
+                    value="REGISTRATION_OPEN"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    Registration Open
+                  </SelectItem>
+                  <SelectItem
+                    value="REGISTRATION_CLOSED"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    Registration Closed
+                  </SelectItem>
+                  <SelectItem
+                    value="IN_PROGRESS"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    In Progress
+                  </SelectItem>
+                  <SelectItem
+                    value="COMPLETED"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    Completed
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="type-filter" className="text-gray-300">Type</Label>
-              <Select value={typeFilter} onValueChange={(value: EventType | "ALL") => setTypeFilter(value)}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <Label htmlFor="type-filter" className="text-gray-300">
+                Type
+              </Label>
+              <Select
+                value={typeFilter}
+                onValueChange={(value: EventType | "ALL") =>
+                  setTypeFilter(value)
+                }
+              >
+                <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="ALL" className="text-white hover:bg-gray-700">All Types</SelectItem>
-                  <SelectItem value="ONLINE" className="text-white hover:bg-gray-700">🌐 Online</SelectItem>
-                  <SelectItem value="IN_PERSON" className="text-white hover:bg-gray-700">📍 In Person</SelectItem>
-                  <SelectItem value="HYBRID" className="text-white hover:bg-gray-700">🔄 Hybrid</SelectItem>
+                <SelectContent className="border-gray-600 bg-gray-800">
+                  <SelectItem
+                    value="ALL"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    All Types
+                  </SelectItem>
+                  <SelectItem
+                    value="ONLINE"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    🌐 Online
+                  </SelectItem>
+                  <SelectItem
+                    value="IN_PERSON"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    📍 In Person
+                  </SelectItem>
+                  <SelectItem
+                    value="HYBRID"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    🔄 Hybrid
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="year-filter" className="text-gray-300">Year</Label>
+              <Label htmlFor="year-filter" className="text-gray-300">
+                Year
+              </Label>
               <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="ALL" className="text-white hover:bg-gray-700">All Years</SelectItem>
-                  <SelectItem value="2024" className="text-white hover:bg-gray-700">2024</SelectItem>
-                  <SelectItem value="2025" className="text-white hover:bg-gray-700">2025</SelectItem>
+                <SelectContent className="border-gray-600 bg-gray-800">
+                  <SelectItem
+                    value="ALL"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    All Years
+                  </SelectItem>
+                  <SelectItem
+                    value="2024"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    2024
+                  </SelectItem>
+                  <SelectItem
+                    value="2025"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    2025
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="registration-status-filter" className="text-gray-300">Registration Status</Label>
-              <Select value={registrationStatusFilter} onValueChange={(value: RegistrationStatus | "ALL") => setRegistrationStatusFilter(value)}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <Label
+                htmlFor="registration-status-filter"
+                className="text-gray-300"
+              >
+                Registration Status
+              </Label>
+              <Select
+                value={registrationStatusFilter}
+                onValueChange={(value: RegistrationStatus | "ALL") =>
+                  setRegistrationStatusFilter(value)
+                }
+              >
+                <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="ALL" className="text-white hover:bg-gray-700">All Statuses</SelectItem>
-                  <SelectItem value="PENDING" className="text-white hover:bg-gray-700">🟡 Pending</SelectItem>
-                  <SelectItem value="CONFIRMED" className="text-white hover:bg-gray-700">🟢 Confirmed</SelectItem>
-                  <SelectItem value="WAITLISTED" className="text-white hover:bg-gray-700">🟠 Waitlisted</SelectItem>
-                  <SelectItem value="DECLINED" className="text-white hover:bg-gray-700">🔴 Declined</SelectItem>
-                  <SelectItem value="CANCELLED" className="text-white hover:bg-gray-700">⚫ Cancelled</SelectItem>
+                <SelectContent className="border-gray-600 bg-gray-800">
+                  <SelectItem
+                    value="ALL"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    All Statuses
+                  </SelectItem>
+                  <SelectItem
+                    value="PENDING"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    🟡 Pending
+                  </SelectItem>
+                  <SelectItem
+                    value="CONFIRMED"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    🟢 Confirmed
+                  </SelectItem>
+                  <SelectItem
+                    value="WAITLISTED"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    🟠 Waitlisted
+                  </SelectItem>
+                  <SelectItem
+                    value="DECLINED"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    🔴 Declined
+                  </SelectItem>
+                  <SelectItem
+                    value="CANCELLED"
+                    className="text-white hover:bg-gray-700"
+                  >
+                    ⚫ Cancelled
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1472,274 +1931,431 @@ export default function AdminCombinesPage() {
       </Card>
 
       {/* Combines List */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="border-gray-700 bg-gray-800">
         <CardHeader>
-                      <CardTitle className="text-white">Combines ({combines.length})</CardTitle>
+          <CardTitle className="text-white">
+            Combines ({combines.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {combines.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-gray-400 mb-2">No combines found</div>
-                <p className="text-gray-500 text-sm">Try adjusting your filters or search terms</p>
+              <div className="py-8 text-center">
+                <div className="mb-2 text-gray-400">No combines found</div>
+                <p className="text-sm text-gray-500">
+                  Try adjusting your filters or search terms
+                </p>
               </div>
             ) : (
               combines.map((combine) => (
-              <div key={combine.id} className="space-y-4">
-                <div className="border border-gray-600 rounded-lg p-4 hover:bg-gray-700 transition-colors bg-gray-750">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-lg font-semibold text-white">{combine.title}</h3>
-                      <Badge className={getStatusColor(combine.status)}>
-                        {combine.status.replace("_", " ")}
-                      </Badge>
-                      <Badge variant="outline" className="border-gray-500 text-gray-300">
-                        {getTypeIcon(combine.type)} {combine.type}
-                      </Badge>
-                      {combine.invite_only && (
-                        <Badge variant="secondary" className="bg-gray-600 text-gray-200">Invite Only</Badge>
-                      )}
-                    </div>
-                    
-                    <p className="text-gray-300 mb-2">{combine.description}</p>
-                    
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Trophy className="h-4 w-4" />
-                        {combine.game.name}
+                <div key={combine.id} className="space-y-4">
+                  <div className="bg-gray-750 rounded-lg border border-gray-600 p-4 transition-colors hover:bg-gray-700">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center gap-2">
+                          <h3 className="text-lg font-semibold text-white">
+                            {combine.title}
+                          </h3>
+                          <Badge className={getStatusColor(combine.status)}>
+                            {combine.status.replace("_", " ")}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="border-gray-500 text-gray-300"
+                          >
+                            {getTypeIcon(combine.type)} {combine.type}
+                          </Badge>
+                          {combine.invite_only && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-gray-600 text-gray-200"
+                            >
+                              Invite Only
+                            </Badge>
+                          )}
+                        </div>
+
+                        <p className="mb-2 text-gray-300">
+                          {combine.description}
+                        </p>
+
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                          <div className="flex items-center gap-1">
+                            <Trophy className="h-4 w-4" />
+                            {combine.game.name}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {formatDate(combine.date)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            {combine.location}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {(() => {
+                              const activeCount = combine.registered_spots ?? 0;
+                              const totalCount = combine._count.registrations;
+                              if (activeCount !== totalCount) {
+                                return `${activeCount}/${combine.max_spots} active (${totalCount} total)`;
+                              }
+                              return `${activeCount}/${combine.max_spots} registered`;
+                            })()}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(combine.date)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {combine.location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {(() => {
-                          const activeCount = combine.registered_spots ?? 0;
-                          const totalCount = combine._count.registrations;
-                          if (activeCount !== totalCount) {
-                            return `${activeCount}/${combine.max_spots} active (${totalCount} total)`;
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={
+                            editingCombine === combine.id
+                              ? "border-green-500 bg-green-600 text-white"
+                              : "border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
                           }
-                          return `${activeCount}/${combine.max_spots} registered`;
-                        })()}
+                          onClick={() =>
+                            editingCombine === combine.id
+                              ? handleCancelEdit()
+                              : handleEditCombine(combine)
+                          }
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="ml-1 hidden sm:inline">
+                            {editingCombine === combine.id ? "Cancel" : "Edit"}
+                          </span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={
+                            combine._count.registrations > 0
+                              ? "cursor-not-allowed border-gray-500 text-gray-500"
+                              : "border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                          }
+                          onClick={() =>
+                            handleDeleteCombine(combine.id, combine.title)
+                          }
+                          disabled={
+                            combine._count.registrations > 0 ||
+                            deleteCombineMutation.isPending
+                          }
+                          title={
+                            combine._count.registrations > 0
+                              ? `Cannot delete combine with ${combine._count.registrations} registrations`
+                              : "Delete combine"
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          {deleteCombineMutation.isPending && (
+                            <span className="ml-1 hidden sm:inline">
+                              Deleting...
+                            </span>
+                          )}
+                        </Button>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={editingCombine === combine.id 
-                        ? "border-green-500 bg-green-600 text-white" 
-                        : "border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
-                      }
-                      onClick={() => editingCombine === combine.id ? handleCancelEdit() : handleEditCombine(combine)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="ml-1 hidden sm:inline">
-                        {editingCombine === combine.id ? "Cancel" : "Edit"}
-                      </span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={combine._count.registrations > 0 
-                        ? "border-gray-500 text-gray-500 cursor-not-allowed" 
-                        : "border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
-                      }
-                      onClick={() => handleDeleteCombine(combine.id, combine.title)}
-                      disabled={combine._count.registrations > 0 || deleteCombineMutation.isPending}
-                      title={combine._count.registrations > 0 
-                        ? `Cannot delete combine with ${combine._count.registrations} registrations` 
-                        : "Delete combine"
-                      }
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      {deleteCombineMutation.isPending && (
-                        <span className="ml-1 hidden sm:inline">Deleting...</span>
-                      )}
-                    </Button>
-                  </div>
-                  </div>
-                </div>
 
-                {/* Inline Edit Form */}
-                {editingCombine === combine.id && (
-                  <div className="ml-6 border-l-4 border-blue-500 pl-4">
-                    <Card className="bg-gray-800 border-gray-600">
-                      <CardHeader>
-                        <CardTitle className="text-white">Edit Combine</CardTitle>
-                        <CardDescription className="text-gray-300">
-                          Update combine details and manage registrations
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Tabs defaultValue="details" className="w-full">
-                          <TabsList className="bg-gray-700 border-gray-600">
-                            <TabsTrigger value="details" className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white">
-                              Edit Details
-                            </TabsTrigger>
-                            <TabsTrigger value="registrations" className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white">
-                              Manage Registrations ({combine._count.registrations})
-                            </TabsTrigger>
-                          </TabsList>
-                          
-                          <TabsContent value="details" className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="md:col-span-2">
-                                <Label htmlFor="edit-title" className="text-gray-300">Title *</Label>
-                                <Input
-                                  id="edit-title"
-                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                                    editValidationErrors.title ? "border-red-500" : ""
-                                  }`}
-                                  value={editForm.title}
-                                  onChange={(e) => handleEditFieldChange('title', e.target.value)}
-                                  placeholder="Combine title"
-                                />
-                                {editValidationErrors.title && (
-                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.title}</p>
-                                )}
-                              </div>
-                              
-                              <div className="md:col-span-2">
-                                <Label htmlFor="edit-description" className="text-gray-300">Description *</Label>
-                                <Textarea
-                                  id="edit-description"
-                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                                    editValidationErrors.description ? "border-red-500" : ""
-                                  }`}
-                                  value={editForm.description}
-                                  onChange={(e) => handleEditFieldChange('description', e.target.value)}
-                                  placeholder="Combine description"
-                                  rows={3}
-                                />
-                                {editValidationErrors.description && (
-                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.description}</p>
-                                )}
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="edit-location" className="text-gray-300">Location *</Label>
-                                <Input
-                                  id="edit-location"
-                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                                    editValidationErrors.location ? "border-red-500" : ""
-                                  }`}
-                                  value={editForm.location}
-                                  onChange={(e) => handleEditFieldChange('location', e.target.value)}
-                                  placeholder="Event location"
-                                />
-                                {editValidationErrors.location && (
-                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.location}</p>
-                                )}
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="edit-max-spots" className="text-gray-300">Max Spots *</Label>
-                                <Input
-                                  id="edit-max-spots"
-                                  type="number"
-                                  className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${
-                                    editValidationErrors.max_spots ? "border-red-500" : ""
-                                  }`}
-                                  value={editForm.max_spots}
-                                  onChange={(e) => handleEditFieldChange('max_spots', parseInt(e.target.value) || 0)}
-                                  placeholder="Maximum participants"
-                                  min="1"
-                                  max="1000"
-                                />
-                                {editValidationErrors.max_spots && (
-                                  <p className="text-xs text-red-400 mt-1">{editValidationErrors.max_spots}</p>
-                                )}
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="edit-type" className="text-gray-300">Event Type</Label>
-                                <Select 
-                                  value={editForm.type} 
-                                  onValueChange={(value: EventType) => handleEditFieldChange('type', value)}
-                                >
-                                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-gray-800 border-gray-600">
-                                    <SelectItem value="ONLINE" className="text-white hover:bg-gray-700">🌐 Online</SelectItem>
-                                    <SelectItem value="IN_PERSON" className="text-white hover:bg-gray-700">📍 In Person</SelectItem>
-                                    <SelectItem value="HYBRID" className="text-white hover:bg-gray-700">🔄 Hybrid</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="edit-status" className="text-gray-300">Status</Label>
-                                <Select 
-                                  value={editForm.status} 
-                                  onValueChange={(value: CombineStatus) => handleEditFieldChange('status', value)}
-                                >
-                                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-gray-800 border-gray-600">
-                                    <SelectItem value="UPCOMING" className="text-white hover:bg-gray-700">Upcoming</SelectItem>
-                                    <SelectItem value="REGISTRATION_OPEN" className="text-white hover:bg-gray-700">Registration Open</SelectItem>
-                                    <SelectItem value="REGISTRATION_CLOSED" className="text-white hover:bg-gray-700">Registration Closed</SelectItem>
-                                    <SelectItem value="IN_PROGRESS" className="text-white hover:bg-gray-700">In Progress</SelectItem>
-                                    <SelectItem value="COMPLETED" className="text-white hover:bg-gray-700">Completed</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3 pt-4">
-                              <Button
-                                onClick={handleUpdateCombine}
-                                disabled={updateCombineMutation.isPending}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                  {/* Inline Edit Form */}
+                  {editingCombine === combine.id && (
+                    <div className="ml-6 border-l-4 border-blue-500 pl-4">
+                      <Card className="border-gray-600 bg-gray-800">
+                        <CardHeader>
+                          <CardTitle className="text-white">
+                            Edit Combine
+                          </CardTitle>
+                          <CardDescription className="text-gray-300">
+                            Update combine details and manage registrations
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Tabs defaultValue="details" className="w-full">
+                            <TabsList className="border-gray-600 bg-gray-700">
+                              <TabsTrigger
+                                value="details"
+                                className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white"
                               >
-                                {updateCombineMutation.isPending ? "Saving..." : "Save Changes"}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={handleCancelEdit}
-                                className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
+                                Edit Details
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="registrations"
+                                className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white"
                               >
-                                Cancel
-                              </Button>
-                            </div>
-                          </TabsContent>
-                          
-                          <TabsContent value="registrations" className="space-y-4">
-                            <div className="text-gray-300">
-                              <p className="mb-4">
-                                Manage registrations for this combine. You can accept, decline, or remove registrations.
-                              </p>
-                              
-                              {editingCombineData?.registrations && editingCombineData.registrations.length > 0 ? (
-                                <DataTable
-                                  columns={registrationColumns}
-                                  data={editingCombineData.registrations}
-                                />
-                              ) : (
-                                <div className="border border-gray-600 rounded-lg p-4 bg-gray-750 text-center">
-                                  <p className="text-gray-400">No registrations yet</p>
+                                Manage Registrations (
+                                {combine._count.registrations})
+                              </TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="details" className="space-y-4">
+                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="md:col-span-2">
+                                  <Label
+                                    htmlFor="edit-title"
+                                    className="text-gray-300"
+                                  >
+                                    Title *
+                                  </Label>
+                                  <Input
+                                    id="edit-title"
+                                    className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                                      editValidationErrors.title
+                                        ? "border-red-500"
+                                        : ""
+                                    }`}
+                                    value={editForm.title}
+                                    onChange={(e) =>
+                                      handleEditFieldChange(
+                                        "title",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Combine title"
+                                  />
+                                  {editValidationErrors.title && (
+                                    <p className="mt-1 text-xs text-red-400">
+                                      {editValidationErrors.title}
+                                    </p>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          </TabsContent>
-                        </Tabs>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
 
-              </div>
+                                <div className="md:col-span-2">
+                                  <Label
+                                    htmlFor="edit-description"
+                                    className="text-gray-300"
+                                  >
+                                    Description *
+                                  </Label>
+                                  <Textarea
+                                    id="edit-description"
+                                    className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                                      editValidationErrors.description
+                                        ? "border-red-500"
+                                        : ""
+                                    }`}
+                                    value={editForm.description}
+                                    onChange={(e) =>
+                                      handleEditFieldChange(
+                                        "description",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Combine description"
+                                    rows={3}
+                                  />
+                                  {editValidationErrors.description && (
+                                    <p className="mt-1 text-xs text-red-400">
+                                      {editValidationErrors.description}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <Label
+                                    htmlFor="edit-location"
+                                    className="text-gray-300"
+                                  >
+                                    Location *
+                                  </Label>
+                                  <Input
+                                    id="edit-location"
+                                    className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                                      editValidationErrors.location
+                                        ? "border-red-500"
+                                        : ""
+                                    }`}
+                                    value={editForm.location}
+                                    onChange={(e) =>
+                                      handleEditFieldChange(
+                                        "location",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Event location"
+                                  />
+                                  {editValidationErrors.location && (
+                                    <p className="mt-1 text-xs text-red-400">
+                                      {editValidationErrors.location}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <Label
+                                    htmlFor="edit-max-spots"
+                                    className="text-gray-300"
+                                  >
+                                    Max Spots *
+                                  </Label>
+                                  <Input
+                                    id="edit-max-spots"
+                                    type="number"
+                                    className={`border-gray-600 bg-gray-700 text-white placeholder-gray-400 ${
+                                      editValidationErrors.max_spots
+                                        ? "border-red-500"
+                                        : ""
+                                    }`}
+                                    value={editForm.max_spots}
+                                    onChange={(e) =>
+                                      handleEditFieldChange(
+                                        "max_spots",
+                                        parseInt(e.target.value) || 0,
+                                      )
+                                    }
+                                    placeholder="Maximum participants"
+                                    min="1"
+                                    max="1000"
+                                  />
+                                  {editValidationErrors.max_spots && (
+                                    <p className="mt-1 text-xs text-red-400">
+                                      {editValidationErrors.max_spots}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <Label
+                                    htmlFor="edit-type"
+                                    className="text-gray-300"
+                                  >
+                                    Event Type
+                                  </Label>
+                                  <Select
+                                    value={editForm.type}
+                                    onValueChange={(value: EventType) =>
+                                      handleEditFieldChange("type", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-gray-600 bg-gray-800">
+                                      <SelectItem
+                                        value="ONLINE"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        🌐 Online
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="IN_PERSON"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        📍 In Person
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="HYBRID"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        🔄 Hybrid
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div>
+                                  <Label
+                                    htmlFor="edit-status"
+                                    className="text-gray-300"
+                                  >
+                                    Status
+                                  </Label>
+                                  <Select
+                                    value={editForm.status}
+                                    onValueChange={(value: CombineStatus) =>
+                                      handleEditFieldChange("status", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-gray-600 bg-gray-800">
+                                      <SelectItem
+                                        value="UPCOMING"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        Upcoming
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="REGISTRATION_OPEN"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        Registration Open
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="REGISTRATION_CLOSED"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        Registration Closed
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="IN_PROGRESS"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        In Progress
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="COMPLETED"
+                                        className="text-white hover:bg-gray-700"
+                                      >
+                                        Completed
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3 pt-4">
+                                <Button
+                                  onClick={handleUpdateCombine}
+                                  disabled={updateCombineMutation.isPending}
+                                  className="bg-blue-600 text-white hover:bg-blue-700"
+                                >
+                                  {updateCombineMutation.isPending
+                                    ? "Saving..."
+                                    : "Save Changes"}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                  className="border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </TabsContent>
+
+                            <TabsContent
+                              value="registrations"
+                              className="space-y-4"
+                            >
+                              <div className="text-gray-300">
+                                <p className="mb-4">
+                                  Manage registrations for this combine. You can
+                                  accept, decline, or remove registrations.
+                                </p>
+
+                                {editingCombineData?.registrations &&
+                                editingCombineData.registrations.length > 0 ? (
+                                  <DataTable
+                                    columns={registrationColumns}
+                                    data={editingCombineData.registrations}
+                                  />
+                                ) : (
+                                  <div className="bg-gray-750 rounded-lg border border-gray-600 p-4 text-center">
+                                    <p className="text-gray-400">
+                                      No registrations yet
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </TabsContent>
+                          </Tabs>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </div>
               ))
             )}
           </div>
@@ -1748,37 +2364,58 @@ export default function AdminCombinesPage() {
 
       {/* Combine Details Modal */}
       {selectedCombine && (
-        <Dialog open={!!selectedCombine} onOpenChange={() => setSelectedCombine(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-800 border-gray-700 text-white">
+        <Dialog
+          open={!!selectedCombine}
+          onOpenChange={() => setSelectedCombine(null)}
+        >
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-gray-700 bg-gray-800 text-white">
             <DialogHeader>
               <DialogTitle className="text-white">
-                {mockCombines.find(c => c.id === selectedCombine)?.title}
+                {mockCombines.find((c) => c.id === selectedCombine)?.title}
               </DialogTitle>
               <DialogDescription className="text-gray-300">
                 Combine details and registration management
               </DialogDescription>
             </DialogHeader>
-            
+
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="bg-gray-700 border-gray-600">
-                <TabsTrigger value="details" className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white">
+              <TabsList className="border-gray-600 bg-gray-700">
+                <TabsTrigger
+                  value="details"
+                  className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white"
+                >
                   Details
                 </TabsTrigger>
-                <TabsTrigger value="registrations" className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white">
-                  Registrations ({selectedCombine === "1" ? 23 : selectedCombine === "3" ? 48 : selectedCombine === "4" ? 18 : 0})
+                <TabsTrigger
+                  value="registrations"
+                  className="text-gray-300 data-[state=active]:bg-gray-600 data-[state=active]:text-white"
+                >
+                  Registrations (
+                  {selectedCombine === "1"
+                    ? 23
+                    : selectedCombine === "3"
+                      ? 48
+                      : selectedCombine === "4"
+                        ? 18
+                        : 0}
+                  )
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="details" className="space-y-4">
                 {(() => {
-                  const combine = mockCombines.find(c => c.id === selectedCombine);
+                  const combine = mockCombines.find(
+                    (c) => c.id === selectedCombine,
+                  );
                   if (!combine) return null;
                   return (
                     <>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label className="text-gray-300">Game</Label>
-                          <p className="font-medium text-white">{combine.game.name}</p>
+                          <p className="font-medium text-white">
+                            {combine.game.name}
+                          </p>
                         </div>
                         <div>
                           <Label className="text-gray-300">Status</Label>
@@ -1788,11 +2425,15 @@ export default function AdminCombinesPage() {
                         </div>
                         <div>
                           <Label className="text-gray-300">Date & Time</Label>
-                          <p className="font-medium text-white">{formatDate(combine.date)}</p>
+                          <p className="font-medium text-white">
+                            {formatDate(combine.date)}
+                          </p>
                         </div>
                         <div>
                           <Label className="text-gray-300">Location</Label>
-                          <p className="font-medium text-white">{combine.location}</p>
+                          <p className="font-medium text-white">
+                            {combine.location}
+                          </p>
                         </div>
                         <div>
                           <Label className="text-gray-300">Type</Label>
@@ -1807,7 +2448,7 @@ export default function AdminCombinesPage() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div>
                         <Label className="text-gray-300">Description</Label>
                         <p className="text-gray-200">{combine.description}</p>
@@ -1816,123 +2457,146 @@ export default function AdminCombinesPage() {
                   );
                 })()}
               </TabsContent>
-              
+
               <TabsContent value="registrations" className="space-y-4">
-                {(selectedCombine === "1" || selectedCombine === "3" || selectedCombine === "4") ? (
+                {selectedCombine === "1" ||
+                selectedCombine === "3" ||
+                selectedCombine === "4" ? (
                   <div className="space-y-2">
                     {/* Mock registration data */}
                     {[
                       // VALORANT Combine registrations
-                      ...(selectedCombine === "1" ? [
-                        {
-                          id: "reg1",
-                          player: {
-                            first_name: "Alex",
-                            last_name: "Chen",
-                            username: "alexchen_val",
-                            email: "alex.chen@email.com"
-                          },
-                          status: "CONFIRMED",
-                          qualified: true,
-                          registered_at: new Date("2024-03-15T10:30:00")
-                        },
-                        {
-                          id: "reg2",
-                          player: {
-                            first_name: "Sarah",
-                            last_name: "Wilson",
-                            username: "sarahw_gamer",
-                            email: "sarah.wilson@email.com"
-                          },
-                          status: "PENDING",
-                          qualified: false,
-                          registered_at: new Date("2024-03-16T14:20:00")
-                        },
-                        {
-                          id: "reg3",
-                          player: {
-                            first_name: "Marcus",
-                            last_name: "Johnson",
-                            username: "mjohnson_pro",
-                            email: "marcus.johnson@email.com"
-                          },
-                          status: "CONFIRMED",
-                          qualified: true,
-                          registered_at: new Date("2024-03-17T09:15:00")
-                        }
-                      ] : []),
-                      // Rocket League Combine registrations  
-                      ...(selectedCombine === "3" ? [
-                        {
-                          id: "reg4",
-                          player: {
-                            first_name: "Diego",
-                            last_name: "Martinez",
-                            username: "diego_rocket",
-                            email: "diego.martinez@email.com"
-                          },
-                          status: "CONFIRMED",
-                          qualified: true,
-                          registered_at: new Date("2024-03-10T15:45:00")
-                        },
-                        {
-                          id: "reg5",
-                          player: {
-                            first_name: "Emma",
-                            last_name: "Thompson",
-                            username: "emma_boost",
-                            email: "emma.thompson@email.com"
-                          },
-                          status: "CONFIRMED",
-                          qualified: true,
-                          registered_at: new Date("2024-03-11T12:20:00")
-                        }
-                      ] : []),
+                      ...(selectedCombine === "1"
+                        ? [
+                            {
+                              id: "reg1",
+                              player: {
+                                first_name: "Alex",
+                                last_name: "Chen",
+                                username: "alexchen_val",
+                                email: "alex.chen@email.com",
+                              },
+                              status: "CONFIRMED",
+                              qualified: true,
+                              registered_at: new Date("2024-03-15T10:30:00"),
+                            },
+                            {
+                              id: "reg2",
+                              player: {
+                                first_name: "Sarah",
+                                last_name: "Wilson",
+                                username: "sarahw_gamer",
+                                email: "sarah.wilson@email.com",
+                              },
+                              status: "PENDING",
+                              qualified: false,
+                              registered_at: new Date("2024-03-16T14:20:00"),
+                            },
+                            {
+                              id: "reg3",
+                              player: {
+                                first_name: "Marcus",
+                                last_name: "Johnson",
+                                username: "mjohnson_pro",
+                                email: "marcus.johnson@email.com",
+                              },
+                              status: "CONFIRMED",
+                              qualified: true,
+                              registered_at: new Date("2024-03-17T09:15:00"),
+                            },
+                          ]
+                        : []),
+                      // Rocket League Combine registrations
+                      ...(selectedCombine === "3"
+                        ? [
+                            {
+                              id: "reg4",
+                              player: {
+                                first_name: "Diego",
+                                last_name: "Martinez",
+                                username: "diego_rocket",
+                                email: "diego.martinez@email.com",
+                              },
+                              status: "CONFIRMED",
+                              qualified: true,
+                              registered_at: new Date("2024-03-10T15:45:00"),
+                            },
+                            {
+                              id: "reg5",
+                              player: {
+                                first_name: "Emma",
+                                last_name: "Thompson",
+                                username: "emma_boost",
+                                email: "emma.thompson@email.com",
+                              },
+                              status: "CONFIRMED",
+                              qualified: true,
+                              registered_at: new Date("2024-03-11T12:20:00"),
+                            },
+                          ]
+                        : []),
                       // Smash Ultimate registrations
-                      ...(selectedCombine === "4" ? [
-                        {
-                          id: "reg6",
-                          player: {
-                            first_name: "Kevin",
-                            last_name: "Park",
-                            username: "kevin_smash",
-                            email: "kevin.park@email.com"
-                          },
-                          status: "CONFIRMED",
-                          qualified: true,
-                          registered_at: new Date("2025-01-05T14:15:00")
-                        },
-                        {
-                          id: "reg7",
-                          player: {
-                            first_name: "Lisa",
-                            last_name: "Rodriguez",
-                            username: "lisa_fighter",
-                            email: "lisa.rodriguez@email.com"
-                          },
-                          status: "PENDING",
-                          qualified: false,
-                          registered_at: new Date("2025-01-06T09:30:00")
-                        }
-                      ] : [])
+                      ...(selectedCombine === "4"
+                        ? [
+                            {
+                              id: "reg6",
+                              player: {
+                                first_name: "Kevin",
+                                last_name: "Park",
+                                username: "kevin_smash",
+                                email: "kevin.park@email.com",
+                              },
+                              status: "CONFIRMED",
+                              qualified: true,
+                              registered_at: new Date("2025-01-05T14:15:00"),
+                            },
+                            {
+                              id: "reg7",
+                              player: {
+                                first_name: "Lisa",
+                                last_name: "Rodriguez",
+                                username: "lisa_fighter",
+                                email: "lisa.rodriguez@email.com",
+                              },
+                              status: "PENDING",
+                              qualified: false,
+                              registered_at: new Date("2025-01-06T09:30:00"),
+                            },
+                          ]
+                        : []),
                     ].map((registration) => (
-                      <div key={registration.id} className="border border-gray-600 rounded p-3 flex justify-between items-center bg-gray-750">
+                      <div
+                        key={registration.id}
+                        className="bg-gray-750 flex items-center justify-between rounded border border-gray-600 p-3"
+                      >
                         <div>
                           <p className="font-medium text-white">
-                            {registration.player.first_name} {registration.player.last_name}
+                            {registration.player.first_name}{" "}
+                            {registration.player.last_name}
                           </p>
                           <p className="text-sm text-gray-300">
-                            @{registration.player.username} • {registration.player.email}
+                            @{registration.player.username} •{" "}
+                            {registration.player.email}
                           </p>
                           <p className="text-xs text-gray-400">
                             Registered: {formatDate(registration.registered_at)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={registration.qualified ? "default" : "secondary"}>
-                            {registration.qualified ? "Qualified" : "Not Qualified"}
+                          <Badge
+                            variant={
+                              registration.qualified ? "default" : "secondary"
+                            }
+                          >
+                            {registration.qualified
+                              ? "Qualified"
+                              : "Not Qualified"}
                           </Badge>
-                          <Badge className={getStatusColor(registration.status as CombineStatus)}>
+                          <Badge
+                            className={getStatusColor(
+                              registration.status as CombineStatus,
+                            )}
+                          >
                             {registration.status}
                           </Badge>
                         </div>
@@ -1940,10 +2604,14 @@ export default function AdminCombinesPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-white mb-2">No registrations yet</h3>
-                    <p className="text-gray-300">Players will appear here once they register</p>
+                  <div className="py-8 text-center">
+                    <Users className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                    <h3 className="mb-2 text-lg font-medium text-white">
+                      No registrations yet
+                    </h3>
+                    <p className="text-gray-300">
+                      Players will appear here once they register
+                    </p>
                   </div>
                 )}
               </TabsContent>
@@ -1952,12 +2620,10 @@ export default function AdminCombinesPage() {
         </Dialog>
       )}
 
-
-
       {/* Output Panel */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader 
-          className="cursor-pointer hover:bg-gray-750" 
+      <Card className="border-gray-700 bg-gray-800">
+        <CardHeader
+          className="hover:bg-gray-750 cursor-pointer"
           onClick={() => setShowOutputPanel(!showOutputPanel)}
         >
           <div className="flex items-center justify-between">
@@ -1965,15 +2631,15 @@ export default function AdminCombinesPage() {
               <Code className="h-5 w-5 text-cyan-400" />
               <CardTitle className="text-white">API Output Panel</CardTitle>
               {outputData && (
-                <Badge 
-                  className={`ml-2 ${outputData.success ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                <Badge
+                  className={`ml-2 ${outputData.success ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}
                 >
                   {outputData.success ? (
-                    <CheckCircle className="h-3 w-3 mr-1" />
+                    <CheckCircle className="mr-1 h-3 w-3" />
                   ) : (
-                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    <AlertTriangle className="mr-1 h-3 w-3" />
                   )}
-                  {outputData.success ? 'Success' : 'Error'}
+                  {outputData.success ? "Success" : "Error"}
                 </Badge>
               )}
             </div>
@@ -1991,61 +2657,81 @@ export default function AdminCombinesPage() {
             </div>
           </div>
         </CardHeader>
-        
+
         {showOutputPanel && (
           <CardContent className="pt-0">
             {outputData ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-gray-300 text-sm">Operation</Label>
-                    <p className="text-white font-mono">{outputData.lastOperation}</p>
+                    <Label className="text-sm text-gray-300">Operation</Label>
+                    <p className="font-mono text-white">
+                      {outputData.lastOperation}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-gray-300 text-sm">Status</Label>
+                    <Label className="text-sm text-gray-300">Status</Label>
                     <div className="flex items-center gap-2">
                       {outputData.success ? (
                         <CheckCircle className="h-4 w-4 text-green-400" />
                       ) : (
                         <AlertTriangle className="h-4 w-4 text-red-400" />
                       )}
-                      <span className={`font-semibold ${outputData.success ? 'text-green-400' : 'text-red-400'}`}>
-                        {outputData.success ? 'Success' : 'Failed'}
+                      <span
+                        className={`font-semibold ${outputData.success ? "text-green-400" : "text-red-400"}`}
+                      >
+                        {outputData.success ? "Success" : "Failed"}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-gray-300 text-sm">Timestamp</Label>
-                  <p className="text-white font-mono">{outputData.timestamp.toLocaleString()}</p>
+                  <Label className="text-sm text-gray-300">Timestamp</Label>
+                  <p className="font-mono text-white">
+                    {outputData.timestamp.toLocaleString()}
+                  </p>
                 </div>
 
                 {outputData.error && (
                   <div>
-                    <Label className="text-gray-300 text-sm">Error Message</Label>
-                    <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3 mt-1">
-                      <p className="text-red-400 font-mono text-sm">{outputData.error}</p>
+                    <Label className="text-sm text-gray-300">
+                      Error Message
+                    </Label>
+                    <div className="mt-1 rounded-lg border border-red-500/50 bg-red-900/20 p-3">
+                      <p className="font-mono text-sm text-red-400">
+                        {outputData.error}
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {outputData.data ? (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label className="text-gray-300 text-sm">Response Data (JSON)</Label>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label className="text-sm text-gray-300">
+                        Response Data (JSON)
+                      </Label>
                       <Button
                         variant="outline"
                         size="sm"
                         className="border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white"
-                        onClick={() => navigator.clipboard.writeText(JSON.stringify(outputData.data, null, 2))}
+                        onClick={() =>
+                          navigator.clipboard.writeText(
+                            JSON.stringify(outputData.data, null, 2),
+                          )
+                        }
                       >
                         Copy JSON
                       </Button>
                     </div>
-                    <div className="bg-gray-900 border border-gray-600 rounded-lg p-3 max-h-96 overflow-auto">
-                      <pre className="text-green-400 text-xs font-mono whitespace-pre-wrap">
-                        {JSON.stringify(outputData.data as Record<string, unknown>, null, 2)}
+                    <div className="max-h-96 overflow-auto rounded-lg border border-gray-600 bg-gray-900 p-3">
+                      <pre className="font-mono text-xs whitespace-pre-wrap text-green-400">
+                        {JSON.stringify(
+                          outputData.data as Record<string, unknown>,
+                          null,
+                          2,
+                        )}
                       </pre>
                     </div>
                   </div>
@@ -2063,10 +2749,13 @@ export default function AdminCombinesPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Code className="h-8 w-8 text-gray-500 mx-auto mb-2" />
+              <div className="py-8 text-center">
+                <Code className="mx-auto mb-2 h-8 w-8 text-gray-500" />
                 <p className="text-gray-400">No API operations yet.</p>
-                <p className="text-gray-500 text-sm">Results from create, update, delete, and registration operations will appear here.</p>
+                <p className="text-sm text-gray-500">
+                  Results from create, update, delete, and registration
+                  operations will appear here.
+                </p>
               </div>
             )}
           </CardContent>
@@ -2074,4 +2763,4 @@ export default function AdminCombinesPage() {
       </Card>
     </div>
   );
-} 
+}

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
- 
- 
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // This test is for validating the player profile schema and the player profile router.
@@ -13,13 +12,13 @@ import { db } from "@/server/db";
 // Test results interface
 interface TestResult {
   name: string;
-  status: 'PASS' | 'FAIL';
+  status: "PASS" | "FAIL";
   message: string;
 }
 
 const createTestContext = (userId: string) => ({
   db,
-  auth: { 
+  auth: {
     userId,
     sessionClaims: {},
     sessionId: "test-session",
@@ -60,21 +59,24 @@ export async function GET() {
       });
       results.push({
         name: "Invalid Platform Validation",
-        status: 'FAIL',
+        status: "FAIL",
         message: "Should have rejected invalid platform",
       });
     } catch (error) {
       const message = (error as Error).message;
-      if (message.includes("Invalid enum value") || message.includes("validation")) {
+      if (
+        message.includes("Invalid enum value") ||
+        message.includes("validation")
+      ) {
         results.push({
           name: "Invalid Platform Validation",
-          status: 'PASS',
+          status: "PASS",
           message: "Correctly rejected invalid platform",
         });
       } else {
         results.push({
           name: "Invalid Platform Validation",
-          status: 'FAIL',
+          status: "FAIL",
           message: `Unexpected error: ${message}`,
         });
       }
@@ -88,7 +90,7 @@ export async function GET() {
       });
       results.push({
         name: "Empty Username Validation",
-        status: 'FAIL',
+        status: "FAIL",
         message: "Should have rejected empty username",
       });
     } catch (error) {
@@ -96,13 +98,13 @@ export async function GET() {
       if (message.includes("String must contain at least 3 character(s)")) {
         results.push({
           name: "Empty Username Validation",
-          status: 'PASS',
+          status: "PASS",
           message: "Correctly rejected empty username",
         });
       } else {
         results.push({
           name: "Empty Username Validation",
-          status: 'FAIL',
+          status: "FAIL",
           message: `Unexpected error: ${message}`,
         });
       }
@@ -115,7 +117,7 @@ export async function GET() {
       });
       results.push({
         name: "Invalid GPA Validation",
-        status: 'FAIL',
+        status: "FAIL",
         message: "Should have rejected GPA > 4.0",
       });
     } catch (error) {
@@ -123,13 +125,13 @@ export async function GET() {
       if (message.includes("Number must be less than or equal to 4")) {
         results.push({
           name: "Invalid GPA Validation",
-          status: 'PASS',
+          status: "PASS",
           message: "Correctly rejected invalid GPA",
         });
       } else {
         results.push({
           name: "Invalid GPA Validation",
-          status: 'FAIL',
+          status: "FAIL",
           message: `Unexpected error: ${message}`,
         });
       }
@@ -142,7 +144,7 @@ export async function GET() {
       });
       results.push({
         name: "Invalid Email Validation",
-        status: 'FAIL',
+        status: "FAIL",
         message: "Should have rejected invalid email format",
       });
     } catch (error) {
@@ -150,13 +152,13 @@ export async function GET() {
       if (message.includes("Invalid email")) {
         results.push({
           name: "Invalid Email Validation",
-          status: 'PASS',
+          status: "PASS",
           message: "Correctly rejected invalid email",
         });
       } else {
         results.push({
           name: "Invalid Email Validation",
-          status: 'FAIL',
+          status: "FAIL",
           message: `Unexpected error: ${message}`,
         });
       }
@@ -169,21 +171,27 @@ export async function GET() {
       });
       results.push({
         name: "Empty Email Allowed",
-        status: 'PASS',
+        status: "PASS",
         message: "Correctly allowed empty email string",
       });
     } catch (error) {
       results.push({
         name: "Empty Email Allowed",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Should allow empty email: ${(error as Error).message}`,
       });
     }
 
     // Test 6: Valid platform connection with all platforms
-    const validPlatforms = ["steam", "valorant", "battlenet", "epicgames", "startgg"];
+    const validPlatforms = [
+      "steam",
+      "valorant",
+      "battlenet",
+      "epicgames",
+      "startgg",
+    ];
     let platformTestsPassed = 0;
-    
+
     for (const platform of validPlatforms) {
       try {
         await caller.updatePlatformConnection({
@@ -198,14 +206,20 @@ export async function GET() {
 
     results.push({
       name: "All Valid Platforms",
-      status: platformTestsPassed === validPlatforms.length ? 'PASS' : 'FAIL',
+      status: platformTestsPassed === validPlatforms.length ? "PASS" : "FAIL",
       message: `${platformTestsPassed}/${validPlatforms.length} platforms accepted`,
     });
 
     // Test 7: Valid social connection with all platforms
-    const validSocialPlatforms = ["github", "discord", "instagram", "twitch", "x"];
+    const validSocialPlatforms = [
+      "github",
+      "discord",
+      "instagram",
+      "twitch",
+      "x",
+    ];
     let socialTestsPassed = 0;
-    
+
     for (const platform of validSocialPlatforms) {
       try {
         await caller.updateSocialConnection({
@@ -220,7 +234,8 @@ export async function GET() {
 
     results.push({
       name: "All Valid Social Platforms",
-      status: socialTestsPassed === validSocialPlatforms.length ? 'PASS' : 'FAIL',
+      status:
+        socialTestsPassed === validSocialPlatforms.length ? "PASS" : "FAIL",
       message: `${socialTestsPassed}/${validSocialPlatforms.length} social platforms accepted`,
     });
 
@@ -232,21 +247,20 @@ export async function GET() {
       });
       results.push({
         name: "Large Bio Text",
-        status: 'PASS',
+        status: "PASS",
         message: "Successfully accepted large bio text",
       });
     } catch (error) {
       results.push({
         name: "Large Bio Text",
-        status: 'FAIL',
+        status: "FAIL",
         message: `Error with large bio: ${(error as Error).message}`,
       });
     }
-
   } catch (error) {
     results.push({
       name: "Test Setup Error",
-      status: 'FAIL',
+      status: "FAIL",
       message: `Critical error: ${(error as Error).message}`,
     });
   } finally {
@@ -269,17 +283,19 @@ export async function GET() {
   }
 
   // Calculate summary
-  const passed = results.filter(r => r.status === 'PASS').length;
-  const failed = results.filter(r => r.status === 'FAIL').length;
+  const passed = results.filter((r) => r.status === "PASS").length;
+  const failed = results.filter((r) => r.status === "FAIL").length;
   const total = results.length;
 
   console.log("\n🔍 Validation Test Results:");
-  results.forEach(result => {
-    const icon = result.status === 'PASS' ? '✅' : '❌';
+  results.forEach((result) => {
+    const icon = result.status === "PASS" ? "✅" : "❌";
     console.log(`${icon} ${result.name}: ${result.message}`);
   });
 
-  console.log(`\n📊 Validation Summary: ${passed}/${total} passed (${((passed / total) * 100).toFixed(1)}%)`);
+  console.log(
+    `\n📊 Validation Summary: ${passed}/${total} passed (${((passed / total) * 100).toFixed(1)}%)`,
+  );
 
   return NextResponse.json({
     success: failed === 0,
@@ -287,8 +303,8 @@ export async function GET() {
       passed,
       failed,
       total,
-      successRate: ((passed / total) * 100).toFixed(1) + '%'
+      successRate: ((passed / total) * 100).toFixed(1) + "%",
     },
     results,
   });
-} 
+}

@@ -17,11 +17,14 @@ const createPrismaClient = () =>
       isolationLevel: "ReadCommitted",
     },
     // Disable prepared statements for Supabase compatibility
-    ...(env.DATABASE_URL?.includes('supabase.com') && {
+    ...(env.DATABASE_URL?.includes("supabase.com") && {
       // Configure for Supabase PgBouncer
       datasources: {
         db: {
-          url: env.DATABASE_URL + (env.DATABASE_URL.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=15',
+          url:
+            env.DATABASE_URL +
+            (env.DATABASE_URL.includes("?") ? "&" : "?") +
+            "pgbouncer=true&connection_limit=15",
         },
       },
     }),
@@ -36,12 +39,12 @@ export const db =
   globalForPrisma.prisma ??
   (() => {
     const client = createPrismaClient();
-    
+
     // Handle disconnect on process termination
     process.on("beforeExit", () => {
       void client.$disconnect();
     });
-    
+
     return client;
   })();
 

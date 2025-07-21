@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import type {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,17 +14,17 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   flexRender,
-} from "@tanstack/react-table"
-import { ChevronDown } from "lucide-react"
+} from "@tanstack/react-table";
+import { ChevronDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -32,14 +32,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  loading?: boolean
-  filterColumn?: string
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  loading?: boolean;
+  filterColumn?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,14 +48,14 @@ export function DataTable<TData, TValue>({
   loading = false,
   filterColumn,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
-  })
+  });
 
   const table = useReactTable({
     data,
@@ -77,17 +77,19 @@ export function DataTable<TData, TValue>({
       rowSelection,
       pagination,
     },
-  })
+  });
 
   const getFilterColumnId = () => {
     if (filterColumn && table.getColumn(filterColumn)) {
-      return filterColumn
+      return filterColumn;
     }
-    const filterableColumn = table.getAllColumns().find(col => col.getCanFilter())
-    return filterableColumn?.id
-  }
+    const filterableColumn = table
+      .getAllColumns()
+      .find((col) => col.getCanFilter());
+    return filterableColumn?.id;
+  };
 
-  const filterColumnId = getFilterColumnId()
+  const filterColumnId = getFilterColumnId();
 
   if (loading) {
     return (
@@ -109,7 +111,10 @@ export function DataTable<TData, TValue>({
             </TableHeader>
             <TableBody>
               {Array.from({ length: 5 }).map((_, rowIndex) => (
-                <TableRow key={rowIndex} className="border-gray-800 hover:bg-gray-800">
+                <TableRow
+                  key={rowIndex}
+                  className="border-gray-800 hover:bg-gray-800"
+                >
                   {columns.map((_, cellIndex) => (
                     <TableCell key={cellIndex} className="text-gray-300">
                       <Skeleton className="h-4 w-full bg-gray-700" />
@@ -121,7 +126,7 @@ export function DataTable<TData, TValue>({
           </Table>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -129,20 +134,31 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter players..."
-          value={(filterColumnId ? table.getColumn(filterColumnId)?.getFilterValue() as string : "") ?? ""}
-          onChange={(event) =>
-            filterColumnId && table.getColumn(filterColumnId)?.setFilterValue(event.target.value)
+          value={
+            (filterColumnId
+              ? (table.getColumn(filterColumnId)?.getFilterValue() as string)
+              : "") ?? ""
           }
-          className="max-w-sm bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
+          onChange={(event) =>
+            filterColumnId &&
+            table.getColumn(filterColumnId)?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm border-gray-700 bg-gray-800 text-white placeholder:text-gray-400"
           disabled={!filterColumnId}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="bg-white ml-auto border-gray-600 text-black hover:border-gray-500">
+            <Button
+              variant="outline"
+              className="ml-auto border-gray-600 bg-white text-black hover:border-gray-500"
+            >
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+          <DropdownMenuContent
+            align="end"
+            className="border-gray-700 bg-gray-800"
+          >
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
@@ -150,7 +166,7 @@ export function DataTable<TData, TValue>({
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
-                    className="capitalize text-gray-300 focus:text-white focus:bg-gray-700"
+                    className="text-gray-300 capitalize focus:bg-gray-700 focus:text-white"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
@@ -158,7 +174,7 @@ export function DataTable<TData, TValue>({
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -167,18 +183,24 @@ export function DataTable<TData, TValue>({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-gray-800 hover:bg-gray-800">
+              <TableRow
+                key={headerGroup.id}
+                className="border-gray-800 hover:bg-gray-800"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="text-gray-300 font-orbitron">
+                    <TableHead
+                      key={header.id}
+                      className="font-orbitron text-gray-300"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -195,7 +217,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id} className="text-gray-300">
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -215,7 +237,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-gray-400 font-rajdhani">
+        <div className="font-rajdhani flex-1 text-sm text-gray-400">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
@@ -241,5 +263,5 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

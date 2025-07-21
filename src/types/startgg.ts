@@ -34,4 +34,4 @@ export interface EpicGamesMetadata {
   accountId: string;
   displayName: string;
   lastUpdated: string;
-} 
+}

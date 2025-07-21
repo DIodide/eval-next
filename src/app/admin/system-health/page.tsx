@@ -1,24 +1,30 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Activity, 
-  Database, 
-  Server, 
-  Globe, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Activity,
+  Database,
+  Server,
+  Globe,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   RefreshCw,
-  Clock
+  Clock,
 } from "lucide-react";
 import { db } from "@/server/db";
 
 async function getSystemHealth() {
   const healthChecks = {
-    database: { status: 'unknown', message: '', responseTime: 0 },
-    api: { status: 'unknown', message: '', responseTime: 0 },
-    clerk: { status: 'unknown', message: '', responseTime: 0 },
+    database: { status: "unknown", message: "", responseTime: 0 },
+    api: { status: "unknown", message: "", responseTime: 0 },
+    clerk: { status: "unknown", message: "", responseTime: 0 },
   };
 
   // Database Health Check
@@ -26,15 +32,16 @@ async function getSystemHealth() {
     const start = Date.now();
     await db.$queryRaw`SELECT 1`;
     healthChecks.database = {
-      status: 'healthy',
-      message: 'Database connection successful',
-      responseTime: Date.now() - start
+      status: "healthy",
+      message: "Database connection successful",
+      responseTime: Date.now() - start,
     };
   } catch (error) {
     healthChecks.database = {
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Database connection failed',
-      responseTime: 0
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Database connection failed",
+      responseTime: 0,
     };
   }
 
@@ -43,15 +50,15 @@ async function getSystemHealth() {
     const start = Date.now();
     // Simple internal health check
     healthChecks.api = {
-      status: 'healthy',
-      message: 'API services operational',
-      responseTime: Date.now() - start
+      status: "healthy",
+      message: "API services operational",
+      responseTime: Date.now() - start,
     };
   } catch (error) {
     healthChecks.api = {
-      status: 'error',
-      message: 'API services unavailable',
-      responseTime: 0
+      status: "error",
+      message: "API services unavailable",
+      responseTime: 0,
     };
   }
 
@@ -60,15 +67,15 @@ async function getSystemHealth() {
     const start = Date.now();
     // Basic check - if we're here, auth is working
     healthChecks.clerk = {
-      status: 'healthy',
-      message: 'Authentication service operational',
-      responseTime: Date.now() - start
+      status: "healthy",
+      message: "Authentication service operational",
+      responseTime: Date.now() - start,
     };
   } catch (error) {
     healthChecks.clerk = {
-      status: 'error',
-      message: 'Authentication service unavailable',
-      responseTime: 0
+      status: "error",
+      message: "Authentication service unavailable",
+      responseTime: 0,
     };
   }
 
@@ -92,18 +99,18 @@ async function getDatabaseStats() {
       players: 0,
       coaches: 0,
       total: 0,
-      error: error instanceof Error ? error.message : 'Failed to fetch stats'
+      error: error instanceof Error ? error.message : "Failed to fetch stats",
     };
   }
 }
 
 function getStatusIcon(status: string) {
   switch (status) {
-    case 'healthy':
+    case "healthy":
       return <CheckCircle className="h-5 w-5 text-green-500" />;
-    case 'warning':
+    case "warning":
       return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-    case 'error':
+    case "error":
       return <XCircle className="h-5 w-5 text-red-500" />;
     default:
       return <Clock className="h-5 w-5 text-gray-500" />;
@@ -112,11 +119,13 @@ function getStatusIcon(status: string) {
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'healthy':
+    case "healthy":
       return <Badge className="bg-green-500/20 text-green-400">Healthy</Badge>;
-    case 'warning':
-      return <Badge className="bg-yellow-500/20 text-yellow-400">Warning</Badge>;
-    case 'error':
+    case "warning":
+      return (
+        <Badge className="bg-yellow-500/20 text-yellow-400">Warning</Badge>
+      );
+    case "error":
       return <Badge className="bg-red-500/20 text-red-400">Error</Badge>;
     default:
       return <Badge className="bg-gray-500/20 text-gray-400">Unknown</Badge>;
@@ -135,7 +144,9 @@ export default async function SystemHealthPage() {
           <Activity className="h-8 w-8 text-cyan-500" />
           <div>
             <h1 className="text-3xl font-bold text-white">System Health</h1>
-            <p className="text-gray-400">Monitor system status and performance</p>
+            <p className="text-gray-400">
+              Monitor system status and performance
+            </p>
           </div>
         </div>
         <Button variant="outline" className="flex items-center space-x-2">
@@ -146,7 +157,7 @@ export default async function SystemHealthPage() {
 
       {/* System Status Overview */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -158,14 +169,16 @@ export default async function SystemHealthPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {getStatusBadge(healthChecks.database.status)}
-            <p className="text-sm text-gray-400">{healthChecks.database.message}</p>
+            <p className="text-sm text-gray-400">
+              {healthChecks.database.message}
+            </p>
             <p className="text-xs text-gray-500">
               Response: {healthChecks.database.responseTime}ms
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -184,7 +197,7 @@ export default async function SystemHealthPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -196,7 +209,9 @@ export default async function SystemHealthPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {getStatusBadge(healthChecks.clerk.status)}
-            <p className="text-sm text-gray-400">{healthChecks.clerk.message}</p>
+            <p className="text-sm text-gray-400">
+              {healthChecks.clerk.message}
+            </p>
             <p className="text-xs text-gray-500">
               Response: {healthChecks.clerk.responseTime}ms
             </p>
@@ -205,7 +220,7 @@ export default async function SystemHealthPage() {
       </div>
 
       {/* Database Statistics */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="border-gray-700 bg-gray-800">
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Database className="h-6 w-6 text-yellow-500" />
@@ -223,16 +238,22 @@ export default async function SystemHealthPage() {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="text-center p-4 bg-gray-700 rounded-lg">
-                <div className="text-2xl font-bold text-blue-400">{dbStats.players}</div>
+              <div className="rounded-lg bg-gray-700 p-4 text-center">
+                <div className="text-2xl font-bold text-blue-400">
+                  {dbStats.players}
+                </div>
                 <div className="text-sm text-gray-400">Players</div>
               </div>
-              <div className="text-center p-4 bg-gray-700 rounded-lg">
-                <div className="text-2xl font-bold text-green-400">{dbStats.coaches}</div>
+              <div className="rounded-lg bg-gray-700 p-4 text-center">
+                <div className="text-2xl font-bold text-green-400">
+                  {dbStats.coaches}
+                </div>
                 <div className="text-sm text-gray-400">Coaches</div>
               </div>
-              <div className="text-center p-4 bg-gray-700 rounded-lg">
-                <div className="text-2xl font-bold text-purple-400">{dbStats.total}</div>
+              <div className="rounded-lg bg-gray-700 p-4 text-center">
+                <div className="text-2xl font-bold text-purple-400">
+                  {dbStats.total}
+                </div>
                 <div className="text-sm text-gray-400">Total Users</div>
               </div>
             </div>
@@ -241,7 +262,7 @@ export default async function SystemHealthPage() {
       </Card>
 
       {/* System Information */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="border-gray-700 bg-gray-800">
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Server className="h-6 w-6 text-gray-500" />
@@ -255,23 +276,25 @@ export default async function SystemHealthPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <div className="text-sm text-gray-400">Environment</div>
-              <div className="text-white font-mono">{process.env.NODE_ENV || 'development'}</div>
+              <div className="font-mono text-white">
+                {process.env.NODE_ENV || "development"}
+              </div>
             </div>
             <div>
               <div className="text-sm text-gray-400">Last Updated</div>
-              <div className="text-white font-mono text-sm">{currentTime}</div>
+              <div className="font-mono text-sm text-white">{currentTime}</div>
             </div>
             <div>
               <div className="text-sm text-gray-400">Node Version</div>
-              <div className="text-white font-mono">{process.version}</div>
+              <div className="font-mono text-white">{process.version}</div>
             </div>
             <div>
               <div className="text-sm text-gray-400">Platform</div>
-              <div className="text-white font-mono">{process.platform}</div>
+              <div className="font-mono text-white">{process.platform}</div>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

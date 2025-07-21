@@ -4,13 +4,24 @@ import { useState } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@clerk/nextjs";
 import { TRPCError } from "@trpc/server";
 
 type EventType = "ONLINE" | "IN_PERSON" | "HYBRID";
-type RegistrationStatus = "PENDING" | "CONFIRMED" | "WAITLISTED" | "DECLINED" | "CANCELLED";
+type RegistrationStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "WAITLISTED"
+  | "DECLINED"
+  | "CANCELLED";
 
 export default function TryoutsTestPage() {
   const { user } = useUser();
@@ -65,17 +76,23 @@ export default function TryoutsTestPage() {
   // Form state for create tryout (coaches only)
   const [createTryoutData, setCreateTryoutData] = useState({
     title: "Test Tryout - VALORANT",
-    description: "This is a test tryout created from the development testing page.",
-    long_description: "Extended description for the test tryout. This includes detailed information about what to expect during the tryout process.",
+    description:
+      "This is a test tryout created from the development testing page.",
+    long_description:
+      "Extended description for the test tryout. This includes detailed information about what to expect during the tryout process.",
     game_id: "",
-    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0], // 7 days from now
     time_start: "14:00",
     time_end: "17:00",
     location: "Online - Discord Server",
     type: "ONLINE" as EventType,
     price: "Free",
     max_spots: 20,
-    registration_deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days from now
+    registration_deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0], // 5 days from now
     min_gpa: 3.0,
     class_years: ["Freshman", "Sophomore", "Junior", "Senior"],
     required_roles: ["All roles"],
@@ -92,21 +109,26 @@ export default function TryoutsTestPage() {
 
   // Mutation hooks
   const registerMutation = api.tryouts.register.useMutation();
-  const cancelRegistrationMutation = api.tryouts.cancelRegistration.useMutation();
+  const cancelRegistrationMutation =
+    api.tryouts.cancelRegistration.useMutation();
   const createTryoutMutation = api.tryouts.create.useMutation();
-  const updateRegistrationStatusMutation = api.tryouts.updateRegistrationStatus.useMutation();
+  const updateRegistrationStatusMutation =
+    api.tryouts.updateRegistrationStatus.useMutation();
 
-  const handleTest = async (testName: string, testFn: () => Promise<unknown>) => {
-    setLoading(prev => ({ ...prev, [testName]: true }));
-    setErrors(prev => ({ ...prev, [testName]: null }));
-    
+  const handleTest = async (
+    testName: string,
+    testFn: () => Promise<unknown>,
+  ) => {
+    setLoading((prev) => ({ ...prev, [testName]: true }));
+    setErrors((prev) => ({ ...prev, [testName]: null }));
+
     try {
       const result = await testFn();
-      setResults(prev => ({ ...prev, [testName]: result }));
+      setResults((prev) => ({ ...prev, [testName]: result }));
     } catch (error: unknown) {
-      setErrors(prev => ({ ...prev, [testName]: error }));
+      setErrors((prev) => ({ ...prev, [testName]: error }));
     } finally {
-      setLoading(prev => ({ ...prev, [testName]: false }));
+      setLoading((prev) => ({ ...prev, [testName]: false }));
     }
   };
 
@@ -148,7 +170,8 @@ export default function TryoutsTestPage() {
 
   const testGetPlayerRegistrations = () => {
     return handleTest("getPlayerRegistrations", async () => {
-      const result = await utils.tryouts.getPlayerRegistrations.fetch(registrationQuery);
+      const result =
+        await utils.tryouts.getPlayerRegistrations.fetch(registrationQuery);
       return result;
     });
   };
@@ -158,7 +181,8 @@ export default function TryoutsTestPage() {
       if (!statusQuery.tryout_id) {
         throw new Error("Tryout ID is required");
       }
-      const result = await utils.tryouts.getRegistrationStatus.fetch(statusQuery);
+      const result =
+        await utils.tryouts.getRegistrationStatus.fetch(statusQuery);
       return result;
     });
   };
@@ -192,8 +216,11 @@ export default function TryoutsTestPage() {
       const tryoutData = {
         ...createTryoutData,
         date: new Date(createTryoutData.date ?? Date.now()),
-        registration_deadline: createTryoutData.registration_deadline && createTryoutData.registration_deadline.trim() !== "" ? 
-          new Date(createTryoutData.registration_deadline) : undefined,
+        registration_deadline:
+          createTryoutData.registration_deadline &&
+          createTryoutData.registration_deadline.trim() !== ""
+            ? new Date(createTryoutData.registration_deadline)
+            : undefined,
       };
       const result = await createTryoutMutation.mutateAsync(tryoutData);
       return result;
@@ -205,7 +232,8 @@ export default function TryoutsTestPage() {
       if (!updateStatusData.registration_id) {
         throw new Error("Registration ID is required");
       }
-      const result = await updateRegistrationStatusMutation.mutateAsync(updateStatusData);
+      const result =
+        await updateRegistrationStatusMutation.mutateAsync(updateStatusData);
       return result;
     });
   };
@@ -216,29 +244,31 @@ export default function TryoutsTestPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Tryouts tRPC Test Page</h1>
-        <p className="text-muted-foreground">Test all tryouts router endpoints</p>
+        <h1 className="mb-2 text-3xl font-bold">Tryouts tRPC Test Page</h1>
+        <p className="text-muted-foreground">
+          Test all tryouts router endpoints
+        </p>
         {user && (
-          <p className="text-sm text-blue-600 mt-2">
+          <p className="mt-2 text-sm text-blue-600">
             Logged in as: {user.emailAddresses[0]?.emailAddress}
           </p>
         )}
         {!user && (
-          <p className="text-sm text-red-600 mt-2">
+          <p className="mt-2 text-sm text-red-600">
             Not logged in - you need to authenticate to test these endpoints
           </p>
         )}
       </div>
 
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="mb-6 flex justify-center gap-4">
         <Button onClick={clearResults} variant="outline">
           Clear Results
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Browse Tryouts */}
         <Card>
           <CardHeader>
@@ -252,7 +282,12 @@ export default function TryoutsTestPage() {
                 <Input
                   id="game_id"
                   value={browseFilters.game_id}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, game_id: e.target.value }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      game_id: e.target.value,
+                    }))
+                  }
                   placeholder="Optional"
                 />
               </div>
@@ -261,7 +296,12 @@ export default function TryoutsTestPage() {
                 <Input
                   id="school_id"
                   value={browseFilters.school_id}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, school_id: e.target.value }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      school_id: e.target.value,
+                    }))
+                  }
                   placeholder="Optional"
                 />
               </div>
@@ -273,8 +313,13 @@ export default function TryoutsTestPage() {
                 <select
                   id="type"
                   value={browseFilters.type}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, type: e.target.value as EventType | "" }))}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      type: e.target.value as EventType | "",
+                    }))
+                  }
+                  className="w-full rounded-md border px-3 py-2"
                 >
                   <option value="">All Types</option>
                   <option value="ONLINE">Online</option>
@@ -287,7 +332,12 @@ export default function TryoutsTestPage() {
                 <Input
                   id="state"
                   value={browseFilters.state}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, state: e.target.value }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      state: e.target.value,
+                    }))
+                  }
                   placeholder="CA, NY, TX..."
                 />
               </div>
@@ -298,7 +348,12 @@ export default function TryoutsTestPage() {
               <Input
                 id="search"
                 value={browseFilters.search}
-                onChange={(e) => setBrowseFilters(prev => ({ ...prev, search: e.target.value }))}
+                onChange={(e) =>
+                  setBrowseFilters((prev) => ({
+                    ...prev,
+                    search: e.target.value,
+                  }))
+                }
                 placeholder="Search title, description, school..."
               />
             </div>
@@ -308,7 +363,12 @@ export default function TryoutsTestPage() {
                 <input
                   type="checkbox"
                   checked={browseFilters.free_only}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, free_only: e.target.checked }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      free_only: e.target.checked,
+                    }))
+                  }
                 />
                 <span className="text-sm">Free Only</span>
               </label>
@@ -316,7 +376,12 @@ export default function TryoutsTestPage() {
                 <input
                   type="checkbox"
                   checked={browseFilters.upcoming_only}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, upcoming_only: e.target.checked }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      upcoming_only: e.target.checked,
+                    }))
+                  }
                 />
                 <span className="text-sm">Upcoming Only</span>
               </label>
@@ -329,7 +394,12 @@ export default function TryoutsTestPage() {
                   id="limit"
                   type="number"
                   value={browseFilters.limit}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, limit: parseInt(e.target.value) || 10 }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      limit: parseInt(e.target.value) || 10,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -338,12 +408,17 @@ export default function TryoutsTestPage() {
                   id="offset"
                   type="number"
                   value={browseFilters.offset}
-                  onChange={(e) => setBrowseFilters(prev => ({ ...prev, offset: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) =>
+                    setBrowseFilters((prev) => ({
+                      ...prev,
+                      offset: parseInt(e.target.value) || 0,
+                    }))
+                  }
                 />
               </div>
             </div>
 
-            <Button 
+            <Button
               onClick={testBrowse}
               disabled={loading.browse}
               className="w-full"
@@ -357,7 +432,9 @@ export default function TryoutsTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Get Tryouts by Game</CardTitle>
-            <CardDescription>Test getting tryouts for a specific game</CardDescription>
+            <CardDescription>
+              Test getting tryouts for a specific game
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -365,22 +442,29 @@ export default function TryoutsTestPage() {
               <Input
                 id="game_query_id"
                 value={gameQuery.game_id}
-                onChange={(e) => setGameQuery(prev => ({ ...prev, game_id: e.target.value }))}
+                onChange={(e) =>
+                  setGameQuery((prev) => ({ ...prev, game_id: e.target.value }))
+                }
                 placeholder="UUID of game"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="game_limit">Limit</Label>
               <Input
                 id="game_limit"
                 type="number"
                 value={gameQuery.limit}
-                onChange={(e) => setGameQuery(prev => ({ ...prev, limit: parseInt(e.target.value) || 5 }))}
+                onChange={(e) =>
+                  setGameQuery((prev) => ({
+                    ...prev,
+                    limit: parseInt(e.target.value) || 5,
+                  }))
+                }
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testGetByGame}
               disabled={loading.getByGame}
               className="w-full"
@@ -394,7 +478,9 @@ export default function TryoutsTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Get Tryout Details</CardTitle>
-            <CardDescription>Test getting single tryout details</CardDescription>
+            <CardDescription>
+              Test getting single tryout details
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -406,8 +492,8 @@ export default function TryoutsTestPage() {
                 placeholder="UUID of tryout"
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testGetById}
               disabled={loading.getById}
               className="w-full"
@@ -421,7 +507,9 @@ export default function TryoutsTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Player Registrations</CardTitle>
-            <CardDescription>Test getting player&apos;s tryout registrations (dashboard)</CardDescription>
+            <CardDescription>
+              Test getting player&apos;s tryout registrations (dashboard)
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -429,31 +517,43 @@ export default function TryoutsTestPage() {
               <select
                 id="reg_status"
                 value={registrationQuery.status}
-                onChange={(e) => setRegistrationQuery(prev => ({ ...prev, status: e.target.value as "upcoming" | "past" | "all" }))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={(e) =>
+                  setRegistrationQuery((prev) => ({
+                    ...prev,
+                    status: e.target.value as "upcoming" | "past" | "all",
+                  }))
+                }
+                className="w-full rounded-md border px-3 py-2"
               >
                 <option value="all">All</option>
                 <option value="upcoming">Upcoming</option>
                 <option value="past">Past</option>
               </select>
             </div>
-            
+
             <div>
               <Label htmlFor="reg_limit">Limit</Label>
               <Input
                 id="reg_limit"
                 type="number"
                 value={registrationQuery.limit}
-                onChange={(e) => setRegistrationQuery(prev => ({ ...prev, limit: parseInt(e.target.value) || 20 }))}
+                onChange={(e) =>
+                  setRegistrationQuery((prev) => ({
+                    ...prev,
+                    limit: parseInt(e.target.value) || 20,
+                  }))
+                }
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testGetPlayerRegistrations}
               disabled={loading.getPlayerRegistrations}
               className="w-full"
             >
-              {loading.getPlayerRegistrations ? "Loading..." : "Test Player Registrations"}
+              {loading.getPlayerRegistrations
+                ? "Loading..."
+                : "Test Player Registrations"}
             </Button>
           </CardContent>
         </Card>
@@ -470,22 +570,32 @@ export default function TryoutsTestPage() {
               <Input
                 id="register_tryout_id"
                 value={registerData.tryout_id}
-                onChange={(e) => setRegisterData(prev => ({ ...prev, tryout_id: e.target.value }))}
+                onChange={(e) =>
+                  setRegisterData((prev) => ({
+                    ...prev,
+                    tryout_id: e.target.value,
+                  }))
+                }
                 placeholder="UUID of tryout"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="register_notes">Notes (Optional)</Label>
               <Input
                 id="register_notes"
                 value={registerData.notes}
-                onChange={(e) => setRegisterData(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) =>
+                  setRegisterData((prev) => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
+                }
                 placeholder="Additional notes..."
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testRegister}
               disabled={loading.register}
               className="w-full"
@@ -503,22 +613,31 @@ export default function TryoutsTestPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="cancel_registration_id">Registration ID (Required)</Label>
+              <Label htmlFor="cancel_registration_id">
+                Registration ID (Required)
+              </Label>
               <Input
                 id="cancel_registration_id"
                 value={cancelData.registration_id}
-                onChange={(e) => setCancelData(prev => ({ ...prev, registration_id: e.target.value }))}
+                onChange={(e) =>
+                  setCancelData((prev) => ({
+                    ...prev,
+                    registration_id: e.target.value,
+                  }))
+                }
                 placeholder="UUID of registration"
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testCancelRegistration}
               disabled={loading.cancelRegistration}
               variant="destructive"
               className="w-full"
             >
-              {loading.cancelRegistration ? "Loading..." : "Test Cancel Registration"}
+              {loading.cancelRegistration
+                ? "Loading..."
+                : "Test Cancel Registration"}
             </Button>
           </CardContent>
         </Card>
@@ -527,7 +646,9 @@ export default function TryoutsTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Get Registration Status</CardTitle>
-            <CardDescription>Test checking registration status for a tryout</CardDescription>
+            <CardDescription>
+              Test checking registration status for a tryout
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -535,17 +656,24 @@ export default function TryoutsTestPage() {
               <Input
                 id="status_tryout_id"
                 value={statusQuery.tryout_id}
-                onChange={(e) => setStatusQuery(prev => ({ ...prev, tryout_id: e.target.value }))}
+                onChange={(e) =>
+                  setStatusQuery((prev) => ({
+                    ...prev,
+                    tryout_id: e.target.value,
+                  }))
+                }
                 placeholder="UUID of tryout"
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testGetRegistrationStatus}
               disabled={loading.getRegistrationStatus}
               className="w-full"
             >
-              {loading.getRegistrationStatus ? "Loading..." : "Test Registration Status"}
+              {loading.getRegistrationStatus
+                ? "Loading..."
+                : "Test Registration Status"}
             </Button>
           </CardContent>
         </Card>
@@ -563,7 +691,12 @@ export default function TryoutsTestPage() {
                 <Input
                   id="create_title"
                   value={createTryoutData.title}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -571,21 +704,31 @@ export default function TryoutsTestPage() {
                 <Input
                   id="create_game_id"
                   value={createTryoutData.game_id}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, game_id: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      game_id: e.target.value,
+                    }))
+                  }
                   placeholder="UUID of game"
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="create_description">Description</Label>
               <Input
                 id="create_description"
                 value={createTryoutData.description}
-                onChange={(e) => setCreateTryoutData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setCreateTryoutData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label htmlFor="create_date">Date</Label>
@@ -593,7 +736,12 @@ export default function TryoutsTestPage() {
                   id="create_date"
                   type="date"
                   value={createTryoutData.date}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      date: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -601,8 +749,13 @@ export default function TryoutsTestPage() {
                 <select
                   id="create_type"
                   value={createTryoutData.type}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, type: e.target.value as EventType }))}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      type: e.target.value as EventType,
+                    }))
+                  }
+                  className="w-full rounded-md border px-3 py-2"
                 >
                   <option value="ONLINE">Online</option>
                   <option value="IN_PERSON">In-Person</option>
@@ -610,14 +763,19 @@ export default function TryoutsTestPage() {
                 </select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label htmlFor="create_location">Location</Label>
                 <Input
                   id="create_location"
                   value={createTryoutData.location}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, location: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      location: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -625,11 +783,16 @@ export default function TryoutsTestPage() {
                 <Input
                   id="create_price"
                   value={createTryoutData.price}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, price: e.target.value }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      price: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label htmlFor="create_max_spots">Max Spots</Label>
@@ -637,7 +800,12 @@ export default function TryoutsTestPage() {
                   id="create_max_spots"
                   type="number"
                   value={createTryoutData.max_spots}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, max_spots: parseInt(e.target.value) || 20 }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      max_spots: parseInt(e.target.value) || 20,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -647,12 +815,17 @@ export default function TryoutsTestPage() {
                   type="number"
                   step="0.1"
                   value={createTryoutData.min_gpa}
-                  onChange={(e) => setCreateTryoutData(prev => ({ ...prev, min_gpa: parseFloat(e.target.value) || 0 }))}
+                  onChange={(e) =>
+                    setCreateTryoutData((prev) => ({
+                      ...prev,
+                      min_gpa: parseFloat(e.target.value) || 0,
+                    }))
+                  }
                 />
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testCreateTryout}
               disabled={loading.createTryout}
               className="w-full bg-green-600 hover:bg-green-700"
@@ -666,26 +839,40 @@ export default function TryoutsTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Update Registration Status (Coaches Only)</CardTitle>
-            <CardDescription>Test updating a registration status</CardDescription>
+            <CardDescription>
+              Test updating a registration status
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="update_registration_id">Registration ID (Required)</Label>
+              <Label htmlFor="update_registration_id">
+                Registration ID (Required)
+              </Label>
               <Input
                 id="update_registration_id"
                 value={updateStatusData.registration_id}
-                onChange={(e) => setUpdateStatusData(prev => ({ ...prev, registration_id: e.target.value }))}
+                onChange={(e) =>
+                  setUpdateStatusData((prev) => ({
+                    ...prev,
+                    registration_id: e.target.value,
+                  }))
+                }
                 placeholder="UUID of registration"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="update_status">New Status</Label>
               <select
                 id="update_status"
                 value={updateStatusData.status}
-                onChange={(e) => setUpdateStatusData(prev => ({ ...prev, status: e.target.value as RegistrationStatus }))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={(e) =>
+                  setUpdateStatusData((prev) => ({
+                    ...prev,
+                    status: e.target.value as RegistrationStatus,
+                  }))
+                }
+                className="w-full rounded-md border px-3 py-2"
               >
                 <option value="PENDING">Pending</option>
                 <option value="CONFIRMED">Confirmed</option>
@@ -694,13 +881,15 @@ export default function TryoutsTestPage() {
                 <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={testUpdateRegistrationStatus}
               disabled={loading.updateRegistrationStatus}
               className="w-full bg-orange-600 hover:bg-orange-700"
             >
-              {loading.updateRegistrationStatus ? "Loading..." : "Test Update Status"}
+              {loading.updateRegistrationStatus
+                ? "Loading..."
+                : "Test Update Status"}
             </Button>
           </CardContent>
         </Card>
@@ -715,31 +904,39 @@ export default function TryoutsTestPage() {
         <CardContent>
           <div className="space-y-4">
             {Object.entries(results).map(([testName, result]) => (
-              <div key={testName} className="border rounded-lg p-4">
-                <h3 className="font-semibold text-green-600 mb-2">✅ {testName}</h3>
-                <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-40">
+              <div key={testName} className="rounded-lg border p-4">
+                <h3 className="mb-2 font-semibold text-green-600">
+                  ✅ {testName}
+                </h3>
+                <pre className="max-h-40 overflow-auto rounded bg-gray-100 p-3 text-sm">
                   {JSON.stringify(result, null, 2)}
                 </pre>
               </div>
             ))}
-            
+
             {Object.entries(errors).map(([testName, error]) => (
-              <div key={testName} className="border border-red-200 rounded-lg p-4">
-                <h3 className="font-semibold text-red-600 mb-2">❌ {testName}</h3>
-                <pre className="bg-red-50 p-3 rounded text-sm overflow-auto max-h-40">
+              <div
+                key={testName}
+                className="rounded-lg border border-red-200 p-4"
+              >
+                <h3 className="mb-2 font-semibold text-red-600">
+                  ❌ {testName}
+                </h3>
+                <pre className="max-h-40 overflow-auto rounded bg-red-50 p-3 text-sm">
                   {JSON.stringify(error, null, 2)}
                 </pre>
               </div>
             ))}
-            
-            {Object.keys(results).length === 0 && Object.keys(errors).length === 0 && (
-              <p className="text-muted-foreground text-center py-8">
-                No test results yet. Run some tests to see results here.
-              </p>
-            )}
+
+            {Object.keys(results).length === 0 &&
+              Object.keys(errors).length === 0 && (
+                <p className="text-muted-foreground py-8 text-center">
+                  No test results yet. Run some tests to see results here.
+                </p>
+              )}
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

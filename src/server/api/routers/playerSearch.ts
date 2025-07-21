@@ -23,7 +23,9 @@ const playerSearchSchema = z.object({
   play_style: z.string().optional(),
   agents: z.array(z.string()).optional(), // For game-specific filtering
   favorited_only: z.boolean().optional(),
-  sort_by: z.enum(["name", "gpa", "combine_score", "league_score", "created_at"]).default("name"),
+  sort_by: z
+    .enum(["name", "gpa", "combine_score", "league_score", "created_at"])
+    .default("name"),
   sort_order: z.enum(["asc", "desc"]).default("asc"),
   limit: z.number().min(1).max(100).default(50),
   offset: z.number().min(0).default(0),
@@ -61,16 +63,19 @@ export const playerSearchRouter = createTRPCRouter({
         // Text search across name, username, school
         if (input.search) {
           whereClause.OR = [
-            { first_name: { contains: input.search, mode: 'insensitive' } },
-            { last_name: { contains: input.search, mode: 'insensitive' } },
-            { username: { contains: input.search, mode: 'insensitive' } },
-            { school: { contains: input.search, mode: 'insensitive' } },
+            { first_name: { contains: input.search, mode: "insensitive" } },
+            { last_name: { contains: input.search, mode: "insensitive" } },
+            { username: { contains: input.search, mode: "insensitive" } },
+            { school: { contains: input.search, mode: "insensitive" } },
           ];
         }
 
         // Location filter
         if (input.location) {
-          whereClause.location = { contains: input.location, mode: 'insensitive' };
+          whereClause.location = {
+            contains: input.location,
+            mode: "insensitive",
+          };
         }
 
         // Academic filters
@@ -92,32 +97,58 @@ export const playerSearchRouter = createTRPCRouter({
         }
 
         // Game-specific filters
-        if (input.game_id || input.role || input.play_style || input.agents || 
-            input.min_combine_score !== undefined || input.max_combine_score !== undefined ||
-            input.min_league_score !== undefined || input.max_league_score !== undefined) {
+        if (
+          input.game_id ||
+          input.role ||
+          input.play_style ||
+          input.agents ||
+          input.min_combine_score !== undefined ||
+          input.max_combine_score !== undefined ||
+          input.min_league_score !== undefined ||
+          input.max_league_score !== undefined
+        ) {
           const gameProfileWhere: Prisma.PlayerGameProfileWhereInput = {};
-          
+
           if (input.game_id) gameProfileWhere.game_id = input.game_id;
-          if (input.role) gameProfileWhere.role = { contains: input.role, mode: 'insensitive' };
-          if (input.play_style) gameProfileWhere.play_style = { contains: input.play_style, mode: 'insensitive' };
-          if (input.agents && input.agents.length > 0) gameProfileWhere.agents = { hasSome: input.agents };
-          
+          if (input.role)
+            gameProfileWhere.role = {
+              contains: input.role,
+              mode: "insensitive",
+            };
+          if (input.play_style)
+            gameProfileWhere.play_style = {
+              contains: input.play_style,
+              mode: "insensitive",
+            };
+          if (input.agents && input.agents.length > 0)
+            gameProfileWhere.agents = { hasSome: input.agents };
+
           // Handle combine score filters
-          if (input.min_combine_score !== undefined || input.max_combine_score !== undefined) {
+          if (
+            input.min_combine_score !== undefined ||
+            input.max_combine_score !== undefined
+          ) {
             const combineScoreFilter: Prisma.FloatNullableFilter = {};
-            if (input.min_combine_score !== undefined) combineScoreFilter.gte = input.min_combine_score;
-            if (input.max_combine_score !== undefined) combineScoreFilter.lte = input.max_combine_score;
+            if (input.min_combine_score !== undefined)
+              combineScoreFilter.gte = input.min_combine_score;
+            if (input.max_combine_score !== undefined)
+              combineScoreFilter.lte = input.max_combine_score;
             gameProfileWhere.combine_score = combineScoreFilter;
           }
-          
+
           // Handle league score filters
-          if (input.min_league_score !== undefined || input.max_league_score !== undefined) {
+          if (
+            input.min_league_score !== undefined ||
+            input.max_league_score !== undefined
+          ) {
             const leagueScoreFilter: Prisma.FloatNullableFilter = {};
-            if (input.min_league_score !== undefined) leagueScoreFilter.gte = input.min_league_score;
-            if (input.max_league_score !== undefined) leagueScoreFilter.lte = input.max_league_score;
+            if (input.min_league_score !== undefined)
+              leagueScoreFilter.gte = input.min_league_score;
+            if (input.max_league_score !== undefined)
+              leagueScoreFilter.lte = input.max_league_score;
             gameProfileWhere.league_score = leagueScoreFilter;
           }
-          
+
           whereClause.game_profiles = { some: gameProfileWhere };
         }
 
@@ -126,7 +157,7 @@ export const playerSearchRouter = createTRPCRouter({
           whereClause.favorited_by = {
             some: {
               coach_id: coachId,
-            }
+            },
           };
         }
 
@@ -161,7 +192,7 @@ export const playerSearchRouter = createTRPCRouter({
                   type: true,
                   location: true,
                   state: true,
-                }
+                },
               },
               main_game: {
                 select: {
@@ -169,7 +200,7 @@ export const playerSearchRouter = createTRPCRouter({
                   short_name: true,
                   icon: true,
                   color: true,
-                }
+                },
               },
               game_profiles: {
                 where: input.game_id ? { game_id: input.game_id } : undefined,
@@ -180,15 +211,15 @@ export const playerSearchRouter = createTRPCRouter({
                       short_name: true,
                       icon: true,
                       color: true,
-                    }
-                  }
-                }
+                    },
+                  },
+                },
               },
               platform_connections: {
                 select: {
                   platform: true,
                   username: true,
-                }
+                },
               },
               favorited_by: {
                 where: {
@@ -199,20 +230,20 @@ export const playerSearchRouter = createTRPCRouter({
                   notes: true,
                   tags: true,
                   created_at: true,
-                }
-              }
+                },
+              },
             },
             orderBy,
             take: input.limit,
             skip: input.offset,
-          })
+          }),
         );
 
         // Get total count for pagination
         const totalCount = await withRetry(() =>
           ctx.db.player.count({
             where: whereClause,
-          })
+          }),
         );
 
         return {
@@ -239,13 +270,13 @@ export const playerSearchRouter = createTRPCRouter({
             created_at: player.created_at,
           })),
           totalCount,
-          hasMore: (input.offset + input.limit) < totalCount,
+          hasMore: input.offset + input.limit < totalCount,
         };
       } catch (error) {
-        console.error('Error searching players:', error);
+        console.error("Error searching players:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to search players',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to search players",
         });
       }
     }),
@@ -282,18 +313,18 @@ export const playerSearchRouter = createTRPCRouter({
                   first_name: true,
                   last_name: true,
                   image_url: true,
-                }
-              }
-            }
-          })
+                },
+              },
+            },
+          }),
         );
 
         return { success: true, favorite };
       } catch (error) {
-        console.error('Error favoriting player:', error);
+        console.error("Error favoriting player:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to favorite player',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to favorite player",
         });
       }
     }),
@@ -313,15 +344,15 @@ export const playerSearchRouter = createTRPCRouter({
                 player_id: input.player_id,
               },
             },
-          })
+          }),
         );
 
         return { success: true };
       } catch (error) {
-        console.error('Error unfavoriting player:', error);
+        console.error("Error unfavoriting player:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to unfavorite player',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to unfavorite player",
         });
       }
     }),
@@ -346,97 +377,95 @@ export const playerSearchRouter = createTRPCRouter({
               tags: input.tags,
               updated_at: new Date(),
             },
-          })
+          }),
         );
 
         return { success: true, favorite };
       } catch (error) {
-        console.error('Error updating favorite:', error);
+        console.error("Error updating favorite:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update favorite',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update favorite",
         });
       }
     }),
 
   // Get coach's favorites
-  getFavorites: onboardedCoachProcedure
-    .query(async ({ ctx }) => {
-      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+  getFavorites: onboardedCoachProcedure.query(async ({ ctx }) => {
+    const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
-      try {
-        const favorites = await withRetry(() =>
-          ctx.db.coachFavorite.findMany({
-            where: {
-              coach_id: coachId,
-            },
-            include: {
-              player: {
-                include: {
-                  school_ref: {
-                    select: {
-                      name: true,
-                      type: true,
-                    }
+    try {
+      const favorites = await withRetry(() =>
+        ctx.db.coachFavorite.findMany({
+          where: {
+            coach_id: coachId,
+          },
+          include: {
+            player: {
+              include: {
+                school_ref: {
+                  select: {
+                    name: true,
+                    type: true,
                   },
-                  main_game: {
-                    select: {
-                      name: true,
-                      short_name: true,
-                      icon: true,
-                    }
+                },
+                main_game: {
+                  select: {
+                    name: true,
+                    short_name: true,
+                    icon: true,
                   },
-                  game_profiles: {
-                    include: {
-                      game: {
-                        select: {
-                          name: true,
-                          short_name: true,
-                          icon: true,
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+                },
+                game_profiles: {
+                  include: {
+                    game: {
+                      select: {
+                        name: true,
+                        short_name: true,
+                        icon: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
-            orderBy: {
-              updated_at: 'desc',
-            },
-          })
-        );
+          },
+          orderBy: {
+            updated_at: "desc",
+          },
+        }),
+      );
 
-        return favorites;
-      } catch (error) {
-        console.error('Error fetching favorites:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch favorites',
-        });
-      }
-    }),
+      return favorites;
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch favorites",
+      });
+    }
+  }),
 
   // Get count of coach's favorited players (for dashboard)
-  getFavoritesCount: onboardedCoachProcedure
-    .query(async ({ ctx }) => {
-      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+  getFavoritesCount: onboardedCoachProcedure.query(async ({ ctx }) => {
+    const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
 
-      try {
-        const count = await withRetry(() =>
-          ctx.db.coachFavorite.count({
-            where: {
-              coach_id: coachId,
-            },
-          })
-        );
+    try {
+      const count = await withRetry(() =>
+        ctx.db.coachFavorite.count({
+          where: {
+            coach_id: coachId,
+          },
+        }),
+      );
 
-        return count;
-      } catch (error) {
-        console.error('Error fetching favorites count:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch favorites count',
-        });
-      }
-    }),
-}); 
+      return count;
+    } catch (error) {
+      console.error("Error fetching favorites count:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch favorites count",
+      });
+    }
+  }),
+});

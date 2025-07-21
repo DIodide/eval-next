@@ -1,4 +1,9 @@
-import type { GameId, ValorantStats, RocketLeagueStats, SmashStats } from "../types";
+import type {
+  GameId,
+  ValorantStats,
+  RocketLeagueStats,
+  SmashStats,
+} from "../types";
 import { EVAL_SCORE_THRESHOLDS, WIN_RATE_THRESHOLDS } from "./constants";
 
 export function formatPercentage(value: number, decimals = 1): string {
@@ -40,11 +45,13 @@ export function formatWinRateFromString(winRateStr: string): string {
   return winRateStr;
 }
 
-export function getPerformanceLevel(score: number): 'excellent' | 'good' | 'average' | 'poor' {
-  if (score >= EVAL_SCORE_THRESHOLDS.excellent) return 'excellent';
-  if (score >= EVAL_SCORE_THRESHOLDS.good) return 'good';
-  if (score >= EVAL_SCORE_THRESHOLDS.average) return 'average';
-  return 'poor';
+export function getPerformanceLevel(
+  score: number,
+): "excellent" | "good" | "average" | "poor" {
+  if (score >= EVAL_SCORE_THRESHOLDS.excellent) return "excellent";
+  if (score >= EVAL_SCORE_THRESHOLDS.good) return "good";
+  if (score >= EVAL_SCORE_THRESHOLDS.average) return "average";
+  return "poor";
 }
 
 export function formatKDA(kda: string): string {
@@ -77,22 +84,22 @@ export function formatBoostPercentage(percentage: number): string {
 
 export function getBoostRangeColor(range: string): string {
   switch (range) {
-    case '0-25%':
-      return 'bg-red-600';
-    case '25-50%':
-      return 'bg-orange-600';
-    case '50-75%':
-      return 'bg-yellow-600';
-    case '75-100%':
-      return 'bg-green-600';
+    case "0-25%":
+      return "bg-red-600";
+    case "25-50%":
+      return "bg-orange-600";
+    case "50-75%":
+      return "bg-yellow-600";
+    case "75-100%":
+      return "bg-green-600";
     default:
-      return 'bg-gray-600';
+      return "bg-gray-600";
   }
 }
 
 export function sanitizeImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
-  
+
   // Basic URL validation
   try {
     new URL(url, window.location.origin);
@@ -106,29 +113,32 @@ export function formatAccountName(gameName?: string, tagLine?: string): string {
   if (gameName && tagLine) {
     return `${gameName}#${tagLine}`;
   }
-  return gameName ?? tagLine ?? 'Connected';
+  return gameName ?? tagLine ?? "Connected";
 }
 
 export function formatRocketLeagueUsername(username?: string): string {
-  return username ?? 'Connected';
+  return username ?? "Connected";
 }
 
-export function formatSmashPlayerName(gamerTag: string, prefix: string): string {
-  if (prefix && prefix !== 'Unknown') {
+export function formatSmashPlayerName(
+  gamerTag: string,
+  prefix: string,
+): string {
+  if (prefix && prefix !== "Unknown") {
     return `${prefix} ${gamerTag}`;
   }
   return gamerTag;
 }
 
 export function validateStatsData(data: unknown, gameId: GameId): boolean {
-  if (!data || typeof data !== 'object') return false;
+  if (!data || typeof data !== "object") return false;
 
   switch (gameId) {
-    case 'valorant':
+    case "valorant":
       return validateValorantStats(data as ValorantStats);
-    case 'rocket-league':
+    case "rocket-league":
       return validateRocketLeagueStats(data as RocketLeagueStats);
-    case 'smash':
+    case "smash":
       return validateSmashStats(data as SmashStats);
     default:
       return false;
@@ -138,8 +148,8 @@ export function validateStatsData(data: unknown, gameId: GameId): boolean {
 function validateValorantStats(stats: ValorantStats): boolean {
   return !!(
     stats.stats &&
-    typeof stats.stats.evalScore === 'number' &&
-    typeof stats.stats.rank === 'string' &&
+    typeof stats.stats.evalScore === "number" &&
+    typeof stats.stats.rank === "string" &&
     stats.role &&
     stats.mainAgent &&
     stats.mainGun &&
@@ -149,10 +159,7 @@ function validateValorantStats(stats: ValorantStats): boolean {
 }
 
 function validateRocketLeagueStats(stats: RocketLeagueStats): boolean {
-  return !!(
-    stats &&
-    (stats.duels ?? stats.doubles ?? stats.standard)
-  );
+  return !!(stats && (stats.duels ?? stats.doubles ?? stats.standard));
 }
 
 function validateSmashStats(stats: SmashStats): boolean {
@@ -160,17 +167,17 @@ function validateSmashStats(stats: SmashStats): boolean {
     stats.playerInfo &&
     stats.stats &&
     stats.recentPlacements &&
-    typeof stats.playerInfo.gamerTag === 'string' &&
-    typeof stats.playerInfo.evalScore === 'number' &&
+    typeof stats.playerInfo.gamerTag === "string" &&
+    typeof stats.playerInfo.evalScore === "number" &&
     Array.isArray(stats.recentPlacements)
   );
 }
 
 export function createGameAnalyticsError(
   gameId: GameId,
-  type: 'connection' | 'fetch' | 'parse' | 'permission',
+  type: "connection" | "fetch" | "parse" | "permission",
   message: string,
-  details?: unknown
+  details?: unknown,
 ) {
   return {
     gameId,
@@ -182,40 +189,44 @@ export function createGameAnalyticsError(
 
 export function isErrorRetryable(error: Error): boolean {
   const retryableErrors = [
-    'Network error',
-    'Request timeout',
-    'Server error',
-    'Connection failed',
+    "Network error",
+    "Request timeout",
+    "Server error",
+    "Connection failed",
   ];
-  
-  return retryableErrors.some(retryable => 
-    error.message.toLowerCase().includes(retryable.toLowerCase())
+
+  return retryableErrors.some((retryable) =>
+    error.message.toLowerCase().includes(retryable.toLowerCase()),
   );
 }
 
-export function getErrorMessage(error: Error | null, fallback = 'An error occurred'): string {
+export function getErrorMessage(
+  error: Error | null,
+  fallback = "An error occurred",
+): string {
   if (!error) return fallback;
   return error.message ?? fallback;
 }
 
 export function formatLoadingMessage(gameId: GameId): string {
   const messages: Record<GameId, string> = {
-    valorant: 'Loading VALORANT Statistics',
-    'rocket-league': 'Loading Rocket League Statistics',
-    smash: 'Loading Smash Ultimate Analytics',
-    overwatch: 'Loading Overwatch 2 Statistics',
+    valorant: "Loading VALORANT Statistics",
+    "rocket-league": "Loading Rocket League Statistics",
+    smash: "Loading Smash Ultimate Analytics",
+    overwatch: "Loading Overwatch 2 Statistics",
   };
-  
+
   return messages[gameId];
 }
 
 export function formatLoadingSubMessage(gameId: GameId): string {
   const messages: Record<GameId, string> = {
-    valorant: 'Please wait while we fetch your competitive performance data...',
-    'rocket-league': 'Please wait while we fetch your Rocket League performance data...',
-    smash: 'Please wait while we fetch your competitive performance data...',
-    overwatch: 'Please wait while we fetch your Overwatch 2 statistics...',
+    valorant: "Please wait while we fetch your competitive performance data...",
+    "rocket-league":
+      "Please wait while we fetch your Rocket League performance data...",
+    smash: "Please wait while we fetch your competitive performance data...",
+    overwatch: "Please wait while we fetch your Overwatch 2 statistics...",
   };
-  
+
   return messages[gameId];
-} 
+}

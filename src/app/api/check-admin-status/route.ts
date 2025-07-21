@@ -5,16 +5,16 @@ import { isCurrentUserAdmin } from "@/lib/server/admin-utils";
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ isAdmin: false });
     }
 
     const isAdmin = await isCurrentUserAdmin();
-    
+
     return NextResponse.json({ isAdmin });
   } catch (error) {
     console.error("Admin status check error:", error);
     return NextResponse.json({ isAdmin: false });
   }
-} 
+}

@@ -6,17 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
-  ClockIcon, 
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
   SearchIcon,
   BuildingIcon,
   UserIcon,
   CalendarIcon,
-  MessageSquareIcon
+  MessageSquareIcon,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -58,14 +64,20 @@ interface RequestData {
 
 export default function SchoolRequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"PENDING" | "APPROVED" | "REJECTED" | undefined>();
+  const [statusFilter, setStatusFilter] = useState<
+    "PENDING" | "APPROVED" | "REJECTED" | undefined
+  >();
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch requests with pagination
-   
-  const { data: requestsData, isLoading, refetch } = api.schoolAssociationRequests.getRequests.useQuery({
+
+  const {
+    data: requestsData,
+    isLoading,
+    refetch,
+  } = api.schoolAssociationRequests.getRequests.useQuery({
     search: searchTerm || undefined,
     status: statusFilter,
     page: 1,
@@ -73,42 +85,46 @@ export default function SchoolRequestsPage() {
   });
 
   // Get pending count for the header
-   
-  const pendingCountQuery = api.schoolAssociationRequests.getPendingCount.useQuery();
-   
+
+  const pendingCountQuery =
+    api.schoolAssociationRequests.getPendingCount.useQuery();
+
   const pendingCount = pendingCountQuery.data;
 
   // Approve request mutation
-  const approveRequest = api.schoolAssociationRequests.approveRequest.useMutation({
-    onSuccess: () => {
-      toast.success("School association request approved successfully!");
-      setSelectedRequest(null);
-      setAdminNotes("");
-      void refetch();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to approve request");
-    },
-    onSettled: () => {
-      setIsProcessing(false);
-    },
-  });
+  const approveRequest =
+    api.schoolAssociationRequests.approveRequest.useMutation({
+      onSuccess: () => {
+        toast.success("School association request approved successfully!");
+        setSelectedRequest(null);
+        setAdminNotes("");
+        void refetch();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to approve request");
+      },
+      onSettled: () => {
+        setIsProcessing(false);
+      },
+    });
 
   // Reject request mutation
-  const rejectRequest = api.schoolAssociationRequests.rejectRequest.useMutation({
-    onSuccess: () => {
-      toast.success("School association request rejected");
-      setSelectedRequest(null);
-      setAdminNotes("");
-      void refetch();
+  const rejectRequest = api.schoolAssociationRequests.rejectRequest.useMutation(
+    {
+      onSuccess: () => {
+        toast.success("School association request rejected");
+        setSelectedRequest(null);
+        setAdminNotes("");
+        void refetch();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to reject request");
+      },
+      onSettled: () => {
+        setIsProcessing(false);
+      },
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to reject request");
-    },
-    onSettled: () => {
-      setIsProcessing(false);
-    },
-  });
+  );
 
   const handleApprove = async (requestId: string) => {
     setIsProcessing(true);
@@ -123,7 +139,7 @@ export default function SchoolRequestsPage() {
       toast.error("Admin notes are required for rejection");
       return;
     }
-    
+
     setIsProcessing(true);
     await rejectRequest.mutateAsync({
       requestId,
@@ -134,20 +150,35 @@ export default function SchoolRequestsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
-          <ClockIcon className="h-3 w-3 mr-1" />
-          Pending
-        </Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+          >
+            <ClockIcon className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        );
       case "APPROVED":
-        return <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500">
-          <CheckCircleIcon className="h-3 w-3 mr-1" />
-          Approved
-        </Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="border-green-500 bg-green-500/20 text-green-400"
+          >
+            <CheckCircleIcon className="mr-1 h-3 w-3" />
+            Approved
+          </Badge>
+        );
       case "REJECTED":
-        return <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500">
-          <XCircleIcon className="h-3 w-3 mr-1" />
-          Rejected
-        </Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="border-red-500 bg-red-500/20 text-red-400"
+          >
+            <XCircleIcon className="mr-1 h-3 w-3" />
+            Rejected
+          </Badge>
+        );
       default:
         return null;
     }
@@ -156,52 +187,65 @@ export default function SchoolRequestsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">
+          <h1 className="font-orbitron text-3xl font-bold text-white">
             School Association Requests
           </h1>
-          <p className="text-gray-400 mt-2">
+          <p className="mt-2 text-gray-400">
             Manage coach school association requests and onboarding
           </p>
         </div>
         {pendingCount !== undefined && pendingCount > 0 && (
-          <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
+          <Badge
+            variant="outline"
+            className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+          >
             {pendingCount} Pending
           </Badge>
         )}
       </div>
 
       {/* Filters */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="border-gray-800 bg-gray-900">
         <CardHeader>
-          <CardTitle className="text-white font-orbitron">Filters</CardTitle>
+          <CardTitle className="font-orbitron text-white">Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="search" className="text-gray-300">Search</Label>
+              <Label htmlFor="search" className="text-gray-300">
+                Search
+              </Label>
               <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   id="search"
                   placeholder="Search by coach name, email, or school..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-gray-800 border-gray-700 text-white"
+                  className="border-gray-700 bg-gray-800 pl-10 text-white"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-gray-300">Status</Label>
-              <Select 
-                value={statusFilter ?? "all"} 
-                onValueChange={(value) => setStatusFilter(value === "all" ? undefined : value as "PENDING" | "APPROVED" | "REJECTED")}
+              <Label htmlFor="status" className="text-gray-300">
+                Status
+              </Label>
+              <Select
+                value={statusFilter ?? "all"}
+                onValueChange={(value) =>
+                  setStatusFilter(
+                    value === "all"
+                      ? undefined
+                      : (value as "PENDING" | "APPROVED" | "REJECTED"),
+                  )
+                }
               >
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                <SelectTrigger className="border-gray-700 bg-gray-800 text-white">
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent className="border-gray-700 bg-gray-800">
                   <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="APPROVED">Approved</SelectItem>
@@ -216,84 +260,148 @@ export default function SchoolRequestsPage() {
       {/* Requests List */}
       <div className="grid gap-4">
         {isLoading ? (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-800 bg-gray-900">
             <CardContent className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto mb-4" />
+              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-cyan-400" />
               <p className="text-gray-400">Loading requests...</p>
             </CardContent>
           </Card>
         ) : !requestsData?.requests.length ? (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-800 bg-gray-900">
             <CardContent className="p-8 text-center">
-              <BuildingIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No school association requests found</p>
+              <BuildingIcon className="mx-auto mb-4 h-12 w-12 text-gray-600" />
+              <p className="text-gray-400">
+                No school association requests found
+              </p>
             </CardContent>
           </Card>
         ) : (
           requestsData.requests.map((request) => (
-            <Card 
-              key={request.id} 
-              className={`bg-gray-900 border-gray-800 transition-colors ${
-                selectedRequest === request.id ? 'border-cyan-500' : 'hover:border-gray-700'
+            <Card
+              key={request.id}
+              className={`border-gray-800 bg-gray-900 transition-colors ${
+                selectedRequest === request.id
+                  ? "border-cyan-500"
+                  : "hover:border-gray-700"
               }`}
             >
               <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   {/* Request Info */}
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {getStatusBadge(request.status)}
                         <span className="text-sm text-gray-400">
-                          <CalendarIcon className="h-4 w-4 inline mr-1" />
+                          <CalendarIcon className="mr-1 inline h-4 w-4" />
                           {new Date(request.requested_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {/* Coach Info */}
                       <div className="space-y-2">
-                        <h3 className="text-white font-medium flex items-center gap-2">
+                        <h3 className="flex items-center gap-2 font-medium text-white">
                           <UserIcon className="h-4 w-4" />
                           Coach Information
                         </h3>
-                        <div className="text-sm text-gray-300 space-y-1">
-                          <p><span className="font-medium">Name:</span> {request.coach.first_name} {request.coach.last_name}</p>
-                          <p><span className="font-medium">Email:</span> {request.coach.email}</p>
-                          <p><span className="font-medium">Username:</span> {request.coach.username}</p>
-                          <p><span className="font-medium">Joined:</span> {new Date(request.coach.created_at).toLocaleDateString()}</p>
+                        <div className="space-y-1 text-sm text-gray-300">
+                          <p>
+                            <span className="font-medium">Name:</span>{" "}
+                            {request.coach.first_name} {request.coach.last_name}
+                          </p>
+                          <p>
+                            <span className="font-medium">Email:</span>{" "}
+                            {request.coach.email}
+                          </p>
+                          <p>
+                            <span className="font-medium">Username:</span>{" "}
+                            {request.coach.username}
+                          </p>
+                          <p>
+                            <span className="font-medium">Joined:</span>{" "}
+                            {new Date(
+                              request.coach.created_at,
+                            ).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
 
                       {/* School Info */}
                       <div className="space-y-2">
-                        <h3 className="text-white font-medium flex items-center gap-2">
+                        <h3 className="flex items-center gap-2 font-medium text-white">
                           <BuildingIcon className="h-4 w-4" />
                           School Information
                         </h3>
-                        <div className="text-sm text-gray-300 space-y-1">
+                        <div className="space-y-1 text-sm text-gray-300">
                           {request.is_new_school_request ? (
                             // New school creation request
                             <>
-                              <p><span className="font-medium">Name:</span> {request.proposed_school_name} <span className="text-cyan-400">(New School Request)</span></p>
-                                                             <p><span className="font-medium">Type:</span> {request.proposed_school_type ? request.proposed_school_type.replace('_', ' ') : 'N/A'}</p>
-                              <p><span className="font-medium">Location:</span> {request.proposed_school_location}, {request.proposed_school_state}</p>
+                              <p>
+                                <span className="font-medium">Name:</span>{" "}
+                                {request.proposed_school_name}{" "}
+                                <span className="text-cyan-400">
+                                  (New School Request)
+                                </span>
+                              </p>
+                              <p>
+                                <span className="font-medium">Type:</span>{" "}
+                                {request.proposed_school_type
+                                  ? request.proposed_school_type.replace(
+                                      "_",
+                                      " ",
+                                    )
+                                  : "N/A"}
+                              </p>
+                              <p>
+                                <span className="font-medium">Location:</span>{" "}
+                                {request.proposed_school_location},{" "}
+                                {request.proposed_school_state}
+                              </p>
                               {request.proposed_school_region && (
-                                <p><span className="font-medium">Region:</span> {request.proposed_school_region}</p>
+                                <p>
+                                  <span className="font-medium">Region:</span>{" "}
+                                  {request.proposed_school_region}
+                                </p>
                               )}
                               {request.proposed_school_website && (
-                                <p><span className="font-medium">Website:</span> <a href={request.proposed_school_website} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">{request.proposed_school_website}</a></p>
+                                <p>
+                                  <span className="font-medium">Website:</span>{" "}
+                                  <a
+                                    href={request.proposed_school_website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-cyan-400 hover:underline"
+                                  >
+                                    {request.proposed_school_website}
+                                  </a>
+                                </p>
                               )}
                             </>
                           ) : (
                             // Existing school association request
                             <>
-                              <p><span className="font-medium">Name:</span> {request.school?.name}</p>
-                                                             <p><span className="font-medium">Type:</span> {request.school?.type ? request.school.type.replace('_', ' ') : 'N/A'}</p>
-                              <p><span className="font-medium">Location:</span> {request.school?.location}, {request.school?.state}</p>
+                              <p>
+                                <span className="font-medium">Name:</span>{" "}
+                                {request.school?.name}
+                              </p>
+                              <p>
+                                <span className="font-medium">Type:</span>{" "}
+                                {request.school?.type
+                                  ? request.school.type.replace("_", " ")
+                                  : "N/A"}
+                              </p>
+                              <p>
+                                <span className="font-medium">Location:</span>{" "}
+                                {request.school?.location},{" "}
+                                {request.school?.state}
+                              </p>
                               {request.school?.region && (
-                                <p><span className="font-medium">Region:</span> {request.school.region}</p>
+                                <p>
+                                  <span className="font-medium">Region:</span>{" "}
+                                  {request.school.region}
+                                </p>
                               )}
                             </>
                           )}
@@ -304,12 +412,14 @@ export default function SchoolRequestsPage() {
                     {/* Request Message */}
                     {request.request_message && (
                       <div className="space-y-2">
-                        <h4 className="text-white font-medium flex items-center gap-2">
+                        <h4 className="flex items-center gap-2 font-medium text-white">
                           <MessageSquareIcon className="h-4 w-4" />
                           Coach Message
                         </h4>
-                        <div className="bg-gray-800 rounded-lg p-3">
-                          <p className="text-gray-300 text-sm">{request.request_message}</p>
+                        <div className="rounded-lg bg-gray-800 p-3">
+                          <p className="text-sm text-gray-300">
+                            {request.request_message}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -317,21 +427,26 @@ export default function SchoolRequestsPage() {
                     {/* Admin Notes (if reviewed) */}
                     {request.admin_notes && (
                       <div className="space-y-2">
-                        <h4 className="text-white font-medium">Admin Notes</h4>
-                        <div className="bg-gray-800 rounded-lg p-3">
-                          <p className="text-gray-300 text-sm">{request.admin_notes}</p>
+                        <h4 className="font-medium text-white">Admin Notes</h4>
+                        <div className="rounded-lg bg-gray-800 p-3">
+                          <p className="text-sm text-gray-300">
+                            {request.admin_notes}
+                          </p>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Actions */}
-                  {request.status === 'PENDING' && (
-                    <div className="lg:w-64 space-y-4">
+                  {request.status === "PENDING" && (
+                    <div className="space-y-4 lg:w-64">
                       {selectedRequest === request.id ? (
                         <div className="space-y-3">
                           <div className="space-y-2">
-                            <Label htmlFor="adminNotes" className="text-gray-300">
+                            <Label
+                              htmlFor="adminNotes"
+                              className="text-gray-300"
+                            >
                               Admin Notes
                             </Label>
                             <Textarea
@@ -339,16 +454,16 @@ export default function SchoolRequestsPage() {
                               placeholder="Add notes about this decision..."
                               value={adminNotes}
                               onChange={(e) => setAdminNotes(e.target.value)}
-                              className="bg-gray-800 border-gray-700 text-white min-h-[80px]"
+                              className="min-h-[80px] border-gray-700 bg-gray-800 text-white"
                             />
                           </div>
                           <div className="flex gap-2">
                             <Button
                               onClick={() => handleApprove(request.id)}
                               disabled={isProcessing}
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                              className="flex-1 bg-green-600 text-white hover:bg-green-700"
                             >
-                              <CheckCircleIcon className="h-4 w-4 mr-1" />
+                              <CheckCircleIcon className="mr-1 h-4 w-4" />
                               Approve
                             </Button>
                             <Button
@@ -357,7 +472,7 @@ export default function SchoolRequestsPage() {
                               variant="destructive"
                               className="flex-1"
                             >
-                              <XCircleIcon className="h-4 w-4 mr-1" />
+                              <XCircleIcon className="mr-1 h-4 w-4" />
                               Reject
                             </Button>
                           </div>
@@ -375,7 +490,7 @@ export default function SchoolRequestsPage() {
                             setSelectedRequest(request.id);
                             setAdminNotes("");
                           }}
-                          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white"
+                          className="w-full bg-cyan-600 text-white hover:bg-cyan-700"
                         >
                           Review Request
                         </Button>
@@ -391,10 +506,11 @@ export default function SchoolRequestsPage() {
 
       {/* Pagination Info */}
       {requestsData && (
-        <div className="text-center text-gray-400 text-sm">
-          Showing {requestsData.requests.length} of {requestsData.pagination.total} requests
+        <div className="text-center text-sm text-gray-400">
+          Showing {requestsData.requests.length} of{" "}
+          {requestsData.pagination.total} requests
         </div>
       )}
     </div>
   );
-} 
+}

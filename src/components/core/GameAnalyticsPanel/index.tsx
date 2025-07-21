@@ -7,7 +7,10 @@ export { LoadingState } from "./components/LoadingState";
 export { ErrorState } from "./components/ErrorState";
 
 // Hook exports
-export { useGameConnection, useAllGameConnections } from "./hooks/useGameConnection";
+export {
+  useGameConnection,
+  useAllGameConnections,
+} from "./hooks/useGameConnection";
 export { useGameStats } from "./hooks/useGameStats";
 export { useGameSelection } from "./hooks/useGameSelection";
 
@@ -27,4 +30,4 @@ export type {
 // Utility exports
 export { GAME_CONFIGS } from "./utils/constants";
 export * from "./utils/connectionDetection";
-export * from "./utils/statsFormatters"; 
+export * from "./utils/statsFormatters";

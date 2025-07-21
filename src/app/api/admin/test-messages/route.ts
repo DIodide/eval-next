@@ -1,6 +1,3 @@
- 
- 
- 
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 
@@ -24,15 +21,19 @@ export async function GET(request: NextRequest) {
         return await cleanupTestData();
       default:
         return NextResponse.json({
-          message: "Available actions: test-data, check-conversations, check-messages, check-coaches, check-players, cleanup",
-          usage: "GET /api/test-messages?action=test-data"
+          message:
+            "Available actions: test-data, check-conversations, check-messages, check-coaches, check-players, cleanup",
+          usage: "GET /api/test-messages?action=test-data",
         });
     }
   } catch (error) {
     console.error("Test messages API error:", error);
     return NextResponse.json(
-      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -61,7 +62,7 @@ async function testCreateMockData() {
           school: "Test University",
           created_at: new Date(),
           updated_at: new Date(),
-        }
+        },
       });
       console.log("Created test coach:", testCoach.id);
     } else {
@@ -82,7 +83,7 @@ async function testCreateMockData() {
           school: "Test High School",
           created_at: new Date(),
           updated_at: new Date(),
-        }
+        },
       });
       console.log("Created test player:", testPlayer.id);
     } else {
@@ -95,7 +96,7 @@ async function testCreateMockData() {
       where: {
         coach_id: testCoach.id,
         player_id: testPlayer.id,
-      }
+      },
     });
 
     let conversation;
@@ -109,7 +110,7 @@ async function testCreateMockData() {
           is_archived: false,
           created_at: new Date(),
           updated_at: new Date(),
-        }
+        },
       });
       console.log("Created test conversation:", conversation.id);
     } else {
@@ -119,7 +120,7 @@ async function testCreateMockData() {
 
     // Create test messages
     const existingMessages = await db.message.findMany({
-      where: { conversation_id: conversation.id }
+      where: { conversation_id: conversation.id },
     });
 
     if (existingMessages.length === 0) {
@@ -129,31 +130,34 @@ async function testCreateMockData() {
             conversation_id: conversation.id,
             sender_id: testCoach.id,
             sender_type: "COACH",
-            content: "Hello! I'm interested in recruiting you for our esports program.",
+            content:
+              "Hello! I'm interested in recruiting you for our esports program.",
             is_read: false,
             created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-          }
+          },
         }),
         db.message.create({
           data: {
             conversation_id: conversation.id,
             sender_id: testPlayer.id,
             sender_type: "PLAYER",
-            content: "Hi! Thank you for reaching out. I'd love to learn more about your program.",
+            content:
+              "Hi! Thank you for reaching out. I'd love to learn more about your program.",
             is_read: false,
             created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-          }
+          },
         }),
         db.message.create({
           data: {
             conversation_id: conversation.id,
             sender_id: testCoach.id,
             sender_type: "COACH",
-            content: "Great! We offer full scholarships and have a competitive VALORANT team. When would be a good time to chat?",
+            content:
+              "Great! We offer full scholarships and have a competitive VALORANT team. When would be a good time to chat?",
             is_read: false,
             created_at: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-          }
-        })
+          },
+        }),
       ]);
 
       console.log("Created test messages:", messages.length);
@@ -166,15 +170,18 @@ async function testCreateMockData() {
         coach: { id: testCoach.id, email: testCoach.email },
         player: { id: testPlayer.id, email: testPlayer.email },
         conversation: { id: conversation.id },
-        messagesCount: existingMessages.length === 0 ? 3 : existingMessages.length
-      }
+        messagesCount:
+          existingMessages.length === 0 ? 3 : existingMessages.length,
+      },
     });
-
   } catch (error) {
     console.error("Error creating test data:", error);
     return NextResponse.json(
-      { error: "Failed to create test data", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to create test data",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -186,31 +193,44 @@ async function checkConversations() {
         coach: true,
         player: true,
         messages: {
-          orderBy: { created_at: 'desc' },
-          take: 1
-        }
-      }
+          orderBy: { created_at: "desc" },
+          take: 1,
+        },
+      },
     });
 
     return NextResponse.json({
       success: true,
       count: conversations.length,
-      conversations: conversations.map(conv => ({
+      conversations: conversations.map((conv) => ({
         id: conv.id,
-        coach: { id: conv.coach.id, email: conv.coach.email, name: `${conv.coach.first_name} ${conv.coach.last_name}` },
-        player: { id: conv.player.id, email: conv.player.email, name: `${conv.player.first_name} ${conv.player.last_name}` },
-        lastMessage: conv.messages[0] ? {
-          content: conv.messages[0].content,
-          sender_type: conv.messages[0].sender_type,
-          created_at: conv.messages[0].created_at
-        } : null,
-        created_at: conv.created_at
-      }))
+        coach: {
+          id: conv.coach.id,
+          email: conv.coach.email,
+          name: `${conv.coach.first_name} ${conv.coach.last_name}`,
+        },
+        player: {
+          id: conv.player.id,
+          email: conv.player.email,
+          name: `${conv.player.first_name} ${conv.player.last_name}`,
+        },
+        lastMessage: conv.messages[0]
+          ? {
+              content: conv.messages[0].content,
+              sender_type: conv.messages[0].sender_type,
+              created_at: conv.messages[0].created_at,
+            }
+          : null,
+        created_at: conv.created_at,
+      })),
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to check conversations", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to check conversations",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -222,18 +242,18 @@ async function checkMessages() {
         conversation: {
           include: {
             coach: true,
-            player: true
-          }
-        }
+            player: true,
+          },
+        },
       },
-      orderBy: { created_at: 'desc' },
-      take: 20
+      orderBy: { created_at: "desc" },
+      take: 20,
     });
 
     return NextResponse.json({
       success: true,
       count: messages.length,
-      messages: messages.map(msg => ({
+      messages: messages.map((msg) => ({
         id: msg.id,
         content: msg.content,
         sender_type: msg.sender_type,
@@ -243,14 +263,17 @@ async function checkMessages() {
         conversation: {
           id: msg.conversation.id,
           coach: `${msg.conversation.coach.first_name} ${msg.conversation.coach.last_name}`,
-          player: `${msg.conversation.player.first_name} ${msg.conversation.player.last_name}`
-        }
-      }))
+          player: `${msg.conversation.player.first_name} ${msg.conversation.player.last_name}`,
+        },
+      })),
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to check messages", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to check messages",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -260,27 +283,30 @@ async function checkCoaches() {
     const coaches = await db.coach.findMany({
       take: 10,
       include: {
-        school_ref: true
-      }
+        school_ref: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       count: coaches.length,
-      coaches: coaches.map(coach => ({
+      coaches: coaches.map((coach) => ({
         id: coach.id,
         clerk_id: coach.clerk_id,
         email: coach.email,
         name: `${coach.first_name} ${coach.last_name}`,
         username: coach.username,
         school: coach.school,
-        school_ref: coach.school_ref?.name ?? null
-      }))
+        school_ref: coach.school_ref?.name ?? null,
+      })),
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to check coaches", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to check coaches",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -290,27 +316,30 @@ async function checkPlayers() {
     const players = await db.player.findMany({
       take: 10,
       include: {
-        main_game: true
-      }
+        main_game: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       count: players.length,
-      players: players.map(player => ({
+      players: players.map((player) => ({
         id: player.id,
         clerk_id: player.clerk_id,
         email: player.email,
         name: `${player.first_name} ${player.last_name}`,
         username: player.username,
         school: player.school,
-        main_game: player.main_game?.name ?? null
-      }))
+        main_game: player.main_game?.name ?? null,
+      })),
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to check players", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to check players",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -323,10 +352,10 @@ async function cleanupTestData() {
         conversation: {
           OR: [
             { coach: { clerk_id: "test_coach_clerk_id" } },
-            { player: { clerk_id: "test_player_clerk_id" } }
-          ]
-        }
-      }
+            { player: { clerk_id: "test_player_clerk_id" } },
+          ],
+        },
+      },
     });
 
     // Delete test conversations
@@ -334,19 +363,19 @@ async function cleanupTestData() {
       where: {
         OR: [
           { coach: { clerk_id: "test_coach_clerk_id" } },
-          { player: { clerk_id: "test_player_clerk_id" } }
-        ]
-      }
+          { player: { clerk_id: "test_player_clerk_id" } },
+        ],
+      },
     });
 
     // Delete test coach
     const deletedCoaches = await db.coach.deleteMany({
-      where: { clerk_id: "test_coach_clerk_id" }
+      where: { clerk_id: "test_coach_clerk_id" },
     });
 
     // Delete test player
     const deletedPlayers = await db.player.deleteMany({
-      where: { clerk_id: "test_player_clerk_id" }
+      where: { clerk_id: "test_player_clerk_id" },
     });
 
     return NextResponse.json({
@@ -356,13 +385,16 @@ async function cleanupTestData() {
         messages: deletedMessages.count,
         conversations: deletedConversations.count,
         coaches: deletedCoaches.count,
-        players: deletedPlayers.count
-      }
+        players: deletedPlayers.count,
+      },
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to cleanup test data", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        error: "Failed to cleanup test data",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
-} 
+}

@@ -39,18 +39,18 @@ export interface DiscordMessage {
 
 // Event types for logging
 export enum LogEventType {
-  SCHOOL_ASSOCIATION_REQUEST = 'school_association_request',
-  SCHOOL_ASSOCIATION_APPROVED = 'school_association_approved',
-  SCHOOL_ASSOCIATION_REJECTED = 'school_association_rejected',
-  LEAGUE_ASSOCIATION_REQUEST = 'league_association_request',
-  LEAGUE_ASSOCIATION_APPROVED = 'league_association_approved',
-  LEAGUE_ASSOCIATION_REJECTED = 'league_association_rejected',
-  TRYOUT_CREATED = 'tryout_created',
-  COMBINE_CREATED = 'combine_created',
-  USER_REGISTRATION = 'user_registration',
-  ADMIN_ACTION = 'admin_action',
-  ERROR = 'error',
-  SECURITY_ALERT = 'security_alert',
+  SCHOOL_ASSOCIATION_REQUEST = "school_association_request",
+  SCHOOL_ASSOCIATION_APPROVED = "school_association_approved",
+  SCHOOL_ASSOCIATION_REJECTED = "school_association_rejected",
+  LEAGUE_ASSOCIATION_REQUEST = "league_association_request",
+  LEAGUE_ASSOCIATION_APPROVED = "league_association_approved",
+  LEAGUE_ASSOCIATION_REJECTED = "league_association_rejected",
+  TRYOUT_CREATED = "tryout_created",
+  COMBINE_CREATED = "combine_created",
+  USER_REGISTRATION = "user_registration",
+  ADMIN_ACTION = "admin_action",
+  ERROR = "error",
+  SECURITY_ALERT = "security_alert",
 }
 
 // Color constants for different event types
@@ -71,28 +71,28 @@ export const DISCORD_COLORS = {
 
 // Multiple webhook support - configure different channels for different events
 export const WEBHOOK_URLS = {
-  general: env.DISCORD_WEBHOOK_GENERAL ?? '',
-  admin: env.DISCORD_WEBHOOK_ADMIN ?? '',
-  security: env.DISCORD_WEBHOOK_SECURITY ?? '',
-  errors: env.DISCORD_WEBHOOK_ERRORS ?? '',
-  registrations: env.DISCORD_WEBHOOK_REGISTRATIONS ?? '',
-  contact: env.NEXT_PUBLIC_DISCORD_WEBHOOK_CONTACT ?? '',
+  general: env.DISCORD_WEBHOOK_GENERAL ?? "",
+  admin: env.DISCORD_WEBHOOK_ADMIN ?? "",
+  security: env.DISCORD_WEBHOOK_SECURITY ?? "",
+  errors: env.DISCORD_WEBHOOK_ERRORS ?? "",
+  registrations: env.DISCORD_WEBHOOK_REGISTRATIONS ?? "",
+  contact: env.NEXT_PUBLIC_DISCORD_WEBHOOK_CONTACT ?? "",
 } as const;
 
 // Event routing - which events go to which webhooks
 export const EVENT_WEBHOOK_ROUTING: Record<LogEventType, string[]> = {
-  [LogEventType.SCHOOL_ASSOCIATION_REQUEST]: ['general', 'admin'],
-  [LogEventType.SCHOOL_ASSOCIATION_APPROVED]: ['general', 'admin'],
-  [LogEventType.SCHOOL_ASSOCIATION_REJECTED]: ['admin'],
-  [LogEventType.LEAGUE_ASSOCIATION_REQUEST]: ['general', 'admin'],
-  [LogEventType.LEAGUE_ASSOCIATION_APPROVED]: ['general', 'admin'],
-  [LogEventType.LEAGUE_ASSOCIATION_REJECTED]: ['admin'],
-  [LogEventType.TRYOUT_CREATED]: ['general'],
-  [LogEventType.COMBINE_CREATED]: ['general'],
-  [LogEventType.USER_REGISTRATION]: ['general'],
-  [LogEventType.ADMIN_ACTION]: ['admin', 'security'],
-  [LogEventType.ERROR]: ['errors', 'admin'],
-  [LogEventType.SECURITY_ALERT]: ['security', 'admin'],
+  [LogEventType.SCHOOL_ASSOCIATION_REQUEST]: ["general", "admin"],
+  [LogEventType.SCHOOL_ASSOCIATION_APPROVED]: ["general", "admin"],
+  [LogEventType.SCHOOL_ASSOCIATION_REJECTED]: ["admin"],
+  [LogEventType.LEAGUE_ASSOCIATION_REQUEST]: ["general", "admin"],
+  [LogEventType.LEAGUE_ASSOCIATION_APPROVED]: ["general", "admin"],
+  [LogEventType.LEAGUE_ASSOCIATION_REJECTED]: ["admin"],
+  [LogEventType.TRYOUT_CREATED]: ["general"],
+  [LogEventType.COMBINE_CREATED]: ["general"],
+  [LogEventType.USER_REGISTRATION]: ["general"],
+  [LogEventType.ADMIN_ACTION]: ["admin", "security"],
+  [LogEventType.ERROR]: ["errors", "admin"],
+  [LogEventType.SECURITY_ALERT]: ["security", "admin"],
 };
 
 // Base event data interface
@@ -124,7 +124,7 @@ export interface SchoolAssociationDecisionData extends BaseEventData {
   schoolName: string;
   adminName?: string | null;
   adminNotes?: string | null;
-  decision: 'approved' | 'rejected';
+  decision: "approved" | "rejected";
 }
 
 export interface LeagueAssociationRequestData extends BaseEventData {
@@ -145,7 +145,7 @@ export interface LeagueAssociationDecisionData extends BaseEventData {
   leagueName: string;
   reviewerName?: string | null;
   reviewerNotes?: string | null;
-  decision: 'approved' | 'rejected';
+  decision: "approved" | "rejected";
 }
 
 export interface TryoutCreatedData extends BaseEventData {
@@ -159,7 +159,7 @@ export interface TryoutCreatedData extends BaseEventData {
 }
 
 export interface UserRegistrationData extends BaseEventData {
-  userType: 'coach' | 'player' | 'league_admin' | 'not selected';
+  userType: "coach" | "player" | "league_admin" | "not selected";
   registrationMethod: string;
 }
 
@@ -175,12 +175,12 @@ export interface ErrorEventData extends BaseEventData {
   errorCode?: string;
   stack?: string;
   endpoint?: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
 }
 
 export interface SecurityAlertData extends BaseEventData {
   alertType: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   details: string;
   blockedAction?: string;
 }
@@ -199,45 +199,55 @@ export type EventData =
 
 // Discord logging class
 class DiscordLogger {
-  private async sendToWebhook(url: string, message: DiscordMessage): Promise<boolean> {
+  private async sendToWebhook(
+    url: string,
+    message: DiscordMessage,
+  ): Promise<boolean> {
     if (!url) {
-      console.warn('Discord webhook URL not configured');
+      console.warn("Discord webhook URL not configured");
       return false;
     }
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(message),
       });
 
       if (!response.ok) {
-        console.error('Discord webhook error:', response.statusText);
+        console.error("Discord webhook error:", response.statusText);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Failed to send Discord message:', error);
+      console.error("Failed to send Discord message:", error);
       return false;
     }
   }
 
-  private createBaseEmbed(eventType: LogEventType, title: string): DiscordEmbed {
+  private createBaseEmbed(
+    eventType: LogEventType,
+    title: string,
+  ): DiscordEmbed {
     return {
       title,
       color: DISCORD_COLORS[eventType],
       timestamp: new Date().toISOString(),
       footer: {
-        text: 'EVAL Gaming Platform',
+        text: "EVAL Gaming Platform",
       },
     };
   }
 
-  async logEvent(eventType: LogEventType, data: EventData, webhookUrl?: string): Promise<void> {
+  async logEvent(
+    eventType: LogEventType,
+    data: EventData,
+    webhookUrl?: string,
+  ): Promise<void> {
     const message = this.formatEventMessage(eventType, data);
 
     if (!message) {
@@ -245,78 +255,92 @@ class DiscordLogger {
       return;
     }
 
-         // Use provided webhook URL or default to general webhook
-     const url = webhookUrl ?? env.DISCORD_WEBHOOK_SCHOOL_ASSOCIATION;
-    
+    // Use provided webhook URL or default to general webhook
+    const url = webhookUrl ?? env.DISCORD_WEBHOOK_SCHOOL_ASSOCIATION;
+
     if (!url) {
-      console.warn('No Discord webhook configured for event:', eventType);
+      console.warn("No Discord webhook configured for event:", eventType);
       return;
     }
 
     try {
-       
       await this.sendToWebhook(url, message);
     } catch (error) {
-      console.error('Error sending Discord notification:', error);
+      console.error("Error sending Discord notification:", error);
     }
   }
 
-  private formatEventMessage(eventType: LogEventType, data: EventData): DiscordMessage | null {
+  private formatEventMessage(
+    eventType: LogEventType,
+    data: EventData,
+  ): DiscordMessage | null {
     switch (eventType) {
       case LogEventType.SCHOOL_ASSOCIATION_REQUEST:
-        return this.formatSchoolAssociationRequest(data as SchoolAssociationRequestData);
-      
+        return this.formatSchoolAssociationRequest(
+          data as SchoolAssociationRequestData,
+        );
+
       case LogEventType.SCHOOL_ASSOCIATION_APPROVED:
       case LogEventType.SCHOOL_ASSOCIATION_REJECTED:
-        return this.formatSchoolAssociationDecision(eventType, data as SchoolAssociationDecisionData);
-      
+        return this.formatSchoolAssociationDecision(
+          eventType,
+          data as SchoolAssociationDecisionData,
+        );
+
       case LogEventType.LEAGUE_ASSOCIATION_REQUEST:
-        return this.formatLeagueAssociationRequest(data as LeagueAssociationRequestData);
-      
+        return this.formatLeagueAssociationRequest(
+          data as LeagueAssociationRequestData,
+        );
+
       case LogEventType.LEAGUE_ASSOCIATION_APPROVED:
       case LogEventType.LEAGUE_ASSOCIATION_REJECTED:
-        return this.formatLeagueAssociationDecision(eventType, data as LeagueAssociationDecisionData);
-      
+        return this.formatLeagueAssociationDecision(
+          eventType,
+          data as LeagueAssociationDecisionData,
+        );
+
       case LogEventType.TRYOUT_CREATED:
         return this.formatTryoutCreated(data as TryoutCreatedData);
-      
+
       case LogEventType.USER_REGISTRATION:
         return this.formatUserRegistration(data as UserRegistrationData);
-      
+
       case LogEventType.ADMIN_ACTION:
         return this.formatAdminAction(data as AdminActionData);
-      
+
       case LogEventType.ERROR:
         return this.formatError(data as ErrorEventData);
-      
+
       case LogEventType.SECURITY_ALERT:
         return this.formatSecurityAlert(data as SecurityAlertData);
-      
+
       default:
         return null;
     }
   }
 
-  private formatSchoolAssociationRequest(data: SchoolAssociationRequestData): DiscordMessage {
+  private formatSchoolAssociationRequest(
+    data: SchoolAssociationRequestData,
+  ): DiscordMessage {
     const embed = this.createBaseEmbed(
       LogEventType.SCHOOL_ASSOCIATION_REQUEST,
-      '🏫 New School Association Request'
+      "🏫 New School Association Request",
     );
 
     embed.description = `A coach has requested association with a school and requires admin review.`;
     embed.fields = [
       {
-        name: '👤 Coach Details',
+        name: "👤 Coach Details",
         value: `**Name:** ${data.coachName}\n**Email:** ${data.coachEmail}`,
         inline: true,
       },
       {
-        name: '🏫 School Details',
+        name: "🏫 School Details",
         value: `**Name:** ${data.schoolName}\n**Type:** ${data.schoolType}\n**Location:** ${data.schoolLocation}`,
         inline: true,
       },
       {
-        name: '📄 Request ID',
+        name: "📄 Request ID",
         value: `\`${data.requestId}\``,
         inline: false,
       },
@@ -324,10 +348,11 @@ class DiscordLogger {
 
     if (data.requestMessage) {
       embed.fields.push({
-        name: '💬 Message',
-        value: data.requestMessage.length > 1000 
-          ? `${data.requestMessage.substring(0, 1000)}...`
-          : data.requestMessage,
+        name: "💬 Message",
+        value:
+          data.requestMessage.length > 1000
+            ? `${data.requestMessage.substring(0, 1000)}...`
+            : data.requestMessage,
         inline: false,
       });
     }
@@ -335,30 +360,35 @@ class DiscordLogger {
     return { embeds: [embed] };
   }
 
-  private formatSchoolAssociationDecision(eventType: LogEventType, data: SchoolAssociationDecisionData): DiscordMessage {
-    const isApproved = data.decision === 'approved';
+  private formatSchoolAssociationDecision(
+    eventType: LogEventType,
+    data: SchoolAssociationDecisionData,
+  ): DiscordMessage {
+    const isApproved = data.decision === "approved";
     const embed = this.createBaseEmbed(
       eventType,
-      isApproved ? '✅ School Association Approved' : '❌ School Association Rejected'
+      isApproved
+        ? "✅ School Association Approved"
+        : "❌ School Association Rejected",
     );
 
-    embed.description = isApproved 
+    embed.description = isApproved
       ? `A coach's school association request has been approved. The coach is now onboarded and can create tryouts.`
       : `A coach's school association request has been rejected.`;
 
     embed.fields = [
       {
-        name: '👤 Coach',
+        name: "👤 Coach",
         value: `**Name:** ${data.coachName}\n**Email:** ${data.coachEmail}`,
         inline: true,
       },
       {
-        name: '🏫 School',
+        name: "🏫 School",
         value: data.schoolName,
         inline: true,
       },
       {
-        name: '📄 Request ID',
+        name: "📄 Request ID",
         value: `\`${data.requestId}\``,
         inline: false,
       },
@@ -366,7 +396,7 @@ class DiscordLogger {
 
     if (data.adminName) {
       embed.fields.push({
-        name: '👨‍💼 Reviewed By',
+        name: "👨‍💼 Reviewed By",
         value: data.adminName,
         inline: true,
       });
@@ -374,10 +404,11 @@ class DiscordLogger {
 
     if (data.adminNotes) {
       embed.fields.push({
-        name: '📝 Admin Notes',
-        value: data.adminNotes.length > 1000 
-          ? `${data.adminNotes.substring(0, 1000)}...`
-          : data.adminNotes,
+        name: "📝 Admin Notes",
+        value:
+          data.adminNotes.length > 1000
+            ? `${data.adminNotes.substring(0, 1000)}...`
+            : data.adminNotes,
         inline: false,
       });
     }
@@ -385,26 +416,28 @@ class DiscordLogger {
     return { embeds: [embed] };
   }
 
-  private formatLeagueAssociationRequest(data: LeagueAssociationRequestData): DiscordMessage {
+  private formatLeagueAssociationRequest(
+    data: LeagueAssociationRequestData,
+  ): DiscordMessage {
     const embed = this.createBaseEmbed(
       LogEventType.LEAGUE_ASSOCIATION_REQUEST,
-      '🏫 New League Association Request'
+      "🏫 New League Association Request",
     );
 
     embed.description = `A league administrator has requested association with a league and requires admin review.`;
     embed.fields = [
       {
-        name: '👤 Admin Details',
+        name: "👤 Admin Details",
         value: `**Name:** ${data.adminName}\n**Email:** ${data.adminEmail}`,
         inline: true,
       },
       {
-        name: '🏫 League Details',
+        name: "🏫 League Details",
         value: `**Name:** ${data.leagueName}\n**Type:** ${data.leagueType}\n**Region:** ${data.leagueRegion}`,
         inline: true,
       },
       {
-        name: '📄 Request ID',
+        name: "📄 Request ID",
         value: `\`${data.requestId}\``,
         inline: false,
       },
@@ -412,10 +445,11 @@ class DiscordLogger {
 
     if (data.requestMessage) {
       embed.fields.push({
-        name: '💬 Message',
-        value: data.requestMessage.length > 1000 
-          ? `${data.requestMessage.substring(0, 1000)}...`
-          : data.requestMessage,
+        name: "💬 Message",
+        value:
+          data.requestMessage.length > 1000
+            ? `${data.requestMessage.substring(0, 1000)}...`
+            : data.requestMessage,
         inline: false,
       });
     }
@@ -423,30 +457,35 @@ class DiscordLogger {
     return { embeds: [embed] };
   }
 
-  private formatLeagueAssociationDecision(eventType: LogEventType, data: LeagueAssociationDecisionData): DiscordMessage {
-    const isApproved = data.decision === 'approved';
+  private formatLeagueAssociationDecision(
+    eventType: LogEventType,
+    data: LeagueAssociationDecisionData,
+  ): DiscordMessage {
+    const isApproved = data.decision === "approved";
     const embed = this.createBaseEmbed(
       eventType,
-      isApproved ? '✅ League Association Approved' : '❌ League Association Rejected'
+      isApproved
+        ? "✅ League Association Approved"
+        : "❌ League Association Rejected",
     );
 
-    embed.description = isApproved 
+    embed.description = isApproved
       ? `A league administrator's league association request has been approved. The league administrator is now onboarded and can manage the league.`
       : `A league administrator's league association request has been rejected.`;
 
     embed.fields = [
       {
-        name: '👤 Admin',
+        name: "👤 Admin",
         value: `**Name:** ${data.adminName}\n**Email:** ${data.adminEmail}`,
         inline: true,
       },
       {
-        name: '🏫 League',
+        name: "🏫 League",
         value: data.leagueName,
         inline: true,
       },
       {
-        name: '📄 Request ID',
+        name: "📄 Request ID",
         value: `\`${data.requestId}\``,
         inline: false,
       },
@@ -454,7 +493,7 @@ class DiscordLogger {
 
     if (data.reviewerName) {
       embed.fields.push({
-        name: '👨‍💼 Reviewed By',
+        name: "👨‍💼 Reviewed By",
         value: data.reviewerName,
         inline: true,
       });
@@ -462,10 +501,11 @@ class DiscordLogger {
 
     if (data.reviewerNotes) {
       embed.fields.push({
-        name: '📝 Reviewer Notes',
-        value: data.reviewerNotes.length > 1000 
-          ? `${data.reviewerNotes.substring(0, 1000)}...`
-          : data.reviewerNotes,
+        name: "📝 Reviewer Notes",
+        value:
+          data.reviewerNotes.length > 1000
+            ? `${data.reviewerNotes.substring(0, 1000)}...`
+            : data.reviewerNotes,
         inline: false,
       });
     }
@@ -474,27 +514,30 @@ class DiscordLogger {
   }
 
   private formatTryoutCreated(data: TryoutCreatedData): DiscordMessage {
-    const embed = this.createBaseEmbed(LogEventType.TRYOUT_CREATED, '🎮 New Tryout Created');
-    
+    const embed = this.createBaseEmbed(
+      LogEventType.TRYOUT_CREATED,
+      "🎮 New Tryout Created",
+    );
+
     embed.description = `A new tryout has been created and is now available for players to join.`;
     embed.fields = [
       {
-        name: '🎯 Tryout Details',
+        name: "🎯 Tryout Details",
         value: `**Title:** ${data.tryoutTitle}\n**Game:** ${data.game}`,
         inline: true,
       },
       {
-        name: '🏫 School & Coach',
+        name: "🏫 School & Coach",
         value: `**School:** ${data.schoolName}\n**Coach:** ${data.coachName}`,
         inline: true,
       },
       {
-        name: '📅 Schedule',
+        name: "📅 Schedule",
         value: `**Start:** ${data.startDate.toLocaleDateString()}\n**End:** ${data.endDate.toLocaleDateString()}`,
         inline: false,
       },
       {
-        name: '🔗 Tryout ID',
+        name: "🔗 Tryout ID",
         value: `\`${data.tryoutId}\``,
         inline: false,
       },
@@ -504,17 +547,20 @@ class DiscordLogger {
   }
 
   private formatUserRegistration(data: UserRegistrationData): DiscordMessage {
-    const embed = this.createBaseEmbed(LogEventType.USER_REGISTRATION, '👋 New User Registration');
-    
+    const embed = this.createBaseEmbed(
+      LogEventType.USER_REGISTRATION,
+      "👋 New User Registration",
+    );
+
     embed.description = `A new ${data.userType} has registered on the platform.`;
     embed.fields = [
       {
-        name: '👤 User Details',
-        value: `**Name:** ${data.userName ?? 'Not provided'}\n**Email:** ${data.userEmail ?? 'Not provided'}\n**Type:** ${data.userType}`,
+        name: "👤 User Details",
+        value: `**Name:** ${data.userName ?? "Not provided"}\n**Email:** ${data.userEmail ?? "Not provided"}\n**Type:** ${data.userType}`,
         inline: true,
       },
       {
-        name: '📱 Registration Method',
+        name: "📱 Registration Method",
         value: data.registrationMethod,
         inline: true,
       },
@@ -522,7 +568,7 @@ class DiscordLogger {
 
     if (data.userId) {
       embed.fields.push({
-        name: '🆔 User ID',
+        name: "🆔 User ID",
         value: `\`${data.userId}\``,
         inline: false,
       });
@@ -532,32 +578,36 @@ class DiscordLogger {
   }
 
   private formatAdminAction(data: AdminActionData): DiscordMessage {
-    const embed = this.createBaseEmbed(LogEventType.ADMIN_ACTION, '⚡ Admin Action Performed');
-    
+    const embed = this.createBaseEmbed(
+      LogEventType.ADMIN_ACTION,
+      "⚡ Admin Action Performed",
+    );
+
     embed.description = `An administrative action has been performed on the platform.`;
     embed.fields = [
       {
-        name: '👨‍💼 Admin',
-        value: `**Name:** ${data.userName ?? 'Unknown'}\n**Email:** ${data.userEmail ?? 'Unknown'}`,
+        name: "👨‍💼 Admin",
+        value: `**Name:** ${data.userName ?? "Unknown"}\n**Email:** ${data.userEmail ?? "Unknown"}`,
         inline: true,
       },
       {
-        name: '🎯 Action',
+        name: "🎯 Action",
         value: data.action,
         inline: true,
       },
       {
-        name: '📝 Details',
-        value: data.details.length > 1000 
-          ? `${data.details.substring(0, 1000)}...`
-          : data.details,
+        name: "📝 Details",
+        value:
+          data.details.length > 1000
+            ? `${data.details.substring(0, 1000)}...`
+            : data.details,
         inline: false,
       },
     ];
 
     if (data.targetUserEmail) {
       embed.fields.push({
-        name: '🎯 Target User',
+        name: "🎯 Target User",
         value: data.targetUserEmail,
         inline: true,
       });
@@ -567,29 +617,33 @@ class DiscordLogger {
   }
 
   private formatError(data: ErrorEventData): DiscordMessage {
-    const embed = this.createBaseEmbed(LogEventType.ERROR, '🚨 Application Error');
-    
+    const embed = this.createBaseEmbed(
+      LogEventType.ERROR,
+      "🚨 Application Error",
+    );
+
     const severityEmoji = {
-      low: '🟡',
-      medium: '🟠',
-      high: '🔴',
-      critical: '💥',
+      low: "🟡",
+      medium: "🟠",
+      high: "🔴",
+      critical: "💥",
     };
 
     embed.description = `${severityEmoji[data.severity]} **${data.severity.toUpperCase()}** severity error detected.`;
     embed.fields = [
       {
-        name: '❌ Error',
-        value: data.error.length > 1000 
-          ? `${data.error.substring(0, 1000)}...`
-          : data.error,
+        name: "❌ Error",
+        value:
+          data.error.length > 1000
+            ? `${data.error.substring(0, 1000)}...`
+            : data.error,
         inline: false,
       },
     ];
 
     if (data.errorCode) {
       embed.fields.push({
-        name: '🔢 Error Code',
+        name: "🔢 Error Code",
         value: data.errorCode,
         inline: true,
       });
@@ -597,7 +651,7 @@ class DiscordLogger {
 
     if (data.endpoint) {
       embed.fields.push({
-        name: '🌐 Endpoint',
+        name: "🌐 Endpoint",
         value: data.endpoint,
         inline: true,
       });
@@ -605,16 +659,16 @@ class DiscordLogger {
 
     if (data.userEmail) {
       embed.fields.push({
-        name: '👤 User',
+        name: "👤 User",
         value: data.userEmail,
         inline: true,
       });
     }
 
-    if (data.stack && env.NODE_ENV === 'development') {
+    if (data.stack && env.NODE_ENV === "development") {
       embed.fields.push({
-        name: '📋 Stack Trace',
-        value: `\`\`\`\n${data.stack.substring(0, 800)}${data.stack.length > 800 ? '...' : ''}\n\`\`\``,
+        name: "📋 Stack Trace",
+        value: `\`\`\`\n${data.stack.substring(0, 800)}${data.stack.length > 800 ? "..." : ""}\n\`\`\``,
         inline: false,
       });
     }
@@ -623,34 +677,38 @@ class DiscordLogger {
   }
 
   private formatSecurityAlert(data: SecurityAlertData): DiscordMessage {
-    const embed = this.createBaseEmbed(LogEventType.SECURITY_ALERT, '🛡️ Security Alert');
-    
+    const embed = this.createBaseEmbed(
+      LogEventType.SECURITY_ALERT,
+      "🛡️ Security Alert",
+    );
+
     const severityEmoji = {
-      low: '🟡',
-      medium: '🟠',
-      high: '🔴',
-      critical: '💥',
+      low: "🟡",
+      medium: "🟠",
+      high: "🔴",
+      critical: "💥",
     };
 
     embed.description = `${severityEmoji[data.severity]} **${data.severity.toUpperCase()}** security alert detected.`;
     embed.fields = [
       {
-        name: '🚨 Alert Type',
+        name: "🚨 Alert Type",
         value: data.alertType,
         inline: true,
       },
       {
-        name: '📝 Details',
-        value: data.details.length > 1000 
-          ? `${data.details.substring(0, 1000)}...`
-          : data.details,
+        name: "📝 Details",
+        value:
+          data.details.length > 1000
+            ? `${data.details.substring(0, 1000)}...`
+            : data.details,
         inline: false,
       },
     ];
 
     if (data.userEmail) {
       embed.fields.push({
-        name: '👤 User',
+        name: "👤 User",
         value: data.userEmail,
         inline: true,
       });
@@ -658,7 +716,7 @@ class DiscordLogger {
 
     if (data.ip) {
       embed.fields.push({
-        name: '🌐 IP Address',
+        name: "🌐 IP Address",
         value: data.ip,
         inline: true,
       });
@@ -666,7 +724,7 @@ class DiscordLogger {
 
     if (data.blockedAction) {
       embed.fields.push({
-        name: '🚫 Blocked Action',
+        name: "🚫 Blocked Action",
         value: data.blockedAction,
         inline: false,
       });
@@ -680,50 +738,109 @@ class DiscordLogger {
 export const discordLogger = new DiscordLogger();
 
 // Helper functions for common use cases
-export const logSchoolAssociationRequest = (data: SchoolAssociationRequestData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.SCHOOL_ASSOCIATION_REQUEST, data, webhookUrl);
+export const logSchoolAssociationRequest = (
+  data: SchoolAssociationRequestData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.SCHOOL_ASSOCIATION_REQUEST,
+    data,
+    webhookUrl,
+  );
 };
 
-export const logSchoolAssociationApproved = (data: SchoolAssociationDecisionData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.SCHOOL_ASSOCIATION_APPROVED, data, webhookUrl);
+export const logSchoolAssociationApproved = (
+  data: SchoolAssociationDecisionData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.SCHOOL_ASSOCIATION_APPROVED,
+    data,
+    webhookUrl,
+  );
 };
 
-export const logSchoolAssociationRejected = (data: SchoolAssociationDecisionData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.SCHOOL_ASSOCIATION_REJECTED, data, webhookUrl);
+export const logSchoolAssociationRejected = (
+  data: SchoolAssociationDecisionData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.SCHOOL_ASSOCIATION_REJECTED,
+    data,
+    webhookUrl,
+  );
 };
 
-export const logLeagueAssociationRequest = (data: LeagueAssociationRequestData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.LEAGUE_ASSOCIATION_REQUEST, data, webhookUrl);
+export const logLeagueAssociationRequest = (
+  data: LeagueAssociationRequestData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.LEAGUE_ASSOCIATION_REQUEST,
+    data,
+    webhookUrl,
+  );
 };
 
-export const logLeagueAssociationApproved = (data: LeagueAssociationDecisionData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.LEAGUE_ASSOCIATION_APPROVED, data, webhookUrl);
+export const logLeagueAssociationApproved = (
+  data: LeagueAssociationDecisionData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.LEAGUE_ASSOCIATION_APPROVED,
+    data,
+    webhookUrl,
+  );
 };
 
-export const logLeagueAssociationRejected = (data: LeagueAssociationDecisionData, webhookUrl?: string) => {
-  return discordLogger.logEvent(LogEventType.LEAGUE_ASSOCIATION_REJECTED, data, webhookUrl);
+export const logLeagueAssociationRejected = (
+  data: LeagueAssociationDecisionData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.LEAGUE_ASSOCIATION_REJECTED,
+    data,
+    webhookUrl,
+  );
 };
 
-export const logTryoutCreated = (data: TryoutCreatedData, webhookUrl?: string) => {
+export const logTryoutCreated = (
+  data: TryoutCreatedData,
+  webhookUrl?: string,
+) => {
   return discordLogger.logEvent(LogEventType.TRYOUT_CREATED, data, webhookUrl);
 };
 
-export const logUserRegistration = (data: UserRegistrationData, webhookUrl?: string) => {
-   
-  return discordLogger.logEvent(LogEventType.USER_REGISTRATION, data, WEBHOOK_URLS.registrations);
+export const logUserRegistration = (
+  data: UserRegistrationData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.USER_REGISTRATION,
+    data,
+    WEBHOOK_URLS.registrations,
+  );
 };
 
 export const logAdminAction = (data: AdminActionData, webhookUrl?: string) => {
-   
-  return discordLogger.logEvent(LogEventType.ADMIN_ACTION, data, WEBHOOK_URLS.admin);
+  return discordLogger.logEvent(
+    LogEventType.ADMIN_ACTION,
+    data,
+    WEBHOOK_URLS.admin,
+  );
 };
 
 export const logError = (data: ErrorEventData, webhookUrl?: string) => {
-   
   return discordLogger.logEvent(LogEventType.ERROR, data, WEBHOOK_URLS.errors);
 };
 
-export const logSecurityAlert = (data: SecurityAlertData, webhookUrl?: string) => {
-   
-  return discordLogger.logEvent(LogEventType.SECURITY_ALERT, data, WEBHOOK_URLS.errors);
-}; 
+export const logSecurityAlert = (
+  data: SecurityAlertData,
+  webhookUrl?: string,
+) => {
+  return discordLogger.logEvent(
+    LogEventType.SECURITY_ALERT,
+    data,
+    WEBHOOK_URLS.errors,
+  );
+};

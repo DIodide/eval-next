@@ -6,7 +6,11 @@ import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { type Prisma } from "@prisma/client";
-import { logLeagueAssociationApproved, logLeagueAssociationRejected, logAdminAction } from "@/lib/discord-logger";
+import {
+  logLeagueAssociationApproved,
+  logLeagueAssociationRejected,
+  logAdminAction,
+} from "@/lib/discord-logger";
 
 // Type for custom games
 interface CustomGameData {
@@ -28,7 +32,7 @@ const rejectRequestSchema = z.object({
 });
 
 const searchRequestsSchema = z.object({
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
   search: z.string().optional(),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(20),
@@ -47,19 +51,32 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
               {
                 administrator: {
                   OR: [
-                    { first_name: { contains: input.search, mode: 'insensitive' } },
-                    { last_name: { contains: input.search, mode: 'insensitive' } },
-                    { email: { contains: input.search, mode: 'insensitive' } },
+                    {
+                      first_name: {
+                        contains: input.search,
+                        mode: "insensitive",
+                      },
+                    },
+                    {
+                      last_name: {
+                        contains: input.search,
+                        mode: "insensitive",
+                      },
+                    },
+                    { email: { contains: input.search, mode: "insensitive" } },
                   ],
                 },
               },
               {
                 league: {
-                  name: { contains: input.search, mode: 'insensitive' },
+                  name: { contains: input.search, mode: "insensitive" },
                 },
               },
               {
-                proposed_league_name: { contains: input.search, mode: 'insensitive' },
+                proposed_league_name: {
+                  contains: input.search,
+                  mode: "insensitive",
+                },
               },
             ],
           }),
@@ -102,10 +119,7 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: [
-              { status: 'asc' },
-              { created_at: 'desc' },
-            ],
+            orderBy: [{ status: "asc" }, { created_at: "desc" }],
             skip: (input.page - 1) * input.limit,
             take: input.limit,
           }),
@@ -115,7 +129,10 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
         // Resolve game names for proposed game IDs
         const requestsWithGameDetails = await Promise.all(
           requests.map(async (request) => {
-            if (request.is_new_league_request && Array.isArray(request.proposed_game_ids)) {
+            if (
+              request.is_new_league_request &&
+              Array.isArray(request.proposed_game_ids)
+            ) {
               const gameIds = request.proposed_game_ids as unknown as string[];
               const games = await ctx.db.game.findMany({
                 where: {
@@ -127,14 +144,14 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
                   short_name: true,
                 },
               });
-              
+
               return {
                 ...request,
                 proposed_games: games,
               };
             }
             return request;
-          })
+          }),
         );
 
         const totalPages = Math.ceil(totalCount / input.limit);
@@ -151,10 +168,10 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
           },
         };
       } catch (error) {
-        console.error('Error fetching league association requests:', error);
+        console.error("Error fetching league association requests:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch league association requests',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch league association requests",
         });
       }
     }),
@@ -163,15 +180,15 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
   getPendingCount: adminProcedure.query(async ({ ctx }) => {
     try {
       const count = await ctx.db.leagueAssociationRequest.count({
-        where: { status: 'PENDING' },
+        where: { status: "PENDING" },
       });
 
       return count;
     } catch (error) {
-      console.error('Error fetching pending league requests count:', error);
+      console.error("Error fetching pending league requests count:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch pending requests count',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch pending requests count",
       });
     }
   }),
@@ -188,33 +205,39 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
           where: { id: input.requestId },
           include: {
             administrator: {
-              select: { id: true, clerk_id: true, league_id: true, first_name: true, last_name: true, email: true },
+              select: {
+                id: true,
+                clerk_id: true,
+                league_id: true,
+                first_name: true,
+                last_name: true,
+                email: true,
+              },
             },
             league: {
               select: { id: true, name: true },
             },
-
           },
         });
 
         if (!request) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'League association request not found',
+            code: "NOT_FOUND",
+            message: "League association request not found",
           });
         }
 
-        if (request.status !== 'PENDING') {
+        if (request.status !== "PENDING") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Request has already been processed',
+            code: "BAD_REQUEST",
+            message: "Request has already been processed",
           });
         }
 
         if (request.administrator.league_id) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'League administrator already has a league association',
+            code: "BAD_REQUEST",
+            message: "League administrator already has a league association",
           });
         }
 
@@ -224,21 +247,35 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
 
         if (request.is_new_league_request) {
           // Create new league with multi-game support
-          if (!request.proposed_league_name || !request.proposed_tier || !request.proposed_region) {
+          if (
+            !request.proposed_league_name ||
+            !request.proposed_tier ||
+            !request.proposed_region
+          ) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Missing required league information for new league creation',
+              code: "BAD_REQUEST",
+              message:
+                "Missing required league information for new league creation",
             });
           }
 
           // Get the proposed games (already parsed by Prisma)
-          const proposedGameIds = Array.isArray(request.proposed_game_ids) ? request.proposed_game_ids as unknown as string[] : [];
-          const proposedCustomGames = Array.isArray(request.proposed_custom_games) ? request.proposed_custom_games as unknown as CustomGameData[] : [];
+          const proposedGameIds = Array.isArray(request.proposed_game_ids)
+            ? (request.proposed_game_ids as unknown as string[])
+            : [];
+          const proposedCustomGames = Array.isArray(
+            request.proposed_custom_games,
+          )
+            ? (request.proposed_custom_games as unknown as CustomGameData[])
+            : [];
 
-          if (proposedGameIds.length === 0 && proposedCustomGames.length === 0) {
+          if (
+            proposedGameIds.length === 0 &&
+            proposedCustomGames.length === 0
+          ) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'At least one game must be selected for the new league',
+              code: "BAD_REQUEST",
+              message: "At least one game must be selected for the new league",
             });
           }
 
@@ -246,13 +283,15 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
           const newLeague = await ctx.db.league.create({
             data: {
               name: request.proposed_league_name,
-              short_name: request.proposed_league_short_name ?? request.proposed_league_name.substring(0, 10),
-              description: request.proposed_league_description ?? '',
+              short_name:
+                request.proposed_league_short_name ??
+                request.proposed_league_name.substring(0, 10),
+              description: request.proposed_league_description ?? "",
               region: request.proposed_region,
-              state: request.proposed_state ?? '',
+              state: request.proposed_state ?? "",
               tier: request.proposed_tier,
-              season: request.proposed_season ?? 'TBD',
-              status: 'UPCOMING',
+              season: request.proposed_season ?? "TBD",
+              status: "UPCOMING",
               format: request.proposed_format,
               founded_year: request.proposed_founded_year,
             },
@@ -289,8 +328,8 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
           // Use existing league
           if (!request.league_id || !request.league) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'League information not found',
+              code: "BAD_REQUEST",
+              message: "League information not found",
             });
           }
 
@@ -304,7 +343,7 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
           const updatedRequest = await tx.leagueAssociationRequest.update({
             where: { id: input.requestId },
             data: {
-              status: 'APPROVED',
+              status: "APPROVED",
               admin_notes: input.adminNotes,
             },
           });
@@ -319,7 +358,12 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
             },
           });
 
-          return { request: updatedRequest, leagueAdmin: updatedLeagueAdmin, leagueName, leagueId };
+          return {
+            request: updatedRequest,
+            leagueAdmin: updatedLeagueAdmin,
+            leagueName,
+            leagueId,
+          };
         });
 
         // Update Clerk publicMetadata to mark league admin as onboarded
@@ -328,13 +372,13 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
           await client.users.updateUser(request.administrator.clerk_id, {
             publicMetadata: {
               onboarded: true,
-              userType: 'league_admin',
+              userType: "league_admin",
               leagueId: result.leagueId,
               leagueName: result.leagueName,
             },
           });
         } catch (clerkError) {
-          console.error('Failed to update Clerk metadata:', clerkError);
+          console.error("Failed to update Clerk metadata:", clerkError);
           // Don't throw error here as the database transaction was successful
           // The league admin can still function, they just might need to refresh
         }
@@ -377,10 +421,10 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error approving league association request:', error);
+        console.error("Error approving league association request:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to approve league association request',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to approve league association request",
         });
       }
     }),
@@ -406,22 +450,22 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
 
         if (!request) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'League association request not found',
+            code: "NOT_FOUND",
+            message: "League association request not found",
           });
         }
 
-        if (request.status !== 'PENDING') {
+        if (request.status !== "PENDING") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Request has already been processed',
+            code: "BAD_REQUEST",
+            message: "Request has already been processed",
           });
         }
 
         const updatedRequest = await ctx.db.leagueAssociationRequest.update({
           where: { id: input.requestId },
           data: {
-            status: 'REJECTED',
+            status: "REJECTED",
             admin_notes: input.adminNotes,
           },
           include: {
@@ -444,10 +488,13 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
         try {
           const adminName = ctx.adminName ?? "Unknown Admin";
           const adminEmail = ctx.adminEmail ?? "Unknown";
-          
+
           // Get league name for logging
-          const leagueName = updatedRequest.league?.name ?? 
-            (updatedRequest.proposed_league_name ? `${updatedRequest.proposed_league_name} (New League Request)` : "Unknown League");
+          const leagueName =
+            updatedRequest.league?.name ??
+            (updatedRequest.proposed_league_name
+              ? `${updatedRequest.proposed_league_name} (New League Request)`
+              : "Unknown League");
 
           await logLeagueAssociationRejected({
             requestId: input.requestId,
@@ -482,10 +529,10 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error rejecting league association request:', error);
+        console.error("Error rejecting league association request:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to reject league association request',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to reject league association request",
         });
       }
     }),
@@ -550,8 +597,8 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
 
         if (!request) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'League association request not found',
+            code: "NOT_FOUND",
+            message: "League association request not found",
           });
         }
 
@@ -560,11 +607,11 @@ export const leagueAssociationRequestsRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error fetching league association request:', error);
+        console.error("Error fetching league association request:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch league association request',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch league association request",
         });
       }
     }),
-}); 
+});

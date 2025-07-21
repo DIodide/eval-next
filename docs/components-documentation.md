@@ -27,7 +27,13 @@ A versatile button component with multiple variants and sizes.
 
 ```typescript
 interface ButtonProps extends React.ComponentProps<"button"> {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
   size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
   className?: string;
@@ -86,13 +92,13 @@ Container component for grouping related content.
 #### Example
 
 ```tsx
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 
 <Card className="w-[350px]">
@@ -114,7 +120,7 @@ import {
     <Button variant="outline">Cancel</Button>
     <Button>Save</Button>
   </CardFooter>
-</Card>
+</Card>;
 ```
 
 ### Dialog
@@ -170,7 +176,7 @@ import {
       <Button type="submit">Save changes</Button>
     </DialogFooter>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### Toast
@@ -233,11 +239,7 @@ toast({
 toast({
   title: "Scheduled: Catch up",
   description: "Friday, February 10, 2023 at 5:30 PM",
-  action: (
-    <ToastAction altText="Goto schedule to undo">
-      Undo
-    </ToastAction>
-  ),
+  action: <ToastAction altText="Goto schedule to undo">Undo</ToastAction>,
 });
 ```
 
@@ -274,10 +276,10 @@ import { Input } from "@/components/ui/input";
 </div>
 
 // With error state
-<Input 
-  type="email" 
-  placeholder="Email" 
-  className="border-red-500" 
+<Input
+  type="email"
+  placeholder="Email"
+  className="border-red-500"
   aria-invalid="true"
 />
 ```
@@ -316,7 +318,7 @@ import {
     <SelectItem value="overwatch">Overwatch 2</SelectItem>
     <SelectItem value="rocket-league">Rocket League</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 ### Checkbox
@@ -334,11 +336,11 @@ import { Checkbox } from "@/components/ui/checkbox";
   <Checkbox id="terms" />
   <label
     htmlFor="terms"
-    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+    className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
   >
     Accept terms and conditions
   </label>
-</div>
+</div>;
 ```
 
 ### Label
@@ -352,7 +354,7 @@ Form label component.
 ```tsx
 import { Label } from "@/components/ui/label";
 
-<Label htmlFor="email">Your email address</Label>
+<Label htmlFor="email">Your email address</Label>;
 ```
 
 ### Textarea
@@ -369,7 +371,7 @@ import { Textarea } from "@/components/ui/textarea";
 <div className="grid w-full gap-1.5">
   <Label htmlFor="message">Your message</Label>
   <Textarea placeholder="Type your message here." id="message" />
-</div>
+</div>;
 ```
 
 ---
@@ -389,8 +391,8 @@ import { Separator } from "@/components/ui/separator";
 
 <div>
   <div className="space-y-1">
-    <h4 className="text-sm font-medium leading-none">Profile Settings</h4>
-    <p className="text-sm text-muted-foreground">
+    <h4 className="text-sm leading-none font-medium">Profile Settings</h4>
+    <p className="text-muted-foreground text-sm">
       Manage your profile information
     </p>
   </div>
@@ -402,7 +404,7 @@ import { Separator } from "@/components/ui/separator";
     <Separator orientation="vertical" />
     <div>Social Links</div>
   </div>
-</div>
+</div>;
 ```
 
 ### Tabs
@@ -434,7 +436,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
   <TabsContent value="password">
     <p>Change your password here.</p>
   </TabsContent>
-</Tabs>
+</Tabs>;
 ```
 
 ### Collapsible
@@ -457,7 +459,7 @@ import {
   <CollapsibleContent>
     Yes. Free to use for personal and commercial projects.
   </CollapsibleContent>
-</Collapsible>
+</Collapsible>;
 ```
 
 ---
@@ -535,12 +537,12 @@ const columns: ColumnDef<Player>[] = [
   },
 ];
 
-<DataTable 
-  columns={columns} 
-  data={players} 
+<DataTable
+  columns={columns}
+  data={players}
   searchKey="name"
   searchPlaceholder="Search players..."
-/>
+/>;
 ```
 
 ### Table
@@ -591,7 +593,7 @@ import {
       <TableCell className="text-right">Registered</TableCell>
     </TableRow>
   </TableBody>
-</Table>
+</Table>;
 ```
 
 ### Badge
@@ -617,7 +619,7 @@ import { Badge } from "@/components/ui/badge";
   <Badge variant="secondary">Pending</Badge>
   <Badge variant="destructive">Rejected</Badge>
   <Badge variant="outline">Draft</Badge>
-</div>
+</div>;
 ```
 
 ### Avatar
@@ -640,7 +642,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 <Avatar>
   <AvatarImage src="https://github.com/username.png" />
   <AvatarFallback>JD</AvatarFallback>
-</Avatar>
+</Avatar>;
 ```
 
 ---
@@ -676,13 +678,11 @@ import {
           <li className="row-span-3">
             <NavigationMenuLink asChild>
               <a
-                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none select-none focus:shadow-md"
                 href="/"
               >
-                <div className="mb-2 mt-4 text-lg font-medium">
-                  EVAL Gaming
-                </div>
-                <p className="text-sm leading-tight text-muted-foreground">
+                <div className="mt-4 mb-2 text-lg font-medium">EVAL Gaming</div>
+                <p className="text-muted-foreground text-sm leading-tight">
                   Connect with college esports programs
                 </p>
               </a>
@@ -692,7 +692,7 @@ import {
       </NavigationMenuContent>
     </NavigationMenuItem>
   </NavigationMenuList>
-</NavigationMenu>
+</NavigationMenu>;
 ```
 
 ### DropdownMenu
@@ -722,7 +722,7 @@ import {
     <DropdownMenuItem>Settings</DropdownMenuItem>
     <DropdownMenuItem>Logout</DropdownMenuItem>
   </DropdownMenuContent>
-</DropdownMenu>
+</DropdownMenu>;
 ```
 
 ---
@@ -742,7 +742,7 @@ import { Progress } from "@/components/ui/progress";
 
 <div className="w-full">
   <Progress value={33} className="w-[60%]" />
-</div>
+</div>;
 ```
 
 ### Skeleton
@@ -762,7 +762,7 @@ import { Skeleton } from "@/components/ui/skeleton";
     <Skeleton className="h-4 w-[250px]" />
     <Skeleton className="h-4 w-[200px]" />
   </div>
-</div>
+</div>;
 ```
 
 ---
@@ -795,8 +795,8 @@ import { OnboardingGuard } from "@/components/ui/OnboardingGuard";
 </OnboardingGuard>
 
 // With custom fallback
-<OnboardingGuard 
-  requireOnboarded 
+<OnboardingGuard
+  requireOnboarded
   fallback={<div>Please complete onboarding first</div>}
 >
   <CoachFeatures />
@@ -826,11 +826,11 @@ import { FlipWords } from "@/components/ui/flip-words";
 
 const words = ["recruiting", "competing", "improving", "connecting"];
 
-<div className="text-4xl mx-auto font-normal text-neutral-600 dark:text-neutral-400">
+<div className="mx-auto text-4xl font-normal text-neutral-600 dark:text-neutral-400">
   Build
   <FlipWords words={words} /> <br />
   your esports career
-</div>
+</div>;
 ```
 
 ---
@@ -851,7 +851,11 @@ interface AgentSelectorProps {
   maxSelection?: number;
 }
 
-function AgentSelector({ selectedAgents, onAgentsChange, maxSelection = 3 }: AgentSelectorProps) {
+function AgentSelector({
+  selectedAgents,
+  onAgentsChange,
+  maxSelection = 3,
+}: AgentSelectorProps) {
   const agents = [
     { id: "jett", name: "Jett", role: "Duelist" },
     { id: "sage", name: "Sage", role: "Sentinel" },
@@ -865,20 +869,20 @@ function AgentSelector({ selectedAgents, onAgentsChange, maxSelection = 3 }: Age
           key={agent.id}
           onClick={() => {
             if (selectedAgents.includes(agent.id)) {
-              onAgentsChange(selectedAgents.filter(id => id !== agent.id));
+              onAgentsChange(selectedAgents.filter((id) => id !== agent.id));
             } else if (selectedAgents.length < maxSelection) {
               onAgentsChange([...selectedAgents, agent.id]);
             }
           }}
           className={cn(
-            "p-2 border rounded-md text-center",
-            selectedAgents.includes(agent.id) 
-              ? "border-primary bg-primary/10" 
-              : "border-border"
+            "rounded-md border p-2 text-center",
+            selectedAgents.includes(agent.id)
+              ? "border-primary bg-primary/10"
+              : "border-border",
           )}
         >
           <div className="font-medium">{agent.name}</div>
-          <div className="text-xs text-muted-foreground">{agent.role}</div>
+          <div className="text-muted-foreground text-xs">{agent.role}</div>
         </button>
       ))}
     </div>
@@ -910,7 +914,7 @@ Many UI components follow the compound component pattern:
 </Card>
 
 // Avoid: Monolithic props
-<Card 
+<Card
   title="Title"
   description="Description"
   content="Content"
@@ -923,19 +927,18 @@ Many UI components follow the compound component pattern:
 Components properly forward refs for accessibility:
 
 ```tsx
-const Input = React.forwardRef<
-  HTMLInputElement,
-  InputProps
->(({ className, type, ...props }, ref) => {
-  return (
-    <input
-      type={type}
-      className={cn(inputVariants(), className)}
-      ref={ref}
-      {...props}
-    />
-  );
-});
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(inputVariants(), className)}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
 ```
 
 ### Polymorphic Components
@@ -991,11 +994,11 @@ import { cn } from "@/lib/utils";
 
 function Component({ className, variant }: Props) {
   return (
-    <div 
+    <div
       className={cn(
         "base-styles",
         variant === "large" && "large-styles",
-        className
+        className,
       )}
     >
       Content
@@ -1009,7 +1012,7 @@ function Component({ className, variant }: Props) {
 Use Tailwind's responsive prefixes:
 
 ```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
   {/* Responsive grid */}
 </div>
 ```
@@ -1029,7 +1032,7 @@ Components automatically support dark mode through CSS variables:
 Ensure proper focus indicators for accessibility:
 
 ```tsx
-<button className="focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+<button className="focus:ring-ring focus:ring-2 focus:ring-offset-2 focus:outline-none">
   Accessible Button
 </button>
 ```

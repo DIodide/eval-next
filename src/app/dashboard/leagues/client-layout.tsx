@@ -8,18 +8,18 @@ import { redirect } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { 
-  HomeIcon, 
-  UserIcon, 
-  TrophyIcon, 
-  UsersIcon, 
+import {
+  HomeIcon,
+  UserIcon,
+  TrophyIcon,
+  UsersIcon,
   MenuIcon,
   XIcon,
   LockIcon,
   SettingsIcon,
   EyeIcon,
   BuildingIcon,
-  BarChart3Icon
+  BarChart3Icon,
 } from "lucide-react";
 import { isLeagueAdminOnboarded } from "@/lib/client/permissions";
 import { api } from "@/trpc/react";
@@ -27,9 +27,9 @@ import { api } from "@/trpc/react";
 // Define protected routes that require onboarding
 const protectedRoutes = [
   "/dashboard/leagues/players",
-  "/dashboard/leagues/teams", 
+  "/dashboard/leagues/teams",
   "/dashboard/leagues/profile",
-  "/dashboard/leagues/rankings"
+  "/dashboard/leagues/rankings",
 ];
 
 export function LeaguesDashboardClientLayout({
@@ -46,7 +46,7 @@ export function LeaguesDashboardClientLayout({
   const isOnboarded = user ? isLeagueAdminOnboarded(user) : false;
   const { data: leagueProfile } = api.leagueAdminProfile.getProfile.useQuery(
     undefined,
-    { enabled: isOnboarded }
+    { enabled: isOnboarded },
   );
 
   // Check if user is a league administrator
@@ -60,8 +60,10 @@ export function LeaguesDashboardClientLayout({
   // Check onboarding status and redirect if necessary
   useEffect(() => {
     if (isLoaded && user) {
-      const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-      
+      const isProtectedRoute = protectedRoutes.some((route) =>
+        pathname.startsWith(route),
+      );
+
       if (!isOnboarded && isProtectedRoute) {
         router.push("/dashboard/leagues");
       }
@@ -71,8 +73,8 @@ export function LeaguesDashboardClientLayout({
   // Show loading state while checking user
   if (!isLoaded) {
     return (
-      <div className="flex h-screen bg-[#0f0f1a] items-center justify-center">
-        <div className="text-white font-rajdhani">Loading...</div>
+      <div className="flex h-screen items-center justify-center bg-[#0f0f1a]">
+        <div className="font-rajdhani text-white">Loading...</div>
       </div>
     );
   }
@@ -94,13 +96,17 @@ export function LeaguesDashboardClientLayout({
       enabled: true,
       subItems: [
         // Only show public profile link for onboarded league admins with league data
-        ...(isOnboarded && leagueProfile?.league_ref?.id ? [{
-          title: "Public Profile",
-          href: `/profiles/leagues/${leagueProfile.league_ref.id}`,
-          icon: EyeIcon,
-          requiresOnboarding: true,
-        }] : [])
-      ]
+        ...(isOnboarded && leagueProfile?.league_ref?.id
+          ? [
+              {
+                title: "Public Profile",
+                href: `/profiles/leagues/${leagueProfile.league_ref.id}`,
+                icon: EyeIcon,
+                requiresOnboarding: true,
+              },
+            ]
+          : []),
+      ],
     },
     {
       title: "Player Search",
@@ -152,22 +158,22 @@ export function LeaguesDashboardClientLayout({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-[#1a1a2e] border-r border-gray-800 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-800 bg-[#1a1a2e] transition-transform duration-200 ease-in-out lg:static lg:inset-0 lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex h-full flex-col">
           {/* Sidebar header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <div className="flex items-center justify-between border-b border-gray-800 p-4">
             <div>
-              <h2 className="text-xl font-orbitron font-bold text-white">
+              <h2 className="font-orbitron text-xl font-bold text-white">
                 League Dashboard
               </h2>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="mt-1 text-xs text-gray-400">
                 {user?.firstName} {user?.lastName}
               </p>
               {!isOnboarded && (
-                <p className="text-xs text-yellow-400 mt-1 flex items-center gap-1">
+                <p className="mt-1 flex items-center gap-1 text-xs text-yellow-400">
                   <LockIcon className="h-3 w-3" />
                   Pending Onboarding
                 </p>
@@ -176,7 +182,7 @@ export function LeaguesDashboardClientLayout({
             <Button
               variant="ghost"
               size="sm"
-              className="lg:hidden text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white lg:hidden"
               onClick={() => setSidebarOpen(false)}
             >
               <XIcon className="h-5 w-5" />
@@ -189,16 +195,18 @@ export function LeaguesDashboardClientLayout({
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                const isDisabled = (item.requiresOnboarding && !isOnboarded) || item.enabled === false;
-                
+                const isDisabled =
+                  (item.requiresOnboarding && !isOnboarded) ||
+                  item.enabled === false;
+
                 return (
                   <li key={item.href}>
                     {/* Main navigation item */}
                     {isDisabled ? (
                       <div
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium cursor-not-allowed opacity-50",
-                          "text-gray-500"
+                          "flex cursor-not-allowed items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium opacity-50",
+                          "text-gray-500",
                         )}
                       >
                         <LockIcon className="h-4 w-4" />
@@ -208,10 +216,10 @@ export function LeaguesDashboardClientLayout({
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
                           isActive
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-300 hover:text-white hover:bg-gray-800"
+                            : "text-gray-300 hover:bg-gray-800 hover:text-white",
                         )}
                         onClick={() => setSidebarOpen(false)}
                       >
@@ -221,32 +229,34 @@ export function LeaguesDashboardClientLayout({
                     )}
 
                     {/* Sub-items (only show if enabled and they exist) */}
-                    {item.subItems && item.subItems.length > 0 && !isDisabled && (
-                      <ul className="ml-8 mt-2 space-y-1">
-                        {item.subItems.map((subItem) => {
-                          const SubIcon = subItem.icon;
-                          const isSubActive = pathname === subItem.href;
-                          
-                          return (
-                            <li key={subItem.href}>
-                              <Link
-                                href={subItem.href}
-                                className={cn(
-                                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                                  isSubActive
-                                    ? "bg-indigo-500 text-white"
-                                    : "text-gray-400 hover:text-white hover:bg-gray-700"
-                                )}
-                                onClick={() => setSidebarOpen(false)}
-                              >
-                                <SubIcon className="h-4 w-4" />
-                                {subItem.title}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
+                    {item.subItems &&
+                      item.subItems.length > 0 &&
+                      !isDisabled && (
+                        <ul className="mt-2 ml-8 space-y-1">
+                          {item.subItems.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            const isSubActive = pathname === subItem.href;
+
+                            return (
+                              <li key={subItem.href}>
+                                <Link
+                                  href={subItem.href}
+                                  className={cn(
+                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                    isSubActive
+                                      ? "bg-indigo-500 text-white"
+                                      : "text-gray-400 hover:bg-gray-700 hover:text-white",
+                                  )}
+                                  onClick={() => setSidebarOpen(false)}
+                                >
+                                  <SubIcon className="h-4 w-4" />
+                                  {subItem.title}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
                   </li>
                 );
               })}
@@ -263,7 +273,7 @@ export function LeaguesDashboardClientLayout({
               className="w-full"
               onClick={() => setSidebarOpen(false)}
             >
-              <MenuIcon className="h-4 w-4 mr-2" />
+              <MenuIcon className="mr-2 h-4 w-4" />
               Close Menu
             </Button>
           </div>
@@ -271,25 +281,23 @@ export function LeaguesDashboardClientLayout({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-1 flex-col">
         {/* Top bar for mobile */}
-        <div className="lg:hidden bg-[#1a1a2e] border-b border-gray-800 p-4">
+        <div className="border-b border-gray-800 bg-[#1a1a2e] p-4 lg:hidden">
           <Button
             variant="ghost"
             size="sm"
             className="text-gray-400 hover:text-white"
             onClick={() => setSidebarOpen(true)}
           >
-            <MenuIcon className="h-5 w-5 mr-2" />
+            <MenuIcon className="mr-2 h-5 w-5" />
             Menu
           </Button>
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-auto p-6">
-          {children}
-        </div>
+        <div className="flex-1 overflow-auto p-6">{children}</div>
       </div>
     </div>
   );
-} 
+}

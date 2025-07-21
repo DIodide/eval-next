@@ -25,7 +25,9 @@ const playerFiltersSchema = directoryFiltersSchema.extend({
 });
 
 const leagueFiltersSchema = directoryFiltersSchema.extend({
-  tier: z.enum(["ELITE", "PROFESSIONAL", "COMPETITIVE", "DEVELOPMENTAL"]).optional(),
+  tier: z
+    .enum(["ELITE", "PROFESSIONAL", "COMPETITIVE", "DEVELOPMENTAL"])
+    .optional(),
   status: z.enum(["ACTIVE", "COMPLETED", "UPCOMING", "CANCELLED"]).optional(),
   region: z.string().optional(),
   state: z.string().optional(),
@@ -43,14 +45,14 @@ export const adminDirectoryRouter = createTRPCRouter({
         const where: Prisma.SchoolWhereInput = {};
 
         if (type) where.type = type;
-        if (state) where.state = { contains: state, mode: 'insensitive' };
-        if (region) where.region = { contains: region, mode: 'insensitive' };
-        
+        if (state) where.state = { contains: state, mode: "insensitive" };
+        if (region) where.region = { contains: region, mode: "insensitive" };
+
         if (search) {
           where.OR = [
-            { name: { contains: search, mode: 'insensitive' } },
-            { location: { contains: search, mode: 'insensitive' } },
-            { state: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: "insensitive" } },
+            { location: { contains: search, mode: "insensitive" } },
+            { state: { contains: search, mode: "insensitive" } },
           ];
         }
 
@@ -77,16 +79,12 @@ export const adminDirectoryRouter = createTRPCRouter({
                   },
                 },
               },
-              orderBy: [
-                { name: 'asc' },
-              ],
+              orderBy: [{ name: "asc" }],
               skip: offset,
               take: limit,
-            })
+            }),
           ),
-          withRetry(() =>
-            ctx.db.school.count({ where })
-          ),
+          withRetry(() => ctx.db.school.count({ where })),
         ]);
 
         return {
@@ -95,10 +93,10 @@ export const adminDirectoryRouter = createTRPCRouter({
           hasMore: offset + limit < total,
         };
       } catch (error) {
-        console.error('Error fetching schools:', error);
+        console.error("Error fetching schools:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch schools',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch schools",
         });
       }
     }),
@@ -108,7 +106,15 @@ export const adminDirectoryRouter = createTRPCRouter({
     .input(playerFiltersSchema)
     .query(async ({ ctx, input }) => {
       try {
-        const { search, class_year, school_id, main_game_id, location, limit, offset } = input;
+        const {
+          search,
+          class_year,
+          school_id,
+          main_game_id,
+          location,
+          limit,
+          offset,
+        } = input;
 
         // Build filter conditions
         const where: Prisma.PlayerWhereInput = {};
@@ -116,15 +122,16 @@ export const adminDirectoryRouter = createTRPCRouter({
         if (class_year) where.class_year = class_year;
         if (school_id) where.school_id = school_id;
         if (main_game_id) where.main_game_id = main_game_id;
-        if (location) where.location = { contains: location, mode: 'insensitive' };
-        
+        if (location)
+          where.location = { contains: location, mode: "insensitive" };
+
         if (search) {
           where.OR = [
-            { first_name: { contains: search, mode: 'insensitive' } },
-            { last_name: { contains: search, mode: 'insensitive' } },
-            { username: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-            { school: { contains: search, mode: 'insensitive' } },
+            { first_name: { contains: search, mode: "insensitive" } },
+            { last_name: { contains: search, mode: "insensitive" } },
+            { username: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+            { school: { contains: search, mode: "insensitive" } },
           ];
         }
 
@@ -177,16 +184,12 @@ export const adminDirectoryRouter = createTRPCRouter({
                   },
                 },
               },
-              orderBy: [
-                { created_at: 'desc' },
-              ],
+              orderBy: [{ created_at: "desc" }],
               skip: offset,
               take: limit,
-            })
+            }),
           ),
-          withRetry(() =>
-            ctx.db.player.count({ where })
-          ),
+          withRetry(() => ctx.db.player.count({ where })),
         ]);
 
         return {
@@ -195,10 +198,10 @@ export const adminDirectoryRouter = createTRPCRouter({
           hasMore: offset + limit < total,
         };
       } catch (error) {
-        console.error('Error fetching players:', error);
+        console.error("Error fetching players:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch players',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch players",
         });
       }
     }),
@@ -215,15 +218,15 @@ export const adminDirectoryRouter = createTRPCRouter({
 
         if (tier) where.tier = tier;
         if (status) where.status = status;
-        if (region) where.region = { contains: region, mode: 'insensitive' };
-        if (state) where.state = { contains: state, mode: 'insensitive' };
-        
+        if (region) where.region = { contains: region, mode: "insensitive" };
+        if (state) where.state = { contains: state, mode: "insensitive" };
+
         if (search) {
           where.OR = [
-            { name: { contains: search, mode: 'insensitive' } },
-            { short_name: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-            { region: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: "insensitive" } },
+            { short_name: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+            { region: { contains: search, mode: "insensitive" } },
           ];
         }
 
@@ -269,16 +272,12 @@ export const adminDirectoryRouter = createTRPCRouter({
                   },
                 },
               },
-              orderBy: [
-                { created_at: 'desc' },
-              ],
+              orderBy: [{ created_at: "desc" }],
               skip: offset,
               take: limit,
-            })
+            }),
           ),
-          withRetry(() =>
-            ctx.db.league.count({ where })
-          ),
+          withRetry(() => ctx.db.league.count({ where })),
         ]);
 
         return {
@@ -287,71 +286,70 @@ export const adminDirectoryRouter = createTRPCRouter({
           hasMore: offset + limit < total,
         };
       } catch (error) {
-        console.error('Error fetching leagues:', error);
+        console.error("Error fetching leagues:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch leagues',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch leagues",
         });
       }
     }),
 
   // Get summary statistics for the directory
-  getStats: adminProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const [
-          totalSchools,
-          totalPlayers,
-          totalLeagues,
-          totalActiveLeagues,
+  getStats: adminProcedure.query(async ({ ctx }) => {
+    try {
+      const [
+        totalSchools,
+        totalPlayers,
+        totalLeagues,
+        totalActiveLeagues,
+        schoolsByType,
+        playersByClassYear,
+        leaguesByTier,
+      ] = await Promise.all([
+        withRetry(() => ctx.db.school.count()),
+        withRetry(() => ctx.db.player.count()),
+        withRetry(() => ctx.db.league.count()),
+        withRetry(() => ctx.db.league.count({ where: { status: "ACTIVE" } })),
+        withRetry(() =>
+          ctx.db.school.groupBy({
+            by: ["type"],
+            _count: { _all: true },
+          }),
+        ),
+        withRetry(() =>
+          ctx.db.player.groupBy({
+            by: ["class_year"],
+            _count: { _all: true },
+            where: { class_year: { not: null } },
+          }),
+        ),
+        withRetry(() =>
+          ctx.db.league.groupBy({
+            by: ["tier"],
+            _count: { _all: true },
+          }),
+        ),
+      ]);
+
+      return {
+        totals: {
+          schools: totalSchools,
+          players: totalPlayers,
+          leagues: totalLeagues,
+          activeLeagues: totalActiveLeagues,
+        },
+        breakdowns: {
           schoolsByType,
           playersByClassYear,
           leaguesByTier,
-        ] = await Promise.all([
-          withRetry(() => ctx.db.school.count()),
-          withRetry(() => ctx.db.player.count()),
-          withRetry(() => ctx.db.league.count()),
-          withRetry(() => ctx.db.league.count({ where: { status: 'ACTIVE' } })),
-          withRetry(() => 
-            ctx.db.school.groupBy({
-              by: ['type'],
-              _count: { _all: true },
-            })
-          ),
-          withRetry(() => 
-            ctx.db.player.groupBy({
-              by: ['class_year'],
-              _count: { _all: true },
-              where: { class_year: { not: null } },
-            })
-          ),
-          withRetry(() => 
-            ctx.db.league.groupBy({
-              by: ['tier'],
-              _count: { _all: true },
-            })
-          ),
-        ]);
-
-        return {
-          totals: {
-            schools: totalSchools,
-            players: totalPlayers,
-            leagues: totalLeagues,
-            activeLeagues: totalActiveLeagues,
-          },
-          breakdowns: {
-            schoolsByType,
-            playersByClassYear,
-            leaguesByTier,
-          },
-        };
-      } catch (error) {
-        console.error('Error fetching directory stats:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch directory statistics',
-        });
-      }
-    }),
-}); 
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching directory stats:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch directory statistics",
+      });
+    }
+  }),
+});

@@ -8,7 +8,10 @@ import Link from "next/link";
 
 // Hooks
 import { useGameSelection } from "./hooks/useGameSelection";
-import { useGameConnection, useAllGameConnections } from "./hooks/useGameConnection";
+import {
+  useGameConnection,
+  useAllGameConnections,
+} from "./hooks/useGameConnection";
 import { useGameStats } from "./hooks/useGameStats";
 
 // Components
@@ -50,65 +53,70 @@ export function GameAnalyticsPanel({
   analyticsTracking = true,
 }: GameAnalyticsPanelProps) {
   const { user } = useUser();
-  
+
   // Only get player profile data if no playerId is provided (meaning it's the user's own profile)
   const { data: profileData } = api.playerProfile.getProfile.useQuery(
     undefined,
-    { enabled: !!user && !playerId }
+    { enabled: !!user && !playerId },
   );
 
   // Determine effective player ID
   const effectivePlayerId = playerId ?? profileData?.id;
 
   // Filter games based on allowed games
-  const availableGames = allowedGames 
-    ? GAME_CONFIGS.filter(game => allowedGames.includes(game.id))
+  const availableGames = allowedGames
+    ? GAME_CONFIGS.filter((game) => allowedGames.includes(game.id))
     : GAME_CONFIGS;
 
   // Game selection
-  const { selectedGame, selectGame, handleKeyboardNavigation } = useGameSelection(
-    defaultGame
-  );
+  const { selectedGame, selectGame, handleKeyboardNavigation } =
+    useGameSelection(defaultGame);
 
   // Get current game config
-  const currentGame = availableGames.find(g => g.id === selectedGame);
+  const currentGame = availableGames.find((g) => g.id === selectedGame);
 
   // Stats fetching
-  const { data: stats, isLoading, error, refetch } = useGameStats(
-    selectedGame,
-    effectivePlayerId ?? "",
-    cacheStrategy
-  );
+  const {
+    data: stats,
+    isLoading,
+    error,
+    refetch,
+  } = useGameStats(selectedGame, effectivePlayerId ?? "", cacheStrategy);
 
   // Connection detection
-  const { isConnected: platformConnected, connectionType: _connectionType } = useGameConnection(selectedGame, playerId, targetPlayerProfile);
-  
+  const { isConnected: platformConnected, connectionType: _connectionType } =
+    useGameConnection(selectedGame, playerId, targetPlayerProfile);
+
   // Check if this is a demo user
   const isDemo = isDemoUser(effectivePlayerId ?? "");
-  
+
   // Smart connection detection: if we have stats data, the account is connected
   // Also treat demo users as connected
-  const isConnected = isDemo || platformConnected || (stats !== null && stats !== undefined);
-  
+  const isConnected =
+    isDemo || platformConnected || (stats !== null && stats !== undefined);
+
   // Get all game connections for the GameSelector
-  const basePlatformConnections = useAllGameConnections(playerId, targetPlayerProfile);
-  
+  const basePlatformConnections = useAllGameConnections(
+    playerId,
+    targetPlayerProfile,
+  );
+
   // Create smart connections that also check if we have stats data
   const allConnections = useMemo(() => {
     const smartConnections = { ...basePlatformConnections };
-    
+
     // If this is a demo user, mark all games as connected
     if (isDemo) {
       GAME_CONFIGS.forEach((game) => {
         smartConnections[game.id] = true;
       });
     }
-    
+
     // If we have stats for the current game, mark it as connected
     if (stats !== null && stats !== undefined) {
       smartConnections[selectedGame] = true;
     }
-    
+
     return smartConnections;
   }, [basePlatformConnections, stats, selectedGame, isDemo]);
 
@@ -116,7 +124,7 @@ export function GameAnalyticsPanel({
   const handleGameSelect = (gameId: string) => {
     selectGame(gameId as GameId);
     onGameChange?.(gameId as GameId);
-    
+
     if (analyticsTracking) {
       // Track game selection
       console.log(`Game selected: ${gameId}`);
@@ -129,7 +137,7 @@ export function GameAnalyticsPanel({
       onConnectionClick(selectedGame);
     } else {
       // Default behavior - open profile page
-      window.open('/dashboard/player/profile/external-accounts', '_blank');
+      window.open("/dashboard/player/profile/external-accounts", "_blank");
     }
   };
 
@@ -194,10 +202,12 @@ export function GameAnalyticsPanel({
   };
 
   const content = (
-    <Card className={`bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 p-6 shadow-xl ${className}`}>
+    <Card
+      className={`border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm ${className}`}
+    >
       {/* Header */}
       {(showHeader || publicHeader) && (
-        <div className={`flex flex-col gap-6 mb-6 ${headerClassName}`}>
+        <div className={`mb-6 flex flex-col gap-6 ${headerClassName}`}>
           {/* Regular Header - Full header with manage connections */}
           {showHeader && !publicHeader && (
             <div className="flex items-center justify-between">
@@ -212,11 +222,15 @@ export function GameAnalyticsPanel({
                   />
                 </div>
                 <div>
-                  <h3 className="text-xl font-orbitron font-bold text-white">Game Analytics</h3>
-                  <p className="text-xs text-gray-400 font-rajdhani">Comprehensive performance insights</p>
+                  <h3 className="font-orbitron text-xl font-bold text-white">
+                    Game Analytics
+                  </h3>
+                  <p className="font-rajdhani text-xs text-gray-400">
+                    Comprehensive performance insights
+                  </p>
                 </div>
               </div>
-              <Link 
+              <Link
                 href="/dashboard/player/profile"
                 target={openLinksInNewTab ? "_blank" : undefined}
                 rel={openLinksInNewTab ? "noopener noreferrer" : undefined}
@@ -224,10 +238,10 @@ export function GameAnalyticsPanel({
                 <Button
                   variant="default"
                   size="sm"
-                  className="bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 from-blue-600 to-purple-600 border-gray-600 text-white hover:border-gray-500"
+                  className="border-gray-600 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:border-gray-500 hover:from-blue-500 hover:to-purple-500"
                 >
                   Manage Connections
-                  <ArrowRightIcon className="h-4 w-4 ml-2" />
+                  <ArrowRightIcon className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -246,8 +260,12 @@ export function GameAnalyticsPanel({
                 />
               </div>
               <div>
-                <h3 className="text-xl font-orbitron font-bold text-white">Game Analytics</h3>
-                <p className="text-xs text-gray-400 font-rajdhani">Performance insights across all games</p>
+                <h3 className="font-orbitron text-xl font-bold text-white">
+                  Game Analytics
+                </h3>
+                <p className="font-rajdhani text-xs text-gray-400">
+                  Performance insights across all games
+                </p>
               </div>
             </div>
           )}
@@ -264,9 +282,9 @@ export function GameAnalyticsPanel({
 
           {/* Connection Status */}
           {showConnectionPrompts && !isConnected && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-orange-900/20 border-orange-700/30">
+            <div className="flex items-center gap-2 rounded-lg border border-orange-700/30 bg-orange-900/20 px-3 py-2">
               <AlertTriangleIcon className="h-4 w-4 text-orange-400" />
-              <span className="text-orange-300 font-rajdhani text-sm">
+              <span className="font-rajdhani text-sm text-orange-300">
                 {currentGame?.name} account not connected
               </span>
             </div>
@@ -286,12 +304,19 @@ export function GameAnalyticsPanel({
   // Wrap in error boundary if enabled
   if (errorBoundary) {
     return (
-      <ErrorBoundary onError={onError ? (error: Error) => onError({
-        gameId: selectedGame,
-        type: "fetch",
-        message: error.message,
-        details: error,
-      }) : undefined}>
+      <ErrorBoundary
+        onError={
+          onError
+            ? (error: Error) =>
+                onError({
+                  gameId: selectedGame,
+                  type: "fetch",
+                  message: error.message,
+                  details: error,
+                })
+            : undefined
+        }
+      >
         {content}
       </ErrorBoundary>
     );
@@ -305,7 +330,10 @@ class ErrorBoundary extends React.Component<
   { children: React.ReactNode; onError?: (error: Error) => void },
   { hasError: boolean; error: Error | null }
 > {
-  constructor(props: { children: React.ReactNode; onError?: (error: Error) => void }) {
+  constructor(props: {
+    children: React.ReactNode;
+    onError?: (error: Error) => void;
+  }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -315,7 +343,7 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('GameAnalyticsPanel Error:', error, errorInfo);
+    console.error("GameAnalyticsPanel Error:", error, errorInfo);
     this.props.onError?.(error);
   }
 
@@ -335,4 +363,4 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-export default GameAnalyticsPanel; 
+export default GameAnalyticsPanel;

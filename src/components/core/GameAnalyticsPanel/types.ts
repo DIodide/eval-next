@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 
-export type GameId = 'valorant' | 'rocket-league' | 'smash' | 'overwatch';
+export type GameId = "valorant" | "rocket-league" | "smash" | "overwatch";
 
-export type PlatformType = 'valorant' | 'epicgames' | 'startgg' | 'battlenet';
+export type PlatformType = "valorant" | "epicgames" | "startgg" | "battlenet";
 
 export interface PlayerProfileData {
   id: string;
@@ -30,7 +30,7 @@ export interface CacheStrategy {
 
 export interface GameAnalyticsError {
   gameId: GameId;
-  type: 'connection' | 'fetch' | 'parse' | 'permission';
+  type: "connection" | "fetch" | "parse" | "permission";
   message: string;
   details?: unknown;
 }
@@ -38,9 +38,9 @@ export interface GameAnalyticsError {
 export interface GameAnalyticsPanelProps {
   // Player identification
   playerId?: string;
-  viewMode?: 'self' | 'other';
+  viewMode?: "self" | "other";
   targetPlayerProfile?: PlayerProfileData; // Target player's profile data for connection detection
-  
+
   // Display configuration
   defaultGame?: GameId;
   allowedGames?: GameId[];
@@ -48,18 +48,18 @@ export interface GameAnalyticsPanelProps {
   publicHeader?: boolean;
   showConnectionPrompts?: boolean;
   openLinksInNewTab?: boolean; // For blog/news context where links should open in new tab
-  
+
   // Styling
   className?: string;
   headerClassName?: string;
   contentClassName?: string;
-  
+
   // Callbacks
   onGameChange?: (gameId: GameId) => void;
   onConnectionClick?: (gameId: GameId) => void;
   onDataRefresh?: (gameId: GameId) => void;
   onError?: (error: GameAnalyticsError) => void;
-  
+
   // Advanced options
   cacheStrategy?: CacheStrategy;
   errorBoundary?: boolean;
@@ -68,7 +68,7 @@ export interface GameAnalyticsPanelProps {
 
 export interface GameConnectionResult {
   isConnected: boolean;
-  connectionType: 'oauth' | 'platform' | 'none';
+  connectionType: "oauth" | "platform" | "none";
   profileData?: unknown;
 }
 
@@ -166,30 +166,51 @@ export interface SmashStats {
     game_win_rate: number;
     clutch_factor: number;
     events: number;
-    mains: Record<string, {
-      games: number;
-      winrate: number;
-    }>;
-    best_matchups: Record<string, Record<string, {
-      wins: number;
-      games: number;
-      winrate: number;
-    }>>;
-    worst_matchups: Record<string, Record<string, {
-      wins: number;
-      games: number;
-      winrate: number;
-    }>>;
-    best_stages: Record<string, {
-      wins: number;
-      losses: number;
-      winrate: number;
-    }>;
-    worst_stages: Record<string, {
-      wins: number;
-      losses: number;
-      winrate: number;
-    }>;
+    mains: Record<
+      string,
+      {
+        games: number;
+        winrate: number;
+      }
+    >;
+    best_matchups: Record<
+      string,
+      Record<
+        string,
+        {
+          wins: number;
+          games: number;
+          winrate: number;
+        }
+      >
+    >;
+    worst_matchups: Record<
+      string,
+      Record<
+        string,
+        {
+          wins: number;
+          games: number;
+          winrate: number;
+        }
+      >
+    >;
+    best_stages: Record<
+      string,
+      {
+        wins: number;
+        losses: number;
+        winrate: number;
+      }
+    >;
+    worst_stages: Record<
+      string,
+      {
+        wins: number;
+        losses: number;
+        winrate: number;
+      }
+    >;
   };
   recentPlacements: Array<{
     event: string;
@@ -205,7 +226,7 @@ export interface GameComponentProps {
   isConnected: boolean;
   isLoading: boolean;
   error: Error | null;
-  viewMode?: 'self' | 'other';
+  viewMode?: "self" | "other";
   onRetry?: () => void;
   onConnect?: () => void;
 }
@@ -241,4 +262,4 @@ export interface ConnectionStatusProps {
   game: GameConfig;
   isConnected: boolean;
   onClick?: () => void;
-} 
+}

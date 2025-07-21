@@ -108,18 +108,20 @@ export interface SmashAnalyticsData {
   }>;
 }
 
-function transformToAnalyticsData(apiResponse: SSBUPlayerStatsResponse): SmashAnalyticsData {
+function transformToAnalyticsData(
+  apiResponse: SSBUPlayerStatsResponse,
+): SmashAnalyticsData {
   // Get the main character (first entry in mains)
   const mainCharacter = Object.keys(apiResponse.stats.mains)[0] ?? "Unknown";
-  
+
   // Transform recent placements from the new response structure
   const recentPlacements = apiResponse.recent_standings
     .slice(0, 5)
-    .map(result => ({
+    .map((result) => ({
       event: result.event,
       placement: result.placement,
       entrants: result.num_entrants,
-      tier: result.tier_name
+      tier: result.tier_name,
     }));
 
   return {
@@ -142,7 +144,7 @@ export const smashStatsRouter = createTRPCRouter({
         success: z.boolean(),
         data: z.custom<SmashAnalyticsData>().nullable(),
         message: z.string(),
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       try {
@@ -164,13 +166,15 @@ export const smashStatsRouter = createTRPCRouter({
         try {
           const clerk = await clerkClient();
           const clerkUser = await clerk.users.getUser(player.clerk_id);
-          
+
           // Get start.gg userId from publicMetadata
-          const startggData = clerkUser.publicMetadata?.start_gg as {
-            slug?: string;
-            userId?: string;
-            lastUpdated?: string;
-          } | undefined;
+          const startggData = clerkUser.publicMetadata?.start_gg as
+            | {
+                slug?: string;
+                userId?: string;
+                lastUpdated?: string;
+              }
+            | undefined;
 
           if (!startggData?.userId) {
             return {
@@ -181,25 +185,33 @@ export const smashStatsRouter = createTRPCRouter({
           }
 
           const startggUserId = startggData.userId;
-          
+
           // Call the EVAL Gaming API for stats
-          const statsResponse = await fetch(`${env.EVAL_API_BASE}/ssbu/stats?user_id=${startggUserId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
+          const statsResponse = await fetch(
+            `${env.EVAL_API_BASE}/ssbu/stats?user_id=${startggUserId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
             },
-          });
+          );
 
           if (!statsResponse.ok) {
             const errorText = await statsResponse.text();
-            console.error('EVAL API Error:', statsResponse.status, errorText);
-            throw new Error(`Failed to fetch SSBU stats: ${statsResponse.status} ${errorText}`);
+            console.error("EVAL API Error:", statsResponse.status, errorText);
+            throw new Error(
+              `Failed to fetch SSBU stats: ${statsResponse.status} ${errorText}`,
+            );
           }
 
-          const statsData = await statsResponse.json() as SSBUPlayerStatsResponse;
+          const statsData =
+            (await statsResponse.json()) as SSBUPlayerStatsResponse;
 
           if (!statsData.success) {
-            throw new Error(statsData.message || 'Failed to retrieve SSBU stats');
+            throw new Error(
+              statsData.message || "Failed to retrieve SSBU stats",
+            );
           }
 
           const analyticsData = transformToAnalyticsData(statsData);
@@ -207,9 +219,8 @@ export const smashStatsRouter = createTRPCRouter({
           return {
             success: true,
             data: analyticsData,
-            message: 'Stats retrieved successfully'
+            message: "Stats retrieved successfully",
           };
-
         } catch (clerkError) {
           console.error("Error fetching Clerk user data:", clerkError);
           return {
@@ -218,15 +229,17 @@ export const smashStatsRouter = createTRPCRouter({
             message: "Failed to fetch user connection data",
           };
         }
-
       } catch (error) {
-        console.error('Error fetching SSBU stats:', error);
-        
+        console.error("Error fetching SSBU stats:", error);
+
         return {
           success: false,
           data: null,
-          message: error instanceof Error ? error.message : 'Failed to fetch SSBU stats'
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch SSBU stats",
         };
       }
     }),
-}); 
+});

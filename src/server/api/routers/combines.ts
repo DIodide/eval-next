@@ -4,7 +4,13 @@
 // Similar to tryouts but adapted for combine-specific features like qualification status and invite-only events.
 
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, playerProcedure, onboardedCoachProcedure, adminProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  playerProcedure,
+  onboardedCoachProcedure,
+  adminProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/server/db-utils";
 import type { Prisma } from "@prisma/client";
@@ -16,7 +22,7 @@ const extractTimeFromISO = (isoString?: string) => {
   if (!isoString) return undefined;
   try {
     const date = new Date(isoString);
-    return date.toISOString().split('T')[1]?.split('.')[0]; // Extract HH:MM:SS
+    return date.toISOString().split("T")[1]?.split(".")[0]; // Extract HH:MM:SS
   } catch {
     // If it's not an ISO string, assume it's already a time string
     return isoString;
@@ -27,7 +33,15 @@ const extractTimeFromISO = (isoString?: string) => {
 const combineFiltersSchema = z.object({
   game_id: z.string().uuid().optional(),
   type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]).optional(),
-  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).optional(),
+  status: z
+    .enum([
+      "UPCOMING",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+    ])
+    .optional(),
   year: z.string().optional(),
   invite_only: z.boolean().optional(),
   upcoming_only: z.boolean().optional(),
@@ -42,7 +56,13 @@ const combineRegistrationSchema = z.object({
 
 const combineRegistrationStatusSchema = z.object({
   registration_id: z.string().uuid(),
-  status: z.enum(["PENDING", "CONFIRMED", "WAITLISTED", "DECLINED", "CANCELLED"]),
+  status: z.enum([
+    "PENDING",
+    "CONFIRMED",
+    "WAITLISTED",
+    "DECLINED",
+    "CANCELLED",
+  ]),
   qualified: z.boolean().optional(),
 });
 
@@ -64,7 +84,15 @@ const createCombineSchema = z.object({
   class_years: z.array(z.string()).default([]),
   required_roles: z.array(z.string()).default([]),
   prize_pool: z.string().default("TBD"),
-  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).default("UPCOMING"),
+  status: z
+    .enum([
+      "UPCOMING",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+    ])
+    .default("UPCOMING"),
   requirements: z.string().default("None specified"),
   invite_only: z.boolean().default(false),
 });
@@ -87,7 +115,15 @@ const updateCombineSchema = z.object({
   class_years: z.array(z.string()).optional(),
   required_roles: z.array(z.string()).optional(),
   prize_pool: z.string().optional(),
-  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).optional(),
+  status: z
+    .enum([
+      "UPCOMING",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+    ])
+    .optional(),
   requirements: z.string().optional(),
   invite_only: z.boolean().optional(),
 });
@@ -96,7 +132,15 @@ const searchCombinesSchema = z.object({
   search: z.string().optional(),
   game_id: z.string().uuid().optional(),
   type: z.enum(["ONLINE", "IN_PERSON", "HYBRID"]).optional(),
-  status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]).optional(),
+  status: z
+    .enum([
+      "UPCOMING",
+      "REGISTRATION_OPEN",
+      "REGISTRATION_CLOSED",
+      "IN_PROGRESS",
+      "COMPLETED",
+    ])
+    .optional(),
   year: z.string().optional(),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(20),
@@ -129,11 +173,11 @@ export const combinesRouter = createTRPCRouter({
         if (year) where.year = year;
         if (invite_only !== undefined) where.invite_only = invite_only;
         if (upcoming_only) where.date = { gte: new Date() };
-        
+
         if (search) {
           where.OR = [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
+            { title: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
           ];
         }
 
@@ -164,17 +208,12 @@ export const combinesRouter = createTRPCRouter({
                   },
                 },
               },
-              orderBy: [
-                { date: 'asc' },
-                { created_at: 'desc' },
-              ],
+              orderBy: [{ date: "asc" }, { created_at: "desc" }],
               skip: offset,
               take: limit,
-            })
+            }),
           ),
-          withRetry(() =>
-            ctx.db.combine.count({ where })
-          ),
+          withRetry(() => ctx.db.combine.count({ where })),
         ]);
 
         return {
@@ -183,20 +222,22 @@ export const combinesRouter = createTRPCRouter({
           hasMore: offset + limit < total,
         };
       } catch (error) {
-        console.error('Error browsing combines:', error);
+        console.error("Error browsing combines:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combines',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch combines",
         });
       }
     }),
 
   // Get combines by game
   getByGame: publicProcedure
-    .input(z.object({
-      game_id: z.string().uuid(),
-      limit: z.number().min(1).max(50).default(20),
-    }))
+    .input(
+      z.object({
+        game_id: z.string().uuid(),
+        limit: z.number().min(1).max(50).default(20),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       try {
         const combines = await withRetry(() =>
@@ -228,17 +269,17 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: { date: 'asc' },
+            orderBy: { date: "asc" },
             take: input.limit,
-          })
+          }),
         );
 
         return combines;
       } catch (error) {
-        console.error('Error fetching combines by game:', error);
+        console.error("Error fetching combines by game:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combines by game',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch combines by game",
         });
       }
     }),
@@ -249,7 +290,7 @@ export const combinesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         const isAuthenticated = !!ctx.auth.userId;
-        
+
         const combine = await withRetry(() =>
           ctx.db.combine.findUnique({
             where: { id: input.id },
@@ -278,44 +319,46 @@ export const combinesRouter = createTRPCRouter({
                       },
                     },
                   },
-                  orderBy: { registered_at: 'asc' },
+                  orderBy: { registered_at: "asc" },
                 },
               }),
             },
-          })
+          }),
         );
 
         if (!combine) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Combine not found',
+            code: "NOT_FOUND",
+            message: "Combine not found",
           });
         }
 
         return combine;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('Error fetching combine:', error);
+        console.error("Error fetching combine:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combine details',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch combine details",
         });
       }
     }),
 
   // Get player's combine registrations (for dashboard)
   getPlayerRegistrations: playerProcedure
-    .input(z.object({
-      status: z.enum(["upcoming", "past", "all"]).default("all"),
-      limit: z.number().min(1).max(100).default(50),
-    }))
+    .input(
+      z.object({
+        status: z.enum(["upcoming", "past", "all"]).default("all"),
+        limit: z.number().min(1).max(100).default(50),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const { playerId } = ctx;
 
       try {
         const now = new Date();
         let dateFilter = {};
-        
+
         if (input.status === "upcoming") {
           dateFilter = { date: { gte: now } };
         } else if (input.status === "past") {
@@ -351,18 +394,18 @@ export const combinesRouter = createTRPCRouter({
               },
             },
             orderBy: {
-              combine: { date: input.status === "past" ? 'desc' : 'asc' },
+              combine: { date: input.status === "past" ? "desc" : "asc" },
             },
             take: input.limit,
-          })
+          }),
         );
 
         return registrations;
       } catch (error) {
-        console.error('Error fetching player combine registrations:', error);
+        console.error("Error fetching player combine registrations:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch player combine registrations',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch player combine registrations",
         });
       }
     }),
@@ -386,47 +429,47 @@ export const combinesRouter = createTRPCRouter({
               status: true,
               invite_only: true,
             },
-          })
+          }),
         );
 
         if (!combine) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Combine not found',
+            code: "NOT_FOUND",
+            message: "Combine not found",
           });
         }
 
         const now = new Date();
-        
+
         // Check if combine has already occurred
         if (combine.date < now) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'This combine has already occurred',
+            code: "BAD_REQUEST",
+            message: "This combine has already occurred",
           });
         }
 
         // Check if registration is open
-        if (combine.status !== 'REGISTRATION_OPEN') {
+        if (combine.status !== "REGISTRATION_OPEN") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Registration is not currently open for this combine',
+            code: "BAD_REQUEST",
+            message: "Registration is not currently open for this combine",
           });
         }
 
         // Check if invite-only
         if (combine.invite_only) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'This is an invitation-only combine',
+            code: "BAD_REQUEST",
+            message: "This is an invitation-only combine",
           });
         }
 
         // Check if spots available
         if (combine.registered_spots >= combine.max_spots) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Combine is full',
+            code: "BAD_REQUEST",
+            message: "Combine is full",
           });
         }
 
@@ -439,13 +482,13 @@ export const combinesRouter = createTRPCRouter({
                 player_id: playerId,
               },
             },
-          })
+          }),
         );
 
         if (existingRegistration) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Already registered for this combine',
+            code: "BAD_REQUEST",
+            message: "Already registered for this combine",
           });
         }
 
@@ -456,7 +499,7 @@ export const combinesRouter = createTRPCRouter({
               data: {
                 combine_id: input.combine_id,
                 player_id: playerId,
-                status: 'PENDING',
+                status: "PENDING",
                 qualified: false,
               },
               include: {
@@ -479,16 +522,16 @@ export const combinesRouter = createTRPCRouter({
             });
 
             return newRegistration;
-          })
+          }),
         );
 
         return registration;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('Error registering for combine:', error);
+        console.error("Error registering for combine:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to register for combine',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to register for combine",
         });
       }
     }),
@@ -513,37 +556,37 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
 
         if (!registration) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Registration not found',
+            code: "NOT_FOUND",
+            message: "Registration not found",
           });
         }
 
         // Verify ownership
         if (registration.player_id !== playerId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cannot cancel another player\'s registration',
+            code: "FORBIDDEN",
+            message: "Cannot cancel another player's registration",
           });
         }
 
         // Check if combine has already occurred
         if (registration.combine.date < new Date()) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cannot cancel registration for past combine',
+            code: "BAD_REQUEST",
+            message: "Cannot cancel registration for past combine",
           });
         }
 
         // Check if combine is in progress
-        if (registration.combine.status === 'IN_PROGRESS') {
+        if (registration.combine.status === "IN_PROGRESS") {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cannot cancel registration for combine in progress',
+            code: "BAD_REQUEST",
+            message: "Cannot cancel registration for combine in progress",
           });
         }
 
@@ -552,7 +595,7 @@ export const combinesRouter = createTRPCRouter({
           ctx.db.$transaction(async (tx) => {
             await tx.combineRegistration.update({
               where: { id: input.registration_id },
-              data: { status: 'CANCELLED' },
+              data: { status: "CANCELLED" },
             });
 
             // Decrement claimed spots count
@@ -564,16 +607,16 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             });
-          })
+          }),
         );
 
         return { success: true };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('Error cancelling combine registration:', error);
+        console.error("Error cancelling combine registration:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to cancel combine registration',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to cancel combine registration",
         });
       }
     }),
@@ -599,15 +642,15 @@ export const combinesRouter = createTRPCRouter({
               qualified: true,
               registered_at: true,
             },
-          })
+          }),
         );
 
         return registration;
       } catch (error) {
-        console.error('Error fetching combine registration status:', error);
+        console.error("Error fetching combine registration status:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combine registration status',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch combine registration status",
         });
       }
     }),
@@ -616,10 +659,18 @@ export const combinesRouter = createTRPCRouter({
 
   // Update combine status (coaches only)
   updateStatus: onboardedCoachProcedure
-    .input(z.object({
-      combine_id: z.string().uuid(),
-      status: z.enum(["UPCOMING", "REGISTRATION_OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "COMPLETED"]),
-    }))
+    .input(
+      z.object({
+        combine_id: z.string().uuid(),
+        status: z.enum([
+          "UPCOMING",
+          "REGISTRATION_OPEN",
+          "REGISTRATION_CLOSED",
+          "IN_PROGRESS",
+          "COMPLETED",
+        ]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { coachId } = ctx;
 
@@ -629,20 +680,20 @@ export const combinesRouter = createTRPCRouter({
           ctx.db.combine.findUnique({
             where: { id: input.combine_id },
             select: { coach_id: true },
-          })
+          }),
         );
 
         if (!combine) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Combine not found',
+            code: "NOT_FOUND",
+            message: "Combine not found",
           });
         }
 
         if (combine.coach_id !== coachId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cannot update combine you don\'t organize',
+            code: "FORBIDDEN",
+            message: "Cannot update combine you don't organize",
           });
         }
 
@@ -660,16 +711,16 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
 
         return updatedCombine;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('Error updating combine status:', error);
+        console.error("Error updating combine status:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update combine status',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update combine status",
         });
       }
     }),
@@ -691,19 +742,20 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
 
         if (!registration) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Registration not found',
+            code: "NOT_FOUND",
+            message: "Registration not found",
           });
         }
 
-        const updateData: { status: typeof input.status; qualified?: boolean } = {
-          status: input.status,
-        };
+        const updateData: { status: typeof input.status; qualified?: boolean } =
+          {
+            status: input.status,
+          };
 
         if (input.qualified !== undefined) {
           updateData.qualified = input.qualified;
@@ -723,25 +775,27 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
 
         return updatedRegistration;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('Error updating combine registration status:', error);
+        console.error("Error updating combine registration status:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update combine registration status',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update combine registration status",
         });
       }
     }),
 
   // Remove/delete a registration (admin only)
   removeRegistration: adminProcedure
-    .input(z.object({
-      registration_id: z.string().uuid(),
-    }))
+    .input(
+      z.object({
+        registration_id: z.string().uuid(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         // Get registration to verify it exists
@@ -757,13 +811,13 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
 
         if (!registration) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Registration not found',
+            code: "NOT_FOUND",
+            message: "Registration not found",
           });
         }
 
@@ -776,7 +830,7 @@ export const combinesRouter = createTRPCRouter({
             });
 
             // Only decrement spots if the registration was not already cancelled
-            if (registration.status !== 'CANCELLED') {
+            if (registration.status !== "CANCELLED") {
               await tx.combine.update({
                 where: { id: registration.combine.id },
                 data: {
@@ -786,16 +840,16 @@ export const combinesRouter = createTRPCRouter({
                 },
               });
             }
-          })
+          }),
         );
 
         return { success: true, registration };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('Error removing registration:', error);
+        console.error("Error removing registration:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to remove registration',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to remove registration",
         });
       }
     }),
@@ -807,35 +861,42 @@ export const combinesRouter = createTRPCRouter({
       try {
         const stats = await withRetry(() =>
           ctx.db.combineRegistration.groupBy({
-            by: ['status'],
+            by: ["status"],
             where: {
               combine_id: input.combine_id,
             },
             _count: {
               status: true,
             },
-          })
+          }),
         );
 
-        const statusCounts = stats.reduce((acc, stat) => {
-          acc[stat.status] = stat._count.status;
-          return acc;
-        }, {} as Record<string, number>);
+        const statusCounts = stats.reduce(
+          (acc, stat) => {
+            acc[stat.status] = stat._count.status;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
 
-        const activeRegistrations = (statusCounts.PENDING ?? 0) + 
-          (statusCounts.CONFIRMED ?? 0) + 
+        const activeRegistrations =
+          (statusCounts.PENDING ?? 0) +
+          (statusCounts.CONFIRMED ?? 0) +
           (statusCounts.WAITLISTED ?? 0);
 
         return {
           ...statusCounts,
           activeRegistrations,
-          totalRegistrations: stats.reduce((sum, stat) => sum + stat._count.status, 0),
+          totalRegistrations: stats.reduce(
+            (sum, stat) => sum + stat._count.status,
+            0,
+          ),
         };
       } catch (error) {
-        console.error('Error fetching registration statistics:', error);
+        console.error("Error fetching registration statistics:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch registration statistics',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch registration statistics",
         });
       }
     }),
@@ -847,29 +908,21 @@ export const combinesRouter = createTRPCRouter({
     .input(searchCombinesSchema)
     .query(async ({ ctx, input }) => {
       try {
-        const {
-          search,
-          game_id,
-          type,
-          status,
-          year,
-          page,
-          limit
-        } = input;
+        const { search, game_id, type, status, year, page, limit } = input;
 
         const skip = (page - 1) * limit;
 
         // Build where clause
         const where: Prisma.CombineWhereInput = {};
-        
+
         if (search) {
           where.OR = [
-            { title: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-            { location: { contains: search, mode: 'insensitive' } },
+            { title: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+            { location: { contains: search, mode: "insensitive" } },
           ];
         }
-        
+
         if (game_id) where.game_id = game_id;
         if (type) where.type = type;
         if (status) where.status = status;
@@ -908,7 +961,7 @@ export const combinesRouter = createTRPCRouter({
               },
             },
             orderBy: {
-              date: 'desc',
+              date: "desc",
             },
             skip,
             take: limit,
@@ -923,17 +976,16 @@ export const combinesRouter = createTRPCRouter({
           currentPage: page,
         };
       } catch (error) {
-        console.error('Error fetching combines for admin:', error);
+        console.error("Error fetching combines for admin:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combines',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch combines",
         });
       }
     }),
 
   // Helper function to extract time from UTC ISO string
   // This is needed because frontend sends UTC ISO strings but we store times as strings
-  
 
   // Create a new combine (admin only)
   create: adminProcedure
@@ -948,20 +1000,21 @@ export const combinesRouter = createTRPCRouter({
 
         if (!game) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Game not found',
+            code: "NOT_FOUND",
+            message: "Game not found",
           });
         }
 
         // Validate registration deadline is before combine date
-        if (input.registration_deadline && input.registration_deadline >= input.date) {
+        if (
+          input.registration_deadline &&
+          input.registration_deadline >= input.date
+        ) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Registration deadline must be before the combine date',
+            code: "BAD_REQUEST",
+            message: "Registration deadline must be before the combine date",
           });
         }
-
-
 
         const combine = await ctx.db.combine.create({
           data: {
@@ -1010,10 +1063,10 @@ export const combinesRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error creating combine:', error);
+        console.error("Error creating combine:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create combine',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create combine",
         });
       }
     }),
@@ -1033,8 +1086,8 @@ export const combinesRouter = createTRPCRouter({
 
         if (!existingCombine) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Combine not found',
+            code: "NOT_FOUND",
+            message: "Combine not found",
           });
         }
 
@@ -1047,28 +1100,35 @@ export const combinesRouter = createTRPCRouter({
 
           if (!game) {
             throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Game not found',
+              code: "NOT_FOUND",
+              message: "Game not found",
             });
           }
         }
 
         // Validate registration deadline vs combine date
         const combineDate = updateData.date ?? existingCombine.date;
-        if (updateData.registration_deadline && updateData.registration_deadline >= combineDate) {
+        if (
+          updateData.registration_deadline &&
+          updateData.registration_deadline >= combineDate
+        ) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Registration deadline must be before the combine date',
+            code: "BAD_REQUEST",
+            message: "Registration deadline must be before the combine date",
           });
         }
 
         // Process time fields if they're being updated
         const processedUpdateData = { ...updateData };
         if (updateData.time_start) {
-          processedUpdateData.time_start = extractTimeFromISO(updateData.time_start);
+          processedUpdateData.time_start = extractTimeFromISO(
+            updateData.time_start,
+          );
         }
         if (updateData.time_end) {
-          processedUpdateData.time_end = extractTimeFromISO(updateData.time_end);
+          processedUpdateData.time_end = extractTimeFromISO(
+            updateData.time_end,
+          );
         }
 
         const combine = await ctx.db.combine.update({
@@ -1097,10 +1157,10 @@ export const combinesRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error updating combine:', error);
+        console.error("Error updating combine:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update combine',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update combine",
         });
       }
     }),
@@ -1124,15 +1184,15 @@ export const combinesRouter = createTRPCRouter({
 
         if (!combine) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Combine not found',
+            code: "NOT_FOUND",
+            message: "Combine not found",
           });
         }
 
         // Check if there are any registrations
         if (combine._count.registrations > 0) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
+            code: "BAD_REQUEST",
             message: `Cannot delete combine with ${combine._count.registrations} existing registrations. Please remove registrations first.`,
           });
         }
@@ -1146,26 +1206,28 @@ export const combinesRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error deleting combine:', error);
+        console.error("Error deleting combine:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete combine',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete combine",
         });
       }
     }),
 
   // Get upcoming combines for homepage (lightweight)
   getUpcomingForHomepage: publicProcedure
-    .input(z.object({
-      limit: z.number().min(1).max(10).default(3),
-    }))
+    .input(
+      z.object({
+        limit: z.number().min(1).max(10).default(3),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       try {
         const combines = await withRetry(() =>
           ctx.db.combine.findMany({
             where: {
               date: { gte: new Date() }, // Only upcoming
-              status: { in: ['REGISTRATION_OPEN', 'UPCOMING'] }, // Only open or upcoming combines
+              status: { in: ["REGISTRATION_OPEN", "UPCOMING"] }, // Only open or upcoming combines
             },
             select: {
               id: true,
@@ -1185,17 +1247,17 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: { date: 'asc' },
+            orderBy: { date: "asc" },
             take: input.limit,
-          })
+          }),
         );
 
         return combines;
       } catch (error) {
-        console.error('Error fetching upcoming combines for homepage:', error);
+        console.error("Error fetching upcoming combines for homepage:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch upcoming combines',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch upcoming combines",
         });
       }
     }),
@@ -1232,7 +1294,7 @@ export const combinesRouter = createTRPCRouter({
                 },
               },
               orderBy: {
-                registered_at: 'desc',
+                registered_at: "desc",
               },
             },
             _count: {
@@ -1245,8 +1307,8 @@ export const combinesRouter = createTRPCRouter({
 
         if (!combine) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Combine not found',
+            code: "NOT_FOUND",
+            message: "Combine not found",
           });
         }
 
@@ -1255,52 +1317,51 @@ export const combinesRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error fetching combine details:', error);
+        console.error("Error fetching combine details:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combine details',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch combine details",
         });
       }
     }),
 
   // Get combines statistics for admin dashboard
-  getStatistics: adminProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const [
-          totalCombines,
-          upcomingCombines,
-          totalRegistrations,
-          recentRegistrations,
-        ] = await Promise.all([
-          ctx.db.combine.count(),
-          ctx.db.combine.count({ 
-            where: { 
-              date: { gte: new Date() }
-            } 
-          }),
-          ctx.db.combineRegistration.count(),
-          ctx.db.combineRegistration.count({
-            where: {
-              registered_at: {
-                gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
-              },
+  getStatistics: adminProcedure.query(async ({ ctx }) => {
+    try {
+      const [
+        totalCombines,
+        upcomingCombines,
+        totalRegistrations,
+        recentRegistrations,
+      ] = await Promise.all([
+        ctx.db.combine.count(),
+        ctx.db.combine.count({
+          where: {
+            date: { gte: new Date() },
+          },
+        }),
+        ctx.db.combineRegistration.count(),
+        ctx.db.combineRegistration.count({
+          where: {
+            registered_at: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
             },
-          }),
-        ]);
+          },
+        }),
+      ]);
 
-        return {
-          totalCombines,
-          upcomingCombines,
-          totalRegistrations,
-          recentRegistrations,
-        };
-      } catch (error) {
-        console.error('Error fetching combine statistics:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch combine statistics',
-        });
-      }
-    }),
-}); 
+      return {
+        totalCombines,
+        upcomingCombines,
+        totalRegistrations,
+        recentRegistrations,
+      };
+    } catch (error) {
+      console.error("Error fetching combine statistics:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch combine statistics",
+      });
+    }
+  }),
+});

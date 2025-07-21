@@ -1,8 +1,12 @@
 // This router is used to get the school profile, tryouts, games, and stats for a school
 
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, onboardedCoachProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";  
+import {
+  createTRPCRouter,
+  publicProcedure,
+  onboardedCoachProcedure,
+} from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/server/db-utils";
 import type { Prisma } from "@prisma/client";
 
@@ -20,7 +24,18 @@ const schoolInfoUpdateSchema = z.object({
 const createAnnouncementSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().min(1).max(2000),
-  type: z.enum(["GENERAL", "TRYOUT", "ACHIEVEMENT", "FACILITY", "SCHOLARSHIP", "ALUMNI", "EVENT", "SEASON_REVIEW"]).default("GENERAL"),
+  type: z
+    .enum([
+      "GENERAL",
+      "TRYOUT",
+      "ACHIEVEMENT",
+      "FACILITY",
+      "SCHOLARSHIP",
+      "ALUMNI",
+      "EVENT",
+      "SEASON_REVIEW",
+    ])
+    .default("GENERAL"),
   is_pinned: z.boolean().default(false),
 });
 
@@ -28,7 +43,18 @@ const updateAnnouncementSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(200).optional(),
   content: z.string().min(1).max(2000).optional(),
-  type: z.enum(["GENERAL", "TRYOUT", "ACHIEVEMENT", "FACILITY", "SCHOLARSHIP", "ALUMNI", "EVENT", "SEASON_REVIEW"]).optional(),
+  type: z
+    .enum([
+      "GENERAL",
+      "TRYOUT",
+      "ACHIEVEMENT",
+      "FACILITY",
+      "SCHOLARSHIP",
+      "ALUMNI",
+      "EVENT",
+      "SEASON_REVIEW",
+    ])
+    .optional(),
   is_pinned: z.boolean().optional(),
   is_archived: z.boolean().optional(),
 });
@@ -39,9 +65,11 @@ export const schoolProfileRouter = createTRPCRouter({
   Returns: school profile
   */
   getById: publicProcedure
-    .input(z.object({
-      id: z.string().uuid("Invalid school ID format"),
-    }))
+    .input(
+      z.object({
+        id: z.string().uuid("Invalid school ID format"),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const school = await ctx.db.school.findUnique({
         where: { id: input.id },
@@ -75,17 +103,17 @@ export const schoolProfileRouter = createTRPCRouter({
                   date_achieved: true,
                 },
                 orderBy: {
-                  date_achieved: 'desc',
+                  date_achieved: "desc",
                 },
               },
             },
             orderBy: {
-              created_at: 'asc',
+              created_at: "asc",
             },
           },
           tryouts: {
             where: {
-              status: 'PUBLISHED',
+              status: "PUBLISHED",
             },
             include: {
               game: {
@@ -111,7 +139,7 @@ export const schoolProfileRouter = createTRPCRouter({
               },
             },
             orderBy: {
-              date: 'asc',
+              date: "asc",
             },
           },
           teams: {
@@ -161,51 +189,50 @@ export const schoolProfileRouter = createTRPCRouter({
     }),
 
   // Get detailed school information for editing (only for onboarded coaches)
-  getDetailsForEdit: onboardedCoachProcedure
-    .query(async ({ ctx }) => {
-      const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
-      
-      try {
-        const school = await withRetry(() =>
-          ctx.db.school.findUnique({
-            where: { id: schoolId },
-            select: {
-              id: true,
-              name: true,
-              type: true,
-              location: true,
-              state: true,
-              region: true,
-              website: true,
-              email: true,
-              phone: true,
-              bio: true,
-              logo_url: true,
-              banner_url: true,
-              created_at: true,
-              updated_at: true,
-            },
-          })
-        );
-        
-        if (!school) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'School not found',
-          });
-        }
-        
-        return school;
-      } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
+  getDetailsForEdit: onboardedCoachProcedure.query(async ({ ctx }) => {
+    const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
+
+    try {
+      const school = await withRetry(() =>
+        ctx.db.school.findUnique({
+          where: { id: schoolId },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            location: true,
+            state: true,
+            region: true,
+            website: true,
+            email: true,
+            phone: true,
+            bio: true,
+            logo_url: true,
+            banner_url: true,
+            created_at: true,
+            updated_at: true,
+          },
+        }),
+      );
+
+      if (!school) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch school details',
+          code: "NOT_FOUND",
+          message: "School not found",
         });
       }
-    }),
+
+      return school;
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch school details",
+      });
+    }
+  }),
 
   // Update school information (only for onboarded coaches)
   updateInfo: onboardedCoachProcedure
@@ -213,20 +240,20 @@ export const schoolProfileRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
       const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
-      
+
       try {
         // Verify coach has permission to edit this school
         const coach = await withRetry(() =>
           ctx.db.coach.findUnique({
             where: { id: coachId },
             select: { school_id: true },
-          })
+          }),
         );
 
         if (!coach || coach.school_id !== schoolId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to edit this school',
+            code: "FORBIDDEN",
+            message: "You do not have permission to edit this school",
           });
         }
 
@@ -242,7 +269,7 @@ export const schoolProfileRouter = createTRPCRouter({
         } = {
           updated_at: new Date(),
         };
-        
+
         if (input.bio !== undefined) {
           updateData.bio = input.bio === "" ? null : input.bio;
         }
@@ -259,34 +286,41 @@ export const schoolProfileRouter = createTRPCRouter({
           updateData.logo_url = input.logo_url === "" ? null : input.logo_url;
         }
         if (input.banner_url !== undefined) {
-          updateData.banner_url = input.banner_url === "" ? null : input.banner_url;
+          updateData.banner_url =
+            input.banner_url === "" ? null : input.banner_url;
         }
 
         const updatedSchool = await withRetry(() =>
           ctx.db.school.update({
             where: { id: schoolId },
             data: updateData,
-          })
+          }),
         );
-        
+
         return updatedSchool;
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error updating school information:', error);
+        console.error("Error updating school information:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update school information',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school information",
         });
       }
     }),
 
   // Update school logo
   updateSchoolLogo: onboardedCoachProcedure
-    .input(z.object({
-      logo_url: z.string().url("Must be a valid URL").optional().or(z.literal(""))
-    }))
+    .input(
+      z.object({
+        logo_url: z
+          .string()
+          .url("Must be a valid URL")
+          .optional()
+          .or(z.literal("")),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
       const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
@@ -297,13 +331,14 @@ export const schoolProfileRouter = createTRPCRouter({
           ctx.db.coach.findUnique({
             where: { id: coachId },
             select: { school_id: true },
-          })
+          }),
         );
 
         if (!coach || coach.school_id !== schoolId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to update this school\'s assets',
+            code: "FORBIDDEN",
+            message:
+              "You do not have permission to update this school's assets",
           });
         }
 
@@ -320,7 +355,7 @@ export const schoolProfileRouter = createTRPCRouter({
               name: true,
               logo_url: true,
             },
-          })
+          }),
         );
 
         return updatedSchool;
@@ -328,19 +363,25 @@ export const schoolProfileRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error updating school logo:', error);
+        console.error("Error updating school logo:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update school logo',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school logo",
         });
       }
     }),
 
   // Update school banner
   updateSchoolBanner: onboardedCoachProcedure
-    .input(z.object({
-      banner_url: z.string().url("Must be a valid URL").optional().or(z.literal(""))
-    }))
+    .input(
+      z.object({
+        banner_url: z
+          .string()
+          .url("Must be a valid URL")
+          .optional()
+          .or(z.literal("")),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
       const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
@@ -351,13 +392,14 @@ export const schoolProfileRouter = createTRPCRouter({
           ctx.db.coach.findUnique({
             where: { id: coachId },
             select: { school_id: true },
-          })
+          }),
         );
 
         if (!coach || coach.school_id !== schoolId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to update this school\'s assets',
+            code: "FORBIDDEN",
+            message:
+              "You do not have permission to update this school's assets",
           });
         }
 
@@ -374,7 +416,7 @@ export const schoolProfileRouter = createTRPCRouter({
               name: true,
               banner_url: true,
             },
-          })
+          }),
         );
 
         return updatedSchool;
@@ -382,10 +424,10 @@ export const schoolProfileRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error updating school banner:', error);
+        console.error("Error updating school banner:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update school banner',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school banner",
         });
       }
     }),
@@ -395,25 +437,27 @@ export const schoolProfileRouter = createTRPCRouter({
   Returns: list of tryouts for the school
   */
   getTryouts: publicProcedure
-    .input(z.object({
-      schoolId: z.string().uuid("Invalid school ID format"),
-      filter: z.enum(["all", "upcoming", "past"]).optional().default("all"),
-      gameId: z.string().optional(),
-      limit: z.number().min(1).max(100).optional().default(10),
-      offset: z.number().min(0).optional().default(0),
-    }))
+    .input(
+      z.object({
+        schoolId: z.string().uuid("Invalid school ID format"),
+        filter: z.enum(["all", "upcoming", "past"]).optional().default("all"),
+        gameId: z.string().optional(),
+        limit: z.number().min(1).max(100).optional().default(10),
+        offset: z.number().min(0).optional().default(0),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const now = new Date();
-      
+
       // Build where clause based on filters
       const where: {
         school_id: string;
-        status: 'PUBLISHED';
+        status: "PUBLISHED";
         date?: { gt: Date } | { lte: Date };
         game_id?: string;
       } = {
         school_id: input.schoolId,
-        status: 'PUBLISHED',
+        status: "PUBLISHED",
       };
 
       // Date filter
@@ -464,7 +508,7 @@ export const schoolProfileRouter = createTRPCRouter({
             },
           },
           orderBy: {
-            date: input.filter === "past" ? 'desc' : 'asc',
+            date: input.filter === "past" ? "desc" : "asc",
           },
           take: input.limit,
           skip: input.offset,
@@ -484,16 +528,18 @@ export const schoolProfileRouter = createTRPCRouter({
   Returns: list of games that have tryouts at the school
   */
   getAvailableGames: publicProcedure
-    .input(z.object({
-      schoolId: z.string().uuid("Invalid school ID format"),
-    }))
+    .input(
+      z.object({
+        schoolId: z.string().uuid("Invalid school ID format"),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const games = await ctx.db.game.findMany({
         where: {
           tryouts: {
             some: {
               school_id: input.schoolId,
-              status: 'PUBLISHED',
+              status: "PUBLISHED",
             },
           },
         },
@@ -505,7 +551,7 @@ export const schoolProfileRouter = createTRPCRouter({
           color: true,
         },
         orderBy: {
-          name: 'asc',
+          name: "asc",
         },
       });
 
@@ -517,9 +563,11 @@ export const schoolProfileRouter = createTRPCRouter({
   Returns: stats for the school
   */
   getStats: publicProcedure
-    .input(z.object({
-      schoolId: z.string().uuid("Invalid school ID format"),
-    }))
+    .input(
+      z.object({
+        schoolId: z.string().uuid("Invalid school ID format"),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const stats = await ctx.db.school.findUnique({
         where: { id: input.schoolId },
@@ -531,7 +579,7 @@ export const schoolProfileRouter = createTRPCRouter({
               teams: true,
               tryouts: {
                 where: {
-                  status: 'PUBLISHED',
+                  status: "PUBLISHED",
                 },
               },
             },
@@ -557,7 +605,7 @@ export const schoolProfileRouter = createTRPCRouter({
         ctx.db.tryout.count({
           where: {
             school_id: input.schoolId,
-            status: 'PUBLISHED',
+            status: "PUBLISHED",
             date: {
               gt: new Date(),
             },
@@ -580,13 +628,26 @@ export const schoolProfileRouter = createTRPCRouter({
   Returns: list of announcements for the school
   */
   getAnnouncements: publicProcedure
-    .input(z.object({
-      schoolId: z.string().uuid("Invalid school ID format"),
-      limit: z.number().min(1).max(50).optional().default(10),
-      offset: z.number().min(0).optional().default(0),
-      type: z.enum(["GENERAL", "TRYOUT", "ACHIEVEMENT", "FACILITY", "SCHOLARSHIP", "ALUMNI", "EVENT", "SEASON_REVIEW"]).optional(),
-      include_archived: z.boolean().optional().default(false),
-    }))
+    .input(
+      z.object({
+        schoolId: z.string().uuid("Invalid school ID format"),
+        limit: z.number().min(1).max(50).optional().default(10),
+        offset: z.number().min(0).optional().default(0),
+        type: z
+          .enum([
+            "GENERAL",
+            "TRYOUT",
+            "ACHIEVEMENT",
+            "FACILITY",
+            "SCHOLARSHIP",
+            "ALUMNI",
+            "EVENT",
+            "SEASON_REVIEW",
+          ])
+          .optional(),
+        include_archived: z.boolean().optional().default(false),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       try {
         // Build where clause
@@ -611,16 +672,14 @@ export const schoolProfileRouter = createTRPCRouter({
                 },
               },
               orderBy: [
-                { is_pinned: 'desc' }, // Pinned items first
-                { created_at: 'desc' }, // Then by newest
+                { is_pinned: "desc" }, // Pinned items first
+                { created_at: "desc" }, // Then by newest
               ],
               take: input.limit,
               skip: input.offset,
-            })
+            }),
           ),
-          withRetry(() =>
-            ctx.db.schoolAnnouncement.count({ where })
-          ),
+          withRetry(() => ctx.db.schoolAnnouncement.count({ where })),
         ]);
 
         return {
@@ -629,10 +688,10 @@ export const schoolProfileRouter = createTRPCRouter({
           hasMore: total > input.offset + input.limit,
         };
       } catch (error) {
-        console.error('Error fetching school announcements:', error);
+        console.error("Error fetching school announcements:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch school announcements',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch school announcements",
         });
       }
     }),
@@ -646,7 +705,7 @@ export const schoolProfileRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
       const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
-      
+
       try {
         const announcement = await withRetry(() =>
           ctx.db.schoolAnnouncement.create({
@@ -668,15 +727,15 @@ export const schoolProfileRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
-        
+
         return announcement;
       } catch (error) {
-        console.error('Error creating school announcement:', error);
+        console.error("Error creating school announcement:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create school announcement',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create school announcement",
         });
       }
     }),
@@ -690,30 +749,30 @@ export const schoolProfileRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
       const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
-      
+
       try {
         // Verify the announcement exists and belongs to this school
         const existingAnnouncement = await withRetry(() =>
           ctx.db.schoolAnnouncement.findUnique({
             where: { id: input.id },
-            select: { 
-              school_id: true, 
+            select: {
+              school_id: true,
               author_id: true,
             },
-          })
+          }),
         );
 
         if (!existingAnnouncement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Announcement not found',
+            code: "NOT_FOUND",
+            message: "Announcement not found",
           });
         }
 
         if (existingAnnouncement.school_id !== schoolId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cannot update announcement from another school',
+            code: "FORBIDDEN",
+            message: "Cannot update announcement from another school",
           });
         }
 
@@ -724,13 +783,13 @@ export const schoolProfileRouter = createTRPCRouter({
             ctx.db.coach.findUnique({
               where: { id: coachId },
               select: { school_id: true },
-            })
+            }),
           );
 
           if (!coach || coach.school_id !== schoolId) {
             throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Cannot update another coach\'s announcement',
+              code: "FORBIDDEN",
+              message: "Cannot update another coach's announcement",
             });
           }
         }
@@ -753,18 +812,18 @@ export const schoolProfileRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
-        
+
         return announcement;
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error updating school announcement:', error);
+        console.error("Error updating school announcement:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update school announcement',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school announcement",
         });
       }
     }),
@@ -778,30 +837,30 @@ export const schoolProfileRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
       const schoolId = ctx.schoolId!; // Available from onboardedCoachProcedure context
-      
+
       try {
         // Verify the announcement exists and belongs to this school
         const existingAnnouncement = await withRetry(() =>
           ctx.db.schoolAnnouncement.findUnique({
             where: { id: input.id },
-            select: { 
-              school_id: true, 
+            select: {
+              school_id: true,
               author_id: true,
             },
-          })
+          }),
         );
 
         if (!existingAnnouncement) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Announcement not found',
+            code: "NOT_FOUND",
+            message: "Announcement not found",
           });
         }
 
         if (existingAnnouncement.school_id !== schoolId) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Cannot delete announcement from another school',
+            code: "FORBIDDEN",
+            message: "Cannot delete announcement from another school",
           });
         }
 
@@ -811,13 +870,13 @@ export const schoolProfileRouter = createTRPCRouter({
             ctx.db.coach.findUnique({
               where: { id: coachId },
               select: { school_id: true },
-            })
+            }),
           );
 
           if (!coach || coach.school_id !== schoolId) {
             throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Cannot delete another coach\'s announcement',
+              code: "FORBIDDEN",
+              message: "Cannot delete another coach's announcement",
             });
           }
         }
@@ -825,19 +884,19 @@ export const schoolProfileRouter = createTRPCRouter({
         await withRetry(() =>
           ctx.db.schoolAnnouncement.delete({
             where: { id: input.id },
-          })
+          }),
         );
-        
+
         return { success: true };
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error deleting school announcement:', error);
+        console.error("Error deleting school announcement:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete school announcement',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete school announcement",
         });
       }
     }),
-}); 
+});

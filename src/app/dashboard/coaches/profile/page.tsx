@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  UserIcon, 
-  SchoolIcon, 
-  SaveIcon, 
+import {
+  UserIcon,
+  SchoolIcon,
+  SaveIcon,
   CheckIcon,
   XIcon,
   ExternalLinkIcon,
@@ -29,7 +29,7 @@ import {
   PlusIcon,
   CalendarIcon,
   TrashIcon,
-  ImageIcon
+  ImageIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
@@ -62,9 +62,12 @@ export default function CoachProfilePage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isEditingSchool, setIsEditingSchool] = useState(false);
   const [hasUnsavedSchoolChanges, setHasUnsavedSchoolChanges] = useState(false);
-  const [schoolValidationErrors, setSchoolValidationErrors] = useState<ValidationErrors>({});
+  const [schoolValidationErrors, setSchoolValidationErrors] =
+    useState<ValidationErrors>({});
   const [isAddingAchievement, setIsAddingAchievement] = useState(false);
-  const [editingAchievementId, setEditingAchievementId] = useState<string | null>(null);
+  const [editingAchievementId, setEditingAchievementId] = useState<
+    string | null
+  >(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -90,18 +93,27 @@ export default function CoachProfilePage() {
   });
 
   // Fetch coach profile
-  const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = api.coachProfile.getProfile.useQuery();
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    refetch: refetchProfile,
+  } = api.coachProfile.getProfile.useQuery();
 
   // Fetch school details (only for onboarded coaches)
-  const { data: schoolDetails, isLoading: schoolLoading, refetch: refetchSchoolDetails } = api.schoolProfile.getDetailsForEdit.useQuery(
-    undefined,
-    {
-      enabled: !!profile?.school_id, // Only fetch if coach has a school association
-    }
-  );
+  const {
+    data: schoolDetails,
+    isLoading: schoolLoading,
+    refetch: refetchSchoolDetails,
+  } = api.schoolProfile.getDetailsForEdit.useQuery(undefined, {
+    enabled: !!profile?.school_id, // Only fetch if coach has a school association
+  });
 
   // Fetch coach achievements
-  const { data: achievements, isLoading: achievementsLoading, refetch: refetchAchievements } = api.coachProfile.getAchievements.useQuery() as {
+  const {
+    data: achievements,
+    isLoading: achievementsLoading,
+    refetch: refetchAchievements,
+  } = api.coachProfile.getAchievements.useQuery() as {
     data: Achievement[] | undefined;
     isLoading: boolean;
     refetch: () => void;
@@ -116,7 +128,7 @@ export default function CoachProfilePage() {
       toast.success("Profile updated successfully!");
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = error instanceof Error ? error.message : "Unknown error";
       toast.error(`Failed to update profile: ${message}`);
     },
   });
@@ -130,70 +142,80 @@ export default function CoachProfilePage() {
       toast.success("School information updated successfully!");
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = error instanceof Error ? error.message : "Unknown error";
       toast.error(`Failed to update school information: ${message}`);
     },
   });
 
-  const createAchievementMutation = api.coachProfile.createAchievement.useMutation({
-    onSuccess: () => {
-      setIsAddingAchievement(false);
-      setAchievementFormData({ title: "", date_achieved: "" });
-      void refetchAchievements();
-      toast.success("Achievement added successfully!");
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to add achievement: ${message}`);
-    },
-  });
+  const createAchievementMutation =
+    api.coachProfile.createAchievement.useMutation({
+      onSuccess: () => {
+        setIsAddingAchievement(false);
+        setAchievementFormData({ title: "", date_achieved: "" });
+        void refetchAchievements();
+        toast.success("Achievement added successfully!");
+      },
+      onError: (error) => {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to add achievement: ${message}`);
+      },
+    });
 
-  const updateAchievementMutation = api.coachProfile.updateAchievement.useMutation({
-    onSuccess: () => {
-      setEditingAchievementId(null);
-      setAchievementFormData({ title: "", date_achieved: "" });
-      void refetchAchievements();
-      toast.success("Achievement updated successfully!");
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to update achievement: ${message}`);
-    },
-  });
+  const updateAchievementMutation =
+    api.coachProfile.updateAchievement.useMutation({
+      onSuccess: () => {
+        setEditingAchievementId(null);
+        setAchievementFormData({ title: "", date_achieved: "" });
+        void refetchAchievements();
+        toast.success("Achievement updated successfully!");
+      },
+      onError: (error) => {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to update achievement: ${message}`);
+      },
+    });
 
-  const deleteAchievementMutation = api.coachProfile.deleteAchievement.useMutation({
-    onSuccess: () => {
-      void refetchAchievements();
-      toast.success("Achievement deleted successfully!");
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to delete achievement: ${message}`);
-    },
-  });
+  const deleteAchievementMutation =
+    api.coachProfile.deleteAchievement.useMutation({
+      onSuccess: () => {
+        void refetchAchievements();
+        toast.success("Achievement deleted successfully!");
+      },
+      onError: (error) => {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to delete achievement: ${message}`);
+      },
+    });
 
   // School asset upload mutations
-  const updateSchoolLogoMutation = api.schoolProfile.updateSchoolLogo.useMutation({
-    onSuccess: () => {
-      toast.success("School logo updated successfully!");
-      void refetchSchoolDetails();
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to update school logo: ${message}`);
-    },
-  });
+  const updateSchoolLogoMutation =
+    api.schoolProfile.updateSchoolLogo.useMutation({
+      onSuccess: () => {
+        toast.success("School logo updated successfully!");
+        void refetchSchoolDetails();
+      },
+      onError: (error) => {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to update school logo: ${message}`);
+      },
+    });
 
-  const updateSchoolBannerMutation = api.schoolProfile.updateSchoolBanner.useMutation({
-    onSuccess: () => {
-      toast.success("School banner updated successfully!");
-      void refetchSchoolDetails();
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to update school banner: ${message}`);
-    },
-  });
+  const updateSchoolBannerMutation =
+    api.schoolProfile.updateSchoolBanner.useMutation({
+      onSuccess: () => {
+        toast.success("School banner updated successfully!");
+        void refetchSchoolDetails();
+      },
+      onError: (error) => {
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to update school banner: ${message}`);
+      },
+    });
 
   // Client-side validation functions
   const validateEmail = (email: string): boolean => {
@@ -279,7 +301,7 @@ export default function CoachProfilePage() {
   // Track form changes
   useEffect(() => {
     if (profile) {
-      const hasChanges = 
+      const hasChanges =
         formData.first_name !== (profile.first_name ?? "") ||
         formData.last_name !== (profile.last_name ?? "") ||
         formData.username !== (profile.username ?? "");
@@ -290,7 +312,7 @@ export default function CoachProfilePage() {
   // Track school form changes (updated to include banner_url)
   useEffect(() => {
     if (schoolDetails) {
-      const hasChanges = 
+      const hasChanges =
         schoolFormData.bio !== (schoolDetails.bio ?? "") ||
         schoolFormData.website !== (schoolDetails.website ?? "") ||
         schoolFormData.email !== (schoolDetails.email ?? "") ||
@@ -341,19 +363,25 @@ export default function CoachProfilePage() {
     setSchoolValidationErrors({});
   };
 
-  const handleSchoolFieldChange = (field: keyof typeof schoolFormData, value: string) => {
-    setSchoolFormData(prev => ({ ...prev, [field]: value }));
+  const handleSchoolFieldChange = (
+    field: keyof typeof schoolFormData,
+    value: string,
+  ) => {
+    setSchoolFormData((prev) => ({ ...prev, [field]: value }));
     setHasUnsavedSchoolChanges(true);
-    
+
     // Clear validation error for this field when user starts typing
     if (schoolValidationErrors[field]) {
-      setSchoolValidationErrors(prev => ({ ...prev, [field]: undefined }));
+      setSchoolValidationErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
   // Achievement handlers
   const handleAddAchievement = () => {
-    if (!achievementFormData.title.trim() || !achievementFormData.date_achieved) {
+    if (
+      !achievementFormData.title.trim() ||
+      !achievementFormData.date_achieved
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -364,16 +392,25 @@ export default function CoachProfilePage() {
     });
   };
 
-  const handleEditAchievement = (achievement: { id: string; title: string; date_achieved: Date }) => {
+  const handleEditAchievement = (achievement: {
+    id: string;
+    title: string;
+    date_achieved: Date;
+  }) => {
     setEditingAchievementId(achievement.id);
     setAchievementFormData({
       title: achievement.title,
-      date_achieved: achievement.date_achieved.toISOString().split('T')[0] ?? "",
+      date_achieved:
+        achievement.date_achieved.toISOString().split("T")[0] ?? "",
     });
   };
 
   const handleUpdateAchievement = () => {
-    if (!achievementFormData.title.trim() || !achievementFormData.date_achieved || !editingAchievementId) {
+    if (
+      !achievementFormData.title.trim() ||
+      !achievementFormData.date_achieved ||
+      !editingAchievementId
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -449,25 +486,25 @@ export default function CoachProfilePage() {
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div>
-            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="mb-2 h-8 w-48" />
             <Skeleton className="h-4 w-96" />
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Profile Information Skeleton */}
           <div className="lg:col-span-2">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="border-gray-800 bg-gray-900">
               <CardHeader>
-                <CardTitle className="text-white font-orbitron">
+                <CardTitle className="font-orbitron text-white">
                   <Skeleton className="h-6 w-40" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Profile Header Skeleton */}
                 <div className="flex items-center space-x-4">
-                  <Skeleton className="w-20 h-20 rounded-full" />
+                  <Skeleton className="h-20 w-20 rounded-full" />
                   <div className="space-y-2">
                     <Skeleton className="h-6 w-48" />
                     <Skeleton className="h-4 w-32" />
@@ -478,7 +515,7 @@ export default function CoachProfilePage() {
                 <Separator className="bg-gray-700" />
 
                 {/* Form Fields Skeleton */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-10 w-full" />
@@ -487,7 +524,7 @@ export default function CoachProfilePage() {
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-10 w-full" />
                   </div>
-                  <div className="md:col-span-2 space-y-2">
+                  <div className="space-y-2 md:col-span-2">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-10 w-full" />
                   </div>
@@ -498,14 +535,14 @@ export default function CoachProfilePage() {
 
           {/* School Association Skeleton */}
           <div>
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="border-gray-800 bg-gray-900">
               <CardHeader>
-                <CardTitle className="text-white font-orbitron">
+                <CardTitle className="font-orbitron text-white">
                   <Skeleton className="h-6 w-40" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 bg-gray-800 rounded-lg">
+                <div className="rounded-lg bg-gray-800 p-4">
                   <div className="space-y-3">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-6 w-full" />
@@ -516,7 +553,7 @@ export default function CoachProfilePage() {
                   </div>
                 </div>
                 <Skeleton className="h-10 w-full" />
-                <div className="p-3 bg-gray-800 rounded-lg">
+                <div className="rounded-lg bg-gray-800 p-3">
                   <Skeleton className="h-16 w-full" />
                 </div>
               </CardContent>
@@ -525,16 +562,16 @@ export default function CoachProfilePage() {
         </div>
 
         {/* Achievements Skeleton */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="border-gray-800 bg-gray-900">
           <CardHeader>
-            <CardTitle className="text-white font-orbitron flex items-center justify-between">
+            <CardTitle className="font-orbitron flex items-center justify-between text-white">
               <Skeleton className="h-6 w-32" />
               <Skeleton className="h-8 w-36" />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="bg-gray-800 border-gray-700">
+              <Card key={i} className="border-gray-700 bg-gray-800">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 space-y-2">
@@ -557,10 +594,14 @@ export default function CoachProfilePage() {
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <AlertCircleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
-        <h3 className="text-xl font-orbitron text-white mb-2">Profile Not Found</h3>
-        <p className="text-gray-400 font-rajdhani">Unable to load your coach profile</p>
+      <div className="py-12 text-center">
+        <AlertCircleIcon className="mx-auto mb-4 h-16 w-16 text-red-400" />
+        <h3 className="font-orbitron mb-2 text-xl text-white">
+          Profile Not Found
+        </h3>
+        <p className="font-rajdhani text-gray-400">
+          Unable to load your coach profile
+        </p>
       </div>
     );
   }
@@ -570,29 +611,36 @@ export default function CoachProfilePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-orbitron font-bold text-white">Coach Profile</h1>
-          <p className="text-gray-400 font-rajdhani">Manage your coaching profile and school association</p>
+          <h1 className="font-orbitron text-3xl font-bold text-white">
+            Coach Profile
+          </h1>
+          <p className="font-rajdhani text-gray-400">
+            Manage your coaching profile and school association
+          </p>
         </div>
         {!isEditing && (
-          <Button 
+          <Button
             onClick={() => setIsEditing(true)}
-            className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+            className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
           >
-            <UserIcon className="w-4 h-4 mr-2" />
+            <UserIcon className="mr-2 h-4 w-4" />
             Edit Profile
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Profile Information */}
         <div className="lg:col-span-2">
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-800 bg-gray-900">
             <CardHeader>
-              <CardTitle className="text-white font-orbitron flex items-center justify-between">
+              <CardTitle className="font-orbitron flex items-center justify-between text-white">
                 <span>Profile Information</span>
                 {hasUnsavedChanges && (
-                  <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-400">
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-400 text-xs text-yellow-400"
+                  >
                     Unsaved Changes
                   </Badge>
                 )}
@@ -601,14 +649,15 @@ export default function CoachProfilePage() {
             <CardContent className="space-y-6">
               {/* Profile Header */}
               <div className="flex items-center space-x-4">
-                <Avatar className="w-20 h-20">
+                <Avatar className="h-20 w-20">
                   <AvatarImage src={user?.imageUrl} />
-                  <AvatarFallback className="bg-gray-700 text-white text-xl">
-                    {profile.first_name?.[0]}{profile.last_name?.[0]}
+                  <AvatarFallback className="bg-gray-700 text-xl text-white">
+                    {profile.first_name?.[0]}
+                    {profile.last_name?.[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-xl font-orbitron font-bold text-white">
+                  <h3 className="font-orbitron text-xl font-bold text-white">
                     {profile.first_name} {profile.last_name}
                   </h3>
                   <p className="text-gray-400">@{profile.username}</p>
@@ -619,49 +668,73 @@ export default function CoachProfilePage() {
               <Separator className="bg-gray-700" />
 
               {/* Editable Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="first_name" className="text-white font-rajdhani">
+                  <Label
+                    htmlFor="first_name"
+                    className="font-rajdhani text-white"
+                  >
                     First Name
                   </Label>
                   <Input
                     id="first_name"
                     value={formData.first_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        first_name: e.target.value,
+                      }))
+                    }
                     disabled={!isEditing}
                     className={cn(
-                      "bg-gray-800 border-gray-700 text-white mt-1",
-                      !isEditing && "opacity-60"
+                      "mt-1 border-gray-700 bg-gray-800 text-white",
+                      !isEditing && "opacity-60",
                     )}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="last_name" className="text-white font-rajdhani">
+                  <Label
+                    htmlFor="last_name"
+                    className="font-rajdhani text-white"
+                  >
                     Last Name
                   </Label>
                   <Input
                     id="last_name"
                     value={formData.last_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        last_name: e.target.value,
+                      }))
+                    }
                     disabled={!isEditing}
                     className={cn(
-                      "bg-gray-800 border-gray-700 text-white mt-1",
-                      !isEditing && "opacity-60"
+                      "mt-1 border-gray-700 bg-gray-800 text-white",
+                      !isEditing && "opacity-60",
                     )}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <Label htmlFor="username" className="text-white font-rajdhani">
+                  <Label
+                    htmlFor="username"
+                    className="font-rajdhani text-white"
+                  >
                     Username
                   </Label>
                   <Input
                     id="username"
                     value={formData.username}
-                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        username: e.target.value,
+                      }))
+                    }
                     disabled={!isEditing}
                     className={cn(
-                      "bg-gray-800 border-gray-700 text-white mt-1",
-                      !isEditing && "opacity-60"
+                      "mt-1 border-gray-700 bg-gray-800 text-white",
+                      !isEditing && "opacity-60",
                     )}
                   />
                 </div>
@@ -669,24 +742,26 @@ export default function CoachProfilePage() {
 
               {/* Action Buttons */}
               {isEditing && (
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                <div className="flex justify-end space-x-3 border-t border-gray-700 pt-4">
                   <Button
                     variant="outline"
                     onClick={handleCancel}
-                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                   >
-                    <XIcon className="w-4 h-4 mr-2" />
+                    <XIcon className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSave}
-                    disabled={updateProfileMutation.isPending || !hasUnsavedChanges}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                    disabled={
+                      updateProfileMutation.isPending || !hasUnsavedChanges
+                    }
+                    className="bg-cyan-600 text-white hover:bg-cyan-700"
                   >
                     {updateProfileMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <SaveIcon className="w-4 h-4 mr-2" />
+                      <SaveIcon className="mr-2 h-4 w-4" />
                     )}
                     Save Changes
                   </Button>
@@ -698,52 +773,66 @@ export default function CoachProfilePage() {
 
         {/* School Association */}
         <div>
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="border-gray-800 bg-gray-900">
             <CardHeader>
-              <CardTitle className="text-white font-orbitron flex items-center">
-                <SchoolIcon className="w-5 h-5 mr-2" />
+              <CardTitle className="font-orbitron flex items-center text-white">
+                <SchoolIcon className="mr-2 h-5 w-5" />
                 School Association
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {profile.school_ref ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-900/20 border border-green-600/30 rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
+                  <div className="rounded-lg border border-green-600/30 bg-green-900/20 p-4">
+                    <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center space-x-2">
-                        <CheckIcon className="w-5 h-5 text-green-400" />
-                        <span className="text-green-400 font-rajdhani font-semibold">Associated</span>
+                        <CheckIcon className="h-5 w-5 text-green-400" />
+                        <span className="font-rajdhani font-semibold text-green-400">
+                          Associated
+                        </span>
                       </div>
-                      <Badge className={cn("text-white text-xs", getSchoolTypeBadgeColor(profile.school_ref.type))}>
+                      <Badge
+                        className={cn(
+                          "text-xs text-white",
+                          getSchoolTypeBadgeColor(profile.school_ref.type),
+                        )}
+                      >
                         {getSchoolTypeLabel(profile.school_ref.type)}
                       </Badge>
                     </div>
-                    <h4 className="font-orbitron font-bold text-white mb-2">
+                    <h4 className="font-orbitron mb-2 font-bold text-white">
                       {profile.school_ref.name}
                     </h4>
                     <div className="space-y-1 text-sm text-gray-300">
                       <div className="flex items-center space-x-2">
-                        <MapPinIcon className="w-4 h-4 text-gray-400" />
-                        <span>{profile.school_ref.location}, {profile.school_ref.state}</span>
+                        <MapPinIcon className="h-4 w-4 text-gray-400" />
+                        <span>
+                          {profile.school_ref.location},{" "}
+                          {profile.school_ref.state}
+                        </span>
                       </div>
                       {profile.school_ref.region && (
                         <div className="flex items-center space-x-2">
-                          <GlobeIcon className="w-4 h-4 text-gray-400" />
+                          <GlobeIcon className="h-4 w-4 text-gray-400" />
                           <span>{profile.school_ref.region} Region</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     <Button
                       asChild
                       variant="outline"
                       size="sm"
-                      className="border-cyan-600 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/20"
+                      className="border-cyan-600 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300"
                     >
-                      <a href={`/profiles/school/${profile.school_ref.id}`} target="_blank" rel="noopener noreferrer">
-                        <ExternalLinkIcon className="w-4 h-4 mr-1" />
+                      <a
+                        href={`/profiles/school/${profile.school_ref.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLinkIcon className="mr-1 h-4 w-4" />
                         View Public Profile
                       </a>
                     </Button>
@@ -751,22 +840,25 @@ export default function CoachProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <AlertCircleIcon className="w-5 h-5 text-yellow-400" />
-                      <span className="text-yellow-400 font-rajdhani font-semibold">Not Associated</span>
+                  <div className="rounded-lg border border-yellow-600/30 bg-yellow-900/20 p-4">
+                    <div className="mb-2 flex items-center space-x-2">
+                      <AlertCircleIcon className="h-5 w-5 text-yellow-400" />
+                      <span className="font-rajdhani font-semibold text-yellow-400">
+                        Not Associated
+                      </span>
                     </div>
-                    <p className="text-gray-300 text-sm">
-                      You need to associate with a school to create tryouts and manage recruitment events.
+                    <p className="text-sm text-gray-300">
+                      You need to associate with a school to create tryouts and
+                      manage recruitment events.
                     </p>
                   </div>
-                  
-                  <Button 
+
+                  <Button
                     asChild
-                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                    className="font-orbitron w-full bg-cyan-600 text-white hover:bg-cyan-700"
                   >
                     <Link href="/dashboard/coaches">
-                      <SchoolIcon className="w-4 h-4 mr-2" />
+                      <SchoolIcon className="mr-2 h-4 w-4" />
                       Associate with School
                     </Link>
                   </Button>
@@ -774,12 +866,18 @@ export default function CoachProfilePage() {
               )}
 
               {/* Info Box */}
-              <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+              <div className="rounded-lg border border-blue-600/30 bg-blue-900/20 p-3">
                 <div className="flex items-start space-x-2">
-                  <InfoIcon className="w-4 h-4 text-blue-400 mt-0.5" />
+                  <InfoIcon className="mt-0.5 h-4 w-4 text-blue-400" />
                   <div className="text-xs text-blue-300">
-                    <p className="font-semibold mb-1">Why associate with a school?</p>
-                    <p>School association is required to create tryouts and ensures all recruitment events are properly linked to your institution.</p>
+                    <p className="mb-1 font-semibold">
+                      Why associate with a school?
+                    </p>
+                    <p>
+                      School association is required to create tryouts and
+                      ensures all recruitment events are properly linked to your
+                      institution.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -790,16 +888,19 @@ export default function CoachProfilePage() {
 
       {/* School Information Panel - Only show for onboarded coaches */}
       {profile.school_ref && (
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="border-gray-800 bg-gray-900">
           <CardHeader>
-            <CardTitle className="text-white font-orbitron flex items-center justify-between">
+            <CardTitle className="font-orbitron flex items-center justify-between text-white">
               <div className="flex items-center">
-                <SchoolIcon className="w-5 h-5 mr-2" />
+                <SchoolIcon className="mr-2 h-5 w-5" />
                 <span>School Information</span>
               </div>
               <div className="flex items-center gap-2">
                 {hasUnsavedSchoolChanges && (
-                  <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-400">
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-400 text-xs text-yellow-400"
+                  >
                     Unsaved Changes
                   </Badge>
                 )}
@@ -807,9 +908,9 @@ export default function CoachProfilePage() {
                   <Button
                     onClick={() => setIsEditingSchool(true)}
                     size="sm"
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                    className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
                   >
-                    <EditIcon className="w-4 h-4 mr-2" />
+                    <EditIcon className="mr-2 h-4 w-4" />
                     Edit School Info
                   </Button>
                 )}
@@ -820,7 +921,7 @@ export default function CoachProfilePage() {
             {schoolLoading && (
               <div className="space-y-6">
                 {/* Basic Info Skeleton */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-10 w-full" />
@@ -849,7 +950,7 @@ export default function CoachProfilePage() {
                     <Skeleton className="h-3 w-32" />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-16" />
                       <Skeleton className="h-10 w-full" />
@@ -874,29 +975,33 @@ export default function CoachProfilePage() {
             {schoolDetails && (
               <>
                 {/* Non-editable basic info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
-                    <Label className="text-white font-rajdhani">School Name</Label>
-                    <div className="text-gray-300 font-rajdhani mt-1 p-2 bg-gray-800 rounded-md opacity-60">
+                    <Label className="font-rajdhani text-white">
+                      School Name
+                    </Label>
+                    <div className="font-rajdhani mt-1 rounded-md bg-gray-800 p-2 text-gray-300 opacity-60">
                       {schoolDetails.name}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-white font-rajdhani">School Type</Label>
-                    <div className="text-gray-300 font-rajdhani mt-1 p-2 bg-gray-800 rounded-md opacity-60">
+                    <Label className="font-rajdhani text-white">
+                      School Type
+                    </Label>
+                    <div className="font-rajdhani mt-1 rounded-md bg-gray-800 p-2 text-gray-300 opacity-60">
                       {getSchoolTypeLabel(schoolDetails.type)}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-white font-rajdhani">Location</Label>
-                    <div className="text-gray-300 font-rajdhani mt-1 p-2 bg-gray-800 rounded-md opacity-60">
+                    <Label className="font-rajdhani text-white">Location</Label>
+                    <div className="font-rajdhani mt-1 rounded-md bg-gray-800 p-2 text-gray-300 opacity-60">
                       {schoolDetails.location}, {schoolDetails.state}
                     </div>
                   </div>
                   {schoolDetails.region && (
                     <div>
-                      <Label className="text-white font-rajdhani">Region</Label>
-                      <div className="text-gray-300 font-rajdhani mt-1 p-2 bg-gray-800 rounded-md opacity-60">
+                      <Label className="font-rajdhani text-white">Region</Label>
+                      <div className="font-rajdhani mt-1 rounded-md bg-gray-800 p-2 text-gray-300 opacity-60">
                         {schoolDetails.region}
                       </div>
                     </div>
@@ -908,128 +1013,153 @@ export default function CoachProfilePage() {
                 {/* Editable school information */}
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="school_bio" className="text-white font-rajdhani">
+                    <Label
+                      htmlFor="school_bio"
+                      className="font-rajdhani text-white"
+                    >
                       School Bio/Description
                     </Label>
                     <Textarea
                       id="school_bio"
                       value={schoolFormData.bio}
-                      onChange={(e) => handleSchoolFieldChange('bio', e.target.value)}
+                      onChange={(e) =>
+                        handleSchoolFieldChange("bio", e.target.value)
+                      }
                       disabled={!isEditingSchool}
                       placeholder="Enter a description of your school's esports program..."
                       className={cn(
-                        "bg-gray-800 border-gray-700 text-white mt-1 min-h-[100px]",
+                        "mt-1 min-h-[100px] border-gray-700 bg-gray-800 text-white",
                         !isEditingSchool && "opacity-60",
-                        schoolValidationErrors.bio && "border-red-500"
+                        schoolValidationErrors.bio && "border-red-500",
                       )}
                       maxLength={2000}
                     />
-                    <div className="flex justify-between items-center mt-1">
+                    <div className="mt-1 flex items-center justify-between">
                       <div className="text-xs text-gray-500">
                         {schoolFormData.bio.length}/2000 characters
                       </div>
                       {schoolValidationErrors.bio && (
-                        <div className="text-xs text-red-400 flex items-center">
-                          <AlertCircleIcon className="w-3 h-3 mr-1" />
+                        <div className="flex items-center text-xs text-red-400">
+                          <AlertCircleIcon className="mr-1 h-3 w-3" />
                           {schoolValidationErrors.bio}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                      <Label htmlFor="school_website" className="text-white font-rajdhani flex items-center">
-                        <GlobeIcon className="w-4 h-4 mr-1" />
+                      <Label
+                        htmlFor="school_website"
+                        className="font-rajdhani flex items-center text-white"
+                      >
+                        <GlobeIcon className="mr-1 h-4 w-4" />
                         Website
                       </Label>
                       <Input
                         id="school_website"
                         value={schoolFormData.website}
-                        onChange={(e) => handleSchoolFieldChange('website', e.target.value)}
+                        onChange={(e) =>
+                          handleSchoolFieldChange("website", e.target.value)
+                        }
                         disabled={!isEditingSchool}
                         placeholder="https://example.edu"
                         className={cn(
-                          "bg-gray-800 border-gray-700 text-white mt-1",
+                          "mt-1 border-gray-700 bg-gray-800 text-white",
                           !isEditingSchool && "opacity-60",
-                          schoolValidationErrors.website && "border-red-500"
+                          schoolValidationErrors.website && "border-red-500",
                         )}
                       />
                       {schoolValidationErrors.website && (
-                        <div className="text-xs text-red-400 mt-1 flex items-center">
-                          <AlertCircleIcon className="w-3 h-3 mr-1" />
+                        <div className="mt-1 flex items-center text-xs text-red-400">
+                          <AlertCircleIcon className="mr-1 h-3 w-3" />
                           {schoolValidationErrors.website}
                         </div>
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="school_email" className="text-white font-rajdhani flex items-center">
-                        <MailIcon className="w-4 h-4 mr-1" />
+                      <Label
+                        htmlFor="school_email"
+                        className="font-rajdhani flex items-center text-white"
+                      >
+                        <MailIcon className="mr-1 h-4 w-4" />
                         Contact Email
                       </Label>
                       <Input
                         id="school_email"
                         type="email"
                         value={schoolFormData.email}
-                        onChange={(e) => handleSchoolFieldChange('email', e.target.value)}
+                        onChange={(e) =>
+                          handleSchoolFieldChange("email", e.target.value)
+                        }
                         disabled={!isEditingSchool}
                         placeholder="esports@example.edu"
                         className={cn(
-                          "bg-gray-800 border-gray-700 text-white mt-1",
+                          "mt-1 border-gray-700 bg-gray-800 text-white",
                           !isEditingSchool && "opacity-60",
-                          schoolValidationErrors.email && "border-red-500"
+                          schoolValidationErrors.email && "border-red-500",
                         )}
                       />
                       {schoolValidationErrors.email && (
-                        <div className="text-xs text-red-400 mt-1 flex items-center">
-                          <AlertCircleIcon className="w-3 h-3 mr-1" />
+                        <div className="mt-1 flex items-center text-xs text-red-400">
+                          <AlertCircleIcon className="mr-1 h-3 w-3" />
                           {schoolValidationErrors.email}
                         </div>
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="school_phone" className="text-white font-rajdhani flex items-center">
-                        <PhoneIcon className="w-4 h-4 mr-1" />
+                      <Label
+                        htmlFor="school_phone"
+                        className="font-rajdhani flex items-center text-white"
+                      >
+                        <PhoneIcon className="mr-1 h-4 w-4" />
                         Phone Number
                       </Label>
                       <Input
                         id="school_phone"
                         value={schoolFormData.phone}
-                        onChange={(e) => handleSchoolFieldChange('phone', e.target.value)}
+                        onChange={(e) =>
+                          handleSchoolFieldChange("phone", e.target.value)
+                        }
                         disabled={!isEditingSchool}
                         placeholder="(555) 123-4567"
                         className={cn(
-                          "bg-gray-800 border-gray-700 text-white mt-1",
+                          "mt-1 border-gray-700 bg-gray-800 text-white",
                           !isEditingSchool && "opacity-60",
-                          schoolValidationErrors.phone && "border-red-500"
+                          schoolValidationErrors.phone && "border-red-500",
                         )}
                       />
                       {schoolValidationErrors.phone && (
-                        <div className="text-xs text-red-400 mt-1 flex items-center">
-                          <AlertCircleIcon className="w-3 h-3 mr-1" />
+                        <div className="mt-1 flex items-center text-xs text-red-400">
+                          <AlertCircleIcon className="mr-1 h-3 w-3" />
                           {schoolValidationErrors.phone}
                         </div>
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="school_logo" className="text-white font-rajdhani">
+                      <Label
+                        htmlFor="school_logo"
+                        className="font-rajdhani text-white"
+                      >
                         Logo URL
                       </Label>
                       <Input
                         id="school_logo"
                         value={schoolFormData.logo_url}
-                        onChange={(e) => handleSchoolFieldChange('logo_url', e.target.value)}
+                        onChange={(e) =>
+                          handleSchoolFieldChange("logo_url", e.target.value)
+                        }
                         disabled={!isEditingSchool}
                         placeholder="https://example.edu/logo.png"
                         className={cn(
-                          "bg-gray-800 border-gray-700 text-white mt-1",
+                          "mt-1 border-gray-700 bg-gray-800 text-white",
                           !isEditingSchool && "opacity-60",
-                          schoolValidationErrors.logo_url && "border-red-500"
+                          schoolValidationErrors.logo_url && "border-red-500",
                         )}
                       />
                       {schoolValidationErrors.logo_url && (
-                        <div className="text-xs text-red-400 mt-1 flex items-center">
-                          <AlertCircleIcon className="w-3 h-3 mr-1" />
+                        <div className="mt-1 flex items-center text-xs text-red-400">
+                          <AlertCircleIcon className="mr-1 h-3 w-3" />
                           {schoolValidationErrors.logo_url}
                         </div>
                       )}
@@ -1038,42 +1168,51 @@ export default function CoachProfilePage() {
                 </div>
 
                 {/* Validation Error Summary */}
-                {Object.keys(schoolValidationErrors).length > 0 && isEditingSchool && (
-                  <div className="p-4 bg-red-900/20 border border-red-600/30 rounded-lg">
-                    <div className="flex items-start space-x-2">
-                      <AlertCircleIcon className="w-5 h-5 text-red-400 mt-0.5" />
-                      <div>
-                        <h4 className="text-red-400 font-semibold mb-2">Please fix the following errors:</h4>
-                        <ul className="text-red-300 text-sm space-y-1">
-                          {Object.entries(schoolValidationErrors).map(([field, error]) => (
-                            <li key={field}>• {error}</li>
-                          ))}
-                        </ul>
+                {Object.keys(schoolValidationErrors).length > 0 &&
+                  isEditingSchool && (
+                    <div className="rounded-lg border border-red-600/30 bg-red-900/20 p-4">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircleIcon className="mt-0.5 h-5 w-5 text-red-400" />
+                        <div>
+                          <h4 className="mb-2 font-semibold text-red-400">
+                            Please fix the following errors:
+                          </h4>
+                          <ul className="space-y-1 text-sm text-red-300">
+                            {Object.entries(schoolValidationErrors).map(
+                              ([field, error]) => (
+                                <li key={field}>• {error}</li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* School Action Buttons */}
                 {isEditingSchool && (
-                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+                  <div className="flex justify-end space-x-3 border-t border-gray-700 pt-4">
                     <Button
                       variant="outline"
                       onClick={handleSchoolCancel}
-                      className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                     >
-                      <XIcon className="w-4 h-4 mr-2" />
+                      <XIcon className="mr-2 h-4 w-4" />
                       Cancel
                     </Button>
                     <Button
                       onClick={handleSchoolSave}
-                      disabled={updateSchoolMutation.isPending || !hasUnsavedSchoolChanges || Object.keys(schoolValidationErrors).length > 0}
-                      className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                      disabled={
+                        updateSchoolMutation.isPending ||
+                        !hasUnsavedSchoolChanges ||
+                        Object.keys(schoolValidationErrors).length > 0
+                      }
+                      className="bg-cyan-600 text-white hover:bg-cyan-700"
                     >
                       {updateSchoolMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
-                        <SaveIcon className="w-4 h-4 mr-2" />
+                        <SaveIcon className="mr-2 h-4 w-4" />
                       )}
                       Save School Info
                     </Button>
@@ -1081,12 +1220,16 @@ export default function CoachProfilePage() {
                 )}
 
                 {/* School Info Help Text */}
-                <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+                <div className="rounded-lg border border-blue-600/30 bg-blue-900/20 p-3">
                   <div className="flex items-start space-x-2">
-                    <InfoIcon className="w-4 h-4 text-blue-400 mt-0.5" />
+                    <InfoIcon className="mt-0.5 h-4 w-4 text-blue-400" />
                     <div className="text-xs text-blue-300">
-                      <p className="font-semibold mb-1">School Information</p>
-                      <p>This information will be displayed on your school&apos;s public profile page and helps prospective players learn about your esports program.</p>
+                      <p className="mb-1 font-semibold">School Information</p>
+                      <p>
+                        This information will be displayed on your school&apos;s
+                        public profile page and helps prospective players learn
+                        about your esports program.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1098,15 +1241,15 @@ export default function CoachProfilePage() {
 
       {/* School Assets Panel */}
       {profile?.school_id && schoolDetails && (
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="border-gray-800 bg-gray-900">
           <CardHeader>
-            <CardTitle className="text-white font-orbitron flex items-center gap-2">
+            <CardTitle className="font-orbitron flex items-center gap-2 text-white">
               <ImageIcon className="h-5 w-5 text-cyan-400" />
               School Assets
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {/* School Logo */}
               <div className="space-y-2">
                 <FileUpload
@@ -1141,22 +1284,40 @@ export default function CoachProfilePage() {
             </div>
 
             {/* Priority Information */}
-            <div className="text-sm text-blue-300 bg-blue-900/20 border border-blue-600/30 p-4 rounded-lg">
+            <div className="rounded-lg border border-blue-600/30 bg-blue-900/20 p-4 text-sm text-blue-300">
               <div className="flex items-start space-x-2">
-                <InfoIcon className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <InfoIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-400" />
                 <div>
-                  <p className="font-semibold mb-2 text-blue-300">Logo Priority System:</p>
-                  <p className="mb-2">If you provide both a logo URL (in School Information) and upload a logo file here, <strong>the most recently changed item will be used</strong>.</p>
-                  <p className="text-blue-400">💡 For best results, use either the URL field OR file upload, not both.</p>
+                  <p className="mb-2 font-semibold text-blue-300">
+                    Logo Priority System:
+                  </p>
+                  <p className="mb-2">
+                    If you provide both a logo URL (in School Information) and
+                    upload a logo file here,{" "}
+                    <strong>the most recently changed item will be used</strong>
+                    .
+                  </p>
+                  <p className="text-blue-400">
+                    💡 For best results, use either the URL field OR file
+                    upload, not both.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="text-sm text-gray-400 bg-gray-800/50 p-4 rounded-lg">
-              <p className="mb-2"><strong className="text-gray-300">Asset Guidelines:</strong></p>
-              <ul className="space-y-1 list-disc list-inside">
-                <li><strong>Logo:</strong> Square format (400x400px recommended) - Used in school listings and player profiles</li>
-                <li><strong>Banner:</strong> Wide format (1200x300px recommended) - Used as header image on your school page</li>
+            <div className="rounded-lg bg-gray-800/50 p-4 text-sm text-gray-400">
+              <p className="mb-2">
+                <strong className="text-gray-300">Asset Guidelines:</strong>
+              </p>
+              <ul className="list-inside list-disc space-y-1">
+                <li>
+                  <strong>Logo:</strong> Square format (400x400px recommended) -
+                  Used in school listings and player profiles
+                </li>
+                <li>
+                  <strong>Banner:</strong> Wide format (1200x300px recommended)
+                  - Used as header image on your school page
+                </li>
                 <li>Supported formats: PNG, JPG, JPEG, WebP</li>
                 <li>Maximum file size: 5MB per image</li>
                 <li>Images are automatically optimized for web display</li>
@@ -1167,19 +1328,19 @@ export default function CoachProfilePage() {
       )}
 
       {/* Achievements Panel */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="border-gray-800 bg-gray-900">
         <CardHeader>
-          <CardTitle className="text-white font-orbitron flex items-center justify-between">
+          <CardTitle className="font-orbitron flex items-center justify-between text-white">
             <div className="flex items-center">
-              <TrophyIcon className="w-5 h-5 mr-2" />
+              <TrophyIcon className="mr-2 h-5 w-5" />
               <span>Achievements</span>
             </div>
             <Button
               onClick={() => setIsAddingAchievement(true)}
               size="sm"
-              className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+              className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
             >
-              <PlusIcon className="w-4 h-4 mr-2" />
+              <PlusIcon className="mr-2 h-4 w-4" />
               Add Achievement
             </Button>
           </CardTitle>
@@ -1188,7 +1349,7 @@ export default function CoachProfilePage() {
           {achievementsLoading && (
             <div className="space-y-3">
               {Array.from({ length: 2 }).map((_, i) => (
-                <Card key={i} className="bg-gray-800 border-gray-700">
+                <Card key={i} className="border-gray-700 bg-gray-800">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 space-y-2">
@@ -1208,36 +1369,54 @@ export default function CoachProfilePage() {
 
           {/* Add Achievement Form */}
           {isAddingAchievement && (
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4 space-y-4">
+            <Card className="border-gray-700 bg-gray-800">
+              <CardContent className="space-y-4 p-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-white font-orbitron">Add New Achievement</h4>
+                  <h4 className="font-orbitron text-white">
+                    Add New Achievement
+                  </h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="achievement_title" className="text-white font-rajdhani">
+                    <Label
+                      htmlFor="achievement_title"
+                      className="font-rajdhani text-white"
+                    >
                       Achievement Title
                     </Label>
                     <Input
                       id="achievement_title"
                       value={achievementFormData.title}
-                      onChange={(e) => setAchievementFormData(prev => ({ ...prev, title: e.target.value }))}
+                      onChange={(e) =>
+                        setAchievementFormData((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
                       placeholder="e.g., Regional Championship Winner"
-                      className="bg-gray-900 border-gray-600 text-white mt-1"
+                      className="mt-1 border-gray-600 bg-gray-900 text-white"
                       maxLength={200}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="achievement_date" className="text-white font-rajdhani flex items-center">
-                      <CalendarIcon className="w-4 h-4 mr-1" />
+                    <Label
+                      htmlFor="achievement_date"
+                      className="font-rajdhani flex items-center text-white"
+                    >
+                      <CalendarIcon className="mr-1 h-4 w-4" />
                       Date Achieved
                     </Label>
                     <Input
                       id="achievement_date"
                       type="date"
                       value={achievementFormData.date_achieved}
-                      onChange={(e) => setAchievementFormData(prev => ({ ...prev, date_achieved: e.target.value }))}
-                      className="bg-gray-900 border-gray-600 text-white mt-1"
+                      onChange={(e) =>
+                        setAchievementFormData((prev) => ({
+                          ...prev,
+                          date_achieved: e.target.value,
+                        }))
+                      }
+                      className="mt-1 border-gray-600 bg-gray-900 text-white"
                     />
                   </div>
                 </div>
@@ -1245,20 +1424,20 @@ export default function CoachProfilePage() {
                   <Button
                     variant="outline"
                     onClick={handleCancelAchievement}
-                    className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                   >
-                    <XIcon className="w-4 h-4 mr-2" />
+                    <XIcon className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
                   <Button
                     onClick={handleAddAchievement}
                     disabled={createAchievementMutation.isPending}
-                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                    className="bg-cyan-600 text-white hover:bg-cyan-700"
                   >
                     {createAchievementMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <SaveIcon className="w-4 h-4 mr-2" />
+                      <SaveIcon className="mr-2 h-4 w-4" />
                     )}
                     Add Achievement
                   </Button>
@@ -1271,35 +1450,54 @@ export default function CoachProfilePage() {
           {achievements && achievements.length > 0 ? (
             <div className="space-y-3">
               {achievements.map((achievement) => (
-                <Card key={achievement.id} className="bg-gray-800 border-gray-700">
+                <Card
+                  key={achievement.id}
+                  className="border-gray-700 bg-gray-800"
+                >
                   <CardContent className="p-4">
                     {editingAchievementId === achievement.id ? (
                       // Edit mode
                       <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <div>
-                            <Label htmlFor={`edit_title_${achievement.id}`} className="text-white font-rajdhani">
+                            <Label
+                              htmlFor={`edit_title_${achievement.id}`}
+                              className="font-rajdhani text-white"
+                            >
                               Achievement Title
                             </Label>
                             <Input
                               id={`edit_title_${achievement.id}`}
                               value={achievementFormData.title}
-                              onChange={(e) => setAchievementFormData(prev => ({ ...prev, title: e.target.value }))}
-                              className="bg-gray-900 border-gray-600 text-white mt-1"
+                              onChange={(e) =>
+                                setAchievementFormData((prev) => ({
+                                  ...prev,
+                                  title: e.target.value,
+                                }))
+                              }
+                              className="mt-1 border-gray-600 bg-gray-900 text-white"
                               maxLength={200}
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`edit_date_${achievement.id}`} className="text-white font-rajdhani flex items-center">
-                              <CalendarIcon className="w-4 h-4 mr-1" />
+                            <Label
+                              htmlFor={`edit_date_${achievement.id}`}
+                              className="font-rajdhani flex items-center text-white"
+                            >
+                              <CalendarIcon className="mr-1 h-4 w-4" />
                               Date Achieved
                             </Label>
                             <Input
                               id={`edit_date_${achievement.id}`}
                               type="date"
                               value={achievementFormData.date_achieved}
-                              onChange={(e) => setAchievementFormData(prev => ({ ...prev, date_achieved: e.target.value }))}
-                              className="bg-gray-900 border-gray-600 text-white mt-1"
+                              onChange={(e) =>
+                                setAchievementFormData((prev) => ({
+                                  ...prev,
+                                  date_achieved: e.target.value,
+                                }))
+                              }
+                              className="mt-1 border-gray-600 bg-gray-900 text-white"
                             />
                           </div>
                         </div>
@@ -1307,20 +1505,20 @@ export default function CoachProfilePage() {
                           <Button
                             variant="outline"
                             onClick={handleCancelAchievement}
-                            className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                           >
-                            <XIcon className="w-4 h-4 mr-2" />
+                            <XIcon className="mr-2 h-4 w-4" />
                             Cancel
                           </Button>
                           <Button
                             onClick={handleUpdateAchievement}
                             disabled={updateAchievementMutation.isPending}
-                            className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                            className="bg-cyan-600 text-white hover:bg-cyan-700"
                           >
                             {updateAchievementMutation.isPending ? (
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                              <SaveIcon className="w-4 h-4 mr-2" />
+                              <SaveIcon className="mr-2 h-4 w-4" />
                             )}
                             Update Achievement
                           </Button>
@@ -1330,16 +1528,18 @@ export default function CoachProfilePage() {
                       // View mode
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h4 className="font-orbitron font-semibold text-white mb-1">
+                          <h4 className="font-orbitron mb-1 font-semibold text-white">
                             {achievement.title}
                           </h4>
-                          <div className="flex items-center text-gray-400 text-sm">
-                            <CalendarIcon className="w-4 h-4 mr-1" />
+                          <div className="flex items-center text-sm text-gray-400">
+                            <CalendarIcon className="mr-1 h-4 w-4" />
                             <span className="font-rajdhani">
-                              {new Date(achievement.date_achieved).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
+                              {new Date(
+                                achievement.date_achieved,
+                              ).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
                               })}
                             </span>
                           </div>
@@ -1349,18 +1549,20 @@ export default function CoachProfilePage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditAchievement(achievement)}
-                            className="border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700"
+                            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                           >
-                            <EditIcon className="w-3 h-3" />
+                            <EditIcon className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteAchievement(achievement.id)}
+                            onClick={() =>
+                              handleDeleteAchievement(achievement.id)
+                            }
                             disabled={deleteAchievementMutation.isPending}
-                            className="border-red-600 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300"
                           >
-                            <TrashIcon className="w-3 h-3" />
+                            <TrashIcon className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -1371,17 +1573,20 @@ export default function CoachProfilePage() {
             </div>
           ) : (
             !achievementsLoading && (
-              <div className="text-center py-8">
-                <TrophyIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-orbitron text-gray-400 mb-2">No Achievements Yet</h3>
-                <p className="text-gray-500 font-rajdhani mb-4">
-                  Add your coaching achievements to showcase your experience on your school&apos;s public profile.
+              <div className="py-8 text-center">
+                <TrophyIcon className="mx-auto mb-4 h-16 w-16 text-gray-600" />
+                <h3 className="font-orbitron mb-2 text-lg text-gray-400">
+                  No Achievements Yet
+                </h3>
+                <p className="font-rajdhani mb-4 text-gray-500">
+                  Add your coaching achievements to showcase your experience on
+                  your school&apos;s public profile.
                 </p>
                 <Button
                   onClick={() => setIsAddingAchievement(true)}
-                  className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                  className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
                 >
-                  <PlusIcon className="w-4 h-4 mr-2" />
+                  <PlusIcon className="mr-2 h-4 w-4" />
                   Add Your First Achievement
                 </Button>
               </div>
@@ -1389,12 +1594,16 @@ export default function CoachProfilePage() {
           )}
 
           {/* Info Box */}
-          <div className="p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
+          <div className="rounded-lg border border-blue-600/30 bg-blue-900/20 p-3">
             <div className="flex items-start space-x-2">
-              <InfoIcon className="w-4 h-4 text-blue-400 mt-0.5" />
+              <InfoIcon className="mt-0.5 h-4 w-4 text-blue-400" />
               <div className="text-xs text-blue-300">
-                <p className="font-semibold mb-1">Achievement Display</p>
-                <p>These achievements will be displayed on your school&apos;s public profile page to showcase your coaching experience and accomplishments.</p>
+                <p className="mb-1 font-semibold">Achievement Display</p>
+                <p>
+                  These achievements will be displayed on your school&apos;s
+                  public profile page to showcase your coaching experience and
+                  accomplishments.
+                </p>
               </div>
             </div>
           </div>
@@ -1402,4 +1611,4 @@ export default function CoachProfilePage() {
       </Card>
     </div>
   );
-} 
+}

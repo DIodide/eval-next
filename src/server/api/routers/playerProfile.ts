@@ -6,10 +6,14 @@
 
 // It uses the playerProcedure from the trpc router to ensure that the user is authenticated as a player.
 
-
 import { withRetry } from "@/lib/server/db-utils";
 import type { createTRPCContext } from "@/server/api/trpc";
-import { createTRPCRouter, onboardedCoachProcedure, playerProcedure, publicProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  onboardedCoachProcedure,
+  playerProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -40,7 +44,7 @@ class MemoryCache<T> {
 
   constructor(maxSize = 1000, cleanupIntervalMs = 600000) {
     this.maxSize = maxSize;
-    
+
     // Set up periodic cleanup
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
@@ -65,7 +69,7 @@ class MemoryCache<T> {
 
   get(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -98,7 +102,7 @@ class MemoryCache<T> {
       }
     }
 
-    toDelete.forEach(key => this.cache.delete(key));
+    toDelete.forEach((key) => this.cache.delete(key));
   }
 
   // Get cache statistics
@@ -178,7 +182,7 @@ type PublicProfileData = {
 // Create cache instance for public profiles
 const publicProfileCache = new MemoryCache<PublicProfileData>(
   CACHE_CONFIG.MAX_CACHE_SIZE,
-  CACHE_CONFIG.CLEANUP_INTERVAL
+  CACHE_CONFIG.CLEANUP_INTERVAL,
 );
 
 // Cache invalidation helpers
@@ -194,21 +198,21 @@ const profileUpdateSchema = z.object({
   username: z.string().min(1).optional(),
   location: z.string().optional(),
   bio: z.string().optional(),
-  
+
   // Academic/School information
   school: z.string().optional(),
   gpa: z.number().min(0).max(4.0).optional(),
   class_year: z.string().optional(),
   graduation_date: z.string().optional(),
   intended_major: z.string().optional(),
-  
+
   // Contact information
   guardian_email: z.string().email().optional().or(z.literal("")),
   scholastic_contact: z.string().optional(),
   scholastic_contact_email: z.string().email().optional().or(z.literal("")),
   extra_curriculars: z.string().optional(),
   academic_bio: z.string().optional(),
-  
+
   // Main game selection
   main_game_id: z.string().uuid().optional(),
 });
@@ -231,12 +235,11 @@ const socialConnectionSchema = z.object({
 
 // Verification is now handled automatically by playerProcedure
 
-
 export const playerProfileRouter = createTRPCRouter({
   // Get player profile
   getProfile: playerProcedure.query(async ({ ctx }) => {
     const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
-    
+
     try {
       const player = await withRetry(() =>
         ctx.db.player.findUnique({
@@ -247,24 +250,24 @@ export const playerProfileRouter = createTRPCRouter({
             platform_connections: true,
             social_connections: true,
           },
-        })
+        }),
       );
-      
+
       if (!player) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Player profile not found',
+          code: "NOT_FOUND",
+          message: "Player profile not found",
         });
       }
-      
+
       return player;
     } catch (error) {
       if (error instanceof TRPCError) {
         throw error;
       }
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch player profile',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch player profile",
       });
     }
   }),
@@ -272,7 +275,7 @@ export const playerProfileRouter = createTRPCRouter({
   // Optimized: Get basic profile info only (faster loading)
   getBasicProfile: playerProcedure.query(async ({ ctx }) => {
     const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
-    
+
     try {
       const player = await withRetry(() =>
         ctx.db.player.findUnique({
@@ -293,15 +296,15 @@ export const playerProfileRouter = createTRPCRouter({
             created_at: true,
             updated_at: true,
           },
-        })
+        }),
       );
-      
+
       return player;
     } catch (error) {
-      console.error('Error fetching basic profile:', error);
+      console.error("Error fetching basic profile:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch basic profile',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch basic profile",
       });
     }
   }),
@@ -309,7 +312,7 @@ export const playerProfileRouter = createTRPCRouter({
   // Optimized: Get connections only (for connection management)
   getConnections: playerProcedure.query(async ({ ctx }) => {
     const playerId = ctx.playerId; // Available from playerProcedure context
-    
+
     try {
       const [platformConnections, socialConnections] = await Promise.all([
         withRetry(() =>
@@ -321,8 +324,8 @@ export const playerProfileRouter = createTRPCRouter({
               connected: true,
               updated_at: true,
             },
-            orderBy: { platform: 'asc' },
-          })
+            orderBy: { platform: "asc" },
+          }),
         ),
         withRetry(() =>
           ctx.db.playerSocialConnection.findMany({
@@ -333,20 +336,20 @@ export const playerProfileRouter = createTRPCRouter({
               connected: true,
               updated_at: true,
             },
-            orderBy: { platform: 'asc' },
-          })
+            orderBy: { platform: "asc" },
+          }),
         ),
       ]);
-      
+
       return {
         platform_connections: platformConnections,
         social_connections: socialConnections,
       };
     } catch (error) {
-      console.error('Error fetching connections:', error);
+      console.error("Error fetching connections:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch connections',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch connections",
       });
     }
   }),
@@ -354,7 +357,7 @@ export const playerProfileRouter = createTRPCRouter({
   // Optimized: Get recruiting info only
   getRecruitingInfo: playerProcedure.query(async ({ ctx }) => {
     const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
-    
+
     try {
       const player = await withRetry(() =>
         ctx.db.player.findUnique({
@@ -391,15 +394,15 @@ export const playerProfileRouter = createTRPCRouter({
               },
             },
           },
-        })
+        }),
       );
-      
+
       return player;
     } catch (error) {
-      console.error('Error fetching recruiting info:', error);
+      console.error("Error fetching recruiting info:", error);
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch recruiting info',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch recruiting info",
       });
     }
   }),
@@ -409,14 +412,14 @@ export const playerProfileRouter = createTRPCRouter({
     .input(profileUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.auth.userId!; // Safe to use ! because playerProcedure ensures userId exists
-      
+
       try {
         // Get current player data to access username before update
         const currentPlayer = await withRetry(() =>
           ctx.db.player.findUnique({
             where: { clerk_id: userId },
             select: { username: true },
-          })
+          }),
         );
 
         const updatedPlayer = await withRetry(() =>
@@ -432,25 +435,25 @@ export const playerProfileRouter = createTRPCRouter({
               platform_connections: true,
               social_connections: true,
             },
-          })
+          }),
         );
-        
+
         // Invalidate cache for the player's public profile
         if (currentPlayer?.username) {
           invalidateProfileCache(currentPlayer.username);
         }
-        
+
         // If username was updated, also invalidate new username
         if (input.username && input.username !== currentPlayer?.username) {
           invalidateProfileCache(input.username);
         }
-        
+
         return updatedPlayer;
       } catch (error) {
-        console.error('Error updating player profile:', error);
+        console.error("Error updating player profile:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update player profile',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update player profile",
         });
       }
     }),
@@ -460,7 +463,7 @@ export const playerProfileRouter = createTRPCRouter({
     .input(platformConnectionSchema)
     .mutation(async ({ ctx, input }) => {
       const playerId = ctx.playerId; // Available from playerProcedure context
-      
+
       try {
         const connection = await withRetry(() =>
           ctx.db.playerPlatformConnection.upsert({
@@ -481,15 +484,15 @@ export const playerProfileRouter = createTRPCRouter({
               username: input.username,
               connected: true,
             },
-          })
+          }),
         );
-        
+
         return connection;
       } catch (error) {
-        console.error('Error updating platform connection:', error);
+        console.error("Error updating platform connection:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update platform connection',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update platform connection",
         });
       }
     }),
@@ -500,28 +503,31 @@ export const playerProfileRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.auth.userId!;
       const playerId = ctx.playerId;
-      
+
       try {
         // Get external accounts from Clerk
-        
+
         const client = await clerkClient();
         const user = await client.users.getUser(userId);
-        
+
         // Find the relevant external account
         const externalAccount = user.externalAccounts.find(
-          account => account.provider === input.provider
+          (account) => account.provider === input.provider,
         );
-        
+
         if (!externalAccount) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
+            code: "NOT_FOUND",
             message: `No ${input.provider} account found. Please connect your Riot account first.`,
           });
         }
-        
+
         // Extract username from external account
-        const username = externalAccount.username ?? externalAccount.emailAddress ?? 'Connected Account';
-        
+        const username =
+          externalAccount.username ??
+          externalAccount.emailAddress ??
+          "Connected Account";
+
         // Store the connection (OAuth metadata stored in database after migration)
         const connection = await withRetry(() =>
           ctx.db.playerPlatformConnection.upsert({
@@ -542,18 +548,18 @@ export const playerProfileRouter = createTRPCRouter({
               username: username,
               connected: true,
             },
-          })
+          }),
         );
-        
+
         return connection;
       } catch (error) {
-        console.error('Error updating OAuth connection:', error);
+        console.error("Error updating OAuth connection:", error);
         if (error instanceof TRPCError) {
           throw error;
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update OAuth connection',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update OAuth connection",
         });
       }
     }),
@@ -563,7 +569,7 @@ export const playerProfileRouter = createTRPCRouter({
     .input(socialConnectionSchema)
     .mutation(async ({ ctx, input }) => {
       const playerId = ctx.playerId; // Available from playerProcedure context
-      
+
       try {
         const connection = await withRetry(() =>
           ctx.db.playerSocialConnection.upsert({
@@ -584,25 +590,35 @@ export const playerProfileRouter = createTRPCRouter({
               username: input.username,
               connected: true,
             },
-          })
+          }),
         );
-        
+
         return connection;
       } catch (error) {
-        console.error('Error updating social connection:', error);
+        console.error("Error updating social connection:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update social connection',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update social connection",
         });
       }
     }),
 
   // Remove platform connection
   removePlatformConnection: playerProcedure
-    .input(z.object({ platform: z.enum(["steam", "valorant", "battlenet", "epicgames", "startgg"]) }))
+    .input(
+      z.object({
+        platform: z.enum([
+          "steam",
+          "valorant",
+          "battlenet",
+          "epicgames",
+          "startgg",
+        ]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const playerId = ctx.playerId; // Available from playerProcedure context
-      
+
       try {
         await withRetry(() =>
           ctx.db.playerPlatformConnection.delete({
@@ -612,25 +628,29 @@ export const playerProfileRouter = createTRPCRouter({
                 platform: input.platform,
               },
             },
-          })
+          }),
         );
-        
+
         return { success: true };
       } catch (error) {
-        console.error('Error removing platform connection:', error);
+        console.error("Error removing platform connection:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to remove platform connection',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to remove platform connection",
         });
       }
     }),
 
   // Remove social connection
   removeSocialConnection: playerProcedure
-    .input(z.object({ platform: z.enum(["github", "discord", "instagram", "twitch", "x"]) }))
+    .input(
+      z.object({
+        platform: z.enum(["github", "discord", "instagram", "twitch", "x"]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const playerId = ctx.playerId; // Available from playerProcedure context
-      
+
       try {
         await withRetry(() =>
           ctx.db.playerSocialConnection.delete({
@@ -640,15 +660,15 @@ export const playerProfileRouter = createTRPCRouter({
                 platform: input.platform,
               },
             },
-          })
+          }),
         );
-        
+
         return { success: true };
       } catch (error) {
-        console.error('Error removing social connection:', error);
+        console.error("Error removing social connection:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to remove social connection',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to remove social connection",
         });
       }
     }),
@@ -665,15 +685,15 @@ export const playerProfileRouter = createTRPCRouter({
             icon: true,
             color: true,
           },
-          orderBy: { name: 'asc' },
-        })
+          orderBy: { name: "asc" },
+        }),
       );
-      
+
       return games;
     } catch (error) {
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch available games',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch available games",
       });
     }
   }),
@@ -685,7 +705,7 @@ export const playerProfileRouter = createTRPCRouter({
       // Check cache first
       const cacheKey = `profile:${input.username}`;
       const cachedData = publicProfileCache.get(cacheKey);
-      
+
       if (cachedData) {
         return cachedData;
       }
@@ -765,28 +785,32 @@ export const playerProfileRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          }),
         );
-        
+
         if (!player) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Player profile not found',
+            code: "NOT_FOUND",
+            message: "Player profile not found",
           });
         }
 
         // Cache the result
-        publicProfileCache.set(cacheKey, player, CACHE_CONFIG.PUBLIC_PROFILE_TTL);
-        
+        publicProfileCache.set(
+          cacheKey,
+          player,
+          CACHE_CONFIG.PUBLIC_PROFILE_TTL,
+        );
+
         return player;
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error fetching public profile:', error);
+        console.error("Error fetching public profile:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch public profile',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch public profile",
         });
       }
     }),
@@ -809,25 +833,25 @@ export const playerProfileRouter = createTRPCRouter({
               extra_curriculars: true,
               academic_bio: true,
             },
-          })
+          }),
         );
-        
+
         if (!player) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Player profile not found',
+            code: "NOT_FOUND",
+            message: "Player profile not found",
           });
         }
-        
+
         return player;
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error('Error fetching public recruiting info:', error);
+        console.error("Error fetching public recruiting info:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch recruiting info',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch recruiting info",
         });
       }
     }),
@@ -835,17 +859,17 @@ export const playerProfileRouter = createTRPCRouter({
   // Get Valorant data from user's publicMetadata
   getValorantData: playerProcedure.query(async ({ ctx }) => {
     const userId = ctx.auth.userId!;
-    
+
     try {
       const client = await clerkClient();
       const user = await client.users.getUser(userId);
-      
+
       const valorantData = user.publicMetadata?.valorant;
-      
+
       if (!valorantData) {
         return null;
       }
-      
+
       return {
         puuid: valorantData.puuid,
         gameName: valorantData.gameName,
@@ -853,7 +877,7 @@ export const playerProfileRouter = createTRPCRouter({
         lastUpdated: valorantData.lastUpdated,
       };
     } catch (error) {
-      console.error('Error fetching Valorant data:', error);
+      console.error("Error fetching Valorant data:", error);
       return null;
     }
   }),
@@ -861,72 +885,77 @@ export const playerProfileRouter = createTRPCRouter({
   // Refresh Valorant data by calling the process-oauth endpoint
   refreshValorantData: playerProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.auth.userId!;
-    
+
     try {
       // Call our internal API to process the Valorant OAuth
-      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/riot/process-oauth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Note: In production, you'd want to add proper authentication here
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/riot/process-oauth`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Note: In production, you'd want to add proper authentication here
+          },
         },
-      });
-      
-      const data = await response.json() as { 
-        success?: boolean; 
-        gameName?: string; 
-        tagLine?: string; 
-        error?: string; 
+      );
+
+      const data = (await response.json()) as {
+        success?: boolean;
+        gameName?: string;
+        tagLine?: string;
+        error?: string;
       };
-      
+
       if (!data.success) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: data.error ?? 'Failed to refresh Valorant data',
+          code: "BAD_REQUEST",
+          message: data.error ?? "Failed to refresh Valorant data",
         });
       }
-      
+
       return data;
     } catch (error) {
-      console.error('Error refreshing Valorant data:', error);
+      console.error("Error refreshing Valorant data:", error);
       if (error instanceof TRPCError) {
         throw error;
       }
       throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to refresh Valorant data',
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to refresh Valorant data",
       });
     }
   }),
 
   // Update player banner
   updatePlayerBanner: playerProcedure
-    .input(z.object({ 
-      banner_url: z.string().url().optional().or(z.literal("")) 
-    }))
+    .input(
+      z.object({
+        banner_url: z.string().url().optional().or(z.literal("")),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const player = await ctx.db.player.update({
           where: { clerk_id: ctx.auth.userId! },
           data: {
             banner_url: input.banner_url ?? null,
-            updated_at: new Date()
-          }
+            updated_at: new Date(),
+          },
         });
-        
+
         // Clear cache for this player's public profile
         if (player.username) {
           const cacheKey = `profile:${player.username}`;
           publicProfileCache.delete(cacheKey);
         }
-        
+
         return { success: true };
       } catch (error) {
-        console.error('Error updating player banner:', error);
+        console.error("Error updating player banner:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update player banner',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update player banner",
         });
       }
     }),
-}); 
+});

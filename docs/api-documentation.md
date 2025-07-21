@@ -50,11 +50,13 @@ type UserRole = "player" | "coach" | null;
 Extracts the user role from Clerk user metadata.
 
 **Parameters:**
+
 - `user` - Clerk user object (server or client)
 
 **Returns:** User role or null
 
 **Example:**
+
 ```typescript
 import { getUserRole } from "@/lib/permissions";
 
@@ -69,6 +71,7 @@ if (role === "coach") {
 Checks if a coach has completed onboarding.
 
 **Parameters:**
+
 - `user` - Clerk user object
 
 **Returns:** Boolean indicating onboarding status
@@ -78,6 +81,7 @@ Checks if a coach has completed onboarding.
 Determines if user can access coach-only features.
 
 **Example:**
+
 ```typescript
 if (canAccessCoachFeatures(user)) {
   // Show coach dashboard
@@ -133,35 +137,41 @@ const updateProfile = api.playerProfile.updateProfile.useMutation({
 #### Queries
 
 ##### `getProfile`
+
 Gets complete player profile with relationships.
 
 **Authentication:** Player required
 **Returns:** Complete player profile
 
 **Example:**
+
 ```typescript
 const { data: profile } = api.playerProfile.getProfile.useQuery();
 ```
 
 ##### `getBasicProfile`
+
 Gets essential profile information for faster loading.
 
 **Authentication:** Player required
 **Returns:** Basic profile data
 
 ##### `getConnections`
+
 Gets platform and social connections.
 
 **Authentication:** Player required
 **Returns:** Platform and social connections
 
 ##### `getRecruitingInfo`
+
 Gets recruiting-specific information.
 
 **Authentication:** Player required
 **Returns:** Academic and recruiting data
 
 ##### `getPublicProfile`
+
 Gets public profile by username.
 
 **Authentication:** Public
@@ -169,13 +179,15 @@ Gets public profile by username.
 **Returns:** Public profile data
 
 **Example:**
+
 ```typescript
 const { data: publicProfile } = api.playerProfile.getPublicProfile.useQuery({
-  username: "player123"
+  username: "player123",
 });
 ```
 
 ##### `getAllGames`
+
 Gets all available games for main game selection.
 
 **Authentication:** Public
@@ -184,6 +196,7 @@ Gets all available games for main game selection.
 #### Mutations
 
 ##### `updateProfile`
+
 Updates player profile information.
 
 **Authentication:** Player required
@@ -191,6 +204,7 @@ Updates player profile information.
 **Returns:** Updated profile
 
 **Input Schema:**
+
 ```typescript
 {
   first_name?: string;
@@ -213,17 +227,19 @@ Updates player profile information.
 ```
 
 **Example:**
+
 ```typescript
 const updateProfile = api.playerProfile.updateProfile.useMutation();
 
 await updateProfile.mutateAsync({
   bio: "Aspiring esports professional",
   gpa: 3.8,
-  class_year: "2025"
+  class_year: "2025",
 });
 ```
 
 ##### `updatePlatformConnection`
+
 Updates gaming platform connections.
 
 **Authentication:** Player required
@@ -231,6 +247,7 @@ Updates gaming platform connections.
 **Returns:** Updated connection
 
 **Input Schema:**
+
 ```typescript
 {
   platform: "steam" | "valorant" | "battlenet" | "epicgames" | "startgg";
@@ -239,6 +256,7 @@ Updates gaming platform connections.
 ```
 
 ##### `updateSocialConnection`
+
 Updates social media connections.
 
 **Authentication:** Player required
@@ -246,6 +264,7 @@ Updates social media connections.
 **Returns:** Updated connection
 
 **Input Schema:**
+
 ```typescript
 {
   platform: "github" | "discord" | "instagram" | "twitch" | "x";
@@ -254,6 +273,7 @@ Updates social media connections.
 ```
 
 ##### `removePlatformConnection`
+
 Removes a platform connection.
 
 **Authentication:** Player required
@@ -261,6 +281,7 @@ Removes a platform connection.
 **Returns:** Success status
 
 ##### `removeSocialConnection`
+
 Removes a social media connection.
 
 **Authentication:** Player required
@@ -272,18 +293,21 @@ Removes a social media connection.
 #### Queries
 
 ##### `getProfile`
+
 Gets complete coach profile.
 
 **Authentication:** Coach required
 **Returns:** Complete coach profile
 
 ##### `getOnboardingStatus`
+
 Gets coach onboarding status.
 
 **Authentication:** Coach required
 **Returns:** Onboarding status object
 
 **Return Type:**
+
 ```typescript
 {
   isOnboarded: boolean;
@@ -294,6 +318,7 @@ Gets coach onboarding status.
 ```
 
 ##### `getPublicProfile`
+
 Gets public coach profile by username.
 
 **Authentication:** Public
@@ -303,6 +328,7 @@ Gets public coach profile by username.
 #### Mutations
 
 ##### `updateProfile`
+
 Updates coach profile information.
 
 **Authentication:** Coach required
@@ -314,6 +340,7 @@ Updates coach profile information.
 #### Queries
 
 ##### `getAll`
+
 Gets all public tryouts with filtering.
 
 **Authentication:** Public
@@ -321,6 +348,7 @@ Gets all public tryouts with filtering.
 **Returns:** Paginated tryouts
 
 **Input Schema:**
+
 ```typescript
 {
   page?: number; // default: 1
@@ -337,16 +365,18 @@ Gets all public tryouts with filtering.
 ```
 
 **Example:**
+
 ```typescript
 const { data: tryouts } = api.tryouts.getAll.useQuery({
   game_id: "valorant-uuid",
   state: "California",
   page: 1,
-  limit: 20
+  limit: 20,
 });
 ```
 
 ##### `getById`
+
 Gets specific tryout details.
 
 **Authentication:** Public
@@ -354,6 +384,7 @@ Gets specific tryout details.
 **Returns:** Tryout details
 
 ##### `getRegistrations`
+
 Gets tryout registrations (coach only).
 
 **Authentication:** Onboarded coach required
@@ -363,6 +394,7 @@ Gets tryout registrations (coach only).
 #### Mutations
 
 ##### `create`
+
 Creates a new tryout.
 
 **Authentication:** Onboarded coach required
@@ -370,6 +402,7 @@ Creates a new tryout.
 **Returns:** Created tryout
 
 **Input Schema:**
+
 ```typescript
 {
   title: string;
@@ -391,6 +424,7 @@ Creates a new tryout.
 ```
 
 ##### `update`
+
 Updates an existing tryout.
 
 **Authentication:** Tryout owner required
@@ -398,6 +432,7 @@ Updates an existing tryout.
 **Returns:** Updated tryout
 
 ##### `register`
+
 Registers for a tryout.
 
 **Authentication:** Player required
@@ -405,6 +440,7 @@ Registers for a tryout.
 **Returns:** Registration status
 
 ##### `unregister`
+
 Unregisters from a tryout.
 
 **Authentication:** Player required
@@ -416,6 +452,7 @@ Unregisters from a tryout.
 Similar structure to Tryouts Router with combine-specific fields:
 
 #### Additional Fields
+
 - `year: string`
 - `prize_pool: string`
 - `format?: string`
@@ -427,12 +464,14 @@ Similar structure to Tryouts Router with combine-specific fields:
 #### Queries
 
 ##### `getConversations`
+
 Gets all conversations for the current user.
 
 **Authentication:** Required
 **Returns:** Conversation list
 
 ##### `getMessages`
+
 Gets messages in a conversation.
 
 **Authentication:** Conversation participant required
@@ -442,6 +481,7 @@ Gets messages in a conversation.
 #### Mutations
 
 ##### `send`
+
 Sends a message in a conversation.
 
 **Authentication:** Conversation participant required
@@ -449,6 +489,7 @@ Sends a message in a conversation.
 **Returns:** Sent message
 
 ##### `createConversation`
+
 Creates a new conversation.
 
 **Authentication:** Required
@@ -460,6 +501,7 @@ Creates a new conversation.
 #### Queries
 
 ##### `search`
+
 Searches for players with advanced filtering.
 
 **Authentication:** Coach required
@@ -467,6 +509,7 @@ Searches for players with advanced filtering.
 **Returns:** Paginated player results
 
 **Input Schema:**
+
 ```typescript
 {
   query?: string; // Name or username search
@@ -485,6 +528,7 @@ Searches for players with advanced filtering.
 ```
 
 **Example:**
+
 ```typescript
 const { data: searchResults } = api.playerSearch.search.useQuery({
   game_id: "valorant-uuid",
@@ -493,7 +537,7 @@ const { data: searchResults } = api.playerSearch.search.useQuery({
   min_gpa: 3.0,
   roles: ["duelist", "controller"],
   sort_by: "eval_score",
-  sort_order: "desc"
+  sort_order: "desc",
 });
 ```
 
@@ -502,6 +546,7 @@ const { data: searchResults } = api.playerSearch.search.useQuery({
 #### Queries
 
 ##### `getAll`
+
 Gets all schools with filtering.
 
 **Authentication:** Public
@@ -509,6 +554,7 @@ Gets all schools with filtering.
 **Returns:** School list
 
 ##### `getById`
+
 Gets specific school details.
 
 **Authentication:** Public
@@ -516,6 +562,7 @@ Gets specific school details.
 **Returns:** School details
 
 ##### `getTeams`
+
 Gets teams for a school.
 
 **Authentication:** Public
@@ -527,6 +574,7 @@ Gets teams for a school.
 #### Queries
 
 ##### `getAll`
+
 Gets all leagues with filtering.
 
 **Authentication:** Public
@@ -534,6 +582,7 @@ Gets all leagues with filtering.
 **Returns:** League list
 
 ##### `getById`
+
 Gets specific league details.
 
 **Authentication:** Public
@@ -541,6 +590,7 @@ Gets specific league details.
 **Returns:** League details
 
 ##### `getStandings`
+
 Gets league standings.
 
 **Authentication:** Public
@@ -552,12 +602,14 @@ Gets league standings.
 #### Queries
 
 ##### `getMyRequests`
+
 Gets coach's association requests.
 
 **Authentication:** Coach required
 **Returns:** Request list
 
 ##### `getAllRequests`
+
 Gets all requests (admin only).
 
 **Authentication:** Admin required
@@ -566,6 +618,7 @@ Gets all requests (admin only).
 #### Mutations
 
 ##### `create`
+
 Creates a school association request.
 
 **Authentication:** Coach required
@@ -573,6 +626,7 @@ Creates a school association request.
 **Returns:** Created request
 
 ##### `approve`
+
 Approves a request (admin only).
 
 **Authentication:** Admin required
@@ -580,6 +634,7 @@ Approves a request (admin only).
 **Returns:** Updated request
 
 ##### `reject`
+
 Rejects a request (admin only).
 
 **Authentication:** Admin required
@@ -593,6 +648,7 @@ Rejects a request (admin only).
 ### Webhook Endpoints
 
 #### `/api/webhooks/clerk`
+
 Handles Clerk user events.
 
 **Method:** POST
@@ -600,11 +656,13 @@ Handles Clerk user events.
 **Body:** Clerk webhook payload
 
 **Supported Events:**
+
 - `user.created` - Creates player/coach record
 - `user.updated` - Updates user information
 - `user.deleted` - Handles user deletion
 
 #### `/api/webhooks/svix`
+
 Handles general webhook events.
 
 **Method:** POST
@@ -613,6 +671,7 @@ Handles general webhook events.
 ### Admin Endpoints
 
 #### `/api/admin/check-status`
+
 Checks admin status for current user.
 
 **Method:** GET
@@ -620,6 +679,7 @@ Checks admin status for current user.
 **Response:** `{ isAdmin: boolean }`
 
 #### `/api/update-user-type`
+
 Updates user type in Clerk metadata.
 
 **Method:** POST
@@ -629,6 +689,7 @@ Updates user type in Clerk metadata.
 ### Game Integration Endpoints
 
 #### `/api/valorant/connect`
+
 Connects Valorant account via Riot OAuth.
 
 **Method:** POST
@@ -636,6 +697,7 @@ Connects Valorant account via Riot OAuth.
 **Body:** Riot OAuth credentials
 
 #### `/api/riot/account`
+
 Gets Riot account information.
 
 **Method:** GET
@@ -649,6 +711,7 @@ Gets Riot account information.
 ### Core Models
 
 #### Player
+
 ```prisma
 model Player {
   id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -669,7 +732,7 @@ model Player {
   main_game_id             String?                    @db.Uuid
   created_at               DateTime                   @default(now()) @db.Timestamp(6)
   updated_at               DateTime                   @updatedAt
-  
+
   // Relations
   game_profiles            PlayerGameProfile[]
   platform_connections     PlayerPlatformConnection[]
@@ -681,6 +744,7 @@ model Player {
 ```
 
 #### Coach
+
 ```prisma
 model Coach {
   id                 String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -694,7 +758,7 @@ model Coach {
   school_id          String?                    @db.Uuid
   created_at         DateTime                   @default(now()) @db.Timestamp(6)
   updated_at         DateTime                   @updatedAt
-  
+
   // Relations
   tryouts_created    Tryout[]
   combines_created   Combine[]
@@ -704,6 +768,7 @@ model Coach {
 ```
 
 #### Game
+
 ```prisma
 model Game {
   id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -712,7 +777,7 @@ model Game {
   icon              String?
   color             String?
   created_at        DateTime            @default(now()) @db.Timestamp(6)
-  
+
   // Relations
   player_profiles   PlayerGameProfile[]
   tryouts           Tryout[]
@@ -722,6 +787,7 @@ model Game {
 ```
 
 #### Tryout
+
 ```prisma
 model Tryout {
   id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -744,7 +810,7 @@ model Tryout {
   required_roles        String[]
   created_at            DateTime             @default(now()) @db.Timestamp(6)
   updated_at            DateTime             @updatedAt
-  
+
   // Relations
   registrations         TryoutRegistration[]
   game                  Game                 @relation(fields: [game_id], references: [id])
@@ -794,12 +860,20 @@ enum RegistrationStatus {
 ### UI Components (shadcn/ui)
 
 #### Button
+
 Customizable button component with variants and sizes.
 
 **Props:**
+
 ```typescript
 interface ButtonProps {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
   size?: "default" | "sm" | "lg" | "icon";
   asChild?: boolean;
   className?: string;
@@ -808,18 +882,21 @@ interface ButtonProps {
 ```
 
 **Example:**
+
 ```tsx
 import { Button } from "@/components/ui/button";
 
 <Button variant="outline" size="lg">
   Click me
-</Button>
+</Button>;
 ```
 
 #### Card
+
 Container component for content sections.
 
 **Components:**
+
 - `Card` - Main container
 - `CardHeader` - Header section
 - `CardTitle` - Title element
@@ -828,6 +905,7 @@ Container component for content sections.
 - `CardFooter` - Footer section
 
 **Example:**
+
 ```tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -838,13 +916,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
   <CardContent>
     <p>Content goes here</p>
   </CardContent>
-</Card>
+</Card>;
 ```
 
 #### Dialog
+
 Modal dialog component.
 
 **Components:**
+
 - `Dialog` - Root component
 - `DialogTrigger` - Trigger button
 - `DialogContent` - Modal content
@@ -854,8 +934,15 @@ Modal dialog component.
 - `DialogFooter` - Footer with actions
 
 **Example:**
+
 ```tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 <Dialog>
   <DialogTrigger asChild>
@@ -867,15 +954,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
     </DialogHeader>
     <p>Are you sure you want to proceed?</p>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 #### Form Components
 
 ##### Input
+
 Text input component with validation support.
 
 **Props:**
+
 ```typescript
 interface InputProps {
   type?: string;
@@ -888,9 +977,11 @@ interface InputProps {
 ```
 
 ##### Select
+
 Dropdown selection component.
 
 **Components:**
+
 - `Select` - Root component
 - `SelectTrigger` - Trigger button
 - `SelectContent` - Dropdown content
@@ -898,8 +989,15 @@ Dropdown selection component.
 - `SelectValue` - Selected value display
 
 **Example:**
+
 ```tsx
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 <Select value={value} onValueChange={setValue}>
   <SelectTrigger>
@@ -909,13 +1007,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     <SelectItem value="option1">Option 1</SelectItem>
     <SelectItem value="option2">Option 2</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 #### DataTable
+
 Advanced table component with sorting, filtering, and pagination.
 
 **Props:**
+
 ```typescript
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -927,6 +1027,7 @@ interface DataTableProps<TData, TValue> {
 ```
 
 **Example:**
+
 ```tsx
 import { DataTable } from "@/components/ui/data-table";
 
@@ -935,20 +1036,22 @@ const columns = [
   { accessorKey: "email", header: "Email" },
 ];
 
-<DataTable 
-  columns={columns} 
-  data={players} 
+<DataTable
+  columns={columns}
+  data={players}
   searchKey="name"
   searchPlaceholder="Search players..."
-/>
+/>;
 ```
 
 ### Custom Components
 
 #### OnboardingGuard
+
 Protects routes based on user onboarding status.
 
 **Props:**
+
 ```typescript
 interface OnboardingGuardProps {
   children: React.ReactNode;
@@ -958,12 +1061,13 @@ interface OnboardingGuardProps {
 ```
 
 **Example:**
+
 ```tsx
 import { OnboardingGuard } from "@/components/ui/OnboardingGuard";
 
 <OnboardingGuard requireOnboarded>
   <CoachDashboard />
-</OnboardingGuard>
+</OnboardingGuard>;
 ```
 
 ---
@@ -971,9 +1075,11 @@ import { OnboardingGuard } from "@/components/ui/OnboardingGuard";
 ## Custom Hooks
 
 ### useToast
+
 Provides toast notification functionality.
 
 **Returns:**
+
 ```typescript
 {
   toast: (props: ToastProps) => void;
@@ -983,6 +1089,7 @@ Provides toast notification functionality.
 ```
 
 **Example:**
+
 ```tsx
 import { useToast } from "@/hooks/use-toast";
 
@@ -992,7 +1099,7 @@ const handleSuccess = () => {
   toast({
     title: "Success",
     description: "Profile updated successfully",
-    variant: "default"
+    variant: "default",
   });
 };
 
@@ -1000,36 +1107,38 @@ const handleError = () => {
   toast({
     title: "Error",
     description: "Failed to update profile",
-    variant: "destructive"
+    variant: "destructive",
   });
 };
 ```
 
 ### useMobile
+
 Detects mobile viewport.
 
 **Returns:** `boolean`
 
 **Example:**
+
 ```tsx
 import { useMobile } from "@/hooks/use-mobile";
 
 const isMobile = useMobile();
 
 return (
-  <div className={isMobile ? "mobile-layout" : "desktop-layout"}>
-    Content
-  </div>
+  <div className={isMobile ? "mobile-layout" : "desktop-layout"}>Content</div>
 );
 ```
 
 ### useRouteBackground
+
 Manages route-specific background colors.
 
 **Parameters:** `route: string`
 **Returns:** Background configuration
 
 **Example:**
+
 ```tsx
 import { useRouteBackground } from "@/hooks/use-route-background";
 
@@ -1043,82 +1152,92 @@ const backgroundConfig = useRouteBackground("/dashboard");
 ### Core Utilities
 
 #### `cn(...inputs: ClassValue[]): string`
+
 Combines and merges Tailwind CSS classes.
 
 **Location:** `@/lib/utils`
 
 **Example:**
+
 ```typescript
 import { cn } from "@/lib/utils";
 
-const className = cn(
-  "base-class",
-  isActive && "active-class",
-  className
-);
+const className = cn("base-class", isActive && "active-class", className);
 ```
 
 ### Time Utilities
 
 #### `formatDate(date: Date, format?: string): string`
+
 Formats dates with various options.
 
 **Location:** `@/lib/time-utils`
 
 **Examples:**
+
 ```typescript
 import { formatDate } from "@/lib/time-utils";
 
 formatDate(new Date(), "short"); // "12/25/23"
-formatDate(new Date(), "long");  // "December 25, 2023"
-formatDate(new Date(), "time");  // "3:30 PM"
+formatDate(new Date(), "long"); // "December 25, 2023"
+formatDate(new Date(), "time"); // "3:30 PM"
 ```
 
 #### `getRelativeTime(date: Date): string`
+
 Gets relative time description.
 
 **Example:**
+
 ```typescript
 getRelativeTime(yesterday); // "1 day ago"
-getRelativeTime(tomorrow);  // "in 1 day"
+getRelativeTime(tomorrow); // "in 1 day"
 ```
 
 #### `isEventPast(eventDate: Date): boolean`
+
 Checks if event date has passed.
 
 #### `getEventStatus(event: { date: Date; registration_deadline?: Date }): EventStatus`
+
 Determines event status based on dates.
 
 ### Database Utilities
 
 #### `withRetry<T>(operation: () => Promise<T>, maxRetries?: number): Promise<T>`
+
 Executes database operations with retry logic.
 
 **Location:** `@/lib/db-utils`
 
 **Example:**
+
 ```typescript
 import { withRetry } from "@/lib/db-utils";
 
 const player = await withRetry(() =>
-  db.player.findUnique({ where: { id: playerId } })
+  db.player.findUnique({ where: { id: playerId } }),
 );
 ```
 
 #### `handlePrismaError(error: unknown): TRPCError`
+
 Converts Prisma errors to tRPC errors.
 
 #### `validateUUID(id: string): boolean`
+
 Validates UUID format.
 
 ### Admin Utilities
 
 #### `isUserAdmin(clerkId: string): Promise<boolean>`
+
 Checks if user has admin privileges.
 
 **Location:** `@/lib/admin-utils`
 
 **Example:**
+
 ```typescript
 import { isUserAdmin } from "@/lib/admin-utils";
 
@@ -1129,35 +1248,42 @@ if (isAdmin) {
 ```
 
 #### `requireAdmin(clerkId: string): Promise<void>`
+
 Throws error if user is not admin.
 
 ### Metadata Utilities
 
 #### `generatePlayerMetadata(player: Player): Metadata`
+
 Generates Next.js metadata for player profiles.
 
 **Location:** `@/lib/metadata`
 
 #### `generateTryoutMetadata(tryout: Tryout): Metadata`
+
 Generates metadata for tryout pages.
 
 #### `getGameMetadata(gameId: string): GameMetadata`
+
 Gets game-specific metadata configuration.
 
 ### Discord Logging
 
 #### `logToDiscord(message: string, level?: LogLevel): Promise<void>`
+
 Sends log messages to Discord webhook.
 
 **Location:** `@/lib/discord-logger`
 
 **Log Levels:**
+
 - `info` - General information
 - `warn` - Warning messages
 - `error` - Error messages
 - `success` - Success messages
 
 **Example:**
+
 ```typescript
 import { logToDiscord } from "@/lib/discord-logger";
 
@@ -1172,6 +1298,7 @@ await logToDiscord("Database connection failed", "error");
 ### Core Types
 
 #### User Types
+
 ```typescript
 type UserRole = "player" | "coach" | null;
 
@@ -1184,6 +1311,7 @@ interface CoachOnboardingStatus {
 ```
 
 #### Game Types
+
 ```typescript
 interface ValorantMetadata {
   puuid: string;
@@ -1200,14 +1328,15 @@ interface RiotAccountResponse {
 ```
 
 #### tRPC Types
+
 ```typescript
 // Inference helpers for tRPC
 type RouterInputs = inferRouterInputs<AppRouter>;
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 // Example usage
-type PlayerProfileInput = RouterInputs['playerProfile']['updateProfile'];
-type PlayerProfileOutput = RouterOutputs['playerProfile']['getProfile'];
+type PlayerProfileInput = RouterInputs["playerProfile"]["updateProfile"];
+type PlayerProfileOutput = RouterOutputs["playerProfile"]["getProfile"];
 ```
 
 ### Database Types
@@ -1252,7 +1381,7 @@ import { useToast } from "@/hooks/use-toast";
 function ProfileForm() {
   const { toast } = useToast();
   const utils = api.useUtils();
-  
+
   const updateProfile = api.playerProfile.updateProfile.useMutation({
     onSuccess: () => {
       toast({
@@ -1339,7 +1468,7 @@ import { Button } from "@/components/ui/button";
 
 function TryoutCard({ tryout }: { tryout: Tryout }) {
   const utils = api.useUtils();
-  
+
   const registerMutation = api.tryouts.register.useMutation({
     onSuccess: () => {
       // Refetch tryout data to update registration count
@@ -1369,15 +1498,15 @@ function TryoutCard({ tryout }: { tryout: Tryout }) {
       </CardContent>
       <CardFooter>
         {isRegistered ? (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => unregisterMutation.mutate({ tryout_id: tryout.id })}
             disabled={unregisterMutation.isLoading}
           >
             Unregister
           </Button>
         ) : (
-          <Button 
+          <Button
             onClick={() => registerMutation.mutate({ tryout_id: tryout.id })}
             disabled={registerMutation.isLoading || tryout.registered_spots >= tryout.max_spots}
           >
@@ -1415,7 +1544,7 @@ type TryoutFormData = z.infer<typeof tryoutSchema>;
 function CreateTryoutForm() {
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const form = useForm<TryoutFormData>({
     resolver: zodResolver(tryoutSchema),
     defaultValues: {
@@ -1462,7 +1591,7 @@ import { api } from "@/trpc/react";
 
 function ConversationView({ conversationId }: { conversationId: string }) {
   const [newMessage, setNewMessage] = useState("");
-  
+
   const { data: messages } = api.messages.getMessages.useQuery({
     conversation_id: conversationId,
     limit: 50
@@ -1495,7 +1624,7 @@ function ConversationView({ conversationId }: { conversationId: string }) {
           <ConversationItem key={conv.id} conversation={conv} />
         ))}
       </div>
-      
+
       {/* Message view */}
       <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-y-auto p-4">
@@ -1503,7 +1632,7 @@ function ConversationView({ conversationId }: { conversationId: string }) {
             <MessageBubble key={message.id} message={message} />
           ))}
         </div>
-        
+
         {/* Send message */}
         <div className="p-4 border-t">
           <div className="flex gap-2">
@@ -1536,56 +1665,58 @@ export const someRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        const result = await withRetry(() => 
+        const result = await withRetry(() =>
           ctx.db.someModel.update({
             where: { id: input.id },
-            data: { /* update data */ }
-          })
+            data: {
+              /* update data */
+            },
+          }),
         );
-        
+
         return result;
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (error.code === 'P2025') {
+          if (error.code === "P2025") {
             throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Record not found'
+              code: "NOT_FOUND",
+              message: "Record not found",
             });
           }
         }
-        
+
         // Log error for debugging
-        await logToDiscord(`Database error: ${error.message}`, 'error');
-        
+        await logToDiscord(`Database error: ${error.message}`, "error");
+
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'An unexpected error occurred'
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred",
         });
       }
-    })
+    }),
 });
 
 // In React component
 function Component() {
   const { toast } = useToast();
-  
+
   const mutation = api.someRouter.riskyOperation.useMutation({
     onError: (error) => {
       // Handle specific error types
-      if (error.data?.code === 'NOT_FOUND') {
+      if (error.data?.code === "NOT_FOUND") {
         toast({
           title: "Not Found",
           description: "The requested item was not found",
-          variant: "destructive"
+          variant: "destructive",
         });
       } else {
         toast({
           title: "Error",
           description: "Something went wrong. Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
-    }
+    },
   });
 }
 ```

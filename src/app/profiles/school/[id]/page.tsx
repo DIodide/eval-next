@@ -7,10 +7,36 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MapPin, Phone, Globe, MessageSquareIcon, ChevronLeftIcon, ChevronRightIcon, Trophy, Calendar, Clock, ExternalLink, Users, Share2Icon, SchoolIcon, GraduationCapIcon, BuildingIcon, InfoIcon } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  Globe,
+  MessageSquareIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Trophy,
+  Calendar,
+  Clock,
+  ExternalLink,
+  Users,
+  Share2Icon,
+  SchoolIcon,
+  GraduationCapIcon,
+  BuildingIcon,
+  InfoIcon,
+} from "lucide-react";
 import { hasPermission } from "@/lib/client/permissions";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
@@ -24,9 +50,9 @@ const containerVariants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.05,
-      delayChildren: 0.1
-    }
-  }
+      delayChildren: 0.1,
+    },
+  },
 };
 
 const itemVariants = {
@@ -35,29 +61,29 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.3
-    }
-  }
+      duration: 0.3,
+    },
+  },
 };
 
 const cardHoverVariants = {
   rest: { scale: 1 },
-  hover: { 
+  hover: {
     scale: 1.005,
     transition: {
-      duration: 0.2
-    }
-  }
+      duration: 0.2,
+    },
+  },
 };
 
 // Region mapping from School Association Request Form
 const REGION_MAPPING: Record<string, string> = {
-  "northeast": "Northeast",
-  "southeast": "Southeast", 
-  "midwest": "Midwest",
-  "southwest": "Southwest",
-  "west": "West",
-  "pacific": "Pacific",
+  northeast: "Northeast",
+  southeast: "Southeast",
+  midwest: "Midwest",
+  southwest: "Southwest",
+  west: "West",
+  pacific: "Pacific",
 };
 
 // Helper function to get readable region name
@@ -129,7 +155,13 @@ interface SchoolProfilePageProps {
   }>;
 }
 
-function MessageCoachDialog({ coachId, coachName }: { coachId: string; coachName: string }) {
+function MessageCoachDialog({
+  coachId,
+  coachName,
+}: {
+  coachId: string;
+  coachName: string;
+}) {
   const [message, setMessage] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -143,39 +175,51 @@ function MessageCoachDialog({ coachId, coachName }: { coachId: string; coachName
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
-          <MessageSquareIcon className="w-3 h-3 mr-1" />
+        <Button
+          size="sm"
+          className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
+        >
+          <MessageSquareIcon className="mr-1 h-3 w-3" />
           Message
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-gray-900 border-gray-800 text-white">
+      <DialogContent className="border-gray-800 bg-gray-900 text-white">
         <DialogHeader>
-          <DialogTitle className="font-orbitron">Send Message to {coachName}</DialogTitle>
+          <DialogTitle className="font-orbitron">
+            Send Message to {coachName}
+          </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Send a direct message to this coach about tryouts and recruitment opportunities.
+            Send a direct message to this coach about tryouts and recruitment
+            opportunities.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="message" className="text-gray-300">Message</Label>
+            <Label htmlFor="message" className="text-gray-300">
+              Message
+            </Label>
             <Textarea
               id="message"
               placeholder="Write your message here..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+              className="border-gray-700 bg-gray-800 text-white placeholder-gray-400"
               rows={4}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)} className="border-gray-700 text-gray-300">
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            className="border-gray-700 text-gray-300"
+          >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSendMessage} 
+          <Button
+            onClick={handleSendMessage}
             disabled={!message.trim()}
-            className="bg-cyan-600 hover:bg-cyan-700 text-white"
+            className="bg-cyan-600 text-white hover:bg-cyan-700"
           >
             Send Message
           </Button>
@@ -185,7 +229,13 @@ function MessageCoachDialog({ coachId, coachName }: { coachId: string; coachName
   );
 }
 
-function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; canMessage: boolean }) {
+function CoachCarousel({
+  coaches,
+  canMessage,
+}: {
+  coaches: TransformedCoach[];
+  canMessage: boolean;
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerPage = 2;
   const totalPages = Math.ceil(coaches.length / itemsPerPage);
@@ -200,20 +250,20 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
 
   const visibleCoaches = coaches.slice(
     currentIndex * itemsPerPage,
-    (currentIndex + 1) * itemsPerPage
+    (currentIndex + 1) * itemsPerPage,
   );
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-between mb-4">
-        <motion.h3 
-          className="text-xl font-orbitron font-bold text-white flex items-center gap-2"
+      <div className="mb-4 flex items-center justify-between">
+        <motion.h3
+          className="font-orbitron flex items-center gap-2 text-xl font-bold text-white"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="p-1.5 bg-cyan-500/20 rounded-lg">
-            <Users className="w-5 h-5 text-cyan-400" />
+          <div className="rounded-lg bg-cyan-500/20 p-1.5">
+            <Users className="h-5 w-5 text-cyan-400" />
           </div>
           Our Coaching Staff
         </motion.h3>
@@ -223,11 +273,11 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             size="sm"
             onClick={prevSlide}
             disabled={totalPages <= 1}
-            className="border-gray-700/50 text-gray-300 hover:bg-gray-700/30 hover:text-white hover:border-gray-600/70 backdrop-blur-sm bg-black/20 transition-all duration-300"
+            className="border-gray-700/50 bg-black/20 text-gray-300 backdrop-blur-sm transition-all duration-300 hover:border-gray-600/70 hover:bg-gray-700/30 hover:text-white"
           >
-            <ChevronLeftIcon className="w-4 h-4" />
+            <ChevronLeftIcon className="h-4 w-4" />
           </Button>
-          <span className="text-gray-400 text-sm font-rajdhani bg-black/20 backdrop-blur-sm border border-gray-700/30 px-2 py-1 rounded">
+          <span className="font-rajdhani rounded border border-gray-700/30 bg-black/20 px-2 py-1 text-sm text-gray-400 backdrop-blur-sm">
             {currentIndex + 1} / {totalPages}
           </span>
           <Button
@@ -235,14 +285,14 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             size="sm"
             onClick={nextSlide}
             disabled={totalPages <= 1}
-            className="border-gray-700/50 text-gray-300 hover:bg-gray-700/30 hover:text-white hover:border-gray-600/70 backdrop-blur-sm bg-black/20 transition-all duration-300"
+            className="border-gray-700/50 bg-black/20 text-gray-300 backdrop-blur-sm transition-all duration-300 hover:border-gray-600/70 hover:bg-gray-700/30 hover:text-white"
           >
-            <ChevronRightIcon className="w-4 h-4" />
+            <ChevronRightIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {visibleCoaches.map((coach, index) => (
           <motion.div
             key={coach.id}
@@ -251,12 +301,14 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
             transition={{ delay: index * 0.05, duration: 0.3 }}
             variants={cardHoverVariants}
             whileHover="hover"
-            className={`relative bg-[#1a1a2e]/80 backdrop-blur-sm border shadow-xl hover:shadow-2xl transition-all duration-300 ${
-              coach.isPrimary ? 'border-cyan-500/30 hover:border-cyan-400/50' : 'border-gray-700/50 hover:border-gray-600/70'
+            className={`relative border bg-[#1a1a2e]/80 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl ${
+              coach.isPrimary
+                ? "border-cyan-500/30 hover:border-cyan-400/50"
+                : "border-gray-700/50 hover:border-gray-600/70"
             }`}
           >
             {coach.isPrimary && (
-              <Badge className="absolute -top-1.5 -right-1.5 bg-cyan-600/90 backdrop-blur-sm text-white font-orbitron text-xs z-10 border border-cyan-500/30">
+              <Badge className="font-orbitron absolute -top-1.5 -right-1.5 z-10 border border-cyan-500/30 bg-cyan-600/90 text-xs text-white backdrop-blur-sm">
                 Primary Contact
               </Badge>
             )}
@@ -266,55 +318,81 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Avatar className="w-12 h-12 ring-2 ring-cyan-400/20 border border-gray-700/30">
-                    <AvatarImage src={coach.image_url ?? undefined} alt={coach.name} />
-                    <AvatarFallback className="text-sm bg-gradient-to-br from-cyan-600/80 to-blue-600/80 backdrop-blur-sm text-white font-orbitron border border-cyan-500/30">
-                      {coach.name.split(' ').map(n => n[0]).join('')}
+                  <Avatar className="h-12 w-12 border border-gray-700/30 ring-2 ring-cyan-400/20">
+                    <AvatarImage
+                      src={coach.image_url ?? undefined}
+                      alt={coach.name}
+                    />
+                    <AvatarFallback className="font-orbitron border border-cyan-500/30 bg-gradient-to-br from-cyan-600/80 to-blue-600/80 text-sm text-white backdrop-blur-sm">
+                      {coach.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </AvatarFallback>
                   </Avatar>
                 </motion.div>
 
                 {/* Coach Info */}
                 <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="mb-2 flex items-start justify-between">
                     <div>
-                      <h4 className="font-orbitron font-semibold text-white mb-1">{coach.name}</h4>
-                      <p className="text-cyan-400 font-rajdhani text-sm">{coach.title}</p>
+                      <h4 className="font-orbitron mb-1 font-semibold text-white">
+                        {coach.name}
+                      </h4>
+                      <p className="font-rajdhani text-sm text-cyan-400">
+                        {coach.title}
+                      </p>
                     </div>
                     {canMessage && (
-                      <MessageCoachDialog coachId={coach.id} coachName={coach.name} />
+                      <MessageCoachDialog
+                        coachId={coach.id}
+                        coachName={coach.name}
+                      />
                     )}
                   </div>
-                  
+
                   {/* Contact */}
                   <div className="mb-3">
-                    <a 
+                    <a
                       href={`mailto:${coach.email}`}
-                      className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-rajdhani transition-colors"
+                      className="font-rajdhani flex items-center gap-1 text-sm text-cyan-400 transition-colors hover:text-cyan-300"
                     >
-                      <Mail className="w-3 h-3" />
+                      <Mail className="h-3 w-3" />
                       {coach.email}
                     </a>
                   </div>
 
                   {/* Achievements */}
-                  <div className="bg-black/20 backdrop-blur-sm border border-gray-700/30 rounded p-3">
-                    <div className="text-sm text-gray-400 mb-2 font-rajdhani">Recent Achievements:</div>
+                  <div className="rounded border border-gray-700/30 bg-black/20 p-3 backdrop-blur-sm">
+                    <div className="font-rajdhani mb-2 text-sm text-gray-400">
+                      Recent Achievements:
+                    </div>
                     <div className="space-y-1">
                       {coach.achievements.length > 0 ? (
                         coach.achievements.slice(0, 2).map((achievement) => (
-                          <div key={achievement.id} className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full"></div>
-                            <span className="text-sm text-gray-300 font-rajdhani">{achievement.title}</span>
-                            <span className="text-xs text-gray-500 font-rajdhani">
-                              ({new Date(achievement.date_achieved).getFullYear()})
+                          <div
+                            key={achievement.id}
+                            className="flex items-center gap-2"
+                          >
+                            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400"></div>
+                            <span className="font-rajdhani text-sm text-gray-300">
+                              {achievement.title}
+                            </span>
+                            <span className="font-rajdhani text-xs text-gray-500">
+                              (
+                              {new Date(
+                                achievement.date_achieved,
+                              ).getFullYear()}
+                              )
                             </span>
                           </div>
                         ))
                       ) : (
                         <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full"></div>
-                          <span className="text-sm text-gray-300 font-rajdhani">E-Sports Coaching Experience</span>
+                          <div className="h-1.5 w-1.5 rounded-full bg-cyan-400"></div>
+                          <span className="font-rajdhani text-sm text-gray-300">
+                            E-Sports Coaching Experience
+                          </span>
                         </div>
                       )}
                     </div>
@@ -328,15 +406,15 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
 
       {/* Dots indicator */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="mt-4 flex justify-center gap-2">
           {Array.from({ length: totalPages }).map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 backdrop-blur-sm border ${
-                index === currentIndex 
-                  ? 'bg-cyan-400/80 border-cyan-400/50 shadow-lg shadow-cyan-400/20' 
-                  : 'bg-gray-600/50 border-gray-600/30 hover:bg-gray-500/70 hover:border-gray-500/50'
+              className={`h-2 w-2 rounded-full border backdrop-blur-sm transition-all duration-300 ${
+                index === currentIndex
+                  ? "border-cyan-400/50 bg-cyan-400/80 shadow-lg shadow-cyan-400/20"
+                  : "border-gray-600/30 bg-gray-600/50 hover:border-gray-500/50 hover:bg-gray-500/70"
               }`}
             />
           ))}
@@ -348,11 +426,11 @@ function CoachCarousel({ coaches, canMessage }: { coaches: TransformedCoach[]; c
 
 // Game logo mapping
 const gameLogos: Record<string, string> = {
-  "VALORANT": "/valorant/logos/V_Lockup_Vertical Black.png",
+  VALORANT: "/valorant/logos/V_Lockup_Vertical Black.png",
   "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png",
   "Super Smash Bros. Ultimate": "/smash/logos/Smash Ball White Logo.png",
   "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
-}
+};
 
 // Game colors
 const getGameColor = (game: string) => {
@@ -424,10 +502,10 @@ const getReadableGameName = (gameName: string): string => {
 
 // Format date helper
 const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   }).format(new Date(date));
 };
 
@@ -463,10 +541,14 @@ const getAnnouncementColor = (type: string) => {
 // Format relative time
 const formatRelativeTime = (date: Date) => {
   const now = new Date();
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-  
+  const diffInHours = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+  );
+
   if (diffInHours < 1) {
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60),
+    );
     return diffInMinutes < 1 ? "Just now" : `${diffInMinutes} minutes ago`;
   } else if (diffInHours < 24) {
     return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
@@ -489,7 +571,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   const handleShareProfile = async () => {
     try {
       const url = window.location.href;
-      const urlWithSchoolName = `${url}?schoolName=${encodeURIComponent(school?.name ?? '')}`;
+      const urlWithSchoolName = `${url}?schoolName=${encodeURIComponent(school?.name ?? "")}`;
       await navigator.clipboard.writeText(urlWithSchoolName);
       toast.success("School profile URL copied to clipboard!");
     } catch (err) {
@@ -497,36 +579,52 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
       toast.error("Unable to copy to clipboard. Please copy the URL manually.");
     }
   };
-  
+
   // Fetch school data using tRPC
-  const { data: schoolData, isLoading: isLoadingSchool, error: schoolError } = api.schoolProfile.getById.useQuery({
+  const {
+    data: schoolData,
+    isLoading: isLoadingSchool,
+    error: schoolError,
+  } = api.schoolProfile.getById.useQuery({
     id: unwrappedParams.id,
   });
-  
+
   // Transform the data to match expected format
-  const school = schoolData ? {
-    id: schoolData.id,
-    name: schoolData.name,
-    location: `${schoolData.location}, ${schoolData.state}`,
-    logo: schoolData.logo_url ?? "/eval/logos/emblem.png", // Fallback logo
-    banner: schoolData.banner_url ?? null, // Use banner from API when available
-    bio: schoolData.bio ?? "Welcome to our esports program. We are committed to excellence in competitive gaming.",
-    website: schoolData.website ?? "",
-    email: schoolData.email ?? "",
-    phone: schoolData.phone ?? "",
-    type: schoolData.type,
-    region: schoolData.region,
-    coaches: transformCoachData(schoolData.coaches as CoachData[]),
-  } : null;
-  
-  const primaryCoach = school?.coaches.find((coach: TransformedCoach) => coach.isPrimary);
+  const school = schoolData
+    ? {
+        id: schoolData.id,
+        name: schoolData.name,
+        location: `${schoolData.location}, ${schoolData.state}`,
+        logo: schoolData.logo_url ?? "/eval/logos/emblem.png", // Fallback logo
+        banner: schoolData.banner_url ?? null, // Use banner from API when available
+        bio:
+          schoolData.bio ??
+          "Welcome to our esports program. We are committed to excellence in competitive gaming.",
+        website: schoolData.website ?? "",
+        email: schoolData.email ?? "",
+        phone: schoolData.phone ?? "",
+        type: schoolData.type,
+        region: schoolData.region,
+        coaches: transformCoachData(schoolData.coaches as CoachData[]),
+      }
+    : null;
+
+  const primaryCoach = school?.coaches.find(
+    (coach: TransformedCoach) => coach.isPrimary,
+  );
   const primaryContact = primaryCoach?.email ?? school?.email ?? "";
   const canMessage = user ? hasPermission(user, "message_coach") : false;
-  const [tryoutFilter, setTryoutFilter] = useState<"all" | "upcoming" | "past">("all")
-  const [tryoutGameFilter, setTryoutGameFilter] = useState<string>("all")
+  const [tryoutFilter, setTryoutFilter] = useState<"all" | "upcoming" | "past">(
+    "all",
+  );
+  const [tryoutGameFilter, setTryoutGameFilter] = useState<string>("all");
 
   // Get tryouts using real API
-  const { data: tryoutsData, isLoading: isLoadingTryouts, error: tryoutsError } = api.schoolProfile.getTryouts.useQuery({
+  const {
+    data: tryoutsData,
+    isLoading: isLoadingTryouts,
+    error: tryoutsError,
+  } = api.schoolProfile.getTryouts.useQuery({
     schoolId: unwrappedParams.id,
     filter: tryoutFilter,
     gameId: tryoutGameFilter === "all" ? undefined : tryoutGameFilter,
@@ -534,15 +632,17 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   });
 
   // Get available games for filtering
-  const { data: availableGamesData } = api.schoolProfile.getAvailableGames.useQuery({
-    schoolId: unwrappedParams.id,
-  });
+  const { data: availableGamesData } =
+    api.schoolProfile.getAvailableGames.useQuery({
+      schoolId: unwrappedParams.id,
+    });
 
   // Get school announcements
-  const { data: announcementsData, isLoading: isLoadingAnnouncements } = api.schoolProfile.getAnnouncements.useQuery({
-    schoolId: unwrappedParams.id,
-    limit: 10,
-  });
+  const { data: announcementsData, isLoading: isLoadingAnnouncements } =
+    api.schoolProfile.getAnnouncements.useQuery({
+      schoolId: unwrappedParams.id,
+      limit: 10,
+    });
 
   // Since filtering is now done on the server, we can use the data directly
   const filteredTryouts = tryoutsData?.tryouts ?? [];
@@ -559,7 +659,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
 
   const { data: upcomingTryoutsData } = api.schoolProfile.getTryouts.useQuery({
     schoolId: unwrappedParams.id,
-    filter: "upcoming", 
+    filter: "upcoming",
     limit: 1,
   });
 
@@ -575,19 +675,25 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
       upcoming: upcomingTryoutsData?.total ?? 0,
       past: pastTryoutsData?.total ?? 0,
     };
-  }, [allTryoutsData?.total, upcomingTryoutsData?.total, pastTryoutsData?.total]);
+  }, [
+    allTryoutsData?.total,
+    upcomingTryoutsData?.total,
+    pastTryoutsData?.total,
+  ]);
 
   // Handle loading state
   if (isLoadingSchool) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="rounded-full h-16 w-16 border-4 border-t-cyan-400 border-r-blue-400 border-b-cyan-400 border-l-transparent mx-auto"
+            className="mx-auto h-16 w-16 rounded-full border-4 border-t-cyan-400 border-r-blue-400 border-b-cyan-400 border-l-transparent"
           />
-          <p className="text-gray-400 mt-6 font-rajdhani text-lg">Loading school profile...</p>
+          <p className="font-rajdhani mt-6 text-lg text-gray-400">
+            Loading school profile...
+          </p>
         </div>
       </div>
     );
@@ -596,24 +702,27 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   // Handle error state
   if (schoolError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900 flex items-center justify-center">
-        <motion.div 
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900">
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 rounded-2xl blur-xl" />
-            <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-red-500/20 backdrop-blur-sm shadow-2xl p-8">
-              <div className="flex items-center justify-center mb-6">
-                <div className="p-4 bg-red-500/20 rounded-full">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 blur-xl" />
+            <Card className="relative border-red-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 p-8 shadow-2xl backdrop-blur-sm">
+              <div className="mb-6 flex items-center justify-center">
+                <div className="rounded-full bg-red-500/20 p-4">
                   <SchoolIcon className="h-12 w-12 text-red-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-orbitron font-bold text-white mb-4">School Not Found</h1>
-              <p className="text-gray-400 font-rajdhani text-lg">
-                The school you&apos;re looking for doesn&apos;t exist or may have been removed.
+              <h1 className="font-orbitron mb-4 text-3xl font-bold text-white">
+                School Not Found
+              </h1>
+              <p className="font-rajdhani text-lg text-gray-400">
+                The school you&apos;re looking for doesn&apos;t exist or may
+                have been removed.
               </p>
             </Card>
           </div>
@@ -625,23 +734,25 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   // Handle case where school data is null
   if (!school) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900 flex items-center justify-center">
-        <motion.div 
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900">
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 rounded-2xl blur-xl" />
-            <Card className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-500/20 backdrop-blur-sm shadow-2xl p-8">
-              <div className="flex items-center justify-center mb-6">
-                <div className="p-4 bg-gray-500/20 rounded-full">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 blur-xl" />
+            <Card className="relative border-gray-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 p-8 shadow-2xl backdrop-blur-sm">
+              <div className="mb-6 flex items-center justify-center">
+                <div className="rounded-full bg-gray-500/20 p-4">
                   <SchoolIcon className="h-12 w-12 text-gray-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-orbitron font-bold text-white mb-4">No School Data</h1>
-              <p className="text-gray-400 font-rajdhani text-lg">
+              <h1 className="font-orbitron mb-4 text-3xl font-bold text-white">
+                No School Data
+              </h1>
+              <p className="font-rajdhani text-lg text-gray-400">
                 Unable to load school information at this time.
               </p>
             </Card>
@@ -652,7 +763,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900/10 to-gray-900"
       initial="hidden"
       animate="visible"
@@ -668,23 +779,23 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
           {school.banner ? (
             /* Use uploaded banner image when available */
             <div
-              className="w-full h-full bg-cover bg-center bg-no-repeat"
+              className="h-full w-full bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${school.banner})` }}
             />
           ) : (
             /* Fallback to gradient background when no banner is set */
-            <div className="w-full h-full bg-gradient-to-r from-cyan-900/30 via-blue-900/40 to-cyan-900/30" />
+            <div className="h-full w-full bg-gradient-to-r from-cyan-900/30 via-blue-900/40 to-cyan-900/30" />
           )}
           {/* Overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-gray-900/30" />
         </div>
 
         {/* Header Content */}
-        <div className="relative z-10 container mx-auto px-4 max-w-6xl h-full flex items-end pb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-end gap-4 w-full">
+        <div className="relative z-10 container mx-auto flex h-full max-w-6xl items-end px-4 pb-6">
+          <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-end">
             {/* School Logo and Basic Info - Inline Layout */}
-            <motion.div 
-              className="flex flex-col md:flex-row items-center md:items-end gap-4"
+            <motion.div
+              className="flex flex-col items-center gap-4 md:flex-row md:items-end"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
@@ -693,37 +804,39 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
               >
-                <Image 
-                  src={school.logo} 
-                  alt={school.name} 
-                  width={250} 
-                  height={250} 
-                  className="w-26 h-26 object-contain rounded-lg border-2 border-cyan-400/20 shadow-xl bg-gray-900/50 backdrop-blur-sm p-2" 
+                <Image
+                  src={school.logo}
+                  alt={school.name}
+                  width={250}
+                  height={250}
+                  className="h-26 w-26 rounded-lg border-2 border-cyan-400/20 bg-gray-900/50 object-contain p-2 shadow-xl backdrop-blur-sm"
                 />
               </motion.div>
               <div className="text-center md:text-left">
-                <motion.h1 
-                  className="text-3xl md:text-4xl font-orbitron font-bold mb-2 text-white drop-shadow-lg"
+                <motion.h1
+                  className="font-orbitron mb-2 text-3xl font-bold text-white drop-shadow-lg md:text-4xl"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
                   {school.name}
                 </motion.h1>
-                <motion.div 
-                  className="flex flex-col md:flex-row items-center gap-3 mb-3"
+                <motion.div
+                  className="mb-3 flex flex-col items-center gap-3 md:flex-row"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
                 >
                   <div className="flex items-center gap-2 text-cyan-300">
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="h-4 w-4" />
                     <span className="font-rajdhani">{school.location}</span>
                   </div>
                   {school.region && (
                     <div className="flex items-center gap-2 text-cyan-300">
-                      <Globe className="w-4 h-4" />
-                      <span className="font-rajdhani">{getReadableRegion(school.region)} Region</span>
+                      <Globe className="h-4 w-4" />
+                      <span className="font-rajdhani">
+                        {getReadableRegion(school.region)} Region
+                      </span>
                     </div>
                   )}
                 </motion.div>
@@ -731,7 +844,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5, duration: 0.5 }}
-                  className="text-sm text-gray-300 font-rajdhani"
+                  className="font-rajdhani text-sm text-gray-300"
                 >
                   {getSchoolTypeDescription(school.type)}
                 </motion.div>
@@ -739,32 +852,36 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
             </motion.div>
 
             {/* Action Buttons */}
-            <motion.div 
+            <motion.div
               className="flex flex-col gap-2 md:ml-auto"
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
             >
-              <Button 
+              <Button
                 onClick={handleShareProfile}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron shadow-lg"
+                className="font-orbitron bg-cyan-600 text-white shadow-lg hover:bg-cyan-700"
               >
-                <Share2Icon className="w-4 h-4 mr-2" />
+                <Share2Icon className="mr-2 h-4 w-4" />
                 Share School Profile
               </Button>
               {school.website && (
                 <div className="space-y-1">
-                  <Button 
+                  <Button
                     asChild
                     variant="outline"
-                    className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-gray-900 shadow-lg w-full"
+                    className="w-full border-cyan-400 text-cyan-400 shadow-lg hover:bg-cyan-400 hover:text-gray-900"
                   >
-                    <a href={school.website} target="_blank" rel="noopener noreferrer">
-                      <Globe className="w-4 h-4 mr-2" />
+                    <a
+                      href={school.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Globe className="mr-2 h-4 w-4" />
                       Official Website
                     </a>
                   </Button>
-                  <div className="text-xs text-cyan-300 font-rajdhani text-center break-all">
+                  <div className="font-rajdhani text-center text-xs break-all text-cyan-300">
                     {school.website}
                   </div>
                 </div>
@@ -774,21 +891,18 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         </div>
       </motion.div>
 
-      <div className="container mx-auto px-4 max-w-6xl py-6 space-y-6">
+      <div className="container mx-auto max-w-6xl space-y-6 px-4 py-6">
         {/* Merged School Information and About Section */}
-        <motion.div 
-          className="relative"
-          variants={itemVariants}
-        >
+        <motion.div className="relative" variants={itemVariants}>
           <motion.div
             variants={cardHoverVariants}
             initial="rest"
             whileHover="hover"
           >
-            <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-cyan-500/20 shadow-lg">
+            <Card className="border-cyan-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-white font-orbitron text-xl flex items-center gap-2">
-                  <div className="p-1.5 bg-cyan-500/20 rounded-lg">
+                <CardTitle className="font-orbitron flex items-center gap-2 text-xl text-white">
+                  <div className="rounded-lg bg-cyan-500/20 p-1.5">
                     <BuildingIcon className="h-5 w-5 text-cyan-400" />
                   </div>
                   About Our Program
@@ -797,8 +911,8 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
               <CardContent className="space-y-4">
                 {/* Bio */}
                 {school.bio && (
-                  <motion.p 
-                    className="text-gray-300 font-rajdhani leading-relaxed"
+                  <motion.p
+                    className="font-rajdhani leading-relaxed text-gray-300"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
@@ -808,63 +922,81 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 )}
 
                 {/* Compact Information Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-700/50">
+                <div className="grid grid-cols-1 gap-4 border-t border-gray-700/50 pt-4 md:grid-cols-2 lg:grid-cols-4">
                   {/* Contact Information */}
                   {primaryContact && (
-                    <motion.div 
-                      className="p-3 bg-gray-800/30 rounded-lg border border-gray-700/30"
+                    <motion.div
+                      className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3, duration: 0.4 }}
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <Mail className="w-4 h-4 text-cyan-400" />
-                        <span className="text-gray-400 font-rajdhani text-xs font-medium">Primary Contact:</span>
+                      <div className="mb-1 flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-cyan-400" />
+                        <span className="font-rajdhani text-xs font-medium text-gray-400">
+                          Primary Contact:
+                        </span>
                       </div>
-                      <a href={`mailto:${primaryContact}`} className="text-cyan-400 hover:text-cyan-300 font-rajdhani text-sm transition-colors">
+                      <a
+                        href={`mailto:${primaryContact}`}
+                        className="font-rajdhani text-sm text-cyan-400 transition-colors hover:text-cyan-300"
+                      >
                         {primaryContact}
                       </a>
                     </motion.div>
                   )}
                   {school.phone && (
-                    <motion.div 
-                      className="p-3 bg-gray-800/30 rounded-lg border border-gray-700/30"
+                    <motion.div
+                      className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4, duration: 0.4 }}
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <Phone className="w-4 h-4 text-cyan-400" />
-                        <span className="text-gray-400 font-rajdhani text-xs font-medium">Phone:</span>
+                      <div className="mb-1 flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-cyan-400" />
+                        <span className="font-rajdhani text-xs font-medium text-gray-400">
+                          Phone:
+                        </span>
                       </div>
-                      <a href={`tel:${school.phone}`} className="text-gray-300 font-rajdhani text-sm hover:text-white transition-colors">
+                      <a
+                        href={`tel:${school.phone}`}
+                        className="font-rajdhani text-sm text-gray-300 transition-colors hover:text-white"
+                      >
                         {school.phone}
                       </a>
                     </motion.div>
                   )}
-                  <motion.div 
-                    className="p-3 bg-gray-800/30 rounded-lg border border-gray-700/30"
+                  <motion.div
+                    className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-3"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Users className="w-4 h-4 text-cyan-400" />
-                      <span className="text-gray-400 font-rajdhani text-xs font-medium">Active Coaches:</span>
+                    <div className="mb-1 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-cyan-400" />
+                      <span className="font-rajdhani text-xs font-medium text-gray-400">
+                        Active Coaches:
+                      </span>
                     </div>
-                    <span className="text-cyan-400 font-rajdhani text-sm font-bold">{school.coaches.length}</span>
+                    <span className="font-rajdhani text-sm font-bold text-cyan-400">
+                      {school.coaches.length}
+                    </span>
                   </motion.div>
-                  <motion.div 
-                    className="p-3 bg-gray-800/30 rounded-lg border border-gray-700/30"
+                  <motion.div
+                    className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-3"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6, duration: 0.4 }}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <GraduationCapIcon className="w-4 h-4 text-cyan-400" />
-                      <span className="text-gray-400 font-rajdhani text-xs font-medium">Institution Type:</span>
+                    <div className="mb-1 flex items-center gap-2">
+                      <GraduationCapIcon className="h-4 w-4 text-cyan-400" />
+                      <span className="font-rajdhani text-xs font-medium text-gray-400">
+                        Institution Type:
+                      </span>
                     </div>
-                    <span className="text-gray-300 font-rajdhani text-sm">{getSchoolTypeDescription(school.type)}</span>
+                    <span className="font-rajdhani text-sm text-gray-300">
+                      {getSchoolTypeDescription(school.type)}
+                    </span>
                   </motion.div>
                 </div>
               </CardContent>
@@ -873,10 +1005,10 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         </motion.div>
 
         {/* Enhanced Main Content Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           {/* Enhanced Coaches Section - Left Column */}
-          <motion.div 
-            className="xl:col-span-2 relative"
+          <motion.div
+            className="relative xl:col-span-2"
             variants={itemVariants}
           >
             <motion.div
@@ -884,45 +1016,48 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
               initial="rest"
               whileHover="hover"
             >
-              <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-cyan-500/20 shadow-lg">
+              <Card className="border-cyan-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-lg">
                 <CardContent className="p-6">
-                  <CoachCarousel coaches={school?.coaches || []} canMessage={canMessage} />
+                  <CoachCarousel
+                    coaches={school?.coaches || []}
+                    canMessage={canMessage}
+                  />
                 </CardContent>
               </Card>
             </motion.div>
           </motion.div>
 
           {/* Enhanced Program Updates Panel - Right Column */}
-          <motion.div 
-            className="relative"
-            variants={itemVariants}
-          >
+          <motion.div className="relative" variants={itemVariants}>
             <motion.div
               variants={cardHoverVariants}
               initial="rest"
               whileHover="hover"
             >
-              <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-blue-500/20 shadow-lg">
+              <Card className="border-blue-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-white font-orbitron text-xl flex items-center gap-2">
-                    <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                  <CardTitle className="font-orbitron flex items-center gap-2 text-xl text-white">
+                    <div className="rounded-lg bg-blue-500/20 p-1.5">
                       <GraduationCapIcon className="h-5 w-5 text-blue-400" />
                     </div>
                     Program Updates
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">
-                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                  <div className="max-h-80 space-y-3 overflow-y-auto">
                     {isLoadingAnnouncements ? (
                       // Loading skeleton
                       <div className="space-y-3">
                         {Array.from({ length: 4 }).map((_, i) => (
-                          <div key={i} className="border-l-4 border-gray-600 pl-3 py-2">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Skeleton className="w-2 h-2 rounded-full" />
+                          <div
+                            key={i}
+                            className="border-l-4 border-gray-600 py-2 pl-3"
+                          >
+                            <div className="mb-1 flex items-center gap-2">
+                              <Skeleton className="h-2 w-2 rounded-full" />
                               <Skeleton className="h-3 w-16" />
                             </div>
-                            <Skeleton className="h-4 w-40 mb-1" />
+                            <Skeleton className="mb-1 h-4 w-40" />
                             <div className="space-y-1">
                               <Skeleton className="h-3 w-full" />
                               <Skeleton className="h-3 w-3/4" />
@@ -930,64 +1065,80 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                           </div>
                         ))}
                       </div>
-                    ) : announcementsData?.announcements && announcementsData.announcements.length > 0 ? (
+                    ) : announcementsData?.announcements &&
+                      announcementsData.announcements.length > 0 ? (
                       // Real announcements
-                      announcementsData.announcements.map((announcement, index) => {
-                        const colors = getAnnouncementColor(announcement.type);
-                        const [borderColor, dotColor] = colors.split(' ');
-                        
-                        return (
-                          <motion.div 
-                            key={announcement.id} 
-                            className={`border-l-4 ${borderColor} pl-3 py-2 bg-gray-800/20 rounded-r-lg`}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05, duration: 0.3 }}
-                          >
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className={`w-1.5 h-1.5 ${dotColor} rounded-full`}></div>
-                              <span className="text-xs text-gray-400 font-rajdhani">
-                                {formatRelativeTime(new Date(announcement.created_at))}
-                              </span>
-                              {announcement.is_pinned && (
-                                <Badge variant="outline" className="text-xs px-1 py-0 border-yellow-400 text-yellow-400">
-                                  Pinned
-                                </Badge>
-                              )}
-                            </div>
-                            <h4 className="font-orbitron font-semibold text-sm text-white mb-1">
-                              {announcement.title}
-                            </h4>
-                            <p className="text-gray-400 text-sm font-rajdhani">
-                              {announcement.content}
-                            </p>
-                            {announcement.author_id && (
-                              <div className="mt-1 text-xs text-gray-500 font-rajdhani">
-                                by Coach
+                      announcementsData.announcements.map(
+                        (announcement, index) => {
+                          const colors = getAnnouncementColor(
+                            announcement.type,
+                          );
+                          const [borderColor, dotColor] = colors.split(" ");
+
+                          return (
+                            <motion.div
+                              key={announcement.id}
+                              className={`border-l-4 ${borderColor} rounded-r-lg bg-gray-800/20 py-2 pl-3`}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{
+                                delay: index * 0.05,
+                                duration: 0.3,
+                              }}
+                            >
+                              <div className="mb-1 flex items-center gap-2">
+                                <div
+                                  className={`h-1.5 w-1.5 ${dotColor} rounded-full`}
+                                ></div>
+                                <span className="font-rajdhani text-xs text-gray-400">
+                                  {formatRelativeTime(
+                                    new Date(announcement.created_at),
+                                  )}
+                                </span>
+                                {announcement.is_pinned && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-yellow-400 px-1 py-0 text-xs text-yellow-400"
+                                  >
+                                    Pinned
+                                  </Badge>
+                                )}
                               </div>
-                            )}
-                          </motion.div>
-                        );
-                      })
+                              <h4 className="font-orbitron mb-1 text-sm font-semibold text-white">
+                                {announcement.title}
+                              </h4>
+                              <p className="font-rajdhani text-sm text-gray-400">
+                                {announcement.content}
+                              </p>
+                              {announcement.author_id && (
+                                <div className="font-rajdhani mt-1 text-xs text-gray-500">
+                                  by Coach
+                                </div>
+                              )}
+                            </motion.div>
+                          );
+                        },
+                      )
                     ) : (
                       // Empty state
-                      <div className="text-center py-6">
-                        <div className="w-12 h-12 bg-gray-700 rounded-full mx-auto mb-3 flex items-center justify-center">
+                      <div className="py-6 text-center">
+                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-700">
                           <span className="text-xl">📢</span>
                         </div>
-                        <p className="text-gray-400 font-rajdhani text-sm">
-                          No announcements yet. Check back later for program updates!
+                        <p className="font-rajdhani text-sm text-gray-400">
+                          No announcements yet. Check back later for program
+                          updates!
                         </p>
                       </div>
                     )}
                   </div>
-                  
+
                   {/* View All Button */}
-                  <div className="mt-3 pt-3 border-t border-gray-700">
-                    <Button 
-                      variant="outline" 
+                  <div className="mt-3 border-t border-gray-700 pt-3">
+                    <Button
+                      variant="outline"
                       size="sm"
-                      className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white font-orbitron"
+                      className="font-orbitron w-full border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                     >
                       View All Updates
                     </Button>
@@ -999,60 +1150,60 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         </div>
 
         {/* Enhanced Full-Width Tryouts Panel */}
-        <motion.div 
-          className="relative"
-          variants={itemVariants}
-        >
+        <motion.div className="relative" variants={itemVariants}>
           <motion.div
             variants={cardHoverVariants}
             initial="rest"
             whileHover="hover"
           >
-            <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-orange-500/20 shadow-lg">
+            <Card className="border-orange-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white font-orbitron text-xl flex items-center gap-2">
-                    <div className="p-1.5 bg-orange-500/20 rounded-lg">
+                  <CardTitle className="font-orbitron flex items-center gap-2 text-xl text-white">
+                    <div className="rounded-lg bg-orange-500/20 p-1.5">
                       <Trophy className="h-5 w-5 text-orange-400" />
                     </div>
                     Program Tryouts
                   </CardTitle>
-                  <Badge variant="outline" className="text-orange-400 border-orange-400/50 bg-orange-400/10 backdrop-blur-sm">
+                  <Badge
+                    variant="outline"
+                    className="border-orange-400/50 bg-orange-400/10 text-orange-400 backdrop-blur-sm"
+                  >
                     {tryoutCounts.all} Total
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Tryout Filters */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   {/* Status Filter Tabs */}
-                  <div className="flex space-x-1 bg-black/20 backdrop-blur-sm border border-gray-700/30 p-1 rounded">
+                  <div className="flex space-x-1 rounded border border-gray-700/30 bg-black/20 p-1 backdrop-blur-sm">
                     <button
                       onClick={() => setTryoutFilter("all")}
-                      className={`px-3 py-1.5 rounded text-sm font-orbitron transition-all duration-300 ${
-                        tryoutFilter === "all" 
-                          ? "bg-orange-600/80 backdrop-blur-sm text-white border border-orange-500/30 shadow-lg shadow-orange-500/20" 
-                          : "text-gray-400 hover:text-white hover:bg-gray-700/30"
+                      className={`font-orbitron rounded px-3 py-1.5 text-sm transition-all duration-300 ${
+                        tryoutFilter === "all"
+                          ? "border border-orange-500/30 bg-orange-600/80 text-white shadow-lg shadow-orange-500/20 backdrop-blur-sm"
+                          : "text-gray-400 hover:bg-gray-700/30 hover:text-white"
                       }`}
                     >
                       All ({tryoutCounts.all})
                     </button>
                     <button
                       onClick={() => setTryoutFilter("upcoming")}
-                      className={`px-3 py-1.5 rounded text-sm font-orbitron transition-all duration-300 ${
-                        tryoutFilter === "upcoming" 
-                          ? "bg-orange-600/80 backdrop-blur-sm text-white border border-orange-500/30 shadow-lg shadow-orange-500/20" 
-                          : "text-gray-400 hover:text-white hover:bg-gray-700/30"
+                      className={`font-orbitron rounded px-3 py-1.5 text-sm transition-all duration-300 ${
+                        tryoutFilter === "upcoming"
+                          ? "border border-orange-500/30 bg-orange-600/80 text-white shadow-lg shadow-orange-500/20 backdrop-blur-sm"
+                          : "text-gray-400 hover:bg-gray-700/30 hover:text-white"
                       }`}
                     >
                       Upcoming ({tryoutCounts.upcoming})
                     </button>
                     <button
                       onClick={() => setTryoutFilter("past")}
-                      className={`px-3 py-1.5 rounded text-sm font-orbitron transition-all duration-300 ${
-                        tryoutFilter === "past" 
-                          ? "bg-orange-600/80 backdrop-blur-sm text-white border border-orange-500/30 shadow-lg shadow-orange-500/20" 
-                          : "text-gray-400 hover:text-white hover:bg-gray-700/30"
+                      className={`font-orbitron rounded px-3 py-1.5 text-sm transition-all duration-300 ${
+                        tryoutFilter === "past"
+                          ? "border border-orange-500/30 bg-orange-600/80 text-white shadow-lg shadow-orange-500/20 backdrop-blur-sm"
+                          : "text-gray-400 hover:bg-gray-700/30 hover:text-white"
                       }`}
                     >
                       Past ({tryoutCounts.past})
@@ -1064,10 +1215,10 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     <select
                       value={tryoutGameFilter}
                       onChange={(e) => setTryoutGameFilter(e.target.value)}
-                      className="bg-black/20 backdrop-blur-sm border border-gray-700/30 rounded px-3 py-1.5 text-sm text-white font-rajdhani focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all duration-300"
+                      className="font-rajdhani rounded border border-gray-700/30 bg-black/20 px-3 py-1.5 text-sm text-white backdrop-blur-sm transition-all duration-300 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/50"
                     >
                       <option value="all">All Games</option>
-                      {availableGames.map(game => (
+                      {availableGames.map((game) => (
                         <option key={game.id} value={game.id}>
                           {game.name}
                         </option>
@@ -1077,15 +1228,18 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 </div>
 
                 {/* Tryouts Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {isLoadingTryouts ? (
                     <>
                       {Array.from({ length: 6 }).map((_, i) => (
-                        <Card key={i} className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 shadow-xl">
-                          <CardContent className="p-4 space-y-3">
+                        <Card
+                          key={i}
+                          className="border-gray-700/50 bg-[#1a1a2e]/80 shadow-xl backdrop-blur-sm"
+                        >
+                          <CardContent className="space-y-3 p-4">
                             <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-3 flex-1">
-                                <Skeleton className="w-8 h-8" />
+                              <div className="flex flex-1 items-center gap-3">
+                                <Skeleton className="h-8 w-8" />
                                 <div className="flex-1 space-y-2">
                                   <Skeleton className="h-4 w-32" />
                                   <Skeleton className="h-3 w-full" />
@@ -1095,26 +1249,26 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                             </div>
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
-                                <Skeleton className="w-4 h-4" />
+                                <Skeleton className="h-4 w-4" />
                                 <Skeleton className="h-3 w-24" />
-                                <Skeleton className="w-4 h-4" />
+                                <Skeleton className="h-4 w-4" />
                                 <Skeleton className="h-3 w-16" />
                               </div>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Skeleton className="w-4 h-4" />
+                                  <Skeleton className="h-4 w-4" />
                                   <Skeleton className="h-3 w-20" />
                                 </div>
                                 <Skeleton className="h-4 w-16" />
                               </div>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Skeleton className="w-4 h-4" />
+                                  <Skeleton className="h-4 w-4" />
                                   <Skeleton className="h-3 w-24" />
                                 </div>
                                 <Skeleton className="h-4 w-20" />
                               </div>
-                              <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+                              <div className="flex items-center justify-between border-t border-gray-700 pt-2">
                                 <Skeleton className="h-3 w-20" />
                                 <Skeleton className="h-3 w-24" />
                               </div>
@@ -1125,24 +1279,28 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                       ))}
                     </>
                   ) : tryoutsError ? (
-                    <div className="col-span-full text-center py-12">
-                      <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-red-400 font-rajdhani">
+                    <div className="col-span-full py-12 text-center">
+                      <Trophy className="mx-auto mb-3 h-12 w-12 text-gray-600" />
+                      <p className="font-rajdhani text-red-400">
                         Error loading tryouts. Please try again later.
                       </p>
                     </div>
                   ) : filteredTryouts.length === 0 ? (
-                    <div className="col-span-full text-center py-12">
-                      <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                      <p className="text-gray-400 font-rajdhani">
-                        {tryoutFilter === "upcoming" ? "No upcoming tryouts" :
-                         tryoutFilter === "past" ? "No past tryouts" : "No tryouts found"}
+                    <div className="col-span-full py-12 text-center">
+                      <Trophy className="mx-auto mb-3 h-12 w-12 text-gray-600" />
+                      <p className="font-rajdhani text-gray-400">
+                        {tryoutFilter === "upcoming"
+                          ? "No upcoming tryouts"
+                          : tryoutFilter === "past"
+                            ? "No past tryouts"
+                            : "No tryouts found"}
                       </p>
                     </div>
                   ) : (
                     filteredTryouts.map((tryout, index) => {
                       const isUpcoming = new Date(tryout.date) > new Date();
-                      const spotsLeft = tryout.max_spots - (tryout._count?.registrations ?? 0);
+                      const spotsLeft =
+                        tryout.max_spots - (tryout._count?.registrations ?? 0);
 
                       return (
                         <motion.div
@@ -1153,69 +1311,77 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                           variants={cardHoverVariants}
                           whileHover="hover"
                         >
-                          <Card className="bg-[#1a1a2e]/80 backdrop-blur-sm border-gray-700/50 shadow-xl hover:border-orange-400/50 hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
-                            <CardContent className="p-4 flex flex-col flex-1">
+                          <Card className="flex h-full flex-col border-gray-700/50 bg-[#1a1a2e]/80 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-orange-400/50 hover:shadow-2xl">
+                            <CardContent className="flex flex-1 flex-col p-4">
                               {/* Header */}
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-3 flex-1">
-                                  <div className="w-10 h-10 flex items-center justify-center">
+                              <div className="mb-3 flex items-start justify-between">
+                                <div className="flex flex-1 items-center gap-3">
+                                  <div className="flex h-10 w-10 items-center justify-center">
                                     {gameLogos[tryout.game.name] ? (
                                       <Image
                                         src={gameLogos[tryout.game.name]!}
                                         alt={tryout.game.name}
                                         width={40}
                                         height={40}
-                                        className="w-full h-full object-contain"
+                                        className="h-full w-full object-contain"
                                       />
                                     ) : (
                                       <div className="text-2xl">🎮</div>
                                     )}
                                   </div>
-                                  <div className="flex-1 min-w-0 overflow-hidden">
-                                    <h4 className="font-orbitron font-semibold text-white text-sm leading-tight line-clamp-2 break-words">
+                                  <div className="min-w-0 flex-1 overflow-hidden">
+                                    <h4 className="font-orbitron line-clamp-2 text-sm leading-tight font-semibold break-words text-white">
                                       {tryout.title}
                                     </h4>
-                                    <p className="text-gray-400 text-xs font-rajdhani mt-1 line-clamp-2 break-words leading-tight">
+                                    <p className="font-rajdhani mt-1 line-clamp-2 text-xs leading-tight break-words text-gray-400">
                                       {tryout.description}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                  {isUpcoming && spotsLeft <= 5 && spotsLeft > 0 && (
-                                    <Badge variant="outline" className="text-xs border-yellow-400/50 text-yellow-400 bg-yellow-400/10 backdrop-blur-sm">
-                                      {spotsLeft} left
-                                    </Badge>
-                                  )}
+                                  {isUpcoming &&
+                                    spotsLeft <= 5 &&
+                                    spotsLeft > 0 && (
+                                      <Badge
+                                        variant="outline"
+                                        className="border-yellow-400/50 bg-yellow-400/10 text-xs text-yellow-400 backdrop-blur-sm"
+                                      >
+                                        {spotsLeft} left
+                                      </Badge>
+                                    )}
                                 </div>
                               </div>
 
                               {/* Details */}
-                              <div className="space-y-2 mb-4 flex-1">
+                              <div className="mb-4 flex-1 space-y-2">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <Calendar className="w-3 h-3 text-gray-400" />
-                                  <span className="text-gray-300 font-rajdhani text-xs">
+                                  <Calendar className="h-3 w-3 text-gray-400" />
+                                  <span className="font-rajdhani text-xs text-gray-300">
                                     {formatDate(tryout.date)}
                                   </span>
                                   {tryout.time_start && (
                                     <>
-                                      <Clock className="w-3 h-3 text-gray-400 ml-2" />
-                                      <span className="text-gray-300 font-rajdhani text-xs">
-                                        {formatTime(tryout.time_start, tryout.time_end)}
+                                      <Clock className="ml-2 h-3 w-3 text-gray-400" />
+                                      <span className="font-rajdhani text-xs text-gray-300">
+                                        {formatTime(
+                                          tryout.time_start,
+                                          tryout.time_end,
+                                        )}
                                       </span>
                                     </>
                                   )}
                                 </div>
-                                
+
                                 <div className="flex items-center justify-between text-sm">
                                   <div className="flex items-center gap-2">
-                                    <MapPin className="w-3 h-3 text-gray-400" />
-                                    <span className="text-gray-300 font-rajdhani text-xs">
+                                    <MapPin className="h-3 w-3 text-gray-400" />
+                                    <span className="font-rajdhani text-xs text-gray-300">
                                       {tryout.location}
                                     </span>
                                   </div>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs border-0 text-white backdrop-blur-sm ${getTypeColor(tryout.type)}/80`}
+                                  <Badge
+                                    variant="outline"
+                                    className={`border-0 text-xs text-white backdrop-blur-sm ${getTypeColor(tryout.type)}/80`}
                                   >
                                     {getReadableTypeName(tryout.type)}
                                   </Badge>
@@ -1223,26 +1389,34 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
 
                                 <div className="flex items-center justify-between text-sm">
                                   <div className="flex items-center gap-2">
-                                    <Users className="w-3 h-3 text-gray-400" />
-                                    <span className="text-gray-300 font-rajdhani text-xs">
-                                      {tryout._count?.registrations ?? 0}/{tryout.max_spots} registered
+                                    <Users className="h-3 w-3 text-gray-400" />
+                                    <span className="font-rajdhani text-xs text-gray-300">
+                                      {tryout._count?.registrations ?? 0}/
+                                      {tryout.max_spots} registered
                                     </span>
                                   </div>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs border-0 text-white backdrop-blur-sm ${getGameColor(tryout.game.name)}/80`}
+                                  <Badge
+                                    variant="outline"
+                                    className={`border-0 text-xs text-white backdrop-blur-sm ${getGameColor(tryout.game.name)}/80`}
                                   >
-                                    {getReadableGameName(tryout.game.short_name ?? tryout.game.name)}
+                                    {getReadableGameName(
+                                      tryout.game.short_name ??
+                                        tryout.game.name,
+                                    )}
                                   </Badge>
                                 </div>
 
-                                <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-700">
-                                  <span className="text-gray-400 font-rajdhani text-xs">
-                                    Price: <span className="text-orange-400">{tryout.price}</span>
+                                <div className="flex items-center justify-between border-t border-gray-700 pt-2 text-sm">
+                                  <span className="font-rajdhani text-xs text-gray-400">
+                                    Price:{" "}
+                                    <span className="text-orange-400">
+                                      {tryout.price}
+                                    </span>
                                   </span>
                                   {tryout.organizer && (
-                                    <span className="text-gray-400 font-rajdhani text-xs">
-                                      by {tryout.organizer.first_name} {tryout.organizer.last_name}
+                                    <span className="font-rajdhani text-xs text-gray-400">
+                                      by {tryout.organizer.first_name}{" "}
+                                      {tryout.organizer.last_name}
                                     </span>
                                   )}
                                 </div>
@@ -1253,16 +1427,16 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                                 <Button
                                   asChild
                                   size="sm"
-                                  className="w-full bg-orange-600 hover:bg-orange-700 text-white font-orbitron shadow-lg"
+                                  className="font-orbitron w-full bg-orange-600 text-white shadow-lg hover:bg-orange-700"
                                 >
-                                  <a 
+                                  <a
                                     href={`/tryouts/college/${tryout.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2"
                                   >
                                     View Details
-                                    <ExternalLink className="w-3 h-3" />
+                                    <ExternalLink className="h-3 w-3" />
                                   </a>
                                 </Button>
                               </div>
@@ -1280,16 +1454,16 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     <Button
                       asChild
                       variant="outline"
-                      className="border-orange-400/50 text-orange-400 hover:bg-orange-400/10 hover:text-orange-300 hover:border-orange-400/70 font-orbitron shadow-xl backdrop-blur-sm bg-black/20 transition-all duration-300"
+                      className="font-orbitron border-orange-400/50 bg-black/20 text-orange-400 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-orange-400/70 hover:bg-orange-400/10 hover:text-orange-300"
                     >
-                      <a 
+                      <a
                         href="/tryouts/college"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2"
                       >
                         View All Tryouts
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLink className="h-4 w-4" />
                       </a>
                     </Button>
                   </div>
@@ -1300,59 +1474,61 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         </motion.div>
 
         {/* Enhanced Program Contact Section - Full Width */}
-        <motion.div 
-          className="relative"
-          variants={itemVariants}
-        >
+        <motion.div className="relative" variants={itemVariants}>
           <motion.div
             variants={cardHoverVariants}
             initial="rest"
             whileHover="hover"
           >
-            <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-cyan-500/20 shadow-lg">
+            <Card className="border-cyan-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-lg">
               <CardContent className="p-6">
-                <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 p-6 rounded-lg border border-cyan-700/30">
-                  <motion.h3 
-                    className="font-orbitron font-semibold text-xl mb-3 text-white flex items-center gap-2"
+                <div className="rounded-lg border border-cyan-700/30 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 p-6">
+                  <motion.h3
+                    className="font-orbitron mb-3 flex items-center gap-2 text-xl font-semibold text-white"
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1, duration: 0.4 }}
                   >
-                    <div className="p-1.5 bg-cyan-500/20 rounded-lg">
+                    <div className="rounded-lg bg-cyan-500/20 p-1.5">
                       <Mail className="h-5 w-5 text-cyan-400" />
                     </div>
                     Interested in Joining Our Program?
                   </motion.h3>
-                  <motion.p 
-                    className="text-gray-300 mb-4 font-rajdhani leading-relaxed"
+                  <motion.p
+                    className="font-rajdhani mb-4 leading-relaxed text-gray-300"
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
                   >
-                    Reach out to our coaching staff to learn more about tryouts, team opportunities, and our esports program.
+                    Reach out to our coaching staff to learn more about tryouts,
+                    team opportunities, and our esports program.
                   </motion.p>
-                  <motion.div 
-                    className="flex flex-col sm:flex-row gap-3"
+                  <motion.div
+                    className="flex flex-col gap-3 sm:flex-row"
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
                   >
                     <Button
                       asChild
-                      className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron shadow-lg"
+                      className="font-orbitron bg-cyan-600 text-white shadow-lg hover:bg-cyan-700"
                     >
-                      <a href={`mailto:${primaryContact}?subject=Interest in Esports Program`}>
-                        <Mail className="w-4 h-4 mr-2" />
+                      <a
+                        href={`mailto:${primaryContact}?subject=Interest in Esports Program`}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
                         Contact Primary Coach
                       </a>
                     </Button>
                     <Button
                       asChild
                       variant="outline"
-                      className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-gray-900 shadow-lg"
+                      className="border-cyan-400 text-cyan-400 shadow-lg hover:bg-cyan-400 hover:text-gray-900"
                     >
-                      <a href={`mailto:${school.email}?subject=General Program Inquiry`}>
-                        <Mail className="w-4 h-4 mr-2" />
+                      <a
+                        href={`mailto:${school.email}?subject=General Program Inquiry`}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
                         General Inquiry
                       </a>
                     </Button>

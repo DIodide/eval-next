@@ -20,31 +20,33 @@ export function ComingSoon({
 }: ComingSoonProps) {
   return (
     <div className="space-y-6">
-      <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-6 text-center">
+      <div className="rounded-lg border border-yellow-700/30 bg-yellow-900/20 p-6 text-center">
         <div className="mb-4">
-          <ClockIcon className="w-12 h-12 mx-auto text-yellow-400 mb-3" />
-          <h4 className="text-lg font-orbitron font-semibold text-yellow-300 mb-2">
+          <ClockIcon className="mx-auto mb-3 h-12 w-12 text-yellow-400" />
+          <h4 className="font-orbitron mb-2 text-lg font-semibold text-yellow-300">
             {gameName} Analytics Coming Soon
           </h4>
-          <p className="text-yellow-200 font-rajdhani text-sm max-w-md mx-auto mb-4">
-            We&apos;re working hard to bring you comprehensive statistics and performance analytics for {gameName}.
+          <p className="font-rajdhani mx-auto mb-4 max-w-md text-sm text-yellow-200">
+            We&apos;re working hard to bring you comprehensive statistics and
+            performance analytics for {gameName}.
           </p>
           {!isConnected && (
             <>
-              <p className="text-yellow-300 font-rajdhani text-xs mb-4">
-                {viewMode === "other" 
-                  ? `This player hasn't connected their ${platform === 'startgg' ? 'start.gg' : gameName} account yet.`
-                  : `Connect your ${platform === 'startgg' ? 'start.gg' : gameName} account now to be ready when analytics launch!`}
+              <p className="font-rajdhani mb-4 text-xs text-yellow-300">
+                {viewMode === "other"
+                  ? `This player hasn't connected their ${platform === "startgg" ? "start.gg" : gameName} account yet.`
+                  : `Connect your ${platform === "startgg" ? "start.gg" : gameName} account now to be ready when analytics launch!`}
               </p>
-              {viewMode === "self" && (
-                onConnect ? (
+              {viewMode === "self" &&
+                (onConnect ? (
                   <Button
                     onClick={onConnect}
                     variant="outline"
                     className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
                   >
-                    Connect {platform === 'startgg' ? 'start.gg' : gameName} Account
-                    <ArrowRightIcon className="h-4 w-4 ml-2" />
+                    Connect {platform === "startgg" ? "start.gg" : gameName}{" "}
+                    Account
+                    <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Link href="/dashboard/player/profile/external-accounts">
@@ -52,20 +54,20 @@ export function ComingSoon({
                       variant="outline"
                       className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
                     >
-                      Connect {platform === 'startgg' ? 'start.gg' : gameName} Account
-                      <ArrowRightIcon className="h-4 w-4 ml-2" />
+                      Connect {platform === "startgg" ? "start.gg" : gameName}{" "}
+                      Account
+                      <ArrowRightIcon className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                )
-              )}
+                ))}
             </>
           )}
           {isConnected && (
-            <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4 mt-4">
+            <div className="mt-4 rounded-lg border border-green-700/30 bg-green-900/20 p-4">
               <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span className="text-green-300 font-rajdhani text-sm">
-                  {viewMode === "other" 
+                <div className="h-2 w-2 rounded-full bg-green-400"></div>
+                <span className="font-rajdhani text-sm text-green-300">
+                  {viewMode === "other"
                     ? `This player has connected their ${gameName} account - ready for analytics!`
                     : `${gameName} account connected - you're ready for analytics!`}
                 </span>
@@ -78,4 +80,4 @@ export function ComingSoon({
   );
 }
 
-export default ComingSoon; 
+export default ComingSoon;

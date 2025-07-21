@@ -15,11 +15,11 @@ interface OnboardingGuardProps {
   showMessage?: boolean;
 }
 
-export function OnboardingGuard({ 
-  children, 
-  requiresOnboarding = true, 
+export function OnboardingGuard({
+  children,
+  requiresOnboarding = true,
   redirectTo = "/dashboard/coaches",
-  showMessage = true 
+  showMessage = true,
 }: OnboardingGuardProps) {
   const { user, isLoaded } = useUser();
   const router = useRouter();
@@ -35,8 +35,8 @@ export function OnboardingGuard({
   // Show loading while checking
   if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-white font-rajdhani">Loading...</div>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="font-rajdhani text-white">Loading...</div>
       </div>
     );
   }
@@ -47,26 +47,27 @@ export function OnboardingGuard({
 
     return (
       <div className="space-y-6">
-        <Card className="bg-gray-900 border-yellow-500">
+        <Card className="border-yellow-500 bg-gray-900">
           <CardHeader>
-            <CardTitle className="text-yellow-400 font-orbitron flex items-center gap-2">
+            <CardTitle className="font-orbitron flex items-center gap-2 text-yellow-400">
               <LockIcon className="h-5 w-5" />
               Onboarding Required
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <AlertCircleIcon className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-xl font-orbitron font-bold text-white mb-4">
+            <div className="py-8 text-center">
+              <AlertCircleIcon className="mx-auto mb-4 h-16 w-16 text-yellow-400" />
+              <h3 className="font-orbitron mb-4 text-xl font-bold text-white">
                 Coach Onboarding Required
               </h3>
-              <p className="text-gray-300 font-rajdhani mb-6 max-w-md mx-auto">
-                To access this feature, you need to complete your coach onboarding by associating with a school. 
-                Please submit a school association request from your dashboard.
+              <p className="font-rajdhani mx-auto mb-6 max-w-md text-gray-300">
+                To access this feature, you need to complete your coach
+                onboarding by associating with a school. Please submit a school
+                association request from your dashboard.
               </p>
-              <Button 
+              <Button
                 onClick={() => router.push("/dashboard/coaches")}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+                className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
               >
                 Go to Dashboard
               </Button>
@@ -79,4 +80,4 @@ export function OnboardingGuard({
 
   // User is onboarded or onboarding is not required
   return <>{children}</>;
-} 
+}

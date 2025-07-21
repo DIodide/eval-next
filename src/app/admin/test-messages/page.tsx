@@ -5,11 +5,28 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUser } from "@clerk/nextjs";
-import { MessageSquareIcon, UserIcon, SchoolIcon, LoaderIcon } from "lucide-react";
+import {
+  MessageSquareIcon,
+  UserIcon,
+  SchoolIcon,
+  LoaderIcon,
+} from "lucide-react";
 
 type FilterType = "all" | "unread" | "starred" | "archived";
 
@@ -28,7 +45,7 @@ export default function MessagesTestPage() {
   });
 
   const [conversationId, setConversationId] = useState("");
-  
+
   const [sendMessageData, setSendMessageData] = useState({
     conversationId: "",
     playerId: "",
@@ -66,31 +83,37 @@ export default function MessagesTestPage() {
 
   // Mutations
   const sendMessageMutation = api.messages.sendMessage.useMutation();
-  const sendPlayerMessageMutation = api.messages.sendPlayerMessage.useMutation();
+  const sendPlayerMessageMutation =
+    api.messages.sendPlayerMessage.useMutation();
   const sendBulkMessageMutation = api.messages.sendBulkMessage.useMutation();
   const markAsReadMutation = api.messages.markAsRead.useMutation();
-  const markPlayerAsReadMutation = api.messages.markPlayerMessagesAsRead.useMutation();
+  const markPlayerAsReadMutation =
+    api.messages.markPlayerMessagesAsRead.useMutation();
   const toggleStarMutation = api.messages.toggleStar.useMutation();
   const togglePlayerStarMutation = api.messages.togglePlayerStar.useMutation();
 
-  const handleTest = async (testName: string, testFn: () => Promise<unknown>) => {
-    setLoading(prev => ({ ...prev, [testName]: true }));
-    setErrors(prev => ({ ...prev, [testName]: null }));
-    
+  const handleTest = async (
+    testName: string,
+    testFn: () => Promise<unknown>,
+  ) => {
+    setLoading((prev) => ({ ...prev, [testName]: true }));
+    setErrors((prev) => ({ ...prev, [testName]: null }));
+
     try {
       const result = await testFn();
-      setResults(prev => ({ ...prev, [testName]: result }));
+      setResults((prev) => ({ ...prev, [testName]: result }));
     } catch (error: unknown) {
-      setErrors(prev => ({ ...prev, [testName]: error }));
+      setErrors((prev) => ({ ...prev, [testName]: error }));
     } finally {
-      setLoading(prev => ({ ...prev, [testName]: false }));
+      setLoading((prev) => ({ ...prev, [testName]: false }));
     }
   };
 
   // Coach Endpoint Tests
   const testGetConversations = () => {
     return handleTest("getConversations", async () => {
-      const result = await utils.messages.getConversations.fetch(conversationFilters);
+      const result =
+        await utils.messages.getConversations.fetch(conversationFilters);
       return result;
     });
   };
@@ -100,7 +123,9 @@ export default function MessagesTestPage() {
       if (!conversationId) {
         throw new Error("Conversation ID is required");
       }
-      const result = await utils.messages.getConversation.fetch({ conversationId });
+      const result = await utils.messages.getConversation.fetch({
+        conversationId,
+      });
       return result;
     });
   };
@@ -113,15 +138,19 @@ export default function MessagesTestPage() {
       if (!sendMessageData.conversationId && !sendMessageData.playerId) {
         throw new Error("Either conversation ID or player ID is required");
       }
-      
-      const data: { content: string; conversationId?: string; playerId?: string } = { content: sendMessageData.content };
+
+      const data: {
+        content: string;
+        conversationId?: string;
+        playerId?: string;
+      } = { content: sendMessageData.content };
       if (sendMessageData.conversationId) {
         data.conversationId = sendMessageData.conversationId;
       }
       if (sendMessageData.playerId) {
         data.playerId = sendMessageData.playerId;
       }
-      
+
       const result = await sendMessageMutation.mutateAsync(data);
       return result;
     });
@@ -132,12 +161,15 @@ export default function MessagesTestPage() {
       if (!bulkMessageData.content || !bulkMessageData.playerIds) {
         throw new Error("Content and player IDs are required");
       }
-      
-      const playerIds = bulkMessageData.playerIds.split(',').map(id => id.trim()).filter(Boolean);
+
+      const playerIds = bulkMessageData.playerIds
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
       if (playerIds.length === 0) {
         throw new Error("At least one player ID is required");
       }
-      
+
       const result = await sendBulkMessageMutation.mutateAsync({
         playerIds,
         content: bulkMessageData.content,
@@ -151,12 +183,17 @@ export default function MessagesTestPage() {
       if (!markReadData.conversationId) {
         throw new Error("Conversation ID is required");
       }
-      
-      const data: { conversationId: string; messageIds?: string[] } = { conversationId: markReadData.conversationId };
+
+      const data: { conversationId: string; messageIds?: string[] } = {
+        conversationId: markReadData.conversationId,
+      };
       if (markReadData.messageIds) {
-        data.messageIds = markReadData.messageIds.split(',').map(id => id.trim()).filter(Boolean);
+        data.messageIds = markReadData.messageIds
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
       }
-      
+
       const result = await markAsReadMutation.mutateAsync(data);
       return result;
     });
@@ -167,7 +204,9 @@ export default function MessagesTestPage() {
       if (!starData.conversationId) {
         throw new Error("Conversation ID is required");
       }
-      const result = await toggleStarMutation.mutateAsync({ conversationId: starData.conversationId });
+      const result = await toggleStarMutation.mutateAsync({
+        conversationId: starData.conversationId,
+      });
       return result;
     });
   };
@@ -187,7 +226,8 @@ export default function MessagesTestPage() {
   // Player Endpoint Tests
   const testGetPlayerConversations = () => {
     return handleTest("getPlayerConversations", async () => {
-      const result = await utils.messages.getPlayerConversations.fetch(conversationFilters);
+      const result =
+        await utils.messages.getPlayerConversations.fetch(conversationFilters);
       return result;
     });
   };
@@ -197,7 +237,9 @@ export default function MessagesTestPage() {
       if (!conversationId) {
         throw new Error("Conversation ID is required");
       }
-      const result = await utils.messages.getPlayerConversation.fetch({ conversationId });
+      const result = await utils.messages.getPlayerConversation.fetch({
+        conversationId,
+      });
       return result;
     });
   };
@@ -210,15 +252,19 @@ export default function MessagesTestPage() {
       if (!sendMessageData.conversationId && !sendMessageData.coachId) {
         throw new Error("Either conversation ID or coach ID is required");
       }
-      
-      const data: { content: string; conversationId?: string; coachId?: string } = { content: sendMessageData.content };
+
+      const data: {
+        content: string;
+        conversationId?: string;
+        coachId?: string;
+      } = { content: sendMessageData.content };
       if (sendMessageData.conversationId) {
         data.conversationId = sendMessageData.conversationId;
       }
       if (sendMessageData.coachId) {
         data.coachId = sendMessageData.coachId;
       }
-      
+
       const result = await sendPlayerMessageMutation.mutateAsync(data);
       return result;
     });
@@ -229,12 +275,17 @@ export default function MessagesTestPage() {
       if (!markReadData.conversationId) {
         throw new Error("Conversation ID is required");
       }
-      
-      const data: { conversationId: string; messageIds?: string[] } = { conversationId: markReadData.conversationId };
+
+      const data: { conversationId: string; messageIds?: string[] } = {
+        conversationId: markReadData.conversationId,
+      };
       if (markReadData.messageIds) {
-        data.messageIds = markReadData.messageIds.split(',').map(id => id.trim()).filter(Boolean);
+        data.messageIds = markReadData.messageIds
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
       }
-      
+
       const result = await markPlayerAsReadMutation.mutateAsync(data);
       return result;
     });
@@ -245,7 +296,9 @@ export default function MessagesTestPage() {
       if (!starData.conversationId) {
         throw new Error("Conversation ID is required");
       }
-      const result = await togglePlayerStarMutation.mutateAsync({ conversationId: starData.conversationId });
+      const result = await togglePlayerStarMutation.mutateAsync({
+        conversationId: starData.conversationId,
+      });
       return result;
     });
   };
@@ -274,7 +327,7 @@ export default function MessagesTestPage() {
     if (isLoading) {
       return (
         <div className="flex items-center space-x-2 text-blue-600">
-          <LoaderIcon className="w-4 h-4 animate-spin" />
+          <LoaderIcon className="h-4 w-4 animate-spin" />
           <span>Loading...</span>
         </div>
       );
@@ -282,10 +335,12 @@ export default function MessagesTestPage() {
 
     if (error) {
       return (
-        <div className="bg-red-50 border border-red-200 rounded p-3">
-          <p className="text-red-800 font-medium">Error:</p>
-          <pre className="text-red-600 text-sm mt-1 whitespace-pre-wrap">
-            {error instanceof Error ? error.message : JSON.stringify(error, null, 2)}
+        <div className="rounded border border-red-200 bg-red-50 p-3">
+          <p className="font-medium text-red-800">Error:</p>
+          <pre className="mt-1 text-sm whitespace-pre-wrap text-red-600">
+            {error instanceof Error
+              ? error.message
+              : JSON.stringify(error, null, 2)}
           </pre>
         </div>
       );
@@ -293,9 +348,9 @@ export default function MessagesTestPage() {
 
     if (result) {
       return (
-        <div className="bg-green-50 border border-green-200 rounded p-3">
-          <p className="text-green-800 font-medium">Success:</p>
-          <pre className="text-green-600 text-sm mt-1 whitespace-pre-wrap max-h-40 overflow-y-auto">
+        <div className="rounded border border-green-200 bg-green-50 p-3">
+          <p className="font-medium text-green-800">Success:</p>
+          <pre className="mt-1 max-h-40 overflow-y-auto text-sm whitespace-pre-wrap text-green-600">
             {JSON.stringify(result, null, 2)}
           </pre>
         </div>
@@ -308,11 +363,13 @@ export default function MessagesTestPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center space-x-2 text-white">
-          <MessageSquareIcon className="w-8 h-8 text-blue-500" />
+        <h1 className="mb-2 flex items-center justify-center space-x-2 text-3xl font-bold text-white">
+          <MessageSquareIcon className="h-8 w-8 text-blue-500" />
           <span>Messages tRPC Test Page</span>
         </h1>
-        <p className="text-gray-400">Test all messages router endpoints for both coaches and players</p>
+        <p className="text-gray-400">
+          Test all messages router endpoints for both coaches and players
+        </p>
         {user && (
           <div className="mt-2 space-y-1">
             <p className="text-sm text-blue-600">
@@ -320,7 +377,12 @@ export default function MessagesTestPage() {
             </p>
             <div className="flex items-center justify-center space-x-2">
               <Label htmlFor="userType">Test as:</Label>
-              <Select value={userType} onValueChange={(value: "coach" | "player" | "auto") => setUserType(value)}>
+              <Select
+                value={userType}
+                onValueChange={(value: "coach" | "player" | "auto") =>
+                  setUserType(value)
+                }
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -334,27 +396,29 @@ export default function MessagesTestPage() {
           </div>
         )}
         {!user && (
-          <p className="text-sm text-red-600 mt-2">
+          <p className="mt-2 text-sm text-red-600">
             Not logged in - you need to authenticate to test these endpoints
           </p>
         )}
       </div>
 
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="mb-6 flex justify-center gap-4">
         <Button onClick={clearResults} variant="outline">
           Clear Results
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Coach Endpoints */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="border-gray-700 bg-gray-800">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-white">
-              <UserIcon className="w-5 h-5 text-green-500" />
+              <UserIcon className="h-5 w-5 text-green-500" />
               <span>Coach Endpoints</span>
             </CardTitle>
-            <CardDescription className="text-gray-400">Test coach-specific messaging functionality</CardDescription>
+            <CardDescription className="text-gray-400">
+              Test coach-specific messaging functionality
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Get Conversations */}
@@ -367,12 +431,25 @@ export default function MessagesTestPage() {
                     id="search"
                     placeholder="Search players..."
                     value={conversationFilters.search}
-                    onChange={(e) => setConversationFilters(prev => ({ ...prev, search: e.target.value }))}
+                    onChange={(e) =>
+                      setConversationFilters((prev) => ({
+                        ...prev,
+                        search: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
                   <Label htmlFor="filter">Filter</Label>
-                  <Select value={conversationFilters.filter} onValueChange={(value: FilterType) => setConversationFilters(prev => ({ ...prev, filter: value }))}>
+                  <Select
+                    value={conversationFilters.filter}
+                    onValueChange={(value: FilterType) =>
+                      setConversationFilters((prev) => ({
+                        ...prev,
+                        filter: value,
+                      }))
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -385,8 +462,14 @@ export default function MessagesTestPage() {
                   </Select>
                 </div>
               </div>
-              <Button onClick={testGetConversations} disabled={loading.getConversations} className="w-full">
-                {loading.getConversations ? "Loading..." : "Test Get Conversations"}
+              <Button
+                onClick={testGetConversations}
+                disabled={loading.getConversations}
+                className="w-full"
+              >
+                {loading.getConversations
+                  ? "Loading..."
+                  : "Test Get Conversations"}
               </Button>
               {renderResult("getConversations")}
             </div>
@@ -403,8 +486,14 @@ export default function MessagesTestPage() {
                   onChange={(e) => setConversationId(e.target.value)}
                 />
               </div>
-              <Button onClick={testGetConversation} disabled={loading.getConversation} className="w-full">
-                {loading.getConversation ? "Loading..." : "Test Get Conversation"}
+              <Button
+                onClick={testGetConversation}
+                disabled={loading.getConversation}
+                className="w-full"
+              >
+                {loading.getConversation
+                  ? "Loading..."
+                  : "Test Get Conversation"}
               </Button>
               {renderResult("getConversation")}
             </div>
@@ -419,7 +508,12 @@ export default function MessagesTestPage() {
                     id="sendConversationId"
                     placeholder="For existing conversation..."
                     value={sendMessageData.conversationId}
-                    onChange={(e) => setSendMessageData(prev => ({ ...prev, conversationId: e.target.value }))}
+                    onChange={(e) =>
+                      setSendMessageData((prev) => ({
+                        ...prev,
+                        conversationId: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
@@ -428,7 +522,12 @@ export default function MessagesTestPage() {
                     id="playerId"
                     placeholder="For new conversation..."
                     value={sendMessageData.playerId}
-                    onChange={(e) => setSendMessageData(prev => ({ ...prev, playerId: e.target.value }))}
+                    onChange={(e) =>
+                      setSendMessageData((prev) => ({
+                        ...prev,
+                        playerId: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -438,11 +537,20 @@ export default function MessagesTestPage() {
                   id="messageContent"
                   placeholder="Enter your message..."
                   value={sendMessageData.content}
-                  onChange={(e) => setSendMessageData(prev => ({ ...prev, content: e.target.value }))}
+                  onChange={(e) =>
+                    setSendMessageData((prev) => ({
+                      ...prev,
+                      content: e.target.value,
+                    }))
+                  }
                   rows={3}
                 />
               </div>
-              <Button onClick={testSendMessage} disabled={loading.sendMessage} className="w-full">
+              <Button
+                onClick={testSendMessage}
+                disabled={loading.sendMessage}
+                className="w-full"
+              >
                 {loading.sendMessage ? "Sending..." : "Test Send Message"}
               </Button>
               {renderResult("sendMessage")}
@@ -457,7 +565,12 @@ export default function MessagesTestPage() {
                   id="playerIds"
                   placeholder="player1-id, player2-id, ..."
                   value={bulkMessageData.playerIds}
-                  onChange={(e) => setBulkMessageData(prev => ({ ...prev, playerIds: e.target.value }))}
+                  onChange={(e) =>
+                    setBulkMessageData((prev) => ({
+                      ...prev,
+                      playerIds: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -466,12 +579,23 @@ export default function MessagesTestPage() {
                   id="bulkContent"
                   placeholder="Enter your bulk message..."
                   value={bulkMessageData.content}
-                  onChange={(e) => setBulkMessageData(prev => ({ ...prev, content: e.target.value }))}
+                  onChange={(e) =>
+                    setBulkMessageData((prev) => ({
+                      ...prev,
+                      content: e.target.value,
+                    }))
+                  }
                   rows={3}
                 />
               </div>
-              <Button onClick={testSendBulkMessage} disabled={loading.sendBulkMessage} className="w-full">
-                {loading.sendBulkMessage ? "Sending..." : "Test Send Bulk Message"}
+              <Button
+                onClick={testSendBulkMessage}
+                disabled={loading.sendBulkMessage}
+                className="w-full"
+              >
+                {loading.sendBulkMessage
+                  ? "Sending..."
+                  : "Test Send Bulk Message"}
               </Button>
               {renderResult("sendBulkMessage")}
             </div>
@@ -486,7 +610,12 @@ export default function MessagesTestPage() {
                     id="playerSearch"
                     placeholder="Search players..."
                     value={playerFilters.search}
-                    onChange={(e) => setPlayerFilters(prev => ({ ...prev, search: e.target.value }))}
+                    onChange={(e) =>
+                      setPlayerFilters((prev) => ({
+                        ...prev,
+                        search: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
@@ -495,12 +624,23 @@ export default function MessagesTestPage() {
                     id="gameId"
                     placeholder="Filter by game..."
                     value={playerFilters.gameId}
-                    onChange={(e) => setPlayerFilters(prev => ({ ...prev, gameId: e.target.value }))}
+                    onChange={(e) =>
+                      setPlayerFilters((prev) => ({
+                        ...prev,
+                        gameId: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
-              <Button onClick={testGetAvailablePlayers} disabled={loading.getAvailablePlayers} className="w-full">
-                {loading.getAvailablePlayers ? "Loading..." : "Test Get Available Players"}
+              <Button
+                onClick={testGetAvailablePlayers}
+                disabled={loading.getAvailablePlayers}
+                className="w-full"
+              >
+                {loading.getAvailablePlayers
+                  ? "Loading..."
+                  : "Test Get Available Players"}
               </Button>
               {renderResult("getAvailablePlayers")}
             </div>
@@ -511,17 +651,25 @@ export default function MessagesTestPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <SchoolIcon className="w-5 h-5" />
+              <SchoolIcon className="h-5 w-5" />
               <span>Player Endpoints</span>
             </CardTitle>
-            <CardDescription>Test player-specific messaging functionality</CardDescription>
+            <CardDescription>
+              Test player-specific messaging functionality
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Get Player Conversations */}
             <div className="space-y-3">
               <h4 className="font-medium">Get Player Conversations</h4>
-              <Button onClick={testGetPlayerConversations} disabled={loading.getPlayerConversations} className="w-full">
-                {loading.getPlayerConversations ? "Loading..." : "Test Get Player Conversations"}
+              <Button
+                onClick={testGetPlayerConversations}
+                disabled={loading.getPlayerConversations}
+                className="w-full"
+              >
+                {loading.getPlayerConversations
+                  ? "Loading..."
+                  : "Test Get Player Conversations"}
               </Button>
               {renderResult("getPlayerConversations")}
             </div>
@@ -529,8 +677,14 @@ export default function MessagesTestPage() {
             {/* Get Player Conversation */}
             <div className="space-y-3">
               <h4 className="font-medium">Get Player Conversation Details</h4>
-              <Button onClick={testGetPlayerConversation} disabled={loading.getPlayerConversation} className="w-full">
-                {loading.getPlayerConversation ? "Loading..." : "Test Get Player Conversation"}
+              <Button
+                onClick={testGetPlayerConversation}
+                disabled={loading.getPlayerConversation}
+                className="w-full"
+              >
+                {loading.getPlayerConversation
+                  ? "Loading..."
+                  : "Test Get Player Conversation"}
               </Button>
               {renderResult("getPlayerConversation")}
             </div>
@@ -545,7 +699,12 @@ export default function MessagesTestPage() {
                     id="playerConversationId"
                     placeholder="For existing conversation..."
                     value={sendMessageData.conversationId}
-                    onChange={(e) => setSendMessageData(prev => ({ ...prev, conversationId: e.target.value }))}
+                    onChange={(e) =>
+                      setSendMessageData((prev) => ({
+                        ...prev,
+                        conversationId: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
@@ -554,12 +713,23 @@ export default function MessagesTestPage() {
                     id="coachId"
                     placeholder="For new conversation..."
                     value={sendMessageData.coachId}
-                    onChange={(e) => setSendMessageData(prev => ({ ...prev, coachId: e.target.value }))}
+                    onChange={(e) =>
+                      setSendMessageData((prev) => ({
+                        ...prev,
+                        coachId: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
-              <Button onClick={testSendPlayerMessage} disabled={loading.sendPlayerMessage} className="w-full">
-                {loading.sendPlayerMessage ? "Sending..." : "Test Send Player Message"}
+              <Button
+                onClick={testSendPlayerMessage}
+                disabled={loading.sendPlayerMessage}
+                className="w-full"
+              >
+                {loading.sendPlayerMessage
+                  ? "Sending..."
+                  : "Test Send Player Message"}
               </Button>
               {renderResult("sendPlayerMessage")}
             </div>
@@ -573,11 +743,22 @@ export default function MessagesTestPage() {
                   id="coachSearch"
                   placeholder="Search coaches..."
                   value={coachFilters.search}
-                  onChange={(e) => setCoachFilters(prev => ({ ...prev, search: e.target.value }))}
+                  onChange={(e) =>
+                    setCoachFilters((prev) => ({
+                      ...prev,
+                      search: e.target.value,
+                    }))
+                  }
                 />
               </div>
-              <Button onClick={testGetAvailableCoaches} disabled={loading.getAvailableCoaches} className="w-full">
-                {loading.getAvailableCoaches ? "Loading..." : "Test Get Available Coaches"}
+              <Button
+                onClick={testGetAvailableCoaches}
+                disabled={loading.getAvailableCoaches}
+                className="w-full"
+              >
+                {loading.getAvailableCoaches
+                  ? "Loading..."
+                  : "Test Get Available Coaches"}
               </Button>
               {renderResult("getAvailableCoaches")}
             </div>
@@ -591,20 +772,38 @@ export default function MessagesTestPage() {
                   id="markReadConversationId"
                   placeholder="Enter conversation ID..."
                   value={markReadData.conversationId}
-                  onChange={(e) => setMarkReadData(prev => ({ ...prev, conversationId: e.target.value }))}
+                  onChange={(e) =>
+                    setMarkReadData((prev) => ({
+                      ...prev,
+                      conversationId: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
-                <Label htmlFor="messageIds">Message IDs (optional, comma-separated)</Label>
+                <Label htmlFor="messageIds">
+                  Message IDs (optional, comma-separated)
+                </Label>
                 <Input
                   id="messageIds"
                   placeholder="msg1-id, msg2-id, ... (leave empty for all)"
                   value={markReadData.messageIds}
-                  onChange={(e) => setMarkReadData(prev => ({ ...prev, messageIds: e.target.value }))}
+                  onChange={(e) =>
+                    setMarkReadData((prev) => ({
+                      ...prev,
+                      messageIds: e.target.value,
+                    }))
+                  }
                 />
               </div>
-              <Button onClick={testMarkPlayerAsRead} disabled={loading.markPlayerAsRead} className="w-full">
-                {loading.markPlayerAsRead ? "Marking..." : "Test Mark Player Messages as Read"}
+              <Button
+                onClick={testMarkPlayerAsRead}
+                disabled={loading.markPlayerAsRead}
+                className="w-full"
+              >
+                {loading.markPlayerAsRead
+                  ? "Marking..."
+                  : "Test Mark Player Messages as Read"}
               </Button>
               {renderResult("markPlayerAsRead")}
             </div>
@@ -618,11 +817,22 @@ export default function MessagesTestPage() {
                   id="starConversationId"
                   placeholder="Enter conversation ID..."
                   value={starData.conversationId}
-                  onChange={(e) => setStarData(prev => ({ ...prev, conversationId: e.target.value }))}
+                  onChange={(e) =>
+                    setStarData((prev) => ({
+                      ...prev,
+                      conversationId: e.target.value,
+                    }))
+                  }
                 />
               </div>
-              <Button onClick={testTogglePlayerStar} disabled={loading.togglePlayerStar} className="w-full">
-                {loading.togglePlayerStar ? "Toggling..." : "Test Toggle Player Star"}
+              <Button
+                onClick={testTogglePlayerStar}
+                disabled={loading.togglePlayerStar}
+                className="w-full"
+              >
+                {loading.togglePlayerStar
+                  ? "Toggling..."
+                  : "Test Toggle Player Star"}
               </Button>
               {renderResult("togglePlayerStar")}
             </div>
@@ -633,14 +843,22 @@ export default function MessagesTestPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Shared Actions</CardTitle>
-            <CardDescription>Actions that work for both coaches and players</CardDescription>
+            <CardDescription>
+              Actions that work for both coaches and players
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Mark as Read */}
             <div className="space-y-3">
               <h4 className="font-medium">Mark Messages as Read (Coach)</h4>
-              <Button onClick={testMarkAsRead} disabled={loading.markAsRead} className="w-full">
-                {loading.markAsRead ? "Marking..." : "Test Mark as Read (Coach)"}
+              <Button
+                onClick={testMarkAsRead}
+                disabled={loading.markAsRead}
+                className="w-full"
+              >
+                {loading.markAsRead
+                  ? "Marking..."
+                  : "Test Mark as Read (Coach)"}
               </Button>
               {renderResult("markAsRead")}
             </div>
@@ -648,8 +866,14 @@ export default function MessagesTestPage() {
             {/* Toggle Star */}
             <div className="space-y-3">
               <h4 className="font-medium">Toggle Star (Coach)</h4>
-              <Button onClick={testToggleStar} disabled={loading.toggleStar} className="w-full">
-                {loading.toggleStar ? "Toggling..." : "Test Toggle Star (Coach)"}
+              <Button
+                onClick={testToggleStar}
+                disabled={loading.toggleStar}
+                className="w-full"
+              >
+                {loading.toggleStar
+                  ? "Toggling..."
+                  : "Test Toggle Star (Coach)"}
               </Button>
               {renderResult("toggleStar")}
             </div>
@@ -666,30 +890,46 @@ export default function MessagesTestPage() {
           <div className="space-y-4 text-sm">
             <div>
               <h4 className="font-medium text-green-600">Security Notes:</h4>
-              <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <ul className="list-inside list-disc space-y-1 text-gray-600">
                 <li>All endpoints require proper authentication via Clerk</li>
                 <li>Coach endpoints only work when logged in as a coach</li>
                 <li>Player endpoints only work when logged in as a player</li>
                 <li>Users can only access their own conversations and data</li>
-                <li>No security is undermined - all authorization checks are maintained</li>
+                <li>
+                  No security is undermined - all authorization checks are
+                  maintained
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-blue-600">Testing Tips:</h4>
-              <ul className="list-disc list-inside space-y-1 text-gray-600">
-                <li>Use &quot;Get Available Players/Coaches&quot; to find valid IDs for testing</li>
-                <li>Test both existing conversation flows and new conversation creation</li>
-                <li>Try different filter combinations for conversation lists</li>
+              <ul className="list-inside list-disc space-y-1 text-gray-600">
+                <li>
+                  Use &quot;Get Available Players/Coaches&quot; to find valid
+                  IDs for testing
+                </li>
+                <li>
+                  Test both existing conversation flows and new conversation
+                  creation
+                </li>
+                <li>
+                  Try different filter combinations for conversation lists
+                </li>
                 <li>Test bulk messaging with multiple player IDs</li>
                 <li>Verify read status and starring functionality</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium text-purple-600">Current Limitations:</h4>
-              <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <h4 className="font-medium text-purple-600">
+                Current Limitations:
+              </h4>
+              <ul className="list-inside list-disc space-y-1 text-gray-600">
                 <li>Backend currently returns mock data for most endpoints</li>
                 <li>Real database integration needed for full functionality</li>
-                <li>Message history and conversation persistence not yet implemented</li>
+                <li>
+                  Message history and conversation persistence not yet
+                  implemented
+                </li>
                 <li>Real-time updates require WebSocket implementation</li>
               </ul>
             </div>
@@ -698,4 +938,4 @@ export default function MessagesTestPage() {
       </Card>
     </div>
   );
-} 
+}

@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { 
-  Shield, 
-  MessageSquare, 
-  User, 
-  Trophy, 
-  Users, 
+import {
+  Shield,
+  MessageSquare,
+  User,
+  Trophy,
+  Users,
   Settings,
   Home,
   ArrowLeft,
@@ -16,7 +16,7 @@ import {
   ClipboardList,
   Gamepad2,
   Crown,
-  FolderOpen
+  FolderOpen,
 } from "lucide-react";
 
 const adminRoutes = [
@@ -96,20 +96,22 @@ export function AdminNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-gray-800 border-b border-gray-700">
+    <nav className="border-b border-gray-700 bg-gray-800">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Shield className="h-6 w-6 text-red-500" />
-              <span className="text-white font-bold text-lg">Admin Dashboard</span>
+              <span className="text-lg font-bold text-white">
+                Admin Dashboard
+              </span>
             </div>
-            
-            <div className="hidden md:flex items-center space-x-2 ml-8">
+
+            <div className="ml-8 hidden items-center space-x-2 md:flex">
               {adminRoutes.map((route) => {
                 const Icon = route.icon;
                 const isActive = pathname === route.href;
-                
+
                 return (
                   <Link key={route.href} href={route.href}>
                     <Button
@@ -117,7 +119,7 @@ export function AdminNavigation() {
                       size="sm"
                       className="text-gray-300 hover:text-white"
                     >
-                      <Icon className="h-4 w-4 mr-2" />
+                      <Icon className="mr-2 h-4 w-4" />
                       {route.label}
                     </Button>
                   </Link>
@@ -125,32 +127,32 @@ export function AdminNavigation() {
               })}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Link href="/dashboard">
               <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
               </Button>
             </Link>
           </div>
         </div>
-        
+
         {/* Mobile menu */}
-        <div className="md:hidden pb-4">
+        <div className="pb-4 md:hidden">
           <div className="grid grid-cols-2 gap-2">
             {adminRoutes.map((route) => {
               const Icon = route.icon;
               const isActive = pathname === route.href;
-              
+
               return (
                 <Link key={route.href} href={route.href}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
                     size="sm"
-                    className="w-full text-gray-300 hover:text-white justify-start"
+                    className="w-full justify-start text-gray-300 hover:text-white"
                   >
-                    <Icon className="h-4 w-4 mr-2" />
+                    <Icon className="mr-2 h-4 w-4" />
                     {route.label}
                   </Button>
                 </Link>
@@ -161,4 +163,4 @@ export function AdminNavigation() {
       </div>
     </nav>
   );
-} 
+}

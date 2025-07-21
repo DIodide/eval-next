@@ -3,25 +3,29 @@ import type { UserResource } from "@clerk/types";
 import { api } from "@/trpc/react";
 import { useMemo } from "react";
 import type { GameId, GameConnectionResult } from "../types";
-import { 
-  getGameConnectionStatus, 
+import {
+  getGameConnectionStatus,
   getAllConnectionStatuses,
-  type PlayerProfileData 
+  type PlayerProfileData,
 } from "../utils/connectionDetection";
 
-export function useGameConnection(gameId: GameId, playerId?: string, targetPlayerProfile?: PlayerProfileData): GameConnectionResult {
+export function useGameConnection(
+  gameId: GameId,
+  playerId?: string,
+  targetPlayerProfile?: PlayerProfileData,
+): GameConnectionResult {
   const { user } = useUser();
   const { data: profileData } = api.playerProfile.getProfile.useQuery(
     undefined,
     {
       enabled: !!user && !playerId,
-    }
+    },
   );
 
   const connectionStatus = useMemo(() => {
     // If viewing someone else's profile, use their profile data
     const profileToCheck = playerId ? targetPlayerProfile : profileData;
-    const viewMode = playerId ? 'other' : 'self';
+    const viewMode = playerId ? "other" : "self";
     return getGameConnectionStatus(user, profileToCheck, gameId, viewMode);
   }, [user, profileData, targetPlayerProfile, gameId, playerId]);
 
@@ -32,19 +36,22 @@ export function useGameConnection(gameId: GameId, playerId?: string, targetPlaye
   };
 }
 
-export function useAllGameConnections(playerId?: string, targetPlayerProfile?: PlayerProfileData): Record<GameId, boolean> {
+export function useAllGameConnections(
+  playerId?: string,
+  targetPlayerProfile?: PlayerProfileData,
+): Record<GameId, boolean> {
   const { user } = useUser();
   const { data: profileData } = api.playerProfile.getProfile.useQuery(
     undefined,
     {
       enabled: !!user && !playerId,
-    }
+    },
   );
 
   const connectionStatuses = useMemo(() => {
     // If viewing someone else's profile, use their profile data
     const profileToCheck = playerId ? targetPlayerProfile : profileData;
-    const viewMode = playerId ? 'other' : 'self';
+    const viewMode = playerId ? "other" : "self";
     return getAllConnectionStatuses(user, profileToCheck, viewMode);
   }, [user, profileData, targetPlayerProfile, playerId]);
 
@@ -53,24 +60,30 @@ export function useAllGameConnections(playerId?: string, targetPlayerProfile?: P
 
 export function useConnectionCheck(gameId: GameId, playerId?: string) {
   const { user } = useUser();
-  const { data: profileData, isLoading, error } = api.playerProfile.getProfile.useQuery(
-    undefined,
-    {
-      enabled: !!user && !playerId,
-    }
-  );
+  const {
+    data: profileData,
+    isLoading,
+    error,
+  } = api.playerProfile.getProfile.useQuery(undefined, {
+    enabled: !!user && !playerId,
+  });
 
   const connectionStatus = useMemo(() => {
     if (isLoading || !profileData) {
       return {
         isConnected: false,
-        connectionType: 'none' as const,
+        connectionType: "none" as const,
         isLoading: true,
       };
     }
 
-    const viewMode = playerId ? 'other' : 'self';
-    const status = getGameConnectionStatus(user, profileData as PlayerProfileData, gameId, viewMode);
+    const viewMode = playerId ? "other" : "self";
+    const status = getGameConnectionStatus(
+      user,
+      profileData as PlayerProfileData,
+      gameId,
+      viewMode,
+    );
     return {
       ...status,
       isLoading: false,
@@ -82,4 +95,4 @@ export function useConnectionCheck(gameId: GameId, playerId?: string) {
     profileData,
     error,
   };
-} 
+}

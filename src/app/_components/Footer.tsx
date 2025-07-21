@@ -1,11 +1,11 @@
-import Link from "next/link"
-import Image from "next/image"
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-black text-white py-12">
+    <footer className="bg-black py-12 text-white">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <div className="mb-4">
               <Image
@@ -16,11 +16,13 @@ export default function Footer() {
                 className="object-contain"
               />
             </div>
-            <p className="text-gray-400">Connecting top players to esports scholarships and opportunities.</p>
+            <p className="text-gray-400">
+              Connecting top players to esports scholarships and opportunities.
+            </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Platform</h4>
+            <h4 className="mb-4 font-semibold">Platform</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link href="/rankings/combines" className="hover:text-white">
@@ -46,7 +48,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
+            <h4 className="mb-4 font-semibold">Company</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link href="/about/team" className="hover:text-white">
@@ -67,7 +69,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Support</h4>
+            <h4 className="mb-4 font-semibold">Support</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link href="/privacy-policy" className="hover:text-white">
@@ -88,13 +90,17 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <div className="mt-8 border-t border-gray-800 pt-8 text-center text-gray-400">
           <p>&copy; 2025 EVAL Gaming. All rights reserved.</p>
           <p className="mt-2 text-sm">
-            EVAL Gaming isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+            EVAL Gaming isn&apos;t endorsed by Riot Games and doesn&apos;t
+            reflect the views or opinions of Riot Games or anyone officially
+            involved in producing or managing Riot Games properties. Riot Games
+            and all associated properties are trademarks or registered
+            trademarks of Riot Games, Inc.
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

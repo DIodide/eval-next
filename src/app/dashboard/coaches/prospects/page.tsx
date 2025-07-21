@@ -12,7 +12,13 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -123,17 +129,18 @@ export default function MyProspectsPage() {
 
   // Fetch coach's favorited players
   const utils = api.useUtils();
-  const { data: prospects = [], isLoading } = api.playerSearch.getFavorites.useQuery();
+  const { data: prospects = [], isLoading } =
+    api.playerSearch.getFavorites.useQuery();
 
   // Mutations with optimistic updates
   const updateFavoriteMutation = api.playerSearch.updateFavorite.useMutation({
     onMutate: async ({ player_id, notes, tags }) => {
       // Cancel outgoing refetches
       await utils.playerSearch.getFavorites.cancel();
-      
+
       // Snapshot the previous value
       const previousData = utils.playerSearch.getFavorites.getData();
-      
+
       // Optimistically update the cache
       utils.playerSearch.getFavorites.setData(undefined, (old) => {
         if (!old) return old;
@@ -145,10 +152,10 @@ export default function MyProspectsPage() {
                 tags: tags ?? [],
                 updated_at: new Date(),
               }
-            : prospect
+            : prospect,
         );
       });
-      
+
       return { previousData };
     },
     onSuccess: () => {
@@ -159,7 +166,10 @@ export default function MyProspectsPage() {
     onError: (error, _, context) => {
       // Revert optimistic update
       if (context?.previousData) {
-        utils.playerSearch.getFavorites.setData(undefined, context.previousData);
+        utils.playerSearch.getFavorites.setData(
+          undefined,
+          context.previousData,
+        );
       }
       toast.error("Update failed", {
         description: error.message,
@@ -175,25 +185,28 @@ export default function MyProspectsPage() {
     onMutate: async ({ player_id }) => {
       // Cancel outgoing refetches
       await utils.playerSearch.getFavorites.cancel();
-      
+
       // Snapshot the previous value
       const previousData = utils.playerSearch.getFavorites.getData();
-      
+
       // Optimistically remove from the cache
       utils.playerSearch.getFavorites.setData(undefined, (old) => {
         if (!old) return old;
         return old.filter((prospect) => prospect.player.id !== player_id);
       });
-      
+
       // Show immediate success feedback
       toast.info("Prospect removed from list");
-      
+
       return { previousData };
     },
     onError: (error, _, context) => {
       // Revert optimistic update
       if (context?.previousData) {
-        utils.playerSearch.getFavorites.setData(undefined, context.previousData);
+        utils.playerSearch.getFavorites.setData(
+          undefined,
+          context.previousData,
+        );
       }
       toast.error("Remove failed", {
         description: error.message,
@@ -206,33 +219,51 @@ export default function MyProspectsPage() {
   });
 
   // Get unique games and tags for filtering
-  const availableGames = Array.from(new Set(prospects.map(p => p.player.main_game?.short_name).filter((name): name is string => Boolean(name))));
-  const availableTags = Array.from(new Set(prospects.flatMap(p => p.tags)));
+  const availableGames = Array.from(
+    new Set(
+      prospects
+        .map((p) => p.player.main_game?.short_name)
+        .filter((name): name is string => Boolean(name)),
+    ),
+  );
+  const availableTags = Array.from(new Set(prospects.flatMap((p) => p.tags)));
 
   // Filter prospects based on search and filters
   const filteredProspects = prospects.filter((prospect) => {
     const player = prospect.player;
     const fullName = `${player.first_name} ${player.last_name}`.toLowerCase();
-    const school = (player.school_ref?.name ?? player.school ?? "").toLowerCase();
+    const school = (
+      player.school_ref?.name ??
+      player.school ??
+      ""
+    ).toLowerCase();
     const searchLower = searchQuery.toLowerCase();
-    
-    const matchesSearch = !searchQuery || 
+
+    const matchesSearch =
+      !searchQuery ||
       fullName.includes(searchLower) ||
       school.includes(searchLower) ||
       Boolean(player.username?.toLowerCase().includes(searchLower)) ||
       Boolean(player.location?.toLowerCase().includes(searchLower));
-    
-    const matchesGame = selectedGame === "all" || player.main_game?.short_name === selectedGame;
-    const matchesTag = selectedTag === "all" || prospect.tags.includes(selectedTag);
+
+    const matchesGame =
+      selectedGame === "all" || player.main_game?.short_name === selectedGame;
+    const matchesTag =
+      selectedTag === "all" || prospect.tags.includes(selectedTag);
 
     return matchesSearch && matchesGame && matchesTag;
   });
 
   // Group prospects by priority/tags for easier organization
-  const priorityProspects = filteredProspects.filter(p => p.tags.includes("priority"));
+  const priorityProspects = filteredProspects.filter((p) =>
+    p.tags.includes("priority"),
+  );
   const recentProspects = filteredProspects
-    .filter(p => !p.tags.includes("priority"))
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .filter((p) => !p.tags.includes("priority"))
+    .sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+    )
     .slice(0, 10);
 
   const handleEditProspect = (prospect: Prospect) => {
@@ -244,7 +275,7 @@ export default function MyProspectsPage() {
 
   const handleSaveEdit = () => {
     if (!editingProspect) return;
-    
+
     updateFavoriteMutation.mutate({
       player_id: editingProspect.player.id,
       notes: editNotes,
@@ -253,7 +284,11 @@ export default function MyProspectsPage() {
   };
 
   const handleRemoveProspect = (prospect: Prospect) => {
-    if (confirm(`Are you sure you want to remove ${prospect.player.first_name} ${prospect.player.last_name} from your prospects?`)) {
+    if (
+      confirm(
+        `Are you sure you want to remove ${prospect.player.first_name} ${prospect.player.last_name} from your prospects?`,
+      )
+    ) {
       unfavoriteMutation.mutate({ player_id: prospect.player.id });
     }
   };
@@ -265,15 +300,17 @@ export default function MyProspectsPage() {
 
   const getGameIcon = (gameShortName: string) => {
     const icons: Record<string, string> = {
-      "VAL": "🎯",
-      "OW2": "⚡",
-      "RL": "🚀",
-      "SSBU": "🥊",
+      VAL: "🎯",
+      OW2: "⚡",
+      RL: "🚀",
+      SSBU: "🥊",
     };
     return icons[gameShortName] || "🎮";
   };
 
-  const getTagBadgeVariant = (tag: string): "default" | "destructive" | "secondary" | "outline" => {
+  const getTagBadgeVariant = (
+    tag: string,
+  ): "default" | "destructive" | "secondary" | "outline" => {
     switch (tag.toLowerCase()) {
       case "priority":
         return "destructive";
@@ -310,9 +347,13 @@ export default function MyProspectsPage() {
         const player = prospect.player;
         return (
           <Avatar className="h-12 w-12">
-            <AvatarImage src={player.image_url ?? undefined} alt={`${player.first_name} ${player.last_name}`} />
+            <AvatarImage
+              src={player.image_url ?? undefined}
+              alt={`${player.first_name} ${player.last_name}`}
+            />
             <AvatarFallback className="bg-gray-700 text-white">
-              {player.first_name.charAt(0)}{player.last_name.charAt(0)}
+              {player.first_name.charAt(0)}
+              {player.last_name.charAt(0)}
             </AvatarFallback>
           </Avatar>
         );
@@ -324,19 +365,23 @@ export default function MyProspectsPage() {
       cell: ({ row }) => {
         const prospect = row.original;
         const player = prospect.player;
-        
+
         return (
           <div className="space-y-2">
-            <div className="font-medium text-white text-lg">
+            <div className="text-lg font-medium text-white">
               {player.first_name} {player.last_name}
             </div>
             <div className="text-sm text-gray-400">
-              @{player.username || 'No username'}
+              @{player.username || "No username"}
             </div>
             {player.main_game && (
               <div className="flex items-center gap-2">
-                <span className="text-lg">{getGameIcon(player.main_game.short_name)}</span>
-                <span className="text-sm text-gray-300">{player.main_game.name}</span>
+                <span className="text-lg">
+                  {getGameIcon(player.main_game.short_name)}
+                </span>
+                <span className="text-sm text-gray-300">
+                  {player.main_game.name}
+                </span>
               </div>
             )}
           </div>
@@ -350,18 +395,19 @@ export default function MyProspectsPage() {
         const prospect = row.original;
         const player = prospect.player;
         const gpaNumber = player.gpa ? parseFloat(String(player.gpa)) : null;
-        
+
         return (
           <div className="space-y-2">
             <div className="font-medium text-white">
-              {player.school_ref?.name || player.school || 'No school'}
+              {player.school_ref?.name || player.school || "No school"}
             </div>
             <div className="text-sm text-gray-400">
-              {player.class_year || 'No class year'} • GPA: {gpaNumber?.toFixed(2) || 'N/A'}
+              {player.class_year || "No class year"} • GPA:{" "}
+              {gpaNumber?.toFixed(2) || "N/A"}
             </div>
             {player.location && (
-              <div className="text-xs text-gray-500 flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <MapPin className="h-3 w-3" />
                 {player.location}
               </div>
             )}
@@ -375,28 +421,32 @@ export default function MyProspectsPage() {
       cell: ({ row }) => {
         const prospect = row.original;
         const player = prospect.player;
-        const mainGameProfile = player.game_profiles.find(p => p.game.name === player.main_game?.name);
-        
+        const mainGameProfile = player.game_profiles.find(
+          (p) => p.game.name === player.main_game?.name,
+        );
+
         if (!mainGameProfile) {
-          return (
-            <div className="text-sm text-gray-500">
-              No game profile
-            </div>
-          );
+          return <div className="text-sm text-gray-500">No game profile</div>;
         }
-        
+
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-white">{mainGameProfile.rank || 'Unranked'}</span>
+              <span className="font-medium text-white">
+                {mainGameProfile.rank || "Unranked"}
+              </span>
             </div>
             <div className="text-sm text-gray-400">
-              {mainGameProfile.role || 'No role'}
+              {mainGameProfile.role || "No role"}
             </div>
             {mainGameProfile.agents.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {mainGameProfile.agents.slice(0, 2).map((agent, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs bg-gray-700 text-gray-300">
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="bg-gray-700 text-xs text-gray-300"
+                  >
                     {agent}
                   </Badge>
                 ))}
@@ -417,20 +467,34 @@ export default function MyProspectsPage() {
       cell: ({ row }) => {
         const prospect = row.original;
         const player = prospect.player;
-        const mainGameProfile = player.game_profiles.find(p => p.game.name === player.main_game?.name);
-        
+        const mainGameProfile = player.game_profiles.find(
+          (p) => p.game.name === player.main_game?.name,
+        );
+
         return (
           <div className="space-y-2">
             <div className="text-sm">
-              <span className="font-medium text-gray-300">Combine:</span>{' '}
-              <span className={mainGameProfile?.combine_score ? 'text-cyan-400 font-medium' : 'text-gray-500'}>
-                {mainGameProfile?.combine_score?.toFixed(1) || 'N/A'}
+              <span className="font-medium text-gray-300">Combine:</span>{" "}
+              <span
+                className={
+                  mainGameProfile?.combine_score
+                    ? "font-medium text-cyan-400"
+                    : "text-gray-500"
+                }
+              >
+                {mainGameProfile?.combine_score?.toFixed(1) || "N/A"}
               </span>
             </div>
             <div className="text-sm">
-              <span className="font-medium text-gray-300">League:</span>{' '}
-              <span className={mainGameProfile?.league_score ? 'text-green-400 font-medium' : 'text-gray-500'}>
-                {mainGameProfile?.league_score?.toFixed(1) || 'N/A'}
+              <span className="font-medium text-gray-300">League:</span>{" "}
+              <span
+                className={
+                  mainGameProfile?.league_score
+                    ? "font-medium text-green-400"
+                    : "text-gray-500"
+                }
+              >
+                {mainGameProfile?.league_score?.toFixed(1) || "N/A"}
               </span>
             </div>
           </div>
@@ -442,23 +506,29 @@ export default function MyProspectsPage() {
       header: "Prospect Info",
       cell: ({ row }) => {
         const prospect = row.original;
-        
+
         return (
           <div className="space-y-2">
             <div className="flex flex-wrap gap-1">
               {prospect.tags.map((tag, index) => (
-                <Badge key={index} variant={getTagBadgeVariant(tag)} className="text-xs">
+                <Badge
+                  key={index}
+                  variant={getTagBadgeVariant(tag)}
+                  className="text-xs"
+                >
                   {tag}
                 </Badge>
               ))}
             </div>
-            <div className="text-xs text-gray-400 flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Clock className="h-3 w-3" />
               Added {new Date(prospect.created_at).toLocaleDateString()}
             </div>
             {prospect.notes && (
-              <div className="text-xs text-gray-300 bg-gray-800 p-2 rounded max-w-xs">
-                {prospect.notes.length > 50 ? `${prospect.notes.substring(0, 50)}...` : prospect.notes}
+              <div className="max-w-xs rounded bg-gray-800 p-2 text-xs text-gray-300">
+                {prospect.notes.length > 50
+                  ? `${prospect.notes.substring(0, 50)}...`
+                  : prospect.notes}
               </div>
             )}
           </div>
@@ -471,7 +541,7 @@ export default function MyProspectsPage() {
       enableHiding: false,
       cell: ({ row }) => {
         const prospect = row.original;
-        
+
         return (
           <div className="flex items-center gap-2">
             <Button
@@ -482,7 +552,7 @@ export default function MyProspectsPage() {
             >
               <Eye className="h-4 w-4" />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -491,47 +561,58 @@ export default function MyProspectsPage() {
             >
               <Edit className="h-4 w-4" />
             </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white"
+                >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                <DropdownMenuLabel className="text-gray-300">Actions</DropdownMenuLabel>
+              <DropdownMenuContent
+                align="end"
+                className="border-gray-700 bg-gray-800"
+              >
+                <DropdownMenuLabel className="text-gray-300">
+                  Actions
+                </DropdownMenuLabel>
                 <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(prospect.player.email)}
-                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                  onClick={() =>
+                    navigator.clipboard.writeText(prospect.player.email)
+                  }
+                  className="text-gray-300 focus:bg-gray-700 focus:text-white"
                 >
-                  <Mail className="w-4 h-4 mr-2" />
+                  <Mail className="mr-2 h-4 w-4" />
                   Copy email
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleViewPlayer(prospect)}
-                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                  className="text-gray-300 focus:bg-gray-700 focus:text-white"
                 >
-                  <Eye className="w-4 h-4 mr-2" />
+                  <Eye className="mr-2 h-4 w-4" />
                   View full profile
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleEditProspect(prospect)}
-                  className="text-gray-300 focus:text-white focus:bg-gray-700"
+                  className="text-gray-300 focus:bg-gray-700 focus:text-white"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="mr-2 h-4 w-4" />
                   Edit notes & tags
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem className="text-gray-300 focus:text-white focus:bg-gray-700">
-                  <MessageCircle className="w-4 h-4 mr-2" />
+                <DropdownMenuItem className="text-gray-300 focus:bg-gray-700 focus:text-white">
+                  <MessageCircle className="mr-2 h-4 w-4" />
                   Send message
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-gray-700" />
                 <DropdownMenuItem
                   onClick={() => handleRemoveProspect(prospect)}
-                  className="text-red-400 focus:text-red-300 focus:bg-gray-700"
+                  className="text-red-400 focus:bg-gray-700 focus:text-red-300"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Remove prospect
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -545,10 +626,12 @@ export default function MyProspectsPage() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="flex items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
-          <div className="text-white font-rajdhani">Loading your prospects...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-cyan-500"></div>
+          <div className="font-rajdhani text-white">
+            Loading your prospects...
+          </div>
         </div>
       </div>
     );
@@ -560,26 +643,39 @@ export default function MyProspectsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-orbitron font-bold text-white">My Prospects</h1>
-            <p className="text-gray-400 font-rajdhani">Track and manage your favorited players</p>
+            <h1 className="font-orbitron text-3xl font-bold text-white">
+              My Prospects
+            </h1>
+            <p className="font-rajdhani text-gray-400">
+              Track and manage your favorited players
+            </p>
           </div>
-          <Button asChild className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
+          <Button
+            asChild
+            className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
+          >
             <Link href="/dashboard/coaches/player-search">
-              <Search className="w-4 h-4 mr-2" />
+              <Search className="mr-2 h-4 w-4" />
               Find Players
             </Link>
           </Button>
         </div>
-        
-        <div className="text-center py-12">
-          <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-orbitron text-white mb-2">No Prospects Yet</h3>
-          <p className="text-gray-400 font-rajdhani mb-6">
-            Start building your prospect list by favoriting players during your search
+
+        <div className="py-12 text-center">
+          <Heart className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+          <h3 className="font-orbitron mb-2 text-xl text-white">
+            No Prospects Yet
+          </h3>
+          <p className="font-rajdhani mb-6 text-gray-400">
+            Start building your prospect list by favoriting players during your
+            search
           </p>
-          <Button asChild className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
+          <Button
+            asChild
+            className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
+          >
             <Link href="/dashboard/coaches/player-search">
-              <Search className="w-4 h-4 mr-2" />
+              <Search className="mr-2 h-4 w-4" />
               Search for Players
             </Link>
           </Button>
@@ -589,28 +685,35 @@ export default function MyProspectsPage() {
   }
 
   return (
-    <div className="flex bg-gray-900 min-h-screen">
+    <div className="flex min-h-screen bg-gray-900">
       {/* Main Content */}
-      <div className={`flex-1 space-y-6 p-6 ${showFilters ? 'mr-80' : ''} transition-all duration-300`}>
+      <div
+        className={`flex-1 space-y-6 p-6 ${showFilters ? "mr-80" : ""} transition-all duration-300`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-orbitron font-bold text-white">My Prospects</h1>
-            <p className="text-gray-400 font-rajdhani">
+            <h1 className="font-orbitron text-3xl font-bold text-white">
+              My Prospects
+            </h1>
+            <p className="font-rajdhani text-gray-400">
               Track and manage your favorited players ({prospects.length} total)
             </p>
           </div>
           <div className="flex gap-2">
-            <Button asChild className="bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron">
+            <Button
+              asChild
+              className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
+            >
               <Link href="/dashboard/coaches/player-search">
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Add More Players
               </Link>
             </Button>
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="gap-2 border-gray-600 bg-white text-black hover:text-white hover:border-gray-500"
+              className="gap-2 border-gray-600 bg-white text-black hover:border-gray-500 hover:text-white"
             >
               <Filter className="h-4 w-4" />
               {showFilters ? "Hide Filters" : "Filters"}
@@ -619,30 +722,47 @@ export default function MyProspectsPage() {
         </div>
 
         {/* Prospects Organization Tabs */}
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+        <Tabs
+          value={currentTab}
+          onValueChange={setCurrentTab}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-3 bg-gray-800">
-            <TabsTrigger value="all" className="data-[state=active]:bg-cyan-600 text-gray-300 data-[state=active]:text-white">
+            <TabsTrigger
+              value="all"
+              className="text-gray-300 data-[state=active]:bg-cyan-600 data-[state=active]:text-white"
+            >
               All Prospects ({filteredProspects.length})
             </TabsTrigger>
-            <TabsTrigger value="priority" className="data-[state=active]:bg-red-600 text-gray-300 data-[state=active]:text-white">
+            <TabsTrigger
+              value="priority"
+              className="text-gray-300 data-[state=active]:bg-red-600 data-[state=active]:text-white"
+            >
               Priority ({priorityProspects.length})
             </TabsTrigger>
-            <TabsTrigger value="recent" className="data-[state=active]:bg-green-600 text-gray-300 data-[state=active]:text-white">
+            <TabsTrigger
+              value="recent"
+              className="text-gray-300 data-[state=active]:bg-green-600 data-[state=active]:text-white"
+            >
               Recent Activity
             </TabsTrigger>
           </TabsList>
 
           {/* All Prospects */}
           <TabsContent value="all" className="space-y-4">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="border-gray-800 bg-gray-900">
               <CardHeader>
-                <CardTitle className="text-white font-orbitron">All Prospects</CardTitle>
+                <CardTitle className="font-orbitron text-white">
+                  All Prospects
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {filteredProspects.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 font-rajdhani">No prospects match your current filters</p>
+                  <div className="py-8 text-center">
+                    <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                    <p className="font-rajdhani text-gray-400">
+                      No prospects match your current filters
+                    </p>
                   </div>
                 ) : (
                   <DataTable
@@ -658,19 +778,23 @@ export default function MyProspectsPage() {
 
           {/* Priority Prospects */}
           <TabsContent value="priority" className="space-y-4">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="border-gray-800 bg-gray-900">
               <CardHeader>
-                <CardTitle className="text-white font-orbitron flex items-center gap-2">
-                  <Target className="w-5 h-5 text-red-400" />
+                <CardTitle className="font-orbitron flex items-center gap-2 text-white">
+                  <Target className="h-5 w-5 text-red-400" />
                   Priority Prospects
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {priorityProspects.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 font-rajdhani">No priority prospects yet</p>
-                    <p className="text-sm text-gray-500 mt-2">Tag your most important prospects with "priority"</p>
+                  <div className="py-8 text-center">
+                    <Target className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                    <p className="font-rajdhani text-gray-400">
+                      No priority prospects yet
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Tag your most important prospects with "priority"
+                    </p>
                   </div>
                 ) : (
                   <DataTable
@@ -686,10 +810,10 @@ export default function MyProspectsPage() {
 
           {/* Recent Activity */}
           <TabsContent value="recent" className="space-y-4">
-            <Card className="bg-gray-900 border-gray-800">
+            <Card className="border-gray-800 bg-gray-900">
               <CardHeader>
-                <CardTitle className="text-white font-orbitron flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-green-400" />
+                <CardTitle className="font-orbitron flex items-center gap-2 text-white">
+                  <Clock className="h-5 w-5 text-green-400" />
                   Recent Activity
                 </CardTitle>
               </CardHeader>
@@ -708,9 +832,11 @@ export default function MyProspectsPage() {
 
       {/* Right Sidebar Filters */}
       {showFilters && (
-        <div className="fixed right-0 top-0 h-full w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto z-50">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-orbitron font-bold text-white">Prospect Filters</h3>
+        <div className="fixed top-0 right-0 z-50 h-full w-80 overflow-y-auto border-l border-gray-700 bg-gray-800 p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="font-orbitron text-lg font-bold text-white">
+              Prospect Filters
+            </h3>
             <Button
               variant="ghost"
               size="sm"
@@ -724,24 +850,28 @@ export default function MyProspectsPage() {
           <div className="space-y-6">
             {/* Search */}
             <div className="space-y-2">
-              <Label htmlFor="search" className="text-gray-300">Search</Label>
+              <Label htmlFor="search" className="text-gray-300">
+                Search
+              </Label>
               <Input
                 id="search"
                 placeholder="Name, username, school, location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-gray-900 border-gray-600 text-white"
+                className="border-gray-600 bg-gray-900 text-white"
               />
             </div>
 
             {/* Game Filter */}
             <div className="space-y-2">
-              <Label htmlFor="game" className="text-gray-300">Game</Label>
+              <Label htmlFor="game" className="text-gray-300">
+                Game
+              </Label>
               <select
                 id="game"
                 value={selectedGame}
                 onChange={(e) => setSelectedGame(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-white"
+                className="w-full rounded-md border border-gray-600 bg-gray-900 px-3 py-2 text-white"
               >
                 <option value="all">All Games</option>
                 {availableGames.map((game) => (
@@ -754,12 +884,14 @@ export default function MyProspectsPage() {
 
             {/* Tag Filter */}
             <div className="space-y-2">
-              <Label htmlFor="tag" className="text-gray-300">Tag</Label>
+              <Label htmlFor="tag" className="text-gray-300">
+                Tag
+              </Label>
               <select
                 id="tag"
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-white"
+                className="w-full rounded-md border border-gray-600 bg-gray-900 px-3 py-2 text-white"
               >
                 <option value="all">All Tags</option>
                 {availableTags.map((tag) => (
@@ -788,37 +920,51 @@ export default function MyProspectsPage() {
 
       {/* Edit Notes Dialog */}
       <Dialog open={editNotesOpen} onOpenChange={setEditNotesOpen}>
-        <DialogContent className="max-w-2xl bg-gray-900 border-gray-800">
+        <DialogContent className="max-w-2xl border-gray-800 bg-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-xl font-orbitron text-white">Edit Prospect</DialogTitle>
+            <DialogTitle className="font-orbitron text-xl text-white">
+              Edit Prospect
+            </DialogTitle>
             <DialogDescription className="text-gray-400">
-              Update notes and tags for {editingProspect?.player.first_name} {editingProspect?.player.last_name}
+              Update notes and tags for {editingProspect?.player.first_name}{" "}
+              {editingProspect?.player.last_name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="notes" className="text-gray-300">Notes</Label>
+              <Label htmlFor="notes" className="text-gray-300">
+                Notes
+              </Label>
               <Textarea
                 id="notes"
                 placeholder="Add your notes about this prospect..."
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white min-h-[100px]"
+                className="min-h-[100px] border-gray-700 bg-gray-800 text-white"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="tags" className="text-gray-300">Tags (comma-separated)</Label>
+              <Label htmlFor="tags" className="text-gray-300">
+                Tags (comma-separated)
+              </Label>
               <Input
                 id="tags"
                 placeholder="priority, local, top_talent, etc."
                 value={editTags.join(", ")}
-                onChange={(e) => setEditTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
-                className="bg-gray-800 border-gray-700 text-white"
+                onChange={(e) =>
+                  setEditTags(
+                    e.target.value
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean),
+                  )
+                }
+                className="border-gray-700 bg-gray-800 text-white"
               />
             </div>
-            
+
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
@@ -830,9 +976,11 @@ export default function MyProspectsPage() {
               <Button
                 onClick={handleSaveEdit}
                 disabled={updateFavoriteMutation.isPending}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                className="bg-cyan-600 text-white hover:bg-cyan-700"
               >
-                {updateFavoriteMutation.isPending ? "Saving..." : "Save Changes"}
+                {updateFavoriteMutation.isPending
+                  ? "Saving..."
+                  : "Save Changes"}
               </Button>
             </div>
           </div>
@@ -841,41 +989,56 @@ export default function MyProspectsPage() {
 
       {/* Player Details Dialog */}
       <Dialog open={playerDialogOpen} onOpenChange={setPlayerDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-800">
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-gray-800 bg-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-orbitron text-white">Player Profile</DialogTitle>
+            <DialogTitle className="font-orbitron text-2xl text-white">
+              Player Profile
+            </DialogTitle>
             <DialogDescription className="text-gray-400">
-              Detailed information about {selectedPlayer?.player.first_name} {selectedPlayer?.player.last_name}
+              Detailed information about {selectedPlayer?.player.first_name}{" "}
+              {selectedPlayer?.player.last_name}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedPlayer && (
             <div className="space-y-6">
               {/* Player Header */}
               <div className="flex items-start gap-6">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={selectedPlayer.player.image_url ?? undefined} />
-                  <AvatarFallback className="bg-gray-700 text-white text-xl">
-                    {selectedPlayer.player.first_name.charAt(0)}{selectedPlayer.player.last_name.charAt(0)}
+                <Avatar className="h-20 w-20">
+                  <AvatarImage
+                    src={selectedPlayer.player.image_url ?? undefined}
+                  />
+                  <AvatarFallback className="bg-gray-700 text-xl text-white">
+                    {selectedPlayer.player.first_name.charAt(0)}
+                    {selectedPlayer.player.last_name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div className="flex-1">
-                  <h3 className="text-2xl font-orbitron font-bold text-white">
-                    {selectedPlayer.player.first_name} {selectedPlayer.player.last_name}
+                  <h3 className="font-orbitron text-2xl font-bold text-white">
+                    {selectedPlayer.player.first_name}{" "}
+                    {selectedPlayer.player.last_name}
                   </h3>
-                  <p className="text-gray-400 font-rajdhani">@{selectedPlayer.player.username || "No username"}</p>
-                  
-                  <div className="flex items-center gap-4 mt-2">
+                  <p className="font-rajdhani text-gray-400">
+                    @{selectedPlayer.player.username || "No username"}
+                  </p>
+
+                  <div className="mt-2 flex items-center gap-4">
                     {selectedPlayer.player.main_game && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xl">{getGameIcon(selectedPlayer.player.main_game.short_name)}</span>
-                        <span className="text-white">{selectedPlayer.player.main_game.name}</span>
+                        <span className="text-xl">
+                          {getGameIcon(
+                            selectedPlayer.player.main_game.short_name,
+                          )}
+                        </span>
+                        <span className="text-white">
+                          {selectedPlayer.player.main_game.name}
+                        </span>
                       </div>
                     )}
-                    
+
                     <Badge variant="default" className="bg-cyan-600 text-white">
-                      <Bookmark className="w-3 h-3 mr-1" />
+                      <Bookmark className="mr-1 h-3 w-3" />
                       Prospect
                     </Badge>
                   </div>
@@ -888,41 +1051,51 @@ export default function MyProspectsPage() {
                   onClick={() => handleEditProspect(selectedPlayer)}
                   className="bg-cyan-600 hover:bg-cyan-700"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="mr-2 h-4 w-4" />
                   Edit Notes & Tags
                 </Button>
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white">
-                  <MessageCircle className="w-4 h-4 mr-2" />
+                <Button
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:text-white"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
                   Send Message
                 </Button>
-                <Button variant="outline" className="border-gray-600 text-gray-300 hover:text-white">
-                  <Mail className="w-4 h-4 mr-2" />
+                <Button
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:text-white"
+                >
+                  <Mail className="mr-2 h-4 w-4" />
                   Email Player
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => handleRemoveProspect(selectedPlayer)}
-                  className="border-red-600 text-red-400 hover:text-red-300 hover:border-red-500"
+                  className="border-red-600 text-red-400 hover:border-red-500 hover:text-red-300"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Remove Prospect
                 </Button>
               </div>
 
               {/* Prospect Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Prospect Details */}
                 <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <Bookmark className="w-5 h-5 text-cyan-400" />
+                  <h4 className="font-orbitron mb-3 flex items-center gap-2 font-bold text-white">
+                    <Bookmark className="h-5 w-5 text-cyan-400" />
                     Prospect Information
                   </h4>
                   <div className="space-y-3">
                     <div>
                       <span className="text-gray-400">Tags:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="mt-1 flex flex-wrap gap-1">
                         {selectedPlayer.tags.map((tag, index) => (
-                          <Badge key={index} variant={getTagBadgeVariant(tag)} className="text-xs">
+                          <Badge
+                            key={index}
+                            variant={getTagBadgeVariant(tag)}
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}
@@ -930,17 +1103,27 @@ export default function MyProspectsPage() {
                     </div>
                     <div>
                       <span className="text-gray-400">Added:</span>
-                      <span className="text-white ml-2">{new Date(selectedPlayer.created_at).toLocaleDateString()}</span>
+                      <span className="ml-2 text-white">
+                        {new Date(
+                          selectedPlayer.created_at,
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Last Updated:</span>
-                      <span className="text-white ml-2">{new Date(selectedPlayer.updated_at).toLocaleDateString()}</span>
+                      <span className="ml-2 text-white">
+                        {new Date(
+                          selectedPlayer.updated_at,
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
                     {selectedPlayer.notes && (
                       <div>
                         <span className="text-gray-400">Notes:</span>
-                        <div className="bg-gray-800 p-3 rounded-lg mt-1">
-                          <p className="text-gray-300 text-sm">{selectedPlayer.notes}</p>
+                        <div className="mt-1 rounded-lg bg-gray-800 p-3">
+                          <p className="text-sm text-gray-300">
+                            {selectedPlayer.notes}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -949,32 +1132,48 @@ export default function MyProspectsPage() {
 
                 {/* Academic Info */}
                 <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-cyan-400" />
+                  <h4 className="font-orbitron mb-3 flex items-center gap-2 font-bold text-white">
+                    <GraduationCap className="h-5 w-5 text-cyan-400" />
                     Academic Information
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-400">School:</span>
-                      <span className="text-white">{selectedPlayer.player.school_ref?.name || selectedPlayer.player.school || "Not specified"}</span>
+                      <span className="text-white">
+                        {selectedPlayer.player.school_ref?.name ||
+                          selectedPlayer.player.school ||
+                          "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Class Year:</span>
-                      <span className="text-white">{selectedPlayer.player.class_year || "Not specified"}</span>
+                      <span className="text-white">
+                        {selectedPlayer.player.class_year || "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">GPA:</span>
                       <span className="text-white">
-                        {selectedPlayer.player.gpa ? parseFloat(selectedPlayer.player.gpa.toString()).toFixed(2) : "Not specified"}
+                        {selectedPlayer.player.gpa
+                          ? parseFloat(
+                              selectedPlayer.player.gpa.toString(),
+                            ).toFixed(2)
+                          : "Not specified"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Intended Major:</span>
-                      <span className="text-white">{selectedPlayer.player.intended_major || "Not specified"}</span>
+                      <span className="text-white">
+                        {selectedPlayer.player.intended_major ||
+                          "Not specified"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Graduation:</span>
-                      <span className="text-white">{selectedPlayer.player.graduation_date || "Not specified"}</span>
+                      <span className="text-white">
+                        {selectedPlayer.player.graduation_date ||
+                          "Not specified"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -982,18 +1181,22 @@ export default function MyProspectsPage() {
 
               {/* Contact & Location */}
               <div>
-                <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-cyan-400" />
+                <h4 className="font-orbitron mb-3 flex items-center gap-2 font-bold text-white">
+                  <MapPin className="h-5 w-5 text-cyan-400" />
                   Contact & Location
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Email:</span>
-                    <span className="text-white font-mono text-sm">{selectedPlayer.player.email}</span>
+                    <span className="font-mono text-sm text-white">
+                      {selectedPlayer.player.email}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Location:</span>
-                    <span className="text-white">{selectedPlayer.player.location || "Not specified"}</span>
+                    <span className="text-white">
+                      {selectedPlayer.player.location || "Not specified"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1001,34 +1204,48 @@ export default function MyProspectsPage() {
               {/* Game Profiles */}
               {selectedPlayer.player.game_profiles.length > 0 && (
                 <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <GamepadIcon className="w-5 h-5 text-cyan-400" />
+                  <h4 className="font-orbitron mb-3 flex items-center gap-2 font-bold text-white">
+                    <GamepadIcon className="h-5 w-5 text-cyan-400" />
                     Game Profiles
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {selectedPlayer.player.game_profiles.map((profile, idx) => (
-                      <div key={idx} className="bg-gray-800 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xl">{getGameIcon(profile.game.short_name)}</span>
-                          <span className="font-orbitron font-bold text-white">{profile.game.name}</span>
+                      <div key={idx} className="rounded-lg bg-gray-800 p-4">
+                        <div className="mb-3 flex items-center gap-2">
+                          <span className="text-xl">
+                            {getGameIcon(profile.game.short_name)}
+                          </span>
+                          <span className="font-orbitron font-bold text-white">
+                            {profile.game.name}
+                          </span>
                         </div>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-400">Rank:</span>
-                            <span className="text-white">{profile.rank || "Unranked"}</span>
+                            <span className="text-white">
+                              {profile.rank || "Unranked"}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Role:</span>
-                            <span className="text-white">{profile.role || "Not specified"}</span>
+                            <span className="text-white">
+                              {profile.role || "Not specified"}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Username:</span>
-                            <span className="text-white font-mono">{profile.username}</span>
+                            <span className="font-mono text-white">
+                              {profile.username}
+                            </span>
                           </div>
                           {profile.combine_score && (
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Combine Score:</span>
-                              <span className="text-white">{profile.combine_score.toFixed(1)}</span>
+                              <span className="text-gray-400">
+                                Combine Score:
+                              </span>
+                              <span className="text-white">
+                                {profile.combine_score.toFixed(1)}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -1041,12 +1258,14 @@ export default function MyProspectsPage() {
               {/* Player Bio */}
               {selectedPlayer.player.bio && (
                 <div>
-                  <h4 className="font-orbitron font-bold text-white mb-3 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-cyan-400" />
+                  <h4 className="font-orbitron mb-3 flex items-center gap-2 font-bold text-white">
+                    <BookOpen className="h-5 w-5 text-cyan-400" />
                     Player Bio
                   </h4>
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <p className="text-gray-300 font-rajdhani">{selectedPlayer.player.bio}</p>
+                  <div className="rounded-lg bg-gray-800 p-4">
+                    <p className="font-rajdhani text-gray-300">
+                      {selectedPlayer.player.bio}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1056,5 +1275,4 @@ export default function MyProspectsPage() {
       </Dialog>
     </div>
   );
-} 
-
+}

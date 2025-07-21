@@ -23,4 +23,4 @@ export interface ValorantMetadata {
   gameName: string;
   tagLine: string;
   lastUpdated: string;
-} 
+}

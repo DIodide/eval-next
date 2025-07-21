@@ -33,7 +33,12 @@ const updatePlayerSchema = z.object({
   intended_major: z.string().max(200).optional().nullable(),
   guardian_email: z.string().email().optional().nullable().or(z.literal("")),
   scholastic_contact: z.string().max(200).optional().nullable(),
-  scholastic_contact_email: z.string().email().optional().nullable().or(z.literal("")),
+  scholastic_contact_email: z
+    .string()
+    .email()
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   extra_curriculars: z.string().max(2000).optional().nullable(),
   academic_bio: z.string().max(2000).optional().nullable(),
 });
@@ -48,7 +53,7 @@ export const adminManagementRouter = createTRPCRouter({
 
         // Remove empty strings and convert to null for optional fields
         const cleanedData: Record<string, string | null> = {};
-        
+
         for (const [key, value] of Object.entries(updateData)) {
           if (value === "") {
             cleanedData[key] = null;
@@ -69,24 +74,29 @@ export const adminManagementRouter = createTRPCRouter({
               banner_url: true,
               updated_at: true,
             },
-          })
+          }),
         );
 
         return updatedLeague;
       } catch (error) {
-        console.error('Error updating league:', error);
-        
+        console.error("Error updating league:", error);
+
         // Check if it's a not found error
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "P2025"
+        ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'League not found',
+            code: "NOT_FOUND",
+            message: "League not found",
           });
         }
-        
+
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update league',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update league",
         });
       }
     }),
@@ -100,7 +110,7 @@ export const adminManagementRouter = createTRPCRouter({
 
         // Remove empty strings and convert to null for optional fields
         const cleanedData: Record<string, string | null> = {};
-        
+
         for (const [key, value] of Object.entries(updateData)) {
           if (value === "") {
             cleanedData[key] = null;
@@ -124,24 +134,29 @@ export const adminManagementRouter = createTRPCRouter({
               banner_url: true,
               updated_at: true,
             },
-          })
+          }),
         );
 
         return updatedSchool;
       } catch (error) {
-        console.error('Error updating school:', error);
-        
+        console.error("Error updating school:", error);
+
         // Check if it's a not found error
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "P2025"
+        ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'School not found',
+            code: "NOT_FOUND",
+            message: "School not found",
           });
         }
-        
+
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update school',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school",
         });
       }
     }),
@@ -159,20 +174,20 @@ export const adminManagementRouter = createTRPCRouter({
             ctx.db.game.findUnique({
               where: { id: main_game_id },
               select: { id: true },
-            })
+            }),
           );
 
           if (!game) {
             throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Game not found',
+              code: "NOT_FOUND",
+              message: "Game not found",
             });
           }
         }
 
         // Remove empty strings and convert to null for optional fields
         const cleanedData = { main_game_id, ...updateData };
-        
+
         // Convert empty strings to null
         for (const [key, value] of Object.entries(cleanedData)) {
           if (value === "") {
@@ -213,52 +228,56 @@ export const adminManagementRouter = createTRPCRouter({
               },
               updated_at: true,
             },
-          })
+          }),
         );
 
         return updatedPlayer;
       } catch (error) {
-        console.error('Error updating player:', error);
-        
+        console.error("Error updating player:", error);
+
         // Check if it's a not found error
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "P2025"
+        ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Player not found',
+            code: "NOT_FOUND",
+            message: "Player not found",
           });
         }
-        
+
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update player',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update player",
         });
       }
     }),
 
   // Get all games for main game selection
-  getGames: adminProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const games = await withRetry(() =>
-          ctx.db.game.findMany({
-            select: {
-              id: true,
-              name: true,
-              short_name: true,
-              icon: true,
-              color: true,
-            },
-            orderBy: { name: 'asc' },
-          })
-        );
+  getGames: adminProcedure.query(async ({ ctx }) => {
+    try {
+      const games = await withRetry(() =>
+        ctx.db.game.findMany({
+          select: {
+            id: true,
+            name: true,
+            short_name: true,
+            icon: true,
+            color: true,
+          },
+          orderBy: { name: "asc" },
+        }),
+      );
 
-        return games;
-      } catch (error) {
-        console.error('Error fetching games:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch games',
-        });
-      }
-    }),
-}); 
+      return games;
+    } catch (error) {
+      console.error("Error fetching games:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch games",
+      });
+    }
+  }),
+});

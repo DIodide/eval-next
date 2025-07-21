@@ -27,7 +27,11 @@ Provides a toast notification system for user feedback.
 
 ```typescript
 interface UseToastReturn {
-  toast: (props: Toast) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
+  toast: (props: Toast) => {
+    id: string;
+    dismiss: () => void;
+    update: (props: ToasterToast) => void;
+  };
   dismiss: (toastId?: string) => void;
   toasts: ToasterToast[];
 }
@@ -69,11 +73,7 @@ function ProfileForm() {
     toast({
       title: "Message sent",
       description: "Your message has been delivered",
-      action: (
-        <ToastAction altText="View message">
-          View
-        </ToastAction>
-      ),
+      action: <ToastAction altText="View message">View</ToastAction>,
     });
   };
 
@@ -123,7 +123,7 @@ Detects mobile viewport using a media query.
 #### Return Type
 
 ```typescript
-function useMobile(): boolean
+function useMobile(): boolean;
 ```
 
 #### Example
@@ -136,15 +136,9 @@ function ResponsiveComponent() {
 
   return (
     <div className={isMobile ? "mobile-layout" : "desktop-layout"}>
-      {isMobile ? (
-        <MobileNavigation />
-      ) : (
-        <DesktopNavigation />
-      )}
-      
-      <main className={isMobile ? "p-4" : "p-8"}>
-        Content
-      </main>
+      {isMobile ? <MobileNavigation /> : <DesktopNavigation />}
+
+      <main className={isMobile ? "p-4" : "p-8"}>Content</main>
     </div>
   );
 }
@@ -165,10 +159,10 @@ export function useMobile() {
     const onChange = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
-    
+
     mql.addEventListener("change", onChange);
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    
+
     return () => mql.removeEventListener("change", onChange);
   }, []);
 
@@ -189,7 +183,7 @@ function useRouteBackground(route: string): {
   backgroundClass: string;
   isDark: boolean;
   accentColor: string;
-}
+};
 ```
 
 #### Example
@@ -198,16 +192,13 @@ function useRouteBackground(route: string): {
 import { useRouteBackground } from "@/hooks/use-route-background";
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const { backgroundClass, isDark, accentColor } = useRouteBackground("/dashboard");
+  const { backgroundClass, isDark, accentColor } =
+    useRouteBackground("/dashboard");
 
   return (
     <div className={`min-h-screen ${backgroundClass}`}>
-      <nav style={{ borderColor: accentColor }}>
-        Navigation
-      </nav>
-      <main className={isDark ? "text-white" : "text-black"}>
-        {children}
-      </main>
+      <nav style={{ borderColor: accentColor }}>Navigation</nav>
+      <main className={isDark ? "text-white" : "text-black"}>{children}</main>
     </div>
   );
 }
@@ -220,18 +211,18 @@ const routeConfigs = {
   "/dashboard": {
     backgroundClass: "bg-gradient-to-br from-blue-50 to-indigo-100",
     isDark: false,
-    accentColor: "#3b82f6"
+    accentColor: "#3b82f6",
   },
   "/tryouts": {
     backgroundClass: "bg-gradient-to-br from-green-50 to-emerald-100",
     isDark: false,
-    accentColor: "#10b981"
+    accentColor: "#10b981",
   },
   "/admin": {
     backgroundClass: "bg-gradient-to-br from-gray-900 to-black",
     isDark: true,
-    accentColor: "#f59e0b"
-  }
+    accentColor: "#f59e0b",
+  },
 };
 ```
 
@@ -248,7 +239,7 @@ Utility for merging Tailwind CSS classes with conflict resolution.
 #### Function Signature
 
 ```typescript
-function cn(...inputs: ClassValue[]): string
+function cn(...inputs: ClassValue[]): string;
 ```
 
 #### Examples
@@ -264,13 +255,13 @@ const alertClass = cn(
   "p-4 rounded border",
   isError && "bg-red-100 border-red-500",
   isSuccess && "bg-green-100 border-green-500",
-  className
+  className,
 );
 
 // Override classes (twMerge handles conflicts)
 const overrideClass = cn(
   "bg-red-500 p-4", // base
-  "bg-blue-500"     // this will override bg-red-500
+  "bg-blue-500", // this will override bg-red-500
 );
 
 // Component usage
@@ -280,8 +271,9 @@ function Button({ className, variant, ...props }: ButtonProps) {
       className={cn(
         "inline-flex items-center justify-center rounded-md text-sm font-medium",
         variant === "default" && "bg-primary text-primary-foreground",
-        variant === "destructive" && "bg-destructive text-destructive-foreground",
-        className
+        variant === "destructive" &&
+          "bg-destructive text-destructive-foreground",
+        className,
       )}
       {...props}
     />
@@ -314,10 +306,10 @@ Executes database operations with automatic retry logic.
 
 ```typescript
 function withRetry<T>(
-  operation: () => Promise<T>, 
+  operation: () => Promise<T>,
   maxRetries: number = 3,
-  baseDelay: number = 1000
-): Promise<T>
+  baseDelay: number = 1000,
+): Promise<T>;
 ```
 
 #### Parameters
@@ -333,14 +325,14 @@ import { withRetry } from "@/lib/db-utils";
 
 // Basic usage
 const player = await withRetry(() =>
-  db.player.findUnique({ where: { id: playerId } })
+  db.player.findUnique({ where: { id: playerId } }),
 );
 
 // Custom retry configuration
 const result = await withRetry(
   () => db.player.update({ where: { id }, data: updateData }),
-  5,    // max retries
-  2000  // 2 second base delay
+  5, // max retries
+  2000, // 2 second base delay
 );
 
 // In tRPC router
@@ -352,16 +344,16 @@ export const playerRouter = createTRPCRouter({
         return await withRetry(() =>
           ctx.db.player.update({
             where: { clerk_id: ctx.auth.userId },
-            data: input
-          })
+            data: input,
+          }),
         );
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update profile after retries'
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update profile after retries",
         });
       }
-    })
+    }),
 });
 ```
 
@@ -373,26 +365,26 @@ Uses exponential backoff with jitter:
 export async function withRetry<T>(
   operation: () => Promise<T>,
   maxRetries = 3,
-  baseDelay = 1000
+  baseDelay = 1000,
 ): Promise<T> {
   let lastError: Error;
-  
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (attempt === maxRetries) {
         throw lastError;
       }
-      
+
       // Exponential backoff with jitter
       const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  
+
   throw lastError!;
 }
 ```
@@ -406,7 +398,7 @@ Converts Prisma errors to user-friendly tRPC errors.
 #### Function Signature
 
 ```typescript
-function handlePrismaError(error: unknown): TRPCError
+function handlePrismaError(error: unknown): TRPCError;
 ```
 
 #### Examples
@@ -430,32 +422,32 @@ import { handlePrismaError } from "@/lib/db-utils";
 export function handlePrismaError(error: unknown): TRPCError {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
-      case 'P2002':
+      case "P2002":
         return new TRPCError({
-          code: 'CONFLICT',
-          message: 'A record with this information already exists'
+          code: "CONFLICT",
+          message: "A record with this information already exists",
         });
-      case 'P2025':
+      case "P2025":
         return new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Record not found'
+          code: "NOT_FOUND",
+          message: "Record not found",
         });
-      case 'P2003':
+      case "P2003":
         return new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Foreign key constraint failed'
+          code: "BAD_REQUEST",
+          message: "Foreign key constraint failed",
         });
       default:
         return new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Database error occurred'
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database error occurred",
         });
     }
   }
-  
+
   return new TRPCError({
-    code: 'INTERNAL_SERVER_ERROR',
-    message: 'An unexpected error occurred'
+    code: "INTERNAL_SERVER_ERROR",
+    message: "An unexpected error occurred",
   });
 }
 ```
@@ -469,7 +461,7 @@ Validates UUID format.
 #### Function Signature
 
 ```typescript
-function validateUUID(id: string): boolean
+function validateUUID(id: string): boolean;
 ```
 
 #### Example
@@ -480,8 +472,8 @@ import { validateUUID } from "@/lib/db-utils";
 // In API route
 if (!validateUUID(playerId)) {
   throw new TRPCError({
-    code: 'BAD_REQUEST',
-    message: 'Invalid player ID format'
+    code: "BAD_REQUEST",
+    message: "Invalid player ID format",
   });
 }
 ```
@@ -500,9 +492,9 @@ Formats dates with various display options.
 
 ```typescript
 function formatDate(
-  date: Date | string, 
-  format?: "short" | "long" | "time" | "datetime" | "relative"
-): string
+  date: Date | string,
+  format?: "short" | "long" | "time" | "datetime" | "relative",
+): string;
 ```
 
 #### Examples
@@ -514,9 +506,9 @@ const now = new Date();
 const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
 // Different formats
-formatDate(now, "short");    // "12/25/23"
-formatDate(now, "long");     // "December 25, 2023"
-formatDate(now, "time");     // "3:30 PM"
+formatDate(now, "short"); // "12/25/23"
+formatDate(now, "long"); // "December 25, 2023"
+formatDate(now, "time"); // "3:30 PM"
 formatDate(now, "datetime"); // "Dec 25, 2023 at 3:30 PM"
 formatDate(yesterday, "relative"); // "1 day ago"
 
@@ -528,7 +520,8 @@ function TryoutCard({ tryout }: { tryout: Tryout }) {
         <CardTitle>{tryout.title}</CardTitle>
         <CardDescription>
           Date: {formatDate(tryout.date, "long")}
-          {tryout.time_start && ` at ${formatDate(`${tryout.date}T${tryout.time_start}`, "time")}`}
+          {tryout.time_start &&
+            ` at ${formatDate(`${tryout.date}T${tryout.time_start}`, "time")}`}
         </CardDescription>
       </CardHeader>
     </Card>
@@ -545,7 +538,7 @@ Gets human-readable relative time descriptions.
 #### Function Signature
 
 ```typescript
-function getRelativeTime(date: Date | string): string
+function getRelativeTime(date: Date | string): string;
 ```
 
 #### Examples
@@ -558,15 +551,15 @@ const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
 const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
 getRelativeTime(fiveMinutesAgo); // "5 minutes ago"
-getRelativeTime(tomorrow);       // "in 1 day"
-getRelativeTime(now);           // "just now"
+getRelativeTime(tomorrow); // "in 1 day"
+getRelativeTime(now); // "just now"
 
 // Component usage
 function MessageItem({ message }: { message: Message }) {
   return (
     <div className="message">
       <p>{message.content}</p>
-      <span className="text-xs text-muted-foreground">
+      <span className="text-muted-foreground text-xs">
         {getRelativeTime(message.created_at)}
       </span>
     </div>
@@ -583,7 +576,7 @@ Checks if an event date has passed.
 #### Function Signature
 
 ```typescript
-function isEventPast(eventDate: Date | string): boolean
+function isEventPast(eventDate: Date | string): boolean;
 ```
 
 #### Example
@@ -618,13 +611,18 @@ Determines comprehensive event status based on dates.
 #### Function Signature
 
 ```typescript
-type EventStatus = "upcoming" | "registration_open" | "registration_closed" | "in_progress" | "completed";
+type EventStatus =
+  | "upcoming"
+  | "registration_open"
+  | "registration_closed"
+  | "in_progress"
+  | "completed";
 
 function getEventStatus(event: {
   date: Date | string;
   registration_deadline?: Date | string;
   end_date?: Date | string;
-}): EventStatus
+}): EventStatus;
 ```
 
 #### Example
@@ -640,8 +638,14 @@ function EventStatusBadge({ event }: { event: Tryout }) {
 
   const statusConfig = {
     upcoming: { label: "Upcoming", variant: "secondary" as const },
-    registration_open: { label: "Registration Open", variant: "default" as const },
-    registration_closed: { label: "Registration Closed", variant: "destructive" as const },
+    registration_open: {
+      label: "Registration Open",
+      variant: "default" as const,
+    },
+    registration_closed: {
+      label: "Registration Closed",
+      variant: "destructive" as const,
+    },
     in_progress: { label: "In Progress", variant: "warning" as const },
     completed: { label: "Completed", variant: "secondary" as const },
   };
@@ -667,7 +671,7 @@ function getTimeUntilEvent(eventDate: Date | string): {
   minutes: number;
   seconds: number;
   isPast: boolean;
-}
+};
 ```
 
 #### Example
@@ -692,15 +696,15 @@ function CountdownTimer({ eventDate }: { eventDate: Date }) {
 
   return (
     <div className="flex gap-2 text-center">
-      <div className="bg-gray-100 p-2 rounded">
+      <div className="rounded bg-gray-100 p-2">
         <div className="font-bold">{timeLeft.days}</div>
         <div className="text-xs">days</div>
       </div>
-      <div className="bg-gray-100 p-2 rounded">
+      <div className="rounded bg-gray-100 p-2">
         <div className="font-bold">{timeLeft.hours}</div>
         <div className="text-xs">hours</div>
       </div>
-      <div className="bg-gray-100 p-2 rounded">
+      <div className="rounded bg-gray-100 p-2">
         <div className="font-bold">{timeLeft.minutes}</div>
         <div className="text-xs">min</div>
       </div>
@@ -725,7 +729,7 @@ Extracts user role from Clerk user metadata.
 type UserRole = "player" | "coach" | null;
 type ClerkUser = User | UserResource | null;
 
-function getUserRole(user: ClerkUser): UserRole
+function getUserRole(user: ClerkUser): UserRole;
 ```
 
 #### Examples
@@ -755,7 +759,9 @@ function Navigation() {
     <nav>
       <Link href="/">Home</Link>
       {role === "coach" && <Link href="/coach-dashboard">Coach Dashboard</Link>}
-      {role === "player" && <Link href="/player-dashboard">Player Dashboard</Link>}
+      {role === "player" && (
+        <Link href="/player-dashboard">Player Dashboard</Link>
+      )}
     </nav>
   );
 }
@@ -770,7 +776,7 @@ Checks if a coach has completed onboarding.
 #### Function Signature
 
 ```typescript
-function isCoachOnboarded(user: ClerkUser): boolean
+function isCoachOnboarded(user: ClerkUser): boolean;
 ```
 
 #### Example
@@ -803,7 +809,7 @@ Combines role and onboarding checks.
 #### Function Signature
 
 ```typescript
-function canAccessCoachFeatures(user: ClerkUser): boolean
+function canAccessCoachFeatures(user: ClerkUser): boolean;
 ```
 
 #### Example
@@ -811,7 +817,13 @@ function canAccessCoachFeatures(user: ClerkUser): boolean
 ```tsx
 import { canAccessCoachFeatures } from "@/lib/permissions";
 
-function ProtectedCoachRoute({ user, children }: { user: User; children: React.ReactNode }) {
+function ProtectedCoachRoute({
+  user,
+  children,
+}: {
+  user: User;
+  children: React.ReactNode;
+}) {
   if (!canAccessCoachFeatures(user)) {
     return <AccessDenied />;
   }
@@ -833,8 +845,8 @@ type PermissionAction = "message_coach" | "message_player" | "view_profile";
 
 function hasPermission(
   currentUser: ClerkUser,
-  action: PermissionAction
-): boolean
+  action: PermissionAction,
+): boolean;
 ```
 
 #### Example
@@ -878,7 +890,7 @@ function generatePlayerMetadata(player: {
   bio?: string | null;
   school?: string | null;
   main_game?: { name: string } | null;
-}): Metadata
+}): Metadata;
 ```
 
 #### Example
@@ -889,7 +901,7 @@ import { generatePlayerMetadata } from "@/lib/metadata";
 // In page.tsx
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const player = await getPlayerByUsername(params.username);
-  
+
   if (!player) {
     return {
       title: "Player not found",
@@ -927,7 +939,7 @@ function generateTryoutMetadata(tryout: {
   school: { name: string };
   game: { name: string };
   date: Date;
-}): Metadata
+}): Metadata;
 ```
 
 #### Example
@@ -937,7 +949,7 @@ import { generateTryoutMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tryout = await getTryoutById(params.id);
-  
+
   if (!tryout) {
     return { title: "Tryout not found" };
   }
@@ -964,7 +976,7 @@ interface GameMetadata {
   keywords: string[];
 }
 
-function getGameMetadata(gameId: string): GameMetadata | null
+function getGameMetadata(gameId: string): GameMetadata | null;
 ```
 
 #### Example
@@ -978,11 +990,8 @@ function GameHeader({ gameId }: { gameId: string }) {
   if (!gameData) return null;
 
   return (
-    <div 
-      className="p-6 rounded-lg"
-      style={{ backgroundColor: gameData.color }}
-    >
-      <img src={gameData.icon} alt={gameData.name} className="w-8 h-8" />
+    <div className="rounded-lg p-6" style={{ backgroundColor: gameData.color }}>
+      <img src={gameData.icon} alt={gameData.name} className="h-8 w-8" />
       <h1 className="text-2xl font-bold text-white">{gameData.name}</h1>
       <p className="text-white/80">{gameData.description}</p>
     </div>
@@ -1003,7 +1012,7 @@ Checks if a user has admin privileges.
 #### Function Signature
 
 ```typescript
-function isUserAdmin(clerkId: string): Promise<boolean>
+function isUserAdmin(clerkId: string): Promise<boolean>;
 ```
 
 #### Example
@@ -1014,29 +1023,28 @@ import { isUserAdmin } from "@/lib/admin-utils";
 // In API route or server action
 export async function adminOnlyAction(clerkId: string) {
   const isAdmin = await isUserAdmin(clerkId);
-  
+
   if (!isAdmin) {
     throw new Error("Unauthorized: Admin access required");
   }
-  
+
   // Perform admin action
 }
 
 // In tRPC router
 export const adminRouter = createTRPCRouter({
-  getAllUsers: publicProcedure
-    .query(async ({ ctx }) => {
-      if (!ctx.auth?.userId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-      
-      const isAdmin = await isUserAdmin(ctx.auth.userId);
-      if (!isAdmin) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-      
-      return await ctx.db.player.findMany();
-    })
+  getAllUsers: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.auth?.userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const isAdmin = await isUserAdmin(ctx.auth.userId);
+    if (!isAdmin) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+
+    return await ctx.db.player.findMany();
+  }),
 });
 ```
 
@@ -1049,7 +1057,7 @@ Throws error if user is not admin (assertion function).
 #### Function Signature
 
 ```typescript
-function requireAdmin(clerkId: string): Promise<void>
+function requireAdmin(clerkId: string): Promise<void>;
 ```
 
 #### Example
@@ -1060,7 +1068,7 @@ import { requireAdmin } from "@/lib/admin-utils";
 // Cleaner admin check
 export async function deleteUser(clerkId: string, targetUserId: string) {
   await requireAdmin(clerkId); // Throws if not admin
-  
+
   // Proceed with admin action
   await db.player.delete({ where: { id: targetUserId } });
 }
@@ -1082,10 +1090,10 @@ Sends log messages to Discord webhook for monitoring.
 type LogLevel = "info" | "warn" | "error" | "success";
 
 function logToDiscord(
-  message: string, 
+  message: string,
   level: LogLevel = "info",
-  context?: Record<string, any>
-): Promise<void>
+  context?: Record<string, any>,
+): Promise<void>;
 ```
 
 #### Examples
@@ -1102,7 +1110,7 @@ await logToDiscord("Payment processed successfully", "success");
 await logToDiscord("Player profile updated", "info", {
   playerId: "uuid-123",
   changes: ["bio", "location"],
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 
 // In error boundaries
@@ -1110,7 +1118,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logToDiscord(`React error: ${error.message}`, "error", {
       stack: error.stack,
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack,
     });
   }
 }
@@ -1123,7 +1131,7 @@ export async function POST(request: Request) {
   } catch (error) {
     await logToDiscord(`API error: ${error.message}`, "error", {
       endpoint: request.url,
-      method: request.method
+      method: request.method,
     });
     throw error;
   }
@@ -1193,7 +1201,7 @@ function isValidGPA(gpa: number): boolean {
 
 ```typescript
 function formatPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/\D/g, '');
+  const cleaned = phone.replace(/\D/g, "");
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
   if (match) {
     return `(${match[1]}) ${match[2]}-${match[3]}`;
@@ -1213,7 +1221,7 @@ function useErrorBoundary() {
   return (error: Error, errorInfo?: ErrorInfo) => {
     logToDiscord(`Error boundary caught: ${error.message}`, "error", {
       stack: error.stack,
-      componentStack: errorInfo?.componentStack
+      componentStack: errorInfo?.componentStack,
     });
   };
 }
@@ -1226,20 +1234,20 @@ function handleAPIError(error: unknown): { message: string; code: string } {
   if (error instanceof TRPCError) {
     return {
       message: error.message,
-      code: error.code
+      code: error.code,
     };
   }
-  
+
   if (error instanceof Error) {
     return {
       message: error.message,
-      code: "UNKNOWN_ERROR"
+      code: "UNKNOWN_ERROR",
     };
   }
-  
+
   return {
     message: "An unexpected error occurred",
-    code: "INTERNAL_ERROR"
+    code: "INTERNAL_ERROR",
   };
 }
 ```
@@ -1247,16 +1255,14 @@ function handleAPIError(error: unknown): { message: string; code: string } {
 ### Async Error Wrapper
 
 ```typescript
-function withErrorHandling<T extends any[], R>(
-  fn: (...args: T) => Promise<R>
-) {
+function withErrorHandling<T extends any[], R>(fn: (...args: T) => Promise<R>) {
   return async (...args: T): Promise<R> => {
     try {
       return await fn(...args);
     } catch (error) {
       await logToDiscord(`Function error: ${error.message}`, "error", {
         function: fn.name,
-        args: JSON.stringify(args)
+        args: JSON.stringify(args),
       });
       throw error;
     }

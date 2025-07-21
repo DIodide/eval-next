@@ -7,7 +7,6 @@ export interface Player {
   state: string;
 }
 
-
 export interface League {
   name: string;
   description: string;

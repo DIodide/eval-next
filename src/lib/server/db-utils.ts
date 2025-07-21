@@ -1,12 +1,9 @@
-import 'server-only';
+import "server-only";
 // src/lib/db-utils.ts
 // This file contains the database utility functions for the API.
 // It is used to handle connection issues and prepared statement errors.
 // It is also used to handle database transactions with retry logic.
 // User made file
-
-
-
 
 import { db } from "@/server/db";
 import { Prisma } from "@prisma/client";
@@ -119,4 +116,4 @@ export async function safeTransaction<T>(
     3,
     500,
   );
-} 
+}

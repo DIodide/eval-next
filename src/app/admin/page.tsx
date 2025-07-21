@@ -1,14 +1,20 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { 
-  MessageSquare, 
-  User, 
-  Trophy, 
-  Users, 
+import {
+  MessageSquare,
+  User,
+  Trophy,
+  Users,
   Database,
   Shield,
   Activity,
@@ -17,7 +23,7 @@ import {
   UserCheck,
   ClipboardList,
   Crown,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 
@@ -38,7 +44,8 @@ const adminTools = [
   },
   {
     title: "Test Coach & School Profiles",
-    description: "Test coach profile endpoints, school associations, and announcements",
+    description:
+      "Test coach profile endpoints, school associations, and announcements",
     icon: UserCheck,
     href: "/admin/test-coach-profiles",
     color: "text-indigo-500",
@@ -75,10 +82,13 @@ const adminTools = [
 
 export default function AdminDashboard() {
   // Fetch pending counts
-  const { data: pendingSchoolRequests } = api.schoolAssociationRequests.getPendingCount.useQuery();
-  const { data: pendingLeagueRequests } = api.leagueAssociationRequests.getPendingCount.useQuery();
+  const { data: pendingSchoolRequests } =
+    api.schoolAssociationRequests.getPendingCount.useQuery();
+  const { data: pendingLeagueRequests } =
+    api.leagueAssociationRequests.getPendingCount.useQuery();
 
-  const totalPending = (pendingSchoolRequests ?? 0) + (pendingLeagueRequests ?? 0);
+  const totalPending =
+    (pendingSchoolRequests ?? 0) + (pendingLeagueRequests ?? 0);
 
   return (
     <div className="space-y-8">
@@ -92,14 +102,19 @@ export default function AdminDashboard() {
 
       {/* Pending Actions Section */}
       {totalPending > 0 && (
-        <Card className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border-yellow-600/50">
+        <Card className="border-yellow-600/50 bg-gradient-to-r from-yellow-900/20 to-orange-900/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <AlertCircle className="h-6 w-6 text-yellow-400" />
-                <CardTitle className="text-white">Pending Actions Required</CardTitle>
+                <CardTitle className="text-white">
+                  Pending Actions Required
+                </CardTitle>
               </div>
-              <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
+              <Badge
+                variant="outline"
+                className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+              >
                 {totalPending} Total
               </Badge>
             </div>
@@ -110,32 +125,46 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               <Link href="/admin/school-requests">
-                <Button variant="outline" className="w-full border-yellow-600/50 hover:bg-yellow-600/10">
-                  <div className="flex items-center justify-between w-full">
+                <Button
+                  variant="outline"
+                  className="w-full border-yellow-600/50 hover:bg-yellow-600/10"
+                >
+                  <div className="flex w-full items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <ClipboardList className="h-4 w-4" />
                       <span>School Requests</span>
                     </div>
-                    {pendingSchoolRequests !== undefined && pendingSchoolRequests > 0 && (
-                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
-                        {pendingSchoolRequests}
-                      </Badge>
-                    )}
+                    {pendingSchoolRequests !== undefined &&
+                      pendingSchoolRequests > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+                        >
+                          {pendingSchoolRequests}
+                        </Badge>
+                      )}
                   </div>
                 </Button>
               </Link>
               <Link href="/admin/league-requests">
-                <Button variant="outline" className="w-full border-yellow-600/50 hover:bg-yellow-600/10">
-                  <div className="flex items-center justify-between w-full">
+                <Button
+                  variant="outline"
+                  className="w-full border-yellow-600/50 hover:bg-yellow-600/10"
+                >
+                  <div className="flex w-full items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Crown className="h-4 w-4" />
                       <span>League Requests</span>
                     </div>
-                    {pendingLeagueRequests !== undefined && pendingLeagueRequests > 0 && (
-                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500">
-                        {pendingLeagueRequests}
-                      </Badge>
-                    )}
+                    {pendingLeagueRequests !== undefined &&
+                      pendingLeagueRequests > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+                        >
+                          {pendingLeagueRequests}
+                        </Badge>
+                      )}
                   </div>
                 </Button>
               </Link>
@@ -148,7 +177,10 @@ export default function AdminDashboard() {
         {adminTools.map((tool) => {
           const Icon = tool.icon;
           return (
-            <Card key={tool.title} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors">
+            <Card
+              key={tool.title}
+              className="hover:bg-gray-750 border-gray-700 bg-gray-800 transition-colors"
+            >
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <Icon className={`h-6 w-6 ${tool.color}`} />
@@ -160,9 +192,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Link href={tool.href}>
-                  <Button className="w-full">
-                    Access Tool
-                  </Button>
+                  <Button className="w-full">Access Tool</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -170,7 +200,7 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="border-gray-700 bg-gray-800">
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Database className="h-6 w-6 text-yellow-500" />
@@ -201,7 +231,7 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="border-gray-700 bg-gray-800">
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Settings className="h-6 w-6 text-gray-500" />
@@ -221,4 +251,4 @@ export default function AdminDashboard() {
       </Card>
     </div>
   );
-} 
+}

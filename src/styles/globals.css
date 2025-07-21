@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Tilt+Warp:wght@400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Tilt+Warp:wght@400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 /* @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
@@ -10,14 +10,13 @@
   color: #ffffff;
 }
 
-
 .cl-profileSection__connectedAccounts {
   display: none;
 }
 
 /* Global Background Image */
 .home-background {
-  background-image: url('/eval/valorant_champs.png');
+  background-image: url("/eval/valorant_champs.png");
   background-color: #0f0f1a;
   background-position: center;
   background-repeat: no-repeat;
@@ -28,7 +27,7 @@
 }
 
 .global-background {
-  background-image: url('/eval/recruitment_bg2.png');
+  background-image: url("/eval/recruitment_bg2.png");
   background-color: #0f0f1a;
   background-position: center;
   background-repeat: no-repeat;
@@ -39,7 +38,7 @@
 }
 
 .tryouts-combine-background {
-  background-image: url('/eval/combine_tryout_bg.png') !important;
+  background-image: url("/eval/combine_tryout_bg.png") !important;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -60,7 +59,7 @@
 
 /* Modern Esports Design Elements */
 .cyber-glow {
-  box-shadow: 
+  box-shadow:
     0 0 20px rgba(6, 182, 212, 0.3),
     0 0 40px rgba(6, 182, 212, 0.2),
     0 0 60px rgba(6, 182, 212, 0.1);
@@ -68,15 +67,24 @@
 
 .cyber-border {
   border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(168, 85, 247, 0.3)) border-box;
-  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  background: linear-gradient(
+      135deg,
+      rgba(6, 182, 212, 0.3),
+      rgba(168, 85, 247, 0.3)
+    )
+    border-box;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: subtract;
-  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
   mask-composite: subtract;
 }
 
 .neon-text {
-  text-shadow: 
+  text-shadow:
     0 0 5px currentColor,
     0 0 10px currentColor,
     0 0 15px currentColor,
@@ -92,23 +100,35 @@
 .gradient-border {
   border: 2px solid transparent;
   background: linear-gradient(135deg, #06b6d4, #8b5cf6, #f59e0b) border-box;
-  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: subtract;
-  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
   mask-composite: subtract;
 }
 
 .esports-card {
-  background: linear-gradient(135deg, rgba(15, 15, 26, 0.9), rgba(30, 30, 46, 0.8));
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 26, 0.9),
+    rgba(30, 30, 46, 0.8)
+  );
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .esports-card:hover {
-  background: linear-gradient(135deg, rgba(20, 20, 36, 0.95), rgba(35, 35, 56, 0.9));
+  background: linear-gradient(
+    135deg,
+    rgba(20, 20, 36, 0.95),
+    rgba(35, 35, 56, 0.9)
+  );
   border-color: rgba(6, 182, 212, 0.5);
-  box-shadow: 
+  box-shadow:
     0 10px 40px rgba(6, 182, 212, 0.2),
     0 0 0 1px rgba(6, 182, 212, 0.1);
   transform: translateY(-2px);
@@ -128,13 +148,18 @@
 }
 
 .pro-button-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -155,13 +180,18 @@
 }
 
 .pro-button-secondary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -171,7 +201,7 @@
 
 /* Premium Typography */
 .heading-hero {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 900;
   line-height: 1.1;
   background: linear-gradient(135deg, #ffffff, #06b6d4, #8b5cf6);
@@ -183,29 +213,35 @@
 }
 
 .heading-section {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .text-premium {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   line-height: 1.6;
 }
 
 /* Custom Animations */
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { 
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 40px rgba(6, 182, 212, 0.8);
   }
 }
@@ -215,8 +251,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .animate-float {
@@ -239,7 +280,7 @@
 
 .nav-glass::after,
 .nav-glass-static::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -253,219 +294,242 @@
   transition: color 0.3s ease;
 }
 
-  .nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b);
-    transition: width 0.3s ease;
-  }
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b);
+  transition: width 0.3s ease;
+}
 
 .nav-link:hover::after {
   width: 100%;
 }
 
 /* Dropdown nav links - shorter underline to exclude arrow */
-  .nav-link-dropdown::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b);
-    transition: width 0.3s ease;
-  }
+.nav-link-dropdown::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b);
+  transition: width 0.3s ease;
+}
 
-  .nav-link-dropdown:hover::after {
-    width: calc(100% - 20px); /* Exclude dropdown arrow width + margin */
-  }
-  
-  /* Logo Rainbow Hover Effect */
-  .logo-rainbow-hover {
-    position: relative;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    padding: 4px;
-  }
-  
-  .logo-rainbow-hover::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b, #06b6d4);
-    background-size: 200% 200%;
-    border-radius: 8px;
-    opacity: 0;
-    z-index: -1;
-    transition: opacity 0.3s ease;
-    animation: rainbow-rotate 3s linear infinite;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: xor;
-    -webkit-mask-composite: xor;
-    padding: 2px;
-  }
-  
-  .logo-rainbow-hover:hover::before {
-    opacity: 1;
-  }
-  
-  @keyframes rainbow-rotate {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-  }
-  
-  /* Search Bar Rainbow Effect */
-  .search-rainbow {
-    transition: all 0.3s ease;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    box-sizing: border-box;
-  }
-  
-  .search-rainbow:focus {
-    outline: none;
-    border: 2px solid transparent;
-    background: linear-gradient(var(--background), var(--background)) padding-box,
-                linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b, #06b6d4) border-box;
-    background-size: 100% 100%, 200% 200%;
-    animation: rainbow-rotate 3s linear infinite;
-    box-sizing: border-box;
-  }
+.nav-link-dropdown:hover::after {
+  width: calc(100% - 20px); /* Exclude dropdown arrow width + margin */
+}
 
-  /* Dropdown Shadow Effect for Dropdown Items */
-  .dropdown-rainbow-shadow {
-    transition: all 0.3s ease;
-  }
+/* Logo Rainbow Hover Effect */
+.logo-rainbow-hover {
+  position: relative;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 4px;
+}
 
-  /* Clerk UserButton Styles */
-  .cl-userButtonPopoverMain {
-    background: rgba(15, 15, 26, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 0.75rem !important;
-    box-shadow: 
-      0 10px 40px rgba(6, 182, 212, 0.15),
-      0 0 0 1px rgba(6, 182, 212, 0.1) !important;
-  }
+.logo-rainbow-hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b, #06b6d4);
+  background-size: 200% 200%;
+  border-radius: 8px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  animation: rainbow-rotate 3s linear infinite;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  padding: 2px;
+}
 
-  .cl-userPreview {
-    color: white !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding-bottom: 1rem !important;
-    margin-bottom: 0.5rem !important;
-  }
+.logo-rainbow-hover:hover::before {
+  opacity: 1;
+}
 
-  .cl-userPreviewMainIdentifierText,
-  .cl-userPreviewSecondaryIdentifier {
-    color: white !important;
-    font-family: 'Rajdhani', sans-serif !important;
+@keyframes rainbow-rotate {
+  0% {
+    background-position: 0% 50%;
   }
-
-  .cl-userPreviewMainIdentifierText {
-    font-weight: 600 !important;
-    font-size: 0.875rem !important;
+  100% {
+    background-position: 200% 50%;
   }
+}
 
-  .cl-userPreviewSecondaryIdentifier {
-    color: rgba(255, 255, 255, 0.7) !important;
-    font-weight: 400 !important;
-    font-size: 0.75rem !important;
-  }
+/* Search Bar Rainbow Effect */
+.search-rainbow {
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-sizing: border-box;
+}
 
-  .cl-userButtonPopoverActionButton,
-  .cl-userButtonPopoverCustomItemButton {
-    background: transparent !important;
-    color: white !important;
-    font-family: 'Rajdhani', sans-serif !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.025em !important;
-    text-transform: none !important;
-    font-size: 0.75rem !important;
-    border-radius: 0.5rem !important;
-    padding: 0.5rem 0.75rem !important;
-    margin: 0.125rem 0 !important;
-    transition: all 0.3s ease !important;
-    border: 1px solid transparent !important;
-  }
+.search-rainbow:focus {
+  outline: none;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--background), var(--background)) padding-box,
+    linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b, #06b6d4) border-box;
+  background-size:
+    100% 100%,
+    200% 200%;
+  animation: rainbow-rotate 3s linear infinite;
+  box-sizing: border-box;
+}
 
-  .cl-userButtonPopoverActionButton:hover,
-  .cl-userButtonPopoverCustomItemButton:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(6, 182, 212, 0.3) !important;
-    box-shadow: 
-      0 0 20px rgba(6, 182, 212, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-    transform: translateY(-1px) !important;
-  }
+/* Dropdown Shadow Effect for Dropdown Items */
+.dropdown-rainbow-shadow {
+  transition: all 0.3s ease;
+}
 
-  .cl-userButtonPopoverActionButtonIcon,
+/* Clerk UserButton Styles */
+.cl-userButtonPopoverMain {
+  background: rgba(15, 15, 26, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 0.75rem !important;
+  box-shadow:
+    0 10px 40px rgba(6, 182, 212, 0.15),
+    0 0 0 1px rgba(6, 182, 212, 0.1) !important;
+}
+
+.cl-userPreview {
+  color: white !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding-bottom: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.cl-userPreviewMainIdentifierText,
+.cl-userPreviewSecondaryIdentifier {
+  color: white !important;
+  font-family: "Rajdhani", sans-serif !important;
+}
+
+.cl-userPreviewMainIdentifierText {
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+}
+
+.cl-userPreviewSecondaryIdentifier {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 400 !important;
+  font-size: 0.75rem !important;
+}
+
+.cl-userButtonPopoverActionButton,
+.cl-userButtonPopoverCustomItemButton {
+  background: transparent !important;
+  color: white !important;
+  font-family: "Rajdhani", sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: none !important;
+  font-size: 0.75rem !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 0.75rem !important;
+  margin: 0.125rem 0 !important;
+  transition: all 0.3s ease !important;
+  border: 1px solid transparent !important;
+}
+
+.cl-userButtonPopoverActionButton:hover,
+.cl-userButtonPopoverCustomItemButton:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(6, 182, 212, 0.3) !important;
+  box-shadow:
+    0 0 20px rgba(6, 182, 212, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+.cl-userButtonPopoverActionButtonIcon,
+.cl-userButtonPopoverActionItemButtonIcon {
+  color: rgba(255, 255, 255, 0.8) !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+.cl-userButtonPopoverActionButton:hover .cl-userButtonPopoverActionButtonIcon,
+.cl-userButtonPopoverCustomItemButton:hover
   .cl-userButtonPopoverActionItemButtonIcon {
-    color: rgba(255, 255, 255, 0.8) !important;
-    width: 1rem !important;
-    height: 1rem !important;
-  }
+  color: #06b6d4 !important;
+}
 
-  .cl-userButtonPopoverActionButton:hover .cl-userButtonPopoverActionButtonIcon,
-  .cl-userButtonPopoverCustomItemButton:hover .cl-userButtonPopoverActionItemButtonIcon {
-    color: #06b6d4 !important;
-  }
+.cl-userButtonPopoverActions {
+  padding: 0.5rem !important;
+}
 
-  .cl-userButtonPopoverActions {
-    padding: 0.5rem !important;
-  }
+/* Special styling for the custom DASHBOARD button */
+.cl-userButtonPopoverCustomItemButton {
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.1),
+    rgba(139, 92, 246, 0.1)
+  ) !important;
+  border-color: rgba(6, 182, 212, 0.2) !important;
+}
 
-  /* Special styling for the custom DASHBOARD button */
-  .cl-userButtonPopoverCustomItemButton {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1)) !important;
-    border-color: rgba(6, 182, 212, 0.2) !important;
-  }
+.cl-userButtonPopoverCustomItemButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.2),
+    rgba(139, 92, 246, 0.2)
+  ) !important;
+  border-color: rgba(6, 182, 212, 0.5) !important;
+  box-shadow:
+    0 0 25px rgba(6, 182, 212, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
 
-  .cl-userButtonPopoverCustomItemButton:hover {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2)) !important;
-    border-color: rgba(6, 182, 212, 0.5) !important;
-    box-shadow: 
-      0 0 25px rgba(6, 182, 212, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  }
+/* Rainbow Bottom Border for FAQ Items */
+.faq-rainbow-border {
+  position: relative;
+  overflow: hidden;
+}
 
-  /* Rainbow Bottom Border for FAQ Items */
-  .faq-rainbow-border {
-    position: relative;
-    overflow: hidden;
-  }
+.faq-rainbow-border::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b);
+}
 
-  .faq-rainbow-border::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b);
-  }
-  
-  /* Button Rainbow Border Effect */
-  .button-rainbow {
-    position: relative;
-    transition: all 0.3s ease;
-    border: 2px solid white;
-    overflow: hidden;
-  }
-  
-  .button-rainbow:hover {
-    border: 2px solid transparent;
-    background: linear-gradient(var(--background), var(--background)) padding-box,
-                linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b, #06b6d4) border-box;
-    background-size: 100% 100%, 200% 200%;
-    animation: rainbow-rotate 3s linear infinite;
-    color: #f3f4f6 !important; /* gray-100 */
-  }
-  
-  /* Premium Card Layouts */
+/* Button Rainbow Border Effect */
+.button-rainbow {
+  position: relative;
+  transition: all 0.3s ease;
+  border: 2px solid white;
+  overflow: hidden;
+}
+
+.button-rainbow:hover {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--background), var(--background)) padding-box,
+    linear-gradient(90deg, #06b6d4, #8b5cf6, #f59e0b, #06b6d4) border-box;
+  background-size:
+    100% 100%,
+    200% 200%;
+  animation: rainbow-rotate 3s linear infinite;
+  color: #f3f4f6 !important; /* gray-100 */
+}
+
+/* Premium Card Layouts */
 .feature-grid {
   display: grid;
   gap: 2rem;
@@ -473,7 +537,11 @@
 }
 
 .feature-card {
-  background: linear-gradient(135deg, rgba(15, 15, 26, 0.8), rgba(30, 30, 46, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 26, 0.8),
+    rgba(30, 30, 46, 0.6)
+  );
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   padding: 2rem;
@@ -483,7 +551,7 @@
 }
 
 .feature-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -501,14 +569,18 @@
 .feature-card:hover {
   transform: translateY(-8px);
   border-color: rgba(6, 182, 212, 0.5);
-  box-shadow: 
+  box-shadow:
     0 20px 60px rgba(6, 182, 212, 0.15),
     0 0 0 1px rgba(6, 182, 212, 0.1);
 }
 
 /* Enhanced Statistics Display */
 .stat-card {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.1),
+    rgba(139, 92, 246, 0.1)
+  );
   border: 1px solid rgba(6, 182, 212, 0.3);
   border-radius: 1rem;
   padding: 1.5rem;
@@ -517,7 +589,7 @@
 }
 
 .stat-number {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 900;
   font-size: 2.5rem;
   background: linear-gradient(135deg, #06b6d4, #8b5cf6);
@@ -553,9 +625,7 @@
   scrollbar-color: #06b6d4 #0a0a0f;
 }
 
-
 @custom-variant dark (&:is(.dark *));
-
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -596,16 +666,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-orbitron: 'Tilt Warp', sans-serif;
-  --font-rajdhani: 'Rajdhani', sans-serif;
-  --font-inter: 'Inter', sans-serif;
+  --font-orbitron: "Tilt Warp", sans-serif;
+  --font-rajdhani: "Rajdhani", sans-serif;
+  --font-inter: "Inter", sans-serif;
 }
 
 :root {
   --eval-orange: #f59e0b;
   --eval-purple: #8b5cf6;
   --eval-cyan: #06b6d4;
-
 
   --radius: 0.75rem;
   --background: #0a0a0f;
@@ -685,7 +754,12 @@
     font-family: var(--font-inter), sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-inter), sans-serif;
     font-weight: 700;
   }
@@ -717,19 +791,19 @@
   --normal-bg: rgba(15, 15, 26, 0.95);
   --normal-border: rgba(6, 182, 212, 0.3);
   --normal-text: rgb(255, 255, 255);
-  
+
   --success-bg: rgba(16, 185, 129, 0.95);
   --success-border: rgba(16, 185, 129, 0.6);
   --success-text: white;
-  
+
   --error-bg: rgba(239, 68, 68, 0.95);
   --error-border: rgba(239, 68, 68, 0.6);
   --error-text: white;
-  
+
   --warning-bg: rgba(245, 158, 11, 0.95);
   --warning-border: rgba(245, 158, 11, 0.6);
   --warning-text: white;
-  
+
   --info-bg: rgba(6, 182, 212, 0.95);
   --info-border: rgba(6, 182, 212, 0.6);
   --info-text: white;
@@ -740,7 +814,7 @@
   border-radius: 1rem;
   border-width: 1px;
   backdrop-filter: blur(20px);
-  box-shadow: 
+  box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.8),
     0 0 0 1px rgba(6, 182, 212, 0.2);
 }

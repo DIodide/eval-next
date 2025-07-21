@@ -2,30 +2,31 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { checkAdminAccess } from "@/lib/server/admin-utils";
 import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/user-profile(.*)'])
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/user-profile(.*)",
+]);
 const isAdminRoute = createRouteMatcher([
-  '/admin(.*)',
-  '/test-(.*)', // Protect all test routes
-  '/api/admin(.*)', // Protect admin API routes
-  '/api/auth/admin(.*)' // Protect auth API routes
-])
+  "/admin(.*)",
+  "/test-(.*)", // Protect all test routes
+  "/api/admin(.*)", // Protect admin API routes
+  "/api/auth/admin(.*)", // Protect auth API routes
+]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect()
-  
+  if (isProtectedRoute(req)) await auth.protect();
+
   if (isAdminRoute(req)) {
-    await auth.protect()
-    
-    const { userId } = await auth()
-    const isAdmin = await checkAdminAccess(userId)
-    
+    await auth.protect();
+
+    const { userId } = await auth();
+    const isAdmin = await checkAdminAccess(userId);
+
     if (!isAdmin) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
-}) // set debug to true to see the middleware in action
-
-
+}); // set debug to true to see the middleware in action
 
 export const config = {
   matcher: [
@@ -34,4 +35,4 @@ export const config = {
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],
-}; 
+};

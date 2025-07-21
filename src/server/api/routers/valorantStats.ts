@@ -1,11 +1,15 @@
-import { createTRPCRouter, playerProcedure, publicProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  playerProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { clerkClient } from "@clerk/nextjs/server";
 import { env } from "@/env";
 
 // API Base URL
- 
+
 const EVAL_API_BASE = env.EVAL_API_BASE;
 
 // Zod schemas for API responses
@@ -79,7 +83,7 @@ const ValorantPlayerStatsSchema = z.object({
   games: z.number(),
   games_won: z.number(),
   game_winrate: z.number(),
-  
+
   // Kill/Death/Assist stats
   kills: z.number(),
   deaths: z.number(),
@@ -89,7 +93,7 @@ const ValorantPlayerStatsSchema = z.object({
   avg_assists: z.number(),
   kd: z.number(),
   kda: z.number(),
-  
+
   // Performance metrics
   pistol_rounds: z.number(),
   pistol_wins: z.number(),
@@ -111,13 +115,13 @@ const ValorantPlayerStatsSchema = z.object({
   damage_given: z.number(),
   damage_received: z.number(),
   time_alive: z.number(),
-  
+
   // Weapon and agent data
   guns: z.record(z.string(), ValorantWeaponStatsSchema).optional(),
   agents: z.record(z.string(), ValorantAgentStatsSchema).optional(),
   maps: z.record(z.string(), ValorantMapStatsSchema).optional(),
   roles: ValorantRoleBreakdownSchema,
-  
+
   // Additional computed stats
   traded_ratio: z.number().nullable(),
   main_role: z.string().nullable(),
@@ -190,17 +194,20 @@ export type ValorantAnalyticsData = {
 };
 
 // Helper function to make API requests
-async function makeValorantAPIRequest(endpoint: string, data?: unknown): Promise<unknown> {
+async function makeValorantAPIRequest(
+  endpoint: string,
+  data?: unknown,
+): Promise<unknown> {
   const url = `${EVAL_API_BASE}${endpoint}`;
-  
+
   try {
     const requestOptions: RequestInit = {
-      method: data ? 'POST' : 'GET',
+      method: data ? "POST" : "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     };
-    
+
     if (data) {
       requestOptions.body = JSON.stringify(data);
     }
@@ -211,15 +218,17 @@ async function makeValorantAPIRequest(endpoint: string, data?: unknown): Promise
       console.error(`Valorant API request failed for ${endpoint}:`, response);
       console.error(`url: ${url}`);
       console.error(`requestOptions: ${JSON.stringify(requestOptions)}`);
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `API request failed: ${response.status} ${response.statusText}`,
+      );
     }
 
-    return await response.json() as unknown;
+    return (await response.json()) as unknown;
   } catch (error) {
     console.error(`Valorant API request failed for ${endpoint}:`, error);
     throw new TRPCError({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Failed to fetch data from Valorant API',
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to fetch data from Valorant API",
       cause: error,
     });
   }
@@ -227,16 +236,16 @@ async function makeValorantAPIRequest(endpoint: string, data?: unknown): Promise
 
 // Helper function to convert API response to analytics format
 function transformToAnalyticsData(
-  apiResponse: z.infer<typeof ValorantPlayerStatsResponseSchema>
+  apiResponse: z.infer<typeof ValorantPlayerStatsResponseSchema>,
 ): ValorantAnalyticsData {
   const stats = apiResponse.stats;
-  
+
   // Calculate KAST percentage
   const kastPercent = stats.kast.toFixed(2);
-  
+
   // Format K/D/A string
   const kda = `${stats.avg_kills.toFixed(1)}/${stats.avg_deaths.toFixed(1)}/${stats.avg_assists.toFixed(1)}`;
-  
+
   return {
     role: stats.main_role ?? "Unknown",
     gameName: apiResponse.game_name ?? undefined,
@@ -246,7 +255,7 @@ function transformToAnalyticsData(
       image: stats.image_paths.agent_icon_url,
     },
     mainGun: {
-      name: stats.main_gun ?? "Unknown", 
+      name: stats.main_gun ?? "Unknown",
       image: stats.image_paths.gun_url,
     },
     bestMap: {
@@ -279,14 +288,14 @@ export const valorantStatsRouter = createTRPCRouter({
     .input(
       z.object({
         puuid: z.string().min(1, "PUUID is required"),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.boolean(),
         data: z.custom<ValorantAnalyticsData>().nullable(),
         message: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
@@ -294,13 +303,15 @@ export const valorantStatsRouter = createTRPCRouter({
           puuid: input.puuid,
         });
 
-        const validatedResponse = ValorantPlayerStatsResponseSchema.parse(apiResponse);
-        
+        const validatedResponse =
+          ValorantPlayerStatsResponseSchema.parse(apiResponse);
+
         if (!validatedResponse.success) {
           return {
             success: false,
             data: null,
-            message: validatedResponse.message || "Failed to retrieve player stats",
+            message:
+              validatedResponse.message || "Failed to retrieve player stats",
           };
         }
 
@@ -313,11 +324,11 @@ export const valorantStatsRouter = createTRPCRouter({
         };
       } catch (error) {
         console.error("Error fetching Valorant player stats:", error);
-        
+
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         return {
           success: false,
           data: null,
@@ -333,7 +344,7 @@ export const valorantStatsRouter = createTRPCRouter({
     .input(
       z.object({
         puuid: z.string().min(1, "PUUID is required"),
-      })
+      }),
     )
     .output(
       z.object({
@@ -341,13 +352,16 @@ export const valorantStatsRouter = createTRPCRouter({
         evalScore: z.number().nullable(),
         matchesAnalyzed: z.number().nullable(),
         message: z.string(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
-        const apiResponse = await makeValorantAPIRequest("/valorant/eval-score", {
-          puuid: input.puuid,
-        });
+        const apiResponse = await makeValorantAPIRequest(
+          "/valorant/eval-score",
+          {
+            puuid: input.puuid,
+          },
+        );
 
         const validatedResponse = EvalScoreResponseSchema.parse(apiResponse);
 
@@ -368,11 +382,11 @@ export const valorantStatsRouter = createTRPCRouter({
         };
       } catch (error) {
         console.error("Error fetching Valorant EVAL score:", error);
-        
+
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         return {
           success: false,
           evalScore: null,
@@ -389,7 +403,7 @@ export const valorantStatsRouter = createTRPCRouter({
     .input(
       z.object({
         tier: z.number().min(0).max(27),
-      })
+      }),
     )
     .output(
       z.object({
@@ -397,24 +411,26 @@ export const valorantStatsRouter = createTRPCRouter({
         tier: z.number().nullable(),
         rankName: z.string().nullable(),
         message: z.string(),
-      })
+      }),
     )
-         .query(async ({ input }) => {
-       try {
-         const apiResponse = await makeValorantAPIRequest(`/valorant/rank-info/${input.tier}`);
-         
-         // Type assertion for the API response structure
-         const rankResponse = apiResponse as { rank_name?: string };
+    .query(async ({ input }) => {
+      try {
+        const apiResponse = await makeValorantAPIRequest(
+          `/valorant/rank-info/${input.tier}`,
+        );
 
-         return {
-           success: true,
-           tier: input.tier,
-           rankName: rankResponse.rank_name ?? null,
-           message: "Rank information retrieved successfully",
-         };
+        // Type assertion for the API response structure
+        const rankResponse = apiResponse as { rank_name?: string };
+
+        return {
+          success: true,
+          tier: input.tier,
+          rankName: rankResponse.rank_name ?? null,
+          message: "Rank information retrieved successfully",
+        };
       } catch (error) {
         console.error("Error fetching Valorant rank info:", error);
-        
+
         return {
           success: false,
           tier: null,
@@ -432,14 +448,14 @@ export const valorantStatsRouter = createTRPCRouter({
     .input(
       z.object({
         playerId: z.string().min(1, "Player ID is required"),
-      })
+      }),
     )
     .output(
       z.object({
         success: z.boolean(),
         data: z.custom<ValorantAnalyticsData>().nullable(),
         message: z.string(),
-      })
+      }),
     )
     .query(async ({ input, ctx }) => {
       try {
@@ -457,44 +473,48 @@ export const valorantStatsRouter = createTRPCRouter({
           };
         }
 
-                  // Get Valorant PUUID from Clerk user metadata
-          try {
-            const clerk = await clerkClient();
-            const clerkUser = await clerk.users.getUser(player.clerk_id);
-            
-            const valorantMetadata = clerkUser.publicMetadata?.valorant as { puuid?: string } | undefined;
-            
-            if (!valorantMetadata?.puuid) {
-              return {
-                success: false,
-                data: null,
-                message: "Player hasn't connected their Valorant account",
-              };
-            }
+        // Get Valorant PUUID from Clerk user metadata
+        try {
+          const clerk = await clerkClient();
+          const clerkUser = await clerk.users.getUser(player.clerk_id);
 
-            // Use the existing getPlayerStats logic with the retrieved PUUID
-            const apiResponse = await makeValorantAPIRequest("/valorant/stats", {
-              puuid: valorantMetadata.puuid,
-            });
+          const valorantMetadata = clerkUser.publicMetadata?.valorant as
+            | { puuid?: string }
+            | undefined;
 
-            const validatedResponse = ValorantPlayerStatsResponseSchema.parse(apiResponse);
-            
-            if (!validatedResponse.success) {
-              return {
-                success: false,
-                data: null,
-                message: validatedResponse.message || "Failed to retrieve player stats from Valorant API",
-              };
-            }
-
-            const analyticsData = transformToAnalyticsData(validatedResponse);
-
+          if (!valorantMetadata?.puuid) {
             return {
-              success: true,
-              data: analyticsData,
-              message: "Player stats retrieved successfully",
+              success: false,
+              data: null,
+              message: "Player hasn't connected their Valorant account",
             };
+          }
 
+          // Use the existing getPlayerStats logic with the retrieved PUUID
+          const apiResponse = await makeValorantAPIRequest("/valorant/stats", {
+            puuid: valorantMetadata.puuid,
+          });
+
+          const validatedResponse =
+            ValorantPlayerStatsResponseSchema.parse(apiResponse);
+
+          if (!validatedResponse.success) {
+            return {
+              success: false,
+              data: null,
+              message:
+                validatedResponse.message ||
+                "Failed to retrieve player stats from Valorant API",
+            };
+          }
+
+          const analyticsData = transformToAnalyticsData(validatedResponse);
+
+          return {
+            success: true,
+            data: analyticsData,
+            message: "Player stats retrieved successfully",
+          };
         } catch (clerkError) {
           console.error("Error fetching Clerk user metadata:", clerkError);
           return {
@@ -503,14 +523,16 @@ export const valorantStatsRouter = createTRPCRouter({
             message: "Unable to access player's Valorant connection",
           };
         }
-
       } catch (error) {
-        console.error("Error fetching Valorant player stats by player ID:", error);
-        
+        console.error(
+          "Error fetching Valorant player stats by player ID:",
+          error,
+        );
+
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         return {
           success: false,
           data: null,
@@ -529,7 +551,7 @@ export const valorantStatsRouter = createTRPCRouter({
         success: z.boolean(),
         data: z.custom<ValorantAnalyticsData>().nullable(),
         message: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx }) => {
       try {
@@ -541,23 +563,26 @@ export const valorantStatsRouter = createTRPCRouter({
 
         if (!player) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Player profile not found',
+            code: "NOT_FOUND",
+            message: "Player profile not found",
           });
         }
 
-                 // Use the getPlayerStatsByPlayerId logic for consistency
-         try {
-           const clerk = await clerkClient();
-           const clerkUser = await clerk.users.getUser(ctx.auth.userId!);
-           
-           const valorantMetadata = clerkUser.publicMetadata?.valorant as { puuid?: string } | undefined;
-          
+        // Use the getPlayerStatsByPlayerId logic for consistency
+        try {
+          const clerk = await clerkClient();
+          const clerkUser = await clerk.users.getUser(ctx.auth.userId!);
+
+          const valorantMetadata = clerkUser.publicMetadata?.valorant as
+            | { puuid?: string }
+            | undefined;
+
           if (!valorantMetadata?.puuid) {
             return {
               success: false,
               data: null,
-              message: "You haven't connected your Valorant account. Please connect it first.",
+              message:
+                "You haven't connected your Valorant account. Please connect it first.",
             };
           }
 
@@ -565,13 +590,16 @@ export const valorantStatsRouter = createTRPCRouter({
             puuid: valorantMetadata.puuid,
           });
 
-          const validatedResponse = ValorantPlayerStatsResponseSchema.parse(apiResponse);
-          
+          const validatedResponse =
+            ValorantPlayerStatsResponseSchema.parse(apiResponse);
+
           if (!validatedResponse.success) {
             return {
               success: false,
               data: null,
-              message: validatedResponse.message || "Failed to retrieve your stats from Valorant API",
+              message:
+                validatedResponse.message ||
+                "Failed to retrieve your stats from Valorant API",
             };
           }
 
@@ -582,7 +610,6 @@ export const valorantStatsRouter = createTRPCRouter({
             data: analyticsData,
             message: "Your stats retrieved successfully",
           };
-
         } catch (clerkError) {
           console.error("Error fetching user's Clerk metadata:", clerkError);
           return {
@@ -591,14 +618,13 @@ export const valorantStatsRouter = createTRPCRouter({
             message: "Unable to access your Valorant connection",
           };
         }
-
       } catch (error) {
         console.error("Error fetching player's Valorant stats:", error);
-        
+
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         return {
           success: false,
           data: null,
@@ -616,12 +642,12 @@ export const valorantStatsRouter = createTRPCRouter({
         apiStatus: z.string(),
         message: z.string(),
         timestamp: z.string(),
-      })
+      }),
     )
     .query(async () => {
       try {
         await makeValorantAPIRequest("/health");
-        
+
         return {
           apiStatus: "healthy",
           message: "Valorant API is operational",
@@ -629,7 +655,7 @@ export const valorantStatsRouter = createTRPCRouter({
         };
       } catch (error) {
         console.error("Valorant API health check failed:", error);
-        
+
         return {
           apiStatus: "unhealthy",
           message: "Valorant API is currently unavailable",
@@ -637,4 +663,4 @@ export const valorantStatsRouter = createTRPCRouter({
         };
       }
     }),
-}); 
+});

@@ -13,8 +13,7 @@ import { ZodError } from "zod";
 import { createClerkContext } from "../context";
 import { db } from "../db";
 
-
-import { clerkClient } from '@clerk/nextjs/server';
+import { clerkClient } from "@clerk/nextjs/server";
 
 /**
  * 1. CONTEXT
@@ -103,16 +102,16 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   return result;
 });
 
-
-
-
 // Check if the user is signed in and track timing
 // Otherwise, throw an UNAUTHORIZED code
 const isAuthed = t.middleware(async ({ next, ctx, path }) => {
   const start = Date.now();
 
   if (!ctx.auth.userId) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You must be signed in to do this' })
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be signed in to do this",
+    });
   }
 
   const result = await next({
@@ -125,7 +124,7 @@ const isAuthed = t.middleware(async ({ next, ctx, path }) => {
   console.log(`[TRPC Auth] ${path} took ${end - start}ms to execute`);
 
   return result;
-})
+});
 
 /**
  * Public (unauthenticated) procedure
@@ -152,15 +151,18 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
   // console.debug("DEBUG -2: ctx", ctx);
   // console.debug("DEBUG -1: ctx.auth", ctx.auth);
   // console.debug("DEBUG 0: ctx.auth.sessionClaims", ctx.auth.sessionClaims);
-  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as
+    | Record<string, unknown>
+    | undefined;
   // console.debug("DEBUG 1: publicMetadata", publicMetadata);
   // console.debug("DEBUG 2: ctx.auth.userId", ctx.auth.userId);
   // console.debug("DEBUG 3: (!publicMetadata?.onboarded || publicMetadata?.userType !== 'coach')...", (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach"));
-  
+
   if (!publicMetadata?.onboarded || publicMetadata?.userType !== "coach") {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Access denied. Only onboarded coaches can access this resource.',
+      code: "FORBIDDEN",
+      message:
+        "Access denied. Only onboarded coaches can access this resource.",
     });
   }
 
@@ -172,8 +174,8 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
 
   if (!coach) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Coach profile not found.',
+      code: "FORBIDDEN",
+      message: "Coach profile not found.",
     });
   }
 
@@ -190,7 +192,7 @@ const isOnboardedCoach = t.middleware(async ({ next, ctx }) => {
  * Middleware to verify user is a coach (including school_id)
  * Note: This middleware assumes the user is already authenticated (should be used after isAuthed)
  */
- 
+
 const isCoach = t.middleware(async ({ next, ctx }) => {
   const coach = await ctx.db.coach.findUnique({
     where: { clerk_id: ctx.auth.userId! }, // Safe to use ! because protectedProcedure ensures userId exists
@@ -199,8 +201,9 @@ const isCoach = t.middleware(async ({ next, ctx }) => {
 
   if (!coach) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Coach profile not found. Only coaches can access this resource.',
+      code: "FORBIDDEN",
+      message:
+        "Coach profile not found. Only coaches can access this resource.",
     });
   }
 
@@ -225,8 +228,9 @@ const isPlayer = t.middleware(async ({ next, ctx }) => {
 
   if (!player) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Player profile not found. Only players can access this resource.',
+      code: "FORBIDDEN",
+      message:
+        "Player profile not found. Only players can access this resource.",
     });
   }
 
@@ -246,13 +250,18 @@ const isAdmin = t.middleware(async ({ next, ctx }) => {
   // Get user from Clerk to check publicMetadata
   const client = await clerkClient();
   const user = await client.users.getUser(ctx.auth.userId!);
-  const privateMetadata = user.privateMetadata as Record<string, unknown> | undefined;
-  
+  const privateMetadata = user.privateMetadata as
+    | Record<string, unknown>
+    | undefined;
+
   if (!privateMetadata?.role || privateMetadata.role !== "admin") {
-    console.warn(`[SECURITY] Non-admin user ${ctx.auth.userId} attempted admin access`);
+    console.warn(
+      `[SECURITY] Non-admin user ${ctx.auth.userId} attempted admin access`,
+    );
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Admin access required. Only administrators can access this resource.',
+      code: "FORBIDDEN",
+      message:
+        "Admin access required. Only administrators can access this resource.",
     });
   }
 
@@ -307,12 +316,15 @@ export const adminProcedure = protectedProcedure.use(isAdmin);
  */
 const isOnboardedLeagueAdmin = t.middleware(async ({ next, ctx }) => {
   // Get user from Clerk to check publicMetadata
-  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
-  
+  const publicMetadata = ctx.auth.sessionClaims?.publicMetadata as
+    | Record<string, unknown>
+    | undefined;
+
   if (!publicMetadata?.onboarded || publicMetadata?.userType !== "league") {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Access denied. Only onboarded league administrators can access this resource.',
+      code: "FORBIDDEN",
+      message:
+        "Access denied. Only onboarded league administrators can access this resource.",
     });
   }
 
@@ -324,8 +336,8 @@ const isOnboardedLeagueAdmin = t.middleware(async ({ next, ctx }) => {
 
   if (!leagueAdmin) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'League administrator profile not found.',
+      code: "FORBIDDEN",
+      message: "League administrator profile not found.",
     });
   }
 
@@ -350,8 +362,9 @@ const isLeagueAdmin = t.middleware(async ({ next, ctx }) => {
 
   if (!leagueAdmin) {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'League administrator profile not found. Only league administrators can access this resource.',
+      code: "FORBIDDEN",
+      message:
+        "League administrator profile not found. Only league administrators can access this resource.",
     });
   }
 
@@ -370,7 +383,9 @@ const isLeagueAdmin = t.middleware(async ({ next, ctx }) => {
  * This is a procedure that requires the user to be signed in and be an onboarded league administrator.
  * It builds upon protectedProcedure, so authentication is handled automatically.
  */
-export const onboardedLeagueAdminProcedure = protectedProcedure.use(isOnboardedLeagueAdmin);
+export const onboardedLeagueAdminProcedure = protectedProcedure.use(
+  isOnboardedLeagueAdmin,
+);
 
 /**
  * League administrator procedure

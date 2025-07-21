@@ -65,9 +65,9 @@ export const FlipWords = ({
           position: "absolute",
         }}
         className={cn(
-          "z-10 inline-block relative text-left px-2",
+          "relative z-10 inline-block px-2 text-left",
           colors[currentColorIndex],
-          className
+          className,
         )}
         key={currentWord}
       >
@@ -102,4 +102,4 @@ export const FlipWords = ({
       </motion.div>
     </AnimatePresence>
   );
-}; 
+};

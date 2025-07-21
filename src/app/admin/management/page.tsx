@@ -6,22 +6,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { 
-  Trophy, 
-  Building, 
-  Search, 
-  Edit3, 
+import {
+  Trophy,
+  Building,
+  Search,
+  Edit3,
   Save,
   Loader2,
   ExternalLink,
   FolderOpen,
   Upload,
   AlertTriangle,
-  UserIcon
+  UserIcon,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -32,7 +44,7 @@ const ITEMS_PER_PAGE = 20;
 
 export default function AdminManagementPage() {
   const [activeTab, setActiveTab] = useState("leagues");
-  
+
   // Search and filter states
   const [leagueSearch, setLeagueSearch] = useState("");
   const [leaguePage, setLeaguePage] = useState(0);
@@ -40,7 +52,7 @@ export default function AdminManagementPage() {
   const [schoolPage, setSchoolPage] = useState(0);
   const [playerSearch, setPlayerSearch] = useState("");
   const [playerPage, setPlayerPage] = useState(0);
-  
+
   // Edit modal states
   const [editingLeague, setEditingLeague] = useState<{
     id: string;
@@ -81,21 +93,33 @@ export default function AdminManagementPage() {
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
   // Fetch leagues
-  const { data: leaguesData, isLoading: leaguesLoading, refetch: refetchLeagues } = api.adminDirectory.getLeagues.useQuery({
+  const {
+    data: leaguesData,
+    isLoading: leaguesLoading,
+    refetch: refetchLeagues,
+  } = api.adminDirectory.getLeagues.useQuery({
     search: leagueSearch || undefined,
     limit: ITEMS_PER_PAGE,
     offset: leaguePage * ITEMS_PER_PAGE,
   });
 
   // Fetch schools
-  const { data: schoolsData, isLoading: schoolsLoading, refetch: refetchSchools } = api.adminDirectory.getSchools.useQuery({
+  const {
+    data: schoolsData,
+    isLoading: schoolsLoading,
+    refetch: refetchSchools,
+  } = api.adminDirectory.getSchools.useQuery({
     search: schoolSearch || undefined,
     limit: ITEMS_PER_PAGE,
     offset: schoolPage * ITEMS_PER_PAGE,
   });
 
   // Fetch players
-  const { data: playersData, isLoading: playersLoading, refetch: refetchPlayers } = api.adminDirectory.getPlayers.useQuery({
+  const {
+    data: playersData,
+    isLoading: playersLoading,
+    refetch: refetchPlayers,
+  } = api.adminDirectory.getPlayers.useQuery({
     search: playerSearch || undefined,
     limit: ITEMS_PER_PAGE,
     offset: playerPage * ITEMS_PER_PAGE,
@@ -241,7 +265,7 @@ export default function AdminManagementPage() {
 
   const handleSaveLeague = () => {
     if (!editingLeague) return;
-    
+
     void updateLeagueMutation.mutate({
       id: editingLeague.id,
       name: editingLeague.name,
@@ -253,7 +277,7 @@ export default function AdminManagementPage() {
 
   const handleSaveSchool = () => {
     if (!editingSchool) return;
-    
+
     void updateSchoolMutation.mutate({
       id: editingSchool.id,
       bio: editingSchool.bio,
@@ -267,7 +291,7 @@ export default function AdminManagementPage() {
 
   const handleSavePlayer = () => {
     if (!editingPlayer) return;
-    
+
     void updatePlayerMutation.mutate({
       id: editingPlayer.id,
       main_game_id: editingPlayer.main_game_id,
@@ -286,9 +310,10 @@ export default function AdminManagementPage() {
   };
 
   const formatSchoolType = (type: string) => {
-    return type.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join(' ');
+    return type
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   };
 
   // File upload handlers for leagues
@@ -297,7 +322,8 @@ export default function AdminManagementPage() {
       setEditingLeague({ ...editingLeague, logo_url: url });
       toast({
         title: "Logo uploaded",
-        description: "League logo uploaded successfully. Remember to save your changes.",
+        description:
+          "League logo uploaded successfully. Remember to save your changes.",
       });
     }
   };
@@ -307,7 +333,8 @@ export default function AdminManagementPage() {
       setEditingLeague({ ...editingLeague, banner_url: url });
       toast({
         title: "Banner uploaded",
-        description: "League banner uploaded successfully. Remember to save your changes.",
+        description:
+          "League banner uploaded successfully. Remember to save your changes.",
       });
     }
   };
@@ -326,7 +353,8 @@ export default function AdminManagementPage() {
       setEditingSchool({ ...editingSchool, logo_url: url });
       toast({
         title: "Logo uploaded",
-        description: "School logo uploaded successfully. Remember to save your changes.",
+        description:
+          "School logo uploaded successfully. Remember to save your changes.",
       });
     }
   };
@@ -336,7 +364,8 @@ export default function AdminManagementPage() {
       setEditingSchool({ ...editingSchool, banner_url: url });
       toast({
         title: "Banner uploaded",
-        description: "School banner uploaded successfully. Remember to save your changes.",
+        description:
+          "School banner uploaded successfully. Remember to save your changes.",
       });
     }
   };
@@ -350,37 +379,38 @@ export default function AdminManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900/60 text-white relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-gray-900/60 text-white">
       {/* EVAL Chroma Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5" />
       <div className="absolute inset-0 bg-black/50" />
-      <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-cyan-500/8 to-transparent rounded-full blur-2xl"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-orange-500/8 to-transparent rounded-full blur-xl"></div>
-      
-      <div className="container mx-auto px-6 py-12 relative z-10">
+      <div className="absolute top-0 left-0 h-64 w-64 rounded-full bg-gradient-to-br from-cyan-500/8 to-transparent blur-2xl"></div>
+      <div className="absolute right-0 bottom-0 h-48 w-48 rounded-full bg-gradient-to-tl from-orange-500/8 to-transparent blur-xl"></div>
+
+      <div className="relative z-10 container mx-auto px-6 py-12">
         {/* Header with EVAL Rainbow Bar */}
-        <div className="text-center mb-12">
-          <h1 className="font-orbitron text-4xl md:text-6xl font-black text-white mb-4">
+        <div className="mb-12 text-center">
+          <h1 className="font-orbitron mb-4 text-4xl font-black text-white md:text-6xl">
             ADMIN MANAGEMENT
           </h1>
-          
+
           {/* EVAL Rainbow Divider */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cyan-400"></div>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500"></div>
-            <div className="w-8 h-0.5 bg-gradient-to-r from-purple-500 to-orange-500"></div>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-orange-500 to-transparent"></div>
+          <div className="mb-6 flex items-center justify-center">
+            <div className="h-0.5 w-12 bg-gradient-to-r from-transparent to-cyan-400"></div>
+            <div className="h-0.5 w-8 bg-gradient-to-r from-cyan-400 to-purple-500"></div>
+            <div className="h-0.5 w-8 bg-gradient-to-r from-purple-500 to-orange-500"></div>
+            <div className="h-0.5 w-12 bg-gradient-to-r from-orange-500 to-transparent"></div>
           </div>
-          
-          <p className="text-lg text-gray-300 max-w-3xl mx-auto font-medium">
-            Manage leagues, schools, and players across the EVAL platform with advanced editing capabilities.
+
+          <p className="mx-auto max-w-3xl text-lg font-medium text-gray-300">
+            Manage leagues, schools, and players across the EVAL platform with
+            advanced editing capabilities.
           </p>
-          
+
           {/* Quick Action Button */}
           <div className="mt-6">
             <Link href="/admin/directory">
-              <Button className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-black font-orbitron font-bold px-8 py-3 rounded-lg shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
-                <FolderOpen className="w-5 h-5 mr-2" />
+              <Button className="font-orbitron rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500 px-8 py-3 font-bold text-black shadow-lg transition-all duration-300 hover:from-purple-600 hover:to-cyan-600 hover:shadow-purple-500/25">
+                <FolderOpen className="mr-2 h-5 w-5" />
                 VIEW DIRECTORY
               </Button>
             </Link>
@@ -388,35 +418,37 @@ export default function AdminManagementPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-8 bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-lg p-1">
-            <TabsTrigger 
-              value="leagues" 
-              className="font-orbitron font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-400 data-[state=active]:to-cyan-500 data-[state=active]:text-black data-[state=active]:shadow-lg text-gray-300 hover:text-white transition-all duration-300 rounded-md px-6 py-2"
+          <TabsList className="mb-8 rounded-lg border border-white/10 bg-gray-900/50 p-1 backdrop-blur-sm">
+            <TabsTrigger
+              value="leagues"
+              className="font-orbitron rounded-md px-6 py-2 font-bold text-gray-300 transition-all duration-300 hover:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-400 data-[state=active]:to-cyan-500 data-[state=active]:text-black data-[state=active]:shadow-lg"
             >
-              <Trophy className="w-4 h-4 mr-2" />
+              <Trophy className="mr-2 h-4 w-4" />
               LEAGUES
             </TabsTrigger>
-            <TabsTrigger 
-              value="schools" 
-              className="font-orbitron font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-orange-500 data-[state=active]:text-black data-[state=active]:shadow-lg text-gray-300 hover:text-white transition-all duration-300 rounded-md px-6 py-2"
+            <TabsTrigger
+              value="schools"
+              className="font-orbitron rounded-md px-6 py-2 font-bold text-gray-300 transition-all duration-300 hover:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-orange-500 data-[state=active]:text-black data-[state=active]:shadow-lg"
             >
-              <Building className="w-4 h-4 mr-2" />
+              <Building className="mr-2 h-4 w-4" />
               SCHOOLS
             </TabsTrigger>
-            <TabsTrigger 
-              value="players" 
-              className="font-orbitron font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-400 data-[state=active]:to-purple-500 data-[state=active]:text-black data-[state=active]:shadow-lg text-gray-300 hover:text-white transition-all duration-300 rounded-md px-6 py-2"
+            <TabsTrigger
+              value="players"
+              className="font-orbitron rounded-md px-6 py-2 font-bold text-gray-300 transition-all duration-300 hover:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-400 data-[state=active]:to-purple-500 data-[state=active]:text-black data-[state=active]:shadow-lg"
             >
-              <UserIcon className="w-4 h-4 mr-2" />
+              <UserIcon className="mr-2 h-4 w-4" />
               PLAYERS
             </TabsTrigger>
           </TabsList>
 
           {/* Leagues Tab */}
           <TabsContent value="leagues" className="space-y-6">
-            <Card className="bg-gray-900/50 backdrop-blur-sm border-white/10 shadow-2xl rounded-lg">
+            <Card className="rounded-lg border-white/10 bg-gray-900/50 shadow-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="font-orbitron text-white text-xl font-bold">League Management</CardTitle>
+                <CardTitle className="font-orbitron text-xl font-bold text-white">
+                  League Management
+                </CardTitle>
                 <CardDescription className="text-gray-400">
                   Edit league information, descriptions, logos, and banners
                 </CardDescription>
@@ -424,7 +456,7 @@ export default function AdminManagementPage() {
               <CardContent className="space-y-4">
                 {/* Search */}
                 <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Search leagues..."
                     value={leagueSearch}
@@ -432,7 +464,7 @@ export default function AdminManagementPage() {
                       setLeagueSearch(e.target.value);
                       setLeaguePage(0);
                     }}
-                    className="pl-10 bg-gray-800/50 border-white/20 text-white placeholder:text-gray-400"
+                    className="border-white/20 bg-gray-800/50 pl-10 text-white placeholder:text-gray-400"
                   />
                 </div>
 
@@ -440,19 +472,24 @@ export default function AdminManagementPage() {
                 {leaguesLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="flex items-center space-x-3">
-                      <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
-                      <span className="text-gray-300 font-medium">Loading leagues...</span>
+                      <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+                      <span className="font-medium text-gray-300">
+                        Loading leagues...
+                      </span>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {leaguesData?.leagues.map((league) => (
-                      <Card key={league.id} className="bg-gray-800/30 border-white/10 hover:border-cyan-400/30 transition-all duration-300 group">
+                      <Card
+                        key={league.id}
+                        className="group border-white/10 bg-gray-800/30 transition-all duration-300 hover:border-cyan-400/30"
+                      >
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {league.logo_url ? (
-                                <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                                <div className="relative h-16 w-16 overflow-hidden rounded-lg">
                                   <Image
                                     src={league.logo_url}
                                     alt={`${league.name} logo`}
@@ -461,47 +498,61 @@ export default function AdminManagementPage() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-16 h-16 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-700/50">
                                   <Trophy className="h-8 w-8 text-gray-400" />
                                 </div>
                               )}
-                              
+
                               <div>
-                                <h3 className="font-orbitron text-lg font-bold text-white group-hover:text-cyan-200 transition-colors">
+                                <h3 className="font-orbitron text-lg font-bold text-white transition-colors group-hover:text-cyan-200">
                                   {league.name}
                                 </h3>
-                                <p className="text-gray-400 font-medium">
-                                  {league.region}{league.state && `, ${league.state}`} • {league.season}
+                                <p className="font-medium text-gray-400">
+                                  {league.region}
+                                  {league.state && `, ${league.state}`} •{" "}
+                                  {league.season}
                                 </p>
-                                <div className="flex space-x-2 mt-2">
-                                  <Badge 
-                                    variant="secondary" 
-                                    className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                                <div className="mt-2 flex space-x-2">
+                                  <Badge
+                                    variant="secondary"
+                                    className="border-cyan-500/30 bg-cyan-500/20 text-cyan-400"
                                   >
                                     {league.tier}
                                   </Badge>
-                                  <Badge 
-                                    variant={league.status === 'ACTIVE' ? 'default' : 'outline'}
-                                    className={league.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border-green-500/30' : ''}
+                                  <Badge
+                                    variant={
+                                      league.status === "ACTIVE"
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    className={
+                                      league.status === "ACTIVE"
+                                        ? "border-green-500/30 bg-green-500/20 text-green-400"
+                                        : ""
+                                    }
                                   >
                                     {league.status}
                                   </Badge>
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center space-x-2">
                               <Link href={`/profiles/leagues/${league.id}`}>
-                                <Button variant="outline" size="sm" className="border-white/20 text-gray-300 hover:text-white">
-                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-white/20 text-gray-300 hover:text-white"
+                                >
+                                  <ExternalLink className="mr-2 h-4 w-4" />
                                   View Profile
                                 </Button>
                               </Link>
-                              <Button 
+                              <Button
                                 onClick={() => handleEditLeague(league)}
-                                className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-black font-bold"
+                                className="bg-gradient-to-r from-cyan-500 to-cyan-600 font-bold text-black hover:from-cyan-600 hover:to-cyan-700"
                               >
-                                <Edit3 className="h-4 w-4 mr-2" />
+                                <Edit3 className="mr-2 h-4 w-4" />
                                 Edit
                               </Button>
                             </div>
@@ -511,22 +562,29 @@ export default function AdminManagementPage() {
                     ))}
 
                     {/* Pagination */}
-                    <div className="flex justify-between items-center pt-4">
+                    <div className="flex items-center justify-between pt-4">
                       <p className="text-sm text-gray-400">
-                        Showing {leaguePage * ITEMS_PER_PAGE + 1} to {Math.min((leaguePage + 1) * ITEMS_PER_PAGE, leaguesData?.total ?? 0)} of {leaguesData?.total ?? 0} leagues
+                        Showing {leaguePage * ITEMS_PER_PAGE + 1} to{" "}
+                        {Math.min(
+                          (leaguePage + 1) * ITEMS_PER_PAGE,
+                          leaguesData?.total ?? 0,
+                        )}{" "}
+                        of {leaguesData?.total ?? 0} leagues
                       </p>
-                      
+
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setLeaguePage(Math.max(0, leaguePage - 1))}
+                          onClick={() =>
+                            setLeaguePage(Math.max(0, leaguePage - 1))
+                          }
                           disabled={leaguePage === 0}
                           className="border-white/20 text-gray-300 hover:text-white"
                         >
                           Previous
                         </Button>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -546,9 +604,11 @@ export default function AdminManagementPage() {
 
           {/* Schools Tab */}
           <TabsContent value="schools" className="space-y-6">
-            <Card className="bg-gray-900/50 backdrop-blur-sm border-white/10 shadow-2xl rounded-lg">
+            <Card className="rounded-lg border-white/10 bg-gray-900/50 shadow-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="font-orbitron text-white text-xl font-bold">School Management</CardTitle>
+                <CardTitle className="font-orbitron text-xl font-bold text-white">
+                  School Management
+                </CardTitle>
                 <CardDescription className="text-gray-400">
                   Edit school information, bios, contact details, and assets
                 </CardDescription>
@@ -556,7 +616,7 @@ export default function AdminManagementPage() {
               <CardContent className="space-y-4">
                 {/* Search */}
                 <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Search schools..."
                     value={schoolSearch}
@@ -564,7 +624,7 @@ export default function AdminManagementPage() {
                       setSchoolSearch(e.target.value);
                       setSchoolPage(0);
                     }}
-                    className="pl-10 bg-gray-800/50 border-white/20 text-white placeholder:text-gray-400"
+                    className="border-white/20 bg-gray-800/50 pl-10 text-white placeholder:text-gray-400"
                   />
                 </div>
 
@@ -572,19 +632,24 @@ export default function AdminManagementPage() {
                 {schoolsLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="flex items-center space-x-3">
-                      <Loader2 className="w-6 h-6 animate-spin text-orange-400" />
-                      <span className="text-gray-300 font-medium">Loading schools...</span>
+                      <Loader2 className="h-6 w-6 animate-spin text-orange-400" />
+                      <span className="font-medium text-gray-300">
+                        Loading schools...
+                      </span>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {schoolsData?.schools.map((school) => (
-                      <Card key={school.id} className="bg-gray-800/30 border-white/10 hover:border-orange-400/30 transition-all duration-300 group">
+                      <Card
+                        key={school.id}
+                        className="group border-white/10 bg-gray-800/30 transition-all duration-300 hover:border-orange-400/30"
+                      >
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {school.logo_url ? (
-                                <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                                <div className="relative h-16 w-16 overflow-hidden rounded-lg">
                                   <Image
                                     src={school.logo_url}
                                     alt={`${school.name} logo`}
@@ -593,38 +658,43 @@ export default function AdminManagementPage() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-16 h-16 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-700/50">
                                   <Building className="h-8 w-8 text-gray-400" />
                                 </div>
                               )}
-                              
+
                               <div>
-                                <h3 className="font-orbitron text-lg font-bold text-white group-hover:text-orange-200 transition-colors">
+                                <h3 className="font-orbitron text-lg font-bold text-white transition-colors group-hover:text-orange-200">
                                   {school.name}
                                 </h3>
-                                <p className="text-gray-400 font-medium">
-                                  {formatSchoolType(school.type)} • {school.location}, {school.state}
+                                <p className="font-medium text-gray-400">
+                                  {formatSchoolType(school.type)} •{" "}
+                                  {school.location}, {school.state}
                                 </p>
-                                <div className="flex space-x-4 text-sm text-gray-500 mt-1">
+                                <div className="mt-1 flex space-x-4 text-sm text-gray-500">
                                   <span>{school._count.coaches} coaches</span>
                                   <span>{school._count.players} players</span>
                                   <span>{school._count.teams} teams</span>
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center space-x-2">
                               <Link href={`/profiles/school/${school.id}`}>
-                                <Button variant="outline" size="sm" className="border-white/20 text-gray-300 hover:text-white">
-                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-white/20 text-gray-300 hover:text-white"
+                                >
+                                  <ExternalLink className="mr-2 h-4 w-4" />
                                   View Profile
                                 </Button>
                               </Link>
-                              <Button 
+                              <Button
                                 onClick={() => handleEditSchool(school)}
-                                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black font-bold"
+                                className="bg-gradient-to-r from-orange-500 to-orange-600 font-bold text-black hover:from-orange-600 hover:to-orange-700"
                               >
-                                <Edit3 className="h-4 w-4 mr-2" />
+                                <Edit3 className="mr-2 h-4 w-4" />
                                 Edit
                               </Button>
                             </div>
@@ -634,22 +704,29 @@ export default function AdminManagementPage() {
                     ))}
 
                     {/* Pagination */}
-                    <div className="flex justify-between items-center pt-4">
+                    <div className="flex items-center justify-between pt-4">
                       <p className="text-sm text-gray-400">
-                        Showing {schoolPage * ITEMS_PER_PAGE + 1} to {Math.min((schoolPage + 1) * ITEMS_PER_PAGE, schoolsData?.total ?? 0)} of {schoolsData?.total ?? 0} schools
+                        Showing {schoolPage * ITEMS_PER_PAGE + 1} to{" "}
+                        {Math.min(
+                          (schoolPage + 1) * ITEMS_PER_PAGE,
+                          schoolsData?.total ?? 0,
+                        )}{" "}
+                        of {schoolsData?.total ?? 0} schools
                       </p>
-                      
+
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSchoolPage(Math.max(0, schoolPage - 1))}
+                          onClick={() =>
+                            setSchoolPage(Math.max(0, schoolPage - 1))
+                          }
                           disabled={schoolPage === 0}
                           className="border-white/20 text-gray-300 hover:text-white"
                         >
                           Previous
                         </Button>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -669,17 +746,20 @@ export default function AdminManagementPage() {
 
           {/* Players Tab */}
           <TabsContent value="players" className="space-y-6">
-            <Card className="bg-gray-900/50 backdrop-blur-sm border-white/10 shadow-2xl rounded-lg">
+            <Card className="rounded-lg border-white/10 bg-gray-900/50 shadow-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="font-orbitron text-white text-xl font-bold">Player Management</CardTitle>
+                <CardTitle className="font-orbitron text-xl font-bold text-white">
+                  Player Management
+                </CardTitle>
                 <CardDescription className="text-gray-400">
-                  Edit player information, academic details, contact information, and main game settings
+                  Edit player information, academic details, contact
+                  information, and main game settings
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Search */}
                 <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Search className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Search players..."
                     value={playerSearch}
@@ -687,7 +767,7 @@ export default function AdminManagementPage() {
                       setPlayerSearch(e.target.value);
                       setPlayerPage(0);
                     }}
-                    className="pl-10 bg-gray-800/50 border-white/20 text-white placeholder:text-gray-400"
+                    className="border-white/20 bg-gray-800/50 pl-10 text-white placeholder:text-gray-400"
                   />
                 </div>
 
@@ -695,19 +775,24 @@ export default function AdminManagementPage() {
                 {playersLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="flex items-center space-x-3">
-                      <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
-                      <span className="text-gray-300 font-medium">Loading players...</span>
+                      <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
+                      <span className="font-medium text-gray-300">
+                        Loading players...
+                      </span>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {playersData?.players.map((player) => (
-                      <Card key={player.id} className="bg-gray-800/30 border-white/10 hover:border-purple-400/30 transition-all duration-300 group">
+                      <Card
+                        key={player.id}
+                        className="group border-white/10 bg-gray-800/30 transition-all duration-300 hover:border-purple-400/30"
+                      >
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                               {player.image_url ? (
-                                <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                                <div className="relative h-16 w-16 overflow-hidden rounded-lg">
                                   <Image
                                     src={player.image_url}
                                     alt={`${player.first_name} ${player.last_name}`}
@@ -716,40 +801,47 @@ export default function AdminManagementPage() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-16 h-16 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-700/50">
                                   <UserIcon className="h-8 w-8 text-gray-400" />
                                 </div>
                               )}
-                              
+
                               <div>
-                                <h3 className="font-orbitron text-lg font-bold text-white group-hover:text-purple-200 transition-colors">
+                                <h3 className="font-orbitron text-lg font-bold text-white transition-colors group-hover:text-purple-200">
                                   {player.first_name} {player.last_name}
                                 </h3>
-                                <p className="text-gray-400 font-medium">
-                                  {player.username && `@${player.username}`} • {player.email}
+                                <p className="font-medium text-gray-400">
+                                  {player.username && `@${player.username}`} •{" "}
+                                  {player.email}
                                 </p>
-                                <div className="flex space-x-4 text-sm text-gray-500 mt-1">
-                                  {player.school && <span>{player.school}</span>}
-                                  {player.class_year && <span>Class of {player.class_year}</span>}
-                                  {player.location && <span>{player.location}</span>}
+                                <div className="mt-1 flex space-x-4 text-sm text-gray-500">
+                                  {player.school && (
+                                    <span>{player.school}</span>
+                                  )}
+                                  {player.class_year && (
+                                    <span>Class of {player.class_year}</span>
+                                  )}
+                                  {player.location && (
+                                    <span>{player.location}</span>
+                                  )}
                                 </div>
-                                <div className="flex space-x-2 mt-2">
+                                <div className="mt-2 flex space-x-2">
                                   {player.main_game ? (
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="bg-purple-500/20 text-purple-400 border-purple-500/30"
+                                    <Badge
+                                      variant="secondary"
+                                      className="border-purple-500/30 bg-purple-500/20 text-purple-400"
                                     >
                                       Main: {player.main_game.short_name}
                                     </Badge>
                                   ) : (
-                                    <Badge 
+                                    <Badge
                                       variant="outline"
                                       className="border-yellow-500/30 text-yellow-400"
                                     >
                                       No main game
                                     </Badge>
                                   )}
-                                  <Badge 
+                                  <Badge
                                     variant="outline"
                                     className="border-gray-500/30 text-gray-400"
                                   >
@@ -758,37 +850,47 @@ export default function AdminManagementPage() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center space-x-2">
                               {player.username && (
-                                <Link href={`/profiles/player/${player.username}`}>
-                                  <Button variant="outline" size="sm" className="border-white/20 text-gray-300 hover:text-white">
-                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                <Link
+                                  href={`/profiles/player/${player.username}`}
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-white/20 text-gray-300 hover:text-white"
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />
                                     View Profile
                                   </Button>
                                 </Link>
                               )}
-                              <Button 
-                                onClick={() => handleEditPlayer({
-                                  id: player.id,
-                                  first_name: player.first_name,
-                                  last_name: player.last_name,
-                                  main_game_id: player.main_game?.id ?? null,
-                                  location: player.location,
-                                  bio: player.bio,
-                                  gpa: player.gpa ? Number(player.gpa) : null,
-                                  class_year: player.class_year,
-                                  graduation_date: player.graduation_date,
-                                  intended_major: player.intended_major,
-                                  guardian_email: player.guardian_email,
-                                  scholastic_contact: player.scholastic_contact,
-                                  scholastic_contact_email: player.scholastic_contact_email,
-                                  extra_curriculars: player.extra_curriculars,
-                                  academic_bio: player.academic_bio,
-                                })}
-                                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-black font-bold"
+                              <Button
+                                onClick={() =>
+                                  handleEditPlayer({
+                                    id: player.id,
+                                    first_name: player.first_name,
+                                    last_name: player.last_name,
+                                    main_game_id: player.main_game?.id ?? null,
+                                    location: player.location,
+                                    bio: player.bio,
+                                    gpa: player.gpa ? Number(player.gpa) : null,
+                                    class_year: player.class_year,
+                                    graduation_date: player.graduation_date,
+                                    intended_major: player.intended_major,
+                                    guardian_email: player.guardian_email,
+                                    scholastic_contact:
+                                      player.scholastic_contact,
+                                    scholastic_contact_email:
+                                      player.scholastic_contact_email,
+                                    extra_curriculars: player.extra_curriculars,
+                                    academic_bio: player.academic_bio,
+                                  })
+                                }
+                                className="bg-gradient-to-r from-purple-500 to-purple-600 font-bold text-black hover:from-purple-600 hover:to-purple-700"
                               >
-                                <Edit3 className="h-4 w-4 mr-2" />
+                                <Edit3 className="mr-2 h-4 w-4" />
                                 Edit
                               </Button>
                             </div>
@@ -798,22 +900,29 @@ export default function AdminManagementPage() {
                     ))}
 
                     {/* Pagination */}
-                    <div className="flex justify-between items-center pt-4">
+                    <div className="flex items-center justify-between pt-4">
                       <p className="text-sm text-gray-400">
-                        Showing {playerPage * ITEMS_PER_PAGE + 1} to {Math.min((playerPage + 1) * ITEMS_PER_PAGE, playersData?.total ?? 0)} of {playersData?.total ?? 0} players
+                        Showing {playerPage * ITEMS_PER_PAGE + 1} to{" "}
+                        {Math.min(
+                          (playerPage + 1) * ITEMS_PER_PAGE,
+                          playersData?.total ?? 0,
+                        )}{" "}
+                        of {playersData?.total ?? 0} players
                       </p>
-                      
+
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setPlayerPage(Math.max(0, playerPage - 1))}
+                          onClick={() =>
+                            setPlayerPage(Math.max(0, playerPage - 1))
+                          }
                           disabled={playerPage === 0}
                           className="border-white/20 text-gray-300 hover:text-white"
                         >
                           Previous
                         </Button>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -834,67 +943,97 @@ export default function AdminManagementPage() {
 
         {/* League Edit Modal */}
         <Dialog open={isLeagueModalOpen} onOpenChange={setIsLeagueModalOpen}>
-          <DialogContent className="bg-gray-900 border-white/20 text-white max-w-2xl">
+          <DialogContent className="max-w-2xl border-white/20 bg-gray-900 text-white">
             <DialogHeader>
-              <DialogTitle className="font-orbitron text-xl font-bold text-cyan-400">Edit League</DialogTitle>
+              <DialogTitle className="font-orbitron text-xl font-bold text-cyan-400">
+                Edit League
+              </DialogTitle>
               <DialogDescription className="text-gray-400">
                 Update league information, description, and assets
               </DialogDescription>
             </DialogHeader>
-            
+
             {editingLeague && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="league-name" className="text-white font-medium">League Name</Label>
+                  <Label
+                    htmlFor="league-name"
+                    className="font-medium text-white"
+                  >
+                    League Name
+                  </Label>
                   <Input
                     id="league-name"
                     value={editingLeague.name}
-                    onChange={(e) => setEditingLeague({...editingLeague, name: e.target.value})}
-                    className="bg-gray-800/50 border-white/20 text-white"
+                    onChange={(e) =>
+                      setEditingLeague({
+                        ...editingLeague,
+                        name: e.target.value,
+                      })
+                    }
+                    className="border-white/20 bg-gray-800/50 text-white"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="league-description" className="text-white font-medium">Description</Label>
+                  <Label
+                    htmlFor="league-description"
+                    className="font-medium text-white"
+                  >
+                    Description
+                  </Label>
                   <Textarea
                     id="league-description"
                     value={editingLeague.description}
-                    onChange={(e) => setEditingLeague({...editingLeague, description: e.target.value})}
+                    onChange={(e) =>
+                      setEditingLeague({
+                        ...editingLeague,
+                        description: e.target.value,
+                      })
+                    }
                     rows={4}
-                    className="bg-gray-800/50 border-white/20 text-white"
+                    className="border-white/20 bg-gray-800/50 text-white"
                   />
                 </div>
-                
+
                 {/* Asset Management Section */}
                 <div className="space-y-6">
                   <div className="border-t border-white/10 pt-6">
-                    <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+                    <h4 className="mb-4 flex items-center gap-2 font-semibold text-white">
                       <Upload className="h-5 w-5 text-cyan-400" />
                       League Assets
                     </h4>
-                    
+
                     {/* Warning about URL override */}
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-6">
+                    <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-3">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
                         <div className="text-sm">
-                          <p className="text-yellow-200 font-medium mb-1">Asset Management</p>
+                          <p className="mb-1 font-medium text-yellow-200">
+                            Asset Management
+                          </p>
                           <p className="text-yellow-100/80">
-                            You can either upload files to Supabase storage or provide direct URLs. 
-                            <span className="font-semibold"> Entering a URL will override any uploaded files.</span>
+                            You can either upload files to Supabase storage or
+                            provide direct URLs.
+                            <span className="font-semibold">
+                              {" "}
+                              Entering a URL will override any uploaded files.
+                            </span>
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                       {/* League Logo Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h5 className="font-medium text-cyan-200">Logo</h5>
-                          <span className="text-xs text-gray-500">400x400px recommended</span>
+                          <span className="text-xs text-gray-500">
+                            400x400px recommended
+                          </span>
                         </div>
-                        
+
                         {/* File Upload */}
                         <FileUpload
                           bucket="LEAGUES"
@@ -907,27 +1046,39 @@ export default function AdminManagementPage() {
                           onUploadError={handleLeagueUploadError}
                           disabled={updateLeagueMutation.isPending}
                         />
-                        
+
                         {/* URL Override */}
                         <div className="space-y-2">
-                          <Label htmlFor="league-logo" className="text-white font-medium">Or use direct URL</Label>
+                          <Label
+                            htmlFor="league-logo"
+                            className="font-medium text-white"
+                          >
+                            Or use direct URL
+                          </Label>
                           <Input
                             id="league-logo"
                             value={editingLeague.logo_url}
-                            onChange={(e) => setEditingLeague({...editingLeague, logo_url: e.target.value})}
+                            onChange={(e) =>
+                              setEditingLeague({
+                                ...editingLeague,
+                                logo_url: e.target.value,
+                              })
+                            }
                             placeholder="https://..."
-                            className="bg-gray-800/50 border-white/20 text-white"
+                            className="border-white/20 bg-gray-800/50 text-white"
                           />
                         </div>
                       </div>
-                      
+
                       {/* League Banner Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h5 className="font-medium text-cyan-200">Banner</h5>
-                          <span className="text-xs text-gray-500">1200x300px recommended</span>
+                          <span className="text-xs text-gray-500">
+                            1200x300px recommended
+                          </span>
                         </div>
-                        
+
                         {/* File Upload */}
                         <FileUpload
                           bucket="LEAGUES"
@@ -940,38 +1091,53 @@ export default function AdminManagementPage() {
                           onUploadError={handleLeagueUploadError}
                           disabled={updateLeagueMutation.isPending}
                         />
-                        
+
                         {/* URL Override */}
                         <div className="space-y-2">
-                          <Label htmlFor="league-banner" className="text-white font-medium">Or use direct URL</Label>
+                          <Label
+                            htmlFor="league-banner"
+                            className="font-medium text-white"
+                          >
+                            Or use direct URL
+                          </Label>
                           <Input
                             id="league-banner"
                             value={editingLeague.banner_url}
-                            onChange={(e) => setEditingLeague({...editingLeague, banner_url: e.target.value})}
+                            onChange={(e) =>
+                              setEditingLeague({
+                                ...editingLeague,
+                                banner_url: e.target.value,
+                              })
+                            }
                             placeholder="https://..."
-                            className="bg-gray-800/50 border-white/20 text-white"
+                            className="border-white/20 bg-gray-800/50 text-white"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Preview */}
                 {(editingLeague.logo_url || editingLeague.banner_url) && (
                   <div className="space-y-4">
                     <h4 className="font-medium text-white">Preview</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {editingLeague.logo_url && (
                         <div className="space-y-2">
                           <p className="text-sm text-gray-400">Logo</p>
-                          <div className="relative w-24 h-24 bg-gray-800/50 rounded-lg overflow-hidden">
+                          <div className="relative h-24 w-24 overflow-hidden rounded-lg bg-gray-800/50">
                             <Image
                               src={editingLeague.logo_url}
                               alt="Logo preview"
                               fill
                               className="object-cover"
-                              onError={() => setEditingLeague({...editingLeague, logo_url: ""})}
+                              onError={() =>
+                                setEditingLeague({
+                                  ...editingLeague,
+                                  logo_url: "",
+                                })
+                              }
                             />
                           </div>
                         </div>
@@ -979,13 +1145,18 @@ export default function AdminManagementPage() {
                       {editingLeague.banner_url && (
                         <div className="space-y-2">
                           <p className="text-sm text-gray-400">Banner</p>
-                          <div className="relative w-full h-24 bg-gray-800/50 rounded-lg overflow-hidden">
+                          <div className="relative h-24 w-full overflow-hidden rounded-lg bg-gray-800/50">
                             <Image
                               src={editingLeague.banner_url}
                               alt="Banner preview"
                               fill
                               className="object-cover"
-                              onError={() => setEditingLeague({...editingLeague, banner_url: ""})}
+                              onError={() =>
+                                setEditingLeague({
+                                  ...editingLeague,
+                                  banner_url: "",
+                                })
+                              }
                             />
                           </div>
                         </div>
@@ -993,28 +1164,28 @@ export default function AdminManagementPage() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="flex justify-end space-x-3 pt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setIsLeagueModalOpen(false)}
                     className="border-white/20 text-gray-300 hover:text-white"
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSaveLeague}
                     disabled={updateLeagueMutation.isPending}
-                    className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-black font-bold"
+                    className="bg-gradient-to-r from-cyan-500 to-cyan-600 font-bold text-black hover:from-cyan-600 hover:to-cyan-700"
                   >
                     {updateLeagueMutation.isPending ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" />
+                        <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
                     )}
@@ -1027,93 +1198,143 @@ export default function AdminManagementPage() {
 
         {/* School Edit Modal */}
         <Dialog open={isSchoolModalOpen} onOpenChange={setIsSchoolModalOpen}>
-          <DialogContent className="bg-gray-900 border-white/20 text-white max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto border-white/20 bg-gray-900 text-white">
             <DialogHeader>
-              <DialogTitle className="font-orbitron text-xl font-bold text-orange-400">Edit School</DialogTitle>
+              <DialogTitle className="font-orbitron text-xl font-bold text-orange-400">
+                Edit School
+              </DialogTitle>
               <DialogDescription className="text-gray-400">
                 Update school information, contact details, and assets
               </DialogDescription>
             </DialogHeader>
-            
+
             {editingSchool && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="school-bio" className="text-white font-medium">Bio/Description</Label>
+                  <Label
+                    htmlFor="school-bio"
+                    className="font-medium text-white"
+                  >
+                    Bio/Description
+                  </Label>
                   <Textarea
                     id="school-bio"
                     value={editingSchool.bio}
-                    onChange={(e) => setEditingSchool({...editingSchool, bio: e.target.value})}
+                    onChange={(e) =>
+                      setEditingSchool({
+                        ...editingSchool,
+                        bio: e.target.value,
+                      })
+                    }
                     rows={4}
-                    className="bg-gray-800/50 border-white/20 text-white"
+                    className="border-white/20 bg-gray-800/50 text-white"
                     placeholder="School description and information..."
                   />
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="school-website" className="text-white font-medium">Website</Label>
+                    <Label
+                      htmlFor="school-website"
+                      className="font-medium text-white"
+                    >
+                      Website
+                    </Label>
                     <Input
                       id="school-website"
                       value={editingSchool.website}
-                      onChange={(e) => setEditingSchool({...editingSchool, website: e.target.value})}
+                      onChange={(e) =>
+                        setEditingSchool({
+                          ...editingSchool,
+                          website: e.target.value,
+                        })
+                      }
                       placeholder="https://..."
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="school-email" className="text-white font-medium">Email</Label>
+                    <Label
+                      htmlFor="school-email"
+                      className="font-medium text-white"
+                    >
+                      Email
+                    </Label>
                     <Input
                       id="school-email"
                       value={editingSchool.email}
-                      onChange={(e) => setEditingSchool({...editingSchool, email: e.target.value})}
+                      onChange={(e) =>
+                        setEditingSchool({
+                          ...editingSchool,
+                          email: e.target.value,
+                        })
+                      }
                       placeholder="contact@school.edu"
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="school-phone" className="text-white font-medium">Phone</Label>
+                    <Label
+                      htmlFor="school-phone"
+                      className="font-medium text-white"
+                    >
+                      Phone
+                    </Label>
                     <Input
                       id="school-phone"
                       value={editingSchool.phone}
-                      onChange={(e) => setEditingSchool({...editingSchool, phone: e.target.value})}
+                      onChange={(e) =>
+                        setEditingSchool({
+                          ...editingSchool,
+                          phone: e.target.value,
+                        })
+                      }
                       placeholder="(555) 123-4567"
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
                 </div>
-                
+
                 {/* Asset Management Section */}
                 <div className="space-y-6">
                   <div className="border-t border-white/10 pt-6">
-                    <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
+                    <h4 className="mb-4 flex items-center gap-2 font-semibold text-white">
                       <Upload className="h-5 w-5 text-orange-400" />
                       School Assets
                     </h4>
-                    
+
                     {/* Warning about URL override */}
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-6">
+                    <div className="mb-6 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-3">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
                         <div className="text-sm">
-                          <p className="text-yellow-200 font-medium mb-1">Asset Management</p>
+                          <p className="mb-1 font-medium text-yellow-200">
+                            Asset Management
+                          </p>
                           <p className="text-yellow-100/80">
-                            You can either upload files to Supabase storage or provide direct URLs. 
-                            <span className="font-semibold"> Entering a URL will override any uploaded files.</span>
+                            You can either upload files to Supabase storage or
+                            provide direct URLs.
+                            <span className="font-semibold">
+                              {" "}
+                              Entering a URL will override any uploaded files.
+                            </span>
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                       {/* School Logo Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h5 className="font-medium text-orange-200">Logo</h5>
-                          <span className="text-xs text-gray-500">400x400px recommended</span>
+                          <span className="text-xs text-gray-500">
+                            400x400px recommended
+                          </span>
                         </div>
-                        
+
                         {/* File Upload */}
                         <FileUpload
                           bucket="SCHOOLS"
@@ -1126,27 +1347,41 @@ export default function AdminManagementPage() {
                           onUploadError={handleSchoolUploadError}
                           disabled={updateSchoolMutation.isPending}
                         />
-                        
+
                         {/* URL Override */}
                         <div className="space-y-2">
-                          <Label htmlFor="school-logo" className="text-white font-medium">Or use direct URL</Label>
+                          <Label
+                            htmlFor="school-logo"
+                            className="font-medium text-white"
+                          >
+                            Or use direct URL
+                          </Label>
                           <Input
                             id="school-logo"
                             value={editingSchool.logo_url}
-                            onChange={(e) => setEditingSchool({...editingSchool, logo_url: e.target.value})}
+                            onChange={(e) =>
+                              setEditingSchool({
+                                ...editingSchool,
+                                logo_url: e.target.value,
+                              })
+                            }
                             placeholder="https://..."
-                            className="bg-gray-800/50 border-white/20 text-white"
+                            className="border-white/20 bg-gray-800/50 text-white"
                           />
                         </div>
                       </div>
-                      
+
                       {/* School Banner Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h5 className="font-medium text-orange-200">Banner</h5>
-                          <span className="text-xs text-gray-500">1200x300px recommended</span>
+                          <h5 className="font-medium text-orange-200">
+                            Banner
+                          </h5>
+                          <span className="text-xs text-gray-500">
+                            1200x300px recommended
+                          </span>
                         </div>
-                        
+
                         {/* File Upload */}
                         <FileUpload
                           bucket="SCHOOLS"
@@ -1159,38 +1394,53 @@ export default function AdminManagementPage() {
                           onUploadError={handleSchoolUploadError}
                           disabled={updateSchoolMutation.isPending}
                         />
-                        
+
                         {/* URL Override */}
                         <div className="space-y-2">
-                          <Label htmlFor="school-banner" className="text-white font-medium">Or use direct URL</Label>
+                          <Label
+                            htmlFor="school-banner"
+                            className="font-medium text-white"
+                          >
+                            Or use direct URL
+                          </Label>
                           <Input
                             id="school-banner"
                             value={editingSchool.banner_url}
-                            onChange={(e) => setEditingSchool({...editingSchool, banner_url: e.target.value})}
+                            onChange={(e) =>
+                              setEditingSchool({
+                                ...editingSchool,
+                                banner_url: e.target.value,
+                              })
+                            }
                             placeholder="https://..."
-                            className="bg-gray-800/50 border-white/20 text-white"
+                            className="border-white/20 bg-gray-800/50 text-white"
                           />
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Preview */}
                 {(editingSchool.logo_url || editingSchool.banner_url) && (
                   <div className="space-y-4">
                     <h4 className="font-medium text-white">Preview</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {editingSchool.logo_url && (
                         <div className="space-y-2">
                           <p className="text-sm text-gray-400">Logo</p>
-                          <div className="relative w-24 h-24 bg-gray-800/50 rounded-lg overflow-hidden">
+                          <div className="relative h-24 w-24 overflow-hidden rounded-lg bg-gray-800/50">
                             <Image
                               src={editingSchool.logo_url}
                               alt="Logo preview"
                               fill
                               className="object-cover"
-                              onError={() => setEditingSchool({...editingSchool, logo_url: ""})}
+                              onError={() =>
+                                setEditingSchool({
+                                  ...editingSchool,
+                                  logo_url: "",
+                                })
+                              }
                             />
                           </div>
                         </div>
@@ -1198,13 +1448,18 @@ export default function AdminManagementPage() {
                       {editingSchool.banner_url && (
                         <div className="space-y-2">
                           <p className="text-sm text-gray-400">Banner</p>
-                          <div className="relative w-full h-24 bg-gray-800/50 rounded-lg overflow-hidden">
+                          <div className="relative h-24 w-full overflow-hidden rounded-lg bg-gray-800/50">
                             <Image
                               src={editingSchool.banner_url}
                               alt="Banner preview"
                               fill
                               className="object-cover"
-                              onError={() => setEditingSchool({...editingSchool, banner_url: ""})}
+                              onError={() =>
+                                setEditingSchool({
+                                  ...editingSchool,
+                                  banner_url: "",
+                                })
+                              }
                             />
                           </div>
                         </div>
@@ -1212,28 +1467,28 @@ export default function AdminManagementPage() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="flex justify-end space-x-3 pt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setIsSchoolModalOpen(false)}
                     className="border-white/20 text-gray-300 hover:text-white"
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSaveSchool}
                     disabled={updateSchoolMutation.isPending}
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black font-bold"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 font-bold text-black hover:from-orange-600 hover:to-orange-700"
                   >
                     {updateSchoolMutation.isPending ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" />
+                        <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
                     )}
@@ -1246,23 +1501,29 @@ export default function AdminManagementPage() {
 
         {/* Player Edit Modal */}
         <Dialog open={isPlayerModalOpen} onOpenChange={setIsPlayerModalOpen}>
-          <DialogContent className="bg-gray-900 border-white/20 text-white max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto border-white/20 bg-gray-900 text-white">
             <DialogHeader>
-              <DialogTitle className="font-orbitron text-xl font-bold text-purple-400">Edit Player</DialogTitle>
+              <DialogTitle className="font-orbitron text-xl font-bold text-purple-400">
+                Edit Player
+              </DialogTitle>
               <DialogDescription className="text-gray-400">
-                Update player information, academic details, contact information, and main game settings. Name and username cannot be edited.
+                Update player information, academic details, contact
+                information, and main game settings. Name and username cannot be
+                edited.
               </DialogDescription>
             </DialogHeader>
-            
-                        {editingPlayer && (
+
+            {editingPlayer && (
               <div className="space-y-6">
                 {/* Player Info Display - Read Only */}
-                <div className="bg-gray-800/30 rounded-lg p-4 border border-white/10">
-                  <h4 className="font-semibold text-white mb-2">Player Information (Read Only)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-lg border border-white/10 bg-gray-800/30 p-4">
+                  <h4 className="mb-2 font-semibold text-white">
+                    Player Information (Read Only)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <Label className="text-gray-400 text-sm">Name</Label>
-                      <p className="text-gray-300 font-medium">
+                      <Label className="text-sm text-gray-400">Name</Label>
+                      <p className="font-medium text-gray-300">
                         {editingPlayer.first_name} {editingPlayer.last_name}
                       </p>
                     </div>
@@ -1271,45 +1532,76 @@ export default function AdminManagementPage() {
 
                 {/* Basic Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Basic Information</h4>
-                  
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Basic Information
+                  </h4>
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-location" className="text-white font-medium">Location</Label>
+                    <Label
+                      htmlFor="player-location"
+                      className="font-medium text-white"
+                    >
+                      Location
+                    </Label>
                     <Input
                       id="player-location"
                       value={editingPlayer.location}
-                      onChange={(e) => setEditingPlayer({...editingPlayer, location: e.target.value})}
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          location: e.target.value,
+                        })
+                      }
                       placeholder="City, State"
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-bio" className="text-white font-medium">Bio</Label>
+                    <Label
+                      htmlFor="player-bio"
+                      className="font-medium text-white"
+                    >
+                      Bio
+                    </Label>
                     <Textarea
                       id="player-bio"
                       value={editingPlayer.bio}
-                      onChange={(e) => setEditingPlayer({...editingPlayer, bio: e.target.value})}
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          bio: e.target.value,
+                        })
+                      }
                       rows={3}
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
                 </div>
 
                 {/* Main Game Selection */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Main Game Selection</h4>
-                  
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Main Game Selection
+                  </h4>
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-main-game" className="text-white font-medium">Main Game</Label>
+                    <Label
+                      htmlFor="player-main-game"
+                      className="font-medium text-white"
+                    >
+                      Main Game
+                    </Label>
                     <select
                       id="player-main-game"
                       value={editingPlayer.main_game_id ?? ""}
-                      onChange={(e) => setEditingPlayer({
-                        ...editingPlayer, 
-                        main_game_id: e.target.value || null
-                      })}
-                      className="w-full px-3 py-2 bg-gray-800/50 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          main_game_id: e.target.value || null,
+                        })
+                      }
+                      className="w-full rounded-md border border-white/20 bg-gray-800/50 px-3 py-2 text-white focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
                     >
                       <option value="">No main game selected</option>
                       {gamesData?.map((game) => (
@@ -1319,17 +1611,25 @@ export default function AdminManagementPage() {
                       ))}
                     </select>
                     <p className="text-sm text-gray-400">
-                      The main game appears prominently on the player&apos;s profile and is used for recruitment matching.
+                      The main game appears prominently on the player&apos;s
+                      profile and is used for recruitment matching.
                     </p>
                   </div>
                 </div>
 
                 {/* Academic Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Academic Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Academic Information
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="space-y-2">
-                      <Label htmlFor="player-gpa" className="text-white font-medium">GPA</Label>
+                      <Label
+                        htmlFor="player-gpa"
+                        className="font-medium text-white"
+                      >
+                        GPA
+                      </Label>
                       <Input
                         id="player-gpa"
                         type="number"
@@ -1340,134 +1640,222 @@ export default function AdminManagementPage() {
                         onChange={(e) => {
                           const value = e.target.value;
                           const numValue = value ? parseFloat(value) : null;
-                          setEditingPlayer({...editingPlayer, gpa: (numValue !== null && !isNaN(numValue)) ? numValue : null});
+                          setEditingPlayer({
+                            ...editingPlayer,
+                            gpa:
+                              numValue !== null && !isNaN(numValue)
+                                ? numValue
+                                : null,
+                          });
                         }}
                         placeholder="3.75"
-                        className="bg-gray-800/50 border-white/20 text-white"
+                        className="border-white/20 bg-gray-800/50 text-white"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="player-class-year" className="text-white font-medium">Class Year</Label>
+                      <Label
+                        htmlFor="player-class-year"
+                        className="font-medium text-white"
+                      >
+                        Class Year
+                      </Label>
                       <Input
                         id="player-class-year"
                         value={editingPlayer.class_year}
-                        onChange={(e) => setEditingPlayer({...editingPlayer, class_year: e.target.value})}
+                        onChange={(e) =>
+                          setEditingPlayer({
+                            ...editingPlayer,
+                            class_year: e.target.value,
+                          })
+                        }
                         placeholder="2025"
-                        className="bg-gray-800/50 border-white/20 text-white"
+                        className="border-white/20 bg-gray-800/50 text-white"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="player-graduation-date" className="text-white font-medium">Graduation Date</Label>
+                      <Label
+                        htmlFor="player-graduation-date"
+                        className="font-medium text-white"
+                      >
+                        Graduation Date
+                      </Label>
                       <Input
                         id="player-graduation-date"
                         value={editingPlayer.graduation_date}
-                        onChange={(e) => setEditingPlayer({...editingPlayer, graduation_date: e.target.value})}
+                        onChange={(e) =>
+                          setEditingPlayer({
+                            ...editingPlayer,
+                            graduation_date: e.target.value,
+                          })
+                        }
                         placeholder="May 2025"
-                        className="bg-gray-800/50 border-white/20 text-white"
+                        className="border-white/20 bg-gray-800/50 text-white"
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-intended-major" className="text-white font-medium">Intended Major</Label>
+                    <Label
+                      htmlFor="player-intended-major"
+                      className="font-medium text-white"
+                    >
+                      Intended Major
+                    </Label>
                     <Input
                       id="player-intended-major"
                       value={editingPlayer.intended_major}
-                      onChange={(e) => setEditingPlayer({...editingPlayer, intended_major: e.target.value})}
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          intended_major: e.target.value,
+                        })
+                      }
                       placeholder="Computer Science"
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-academic-bio" className="text-white font-medium">Academic Bio</Label>
+                    <Label
+                      htmlFor="player-academic-bio"
+                      className="font-medium text-white"
+                    >
+                      Academic Bio
+                    </Label>
                     <Textarea
                       id="player-academic-bio"
                       value={editingPlayer.academic_bio}
-                      onChange={(e) => setEditingPlayer({...editingPlayer, academic_bio: e.target.value})}
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          academic_bio: e.target.value,
+                        })
+                      }
                       rows={3}
                       placeholder="Academic achievements, honors, etc."
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-extra-curriculars" className="text-white font-medium">Extra Curriculars</Label>
+                    <Label
+                      htmlFor="player-extra-curriculars"
+                      className="font-medium text-white"
+                    >
+                      Extra Curriculars
+                    </Label>
                     <Textarea
                       id="player-extra-curriculars"
                       value={editingPlayer.extra_curriculars}
-                      onChange={(e) => setEditingPlayer({...editingPlayer, extra_curriculars: e.target.value})}
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          extra_curriculars: e.target.value,
+                        })
+                      }
                       rows={3}
                       placeholder="Student government, clubs, activities, etc."
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
                 </div>
 
                 {/* Contact Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-white border-b border-white/10 pb-2">Contact Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Contact Information
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="player-guardian-email" className="text-white font-medium">Guardian Email</Label>
+                      <Label
+                        htmlFor="player-guardian-email"
+                        className="font-medium text-white"
+                      >
+                        Guardian Email
+                      </Label>
                       <Input
                         id="player-guardian-email"
                         type="email"
                         value={editingPlayer.guardian_email}
-                        onChange={(e) => setEditingPlayer({...editingPlayer, guardian_email: e.target.value})}
+                        onChange={(e) =>
+                          setEditingPlayer({
+                            ...editingPlayer,
+                            guardian_email: e.target.value,
+                          })
+                        }
                         placeholder="parent@example.com"
-                        className="bg-gray-800/50 border-white/20 text-white"
+                        className="border-white/20 bg-gray-800/50 text-white"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="player-scholastic-contact" className="text-white font-medium">Scholastic Contact</Label>
+                      <Label
+                        htmlFor="player-scholastic-contact"
+                        className="font-medium text-white"
+                      >
+                        Scholastic Contact
+                      </Label>
                       <Input
                         id="player-scholastic-contact"
                         value={editingPlayer.scholastic_contact}
-                        onChange={(e) => setEditingPlayer({...editingPlayer, scholastic_contact: e.target.value})}
+                        onChange={(e) =>
+                          setEditingPlayer({
+                            ...editingPlayer,
+                            scholastic_contact: e.target.value,
+                          })
+                        }
                         placeholder="Ms. Johnson"
-                        className="bg-gray-800/50 border-white/20 text-white"
+                        className="border-white/20 bg-gray-800/50 text-white"
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="player-scholastic-contact-email" className="text-white font-medium">Scholastic Contact Email</Label>
+                    <Label
+                      htmlFor="player-scholastic-contact-email"
+                      className="font-medium text-white"
+                    >
+                      Scholastic Contact Email
+                    </Label>
                     <Input
                       id="player-scholastic-contact-email"
                       type="email"
                       value={editingPlayer.scholastic_contact_email}
-                      onChange={(e) => setEditingPlayer({...editingPlayer, scholastic_contact_email: e.target.value})}
+                      onChange={(e) =>
+                        setEditingPlayer({
+                          ...editingPlayer,
+                          scholastic_contact_email: e.target.value,
+                        })
+                      }
                       placeholder="counselor@school.edu"
-                      className="bg-gray-800/50 border-white/20 text-white"
+                      className="border-white/20 bg-gray-800/50 text-white"
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end space-x-3 pt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setIsPlayerModalOpen(false)}
                     className="border-white/20 text-gray-300 hover:text-white"
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSavePlayer}
                     disabled={updatePlayerMutation.isPending}
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-black font-bold"
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 font-bold text-black hover:from-purple-600 hover:to-purple-700"
                   >
                     {updatePlayerMutation.isPending ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" />
+                        <Save className="mr-2 h-4 w-4" />
                         Save Changes
                       </>
                     )}
@@ -1480,4 +1868,4 @@ export default function AdminManagementPage() {
       </div>
     </div>
   );
-} 
+}

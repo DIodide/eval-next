@@ -1,28 +1,28 @@
-import { SignIn } from '@clerk/nextjs'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Trophy, Users, Target, Gamepad2 } from 'lucide-react'
+import { SignIn } from "@clerk/nextjs";
+import Image from "next/image";
+import Link from "next/link";
+import { Trophy, Users, Target, Gamepad2 } from "lucide-react";
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-gray-900/90 text-white relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-gray-900/90 text-white">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-orange-500/10" />
       <div className="absolute inset-0 bg-black/60" />
-      
+
       {/* Animated Background Elements */}
-      <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-full blur-2xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-tl from-purple-500/20 to-transparent rounded-full blur-xl animate-pulse delay-1000"></div>
-      <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-r from-orange-500/15 to-transparent rounded-full blur-lg animate-pulse delay-500"></div>
+      <div className="absolute top-10 left-10 h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-cyan-500/20 to-transparent blur-2xl"></div>
+      <div className="absolute right-20 bottom-20 h-24 w-24 animate-pulse rounded-full bg-gradient-to-tl from-purple-500/20 to-transparent blur-xl delay-1000"></div>
+      <div className="absolute top-1/2 left-1/4 h-16 w-16 animate-pulse rounded-full bg-gradient-to-r from-orange-500/15 to-transparent blur-lg delay-500"></div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex">
+      <div className="relative z-10 flex min-h-screen">
         {/* Left Side - Branding & Info */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 xl:px-16">
+        <div className="hidden flex-col justify-center px-12 lg:flex lg:w-1/2 xl:px-16">
           {/* Logo */}
           <div className="mb-8">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 shadow-lg">
                 <Image
                   src="/eval/logos/eLOGO_white.png"
                   alt="EVAL Logo"
@@ -31,88 +31,109 @@ export default function SignInPage() {
                   className="brightness-0 invert"
                 />
               </div>
-              <span className="text-2xl font-orbitron font-black text-white tracking-wider">EVAL</span>
+              <span className="font-orbitron text-2xl font-black tracking-wider text-white">
+                EVAL
+              </span>
             </Link>
           </div>
 
           {/* Rainbow Bar */}
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500 rounded-full mb-8"></div>
+          <div className="mb-8 h-1 w-24 rounded-full bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500"></div>
 
           {/* Heading */}
           <div className="mb-12">
-            <h1 className="text-4xl xl:text-5xl font-orbitron font-black text-white mb-4 leading-tight">
+            <h1 className="font-orbitron mb-4 text-4xl leading-tight font-black text-white xl:text-5xl">
               Welcome Back to
               <span className="block bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500 bg-clip-text text-transparent">
                 EVAL
               </span>
             </h1>
-            <p className="text-lg text-gray-300 font-medium leading-relaxed">
-              Sign in to access your dashboard and continue your competitive gaming journey.
+            <p className="text-lg leading-relaxed font-medium text-gray-300">
+              Sign in to access your dashboard and continue your competitive
+              gaming journey.
             </p>
           </div>
 
           {/* Features */}
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-cyan-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-500/20">
+                <Trophy className="h-6 w-6 text-cyan-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Competitive Excellence</h3>
-                <p className="text-gray-400 text-sm">Access tournaments, tryouts, and showcase your skills</p>
+                <h3 className="font-orbitron font-bold text-white">
+                  Competitive Excellence
+                </h3>
+                <p className="text-sm text-gray-400">
+                  Access tournaments, tryouts, and showcase your skills
+                </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-500/20">
+                <Users className="h-6 w-6 text-purple-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Community Connection</h3>
-                <p className="text-gray-400 text-sm">Connect with players, coaches, and leagues worldwide</p>
+                <h3 className="font-orbitron font-bold text-white">
+                  Community Connection
+                </h3>
+                <p className="text-sm text-gray-400">
+                  Connect with players, coaches, and leagues worldwide
+                </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-orange-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/20">
+                <Target className="h-6 w-6 text-orange-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Performance Analytics</h3>
-                <p className="text-gray-400 text-sm">Track your progress with detailed stats and insights</p>
+                <h3 className="font-orbitron font-bold text-white">
+                  Performance Analytics
+                </h3>
+                <p className="text-sm text-gray-400">
+                  Track your progress with detailed stats and insights
+                </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                <Gamepad2 className="w-6 h-6 text-cyan-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-500/20">
+                <Gamepad2 className="h-6 w-6 text-cyan-400" />
               </div>
               <div>
-                <h3 className="font-orbitron font-bold text-white">Multi-Game Platform</h3>
-                <p className="text-gray-400 text-sm">Support for Valorant, Overwatch, Rocket League, and more</p>
+                <h3 className="font-orbitron font-bold text-white">
+                  Multi-Game Platform
+                </h3>
+                <p className="text-sm text-gray-400">
+                  Support for Valorant, Overwatch, Rocket League, and more
+                </p>
               </div>
             </div>
           </div>
 
           {/* CTA Links */}
-          <div className="mt-12 pt-8 border-t border-white/10">
-            <p className="text-gray-400 text-sm mb-4">Don&apos;t have an account yet?</p>
+          <div className="mt-12 border-t border-white/10 pt-8">
+            <p className="mb-4 text-sm text-gray-400">
+              Don&apos;t have an account yet?
+            </p>
             <div className="space-y-2">
-              <Link 
-                href="/sign-up/players" 
-                className="block text-cyan-400 hover:text-cyan-300 font-orbitron font-bold transition-colors"
+              <Link
+                href="/sign-up/players"
+                className="font-orbitron block font-bold text-cyan-400 transition-colors hover:text-cyan-300"
               >
                 Sign up as Player →
               </Link>
-              <Link 
-                href="/sign-up/schools" 
-                className="block text-purple-400 hover:text-purple-300 font-orbitron font-bold transition-colors"
+              <Link
+                href="/sign-up/schools"
+                className="font-orbitron block font-bold text-purple-400 transition-colors hover:text-purple-300"
               >
                 Sign up as Coach or School →
               </Link>
-              <Link 
-                href="/sign-up/leagues" 
-                className="block text-orange-400 hover:text-orange-300 font-orbitron font-bold transition-colors"
+              <Link
+                href="/sign-up/leagues"
+                className="font-orbitron block font-bold text-orange-400 transition-colors hover:text-orange-300"
               >
                 Sign up as League Admin →
               </Link>
@@ -121,12 +142,12 @@ export default function SignInPage() {
         </div>
 
         {/* Right Side - Sign In Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center px-6 lg:px-12">
+        <div className="flex w-full items-center justify-center px-6 lg:w-1/2 lg:px-12">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
-            <div className="lg:hidden mb-8 text-center">
+            <div className="mb-8 text-center lg:hidden">
               <Link href="/" className="inline-flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 shadow-lg">
                   <Image
                     src="/eval/logos/eLOGO_white.png"
                     alt="EVAL Logo"
@@ -135,63 +156,73 @@ export default function SignInPage() {
                     className="brightness-0 invert"
                   />
                 </div>
-                <span className="text-xl font-orbitron font-black text-white tracking-wider">EVAL</span>
+                <span className="font-orbitron text-xl font-black tracking-wider text-white">
+                  EVAL
+                </span>
               </Link>
             </div>
 
             {/* Mobile Title */}
-            <div className="lg:hidden mb-8 text-center">
-              <h2 className="text-2xl font-orbitron font-black text-white mb-2">
+            <div className="mb-8 text-center lg:hidden">
+              <h2 className="font-orbitron mb-2 text-2xl font-black text-white">
                 Welcome Back
               </h2>
-              <div className="w-16 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500 rounded-full mx-auto"></div>
+              <div className="mx-auto h-1 w-16 rounded-full bg-gradient-to-r from-cyan-400 via-purple-500 to-orange-500"></div>
             </div>
 
             {/* Sign In Component with Enhanced Styling */}
-            <div className="bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-white/10 shadow-2xl p-8">
-              <SignIn 
+            <div className="rounded-2xl border border-white/10 bg-gray-900/50 p-8 shadow-2xl backdrop-blur-lg">
+              <SignIn
                 appearance={{
                   elements: {
                     rootBox: "w-full",
                     card: "bg-transparent shadow-none border-none",
                     headerTitle: "text-white font-orbitron font-bold text-xl",
                     headerSubtitle: "text-gray-300",
-                    socialButtonsBlockButton: "bg-gray-800/50 border border-white/20 text-white hover:bg-gray-700/50 transition-all duration-300",
+                    socialButtonsBlockButton:
+                      "bg-gray-800/50 border border-white/20 text-white hover:bg-gray-700/50 transition-all duration-300",
                     socialButtonsBlockButtonText: "text-white font-medium",
                     dividerLine: "bg-white/20",
                     dividerText: "text-gray-400 font-medium",
-                    formFieldInput: "bg-gray-800/50 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20",
+                    formFieldInput:
+                      "bg-gray-800/50 border-white/20 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20",
                     formFieldLabel: "text-gray-300 font-medium",
-                    footerActionLink: "text-cyan-400 hover:text-cyan-300 font-medium",
+                    footerActionLink:
+                      "text-cyan-400 hover:text-cyan-300 font-medium",
                     footerActionText: "text-gray-400",
-                    formButtonPrimary: "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-orbitron font-bold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300",
+                    formButtonPrimary:
+                      "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-orbitron font-bold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300",
                     identityPreviewText: "text-gray-300",
-                    identityPreviewEditButton: "text-cyan-400 hover:text-cyan-300",
-                    formFieldAction: "text-cyan-400 hover:text-cyan-300 font-medium"
-                  }
+                    identityPreviewEditButton:
+                      "text-cyan-400 hover:text-cyan-300",
+                    formFieldAction:
+                      "text-cyan-400 hover:text-cyan-300 font-medium",
+                  },
                 }}
               />
             </div>
 
             {/* Mobile Sign Up Links */}
-            <div className="lg:hidden mt-6 text-center">
-              <p className="text-gray-400 text-sm mb-4">Don&apos;t have an account?</p>
+            <div className="mt-6 text-center lg:hidden">
+              <p className="mb-4 text-sm text-gray-400">
+                Don&apos;t have an account?
+              </p>
               <div className="space-y-2">
-                <Link 
-                  href="/sign-up/players" 
-                  className="block text-cyan-400 hover:text-cyan-300 font-orbitron font-bold transition-colors text-sm"
+                <Link
+                  href="/sign-up/players"
+                  className="font-orbitron block text-sm font-bold text-cyan-400 transition-colors hover:text-cyan-300"
                 >
                   Sign up as Player →
                 </Link>
-                <Link 
-                  href="/sign-up/schools" 
-                  className="block text-purple-400 hover:text-purple-300 font-orbitron font-bold transition-colors text-sm"
+                <Link
+                  href="/sign-up/schools"
+                  className="font-orbitron block text-sm font-bold text-purple-400 transition-colors hover:text-purple-300"
                 >
                   Sign up as Coach →
                 </Link>
-                <Link 
-                  href="/sign-up/leagues" 
-                  className="block text-orange-400 hover:text-orange-300 font-orbitron font-bold transition-colors text-sm"
+                <Link
+                  href="/sign-up/leagues"
+                  className="font-orbitron block text-sm font-bold text-orange-400 transition-colors hover:text-orange-300"
                 >
                   Sign up as League Admin →
                 </Link>
@@ -200,13 +231,19 @@ export default function SignInPage() {
 
             {/* Bottom Links */}
             <div className="mt-6 text-center">
-              <p className="text-gray-400 text-sm">
-                By signing in, you agree to our{' '}
-                <Link href="/tos" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+              <p className="text-sm text-gray-400">
+                By signing in, you agree to our{" "}
+                <Link
+                  href="/tos"
+                  className="text-cyan-400 transition-colors hover:text-cyan-300"
+                >
                   Terms of Service
-                </Link>
-                {' '}and{' '}
-                <Link href="/privacy-policy" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy-policy"
+                  className="text-cyan-400 transition-colors hover:text-cyan-300"
+                >
                   Privacy Policy
                 </Link>
               </p>
@@ -215,5 +252,5 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

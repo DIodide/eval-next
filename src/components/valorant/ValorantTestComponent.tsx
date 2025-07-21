@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,11 @@ import { useState } from "react";
 
 export function ValorantTestComponent() {
   const [testingCleanup, setTestingCleanup] = useState(false);
-  const { data: valorantData, isLoading, refetch } = api.playerProfile.getValorantData.useQuery();
+  const {
+    data: valorantData,
+    isLoading,
+    refetch,
+  } = api.playerProfile.getValorantData.useQuery();
   const refreshMutation = api.playerProfile.refreshValorantData.useMutation({
     onSuccess: () => {
       void refetch();
@@ -23,37 +27,35 @@ export function ValorantTestComponent() {
   const handleTestCleanup = async () => {
     setTestingCleanup(true);
     try {
-      const response = await fetch('/api/auth/valorant/cleanup-metadata', {
-        method: 'POST',
+      const response = await fetch("/api/auth/valorant/cleanup-metadata", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
-      const data = await response.json() as { 
-        success?: boolean; 
-        cleaned?: boolean; 
-        message?: string; 
+
+      const data = (await response.json()) as {
+        success?: boolean;
+        cleaned?: boolean;
+        message?: string;
         error?: string;
       };
-      
+
       if (response.ok) {
-        console.log('Cleanup result:', data);
+        console.log("Cleanup result:", data);
         alert(`Cleanup: ${data.message}`);
         void refetch();
       } else {
-        console.error('Cleanup failed:', data);
-        alert(`Cleanup failed: ${data.error ?? 'Unknown error'}`);
+        console.error("Cleanup failed:", data);
+        alert(`Cleanup failed: ${data.error ?? "Unknown error"}`);
       }
     } catch (error) {
-      console.error('Cleanup error:', error);
-      alert('Cleanup test failed');
+      console.error("Cleanup error:", error);
+      alert("Cleanup test failed");
     } finally {
       setTestingCleanup(false);
     }
   };
-
-
 
   if (isLoading) {
     return (
@@ -67,9 +69,9 @@ export function ValorantTestComponent() {
   }
 
   return (
-    <Card className="p-4 bg-gray-800 border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+    <Card className="border-gray-700 bg-gray-800 p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
           <ShieldIcon className="h-5 w-5 text-red-500" />
           Valorant Integration Test
         </h3>
@@ -82,9 +84,9 @@ export function ValorantTestComponent() {
             className="border-orange-600 text-orange-400 hover:bg-orange-900/20"
           >
             {testingCleanup ? (
-              <LoaderIcon className="h-4 w-4 animate-spin mr-2" />
+              <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <TrashIcon className="h-4 w-4 mr-2" />
+              <TrashIcon className="mr-2 h-4 w-4" />
             )}
             Test Cleanup
           </Button>
@@ -96,9 +98,9 @@ export function ValorantTestComponent() {
             variant="outline"
           >
             {refreshMutation.isPending ? (
-              <LoaderIcon className="h-4 w-4 animate-spin mr-2" />
+              <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <RefreshCwIcon className="h-4 w-4 mr-2" />
+              <RefreshCwIcon className="mr-2 h-4 w-4" />
             )}
             Refresh
           </Button>
@@ -107,19 +109,17 @@ export function ValorantTestComponent() {
 
       {valorantData ? (
         <div className="space-y-3">
-          <Badge className="bg-green-600 text-white">
-            PUUID Connected
-          </Badge>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <Badge className="bg-green-600 text-white">PUUID Connected</Badge>
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
             <div>
               <span className="text-gray-400">Riot ID:</span>
-              <p className="text-cyan-400 font-medium">
+              <p className="font-medium text-cyan-400">
                 {valorantData.gameName}#{valorantData.tagLine}
               </p>
             </div>
             <div>
               <span className="text-gray-400">PUUID:</span>
-              <p className="text-white font-mono text-xs">
+              <p className="font-mono text-xs text-white">
                 {valorantData.puuid}
               </p>
             </div>
@@ -132,33 +132,48 @@ export function ValorantTestComponent() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-6">
-          <p className="text-gray-400 mb-2">No Valorant data found</p>
-          <p className="text-gray-500 text-sm">
+        <div className="py-6 text-center">
+          <p className="mb-2 text-gray-400">No Valorant data found</p>
+          <p className="text-sm text-gray-500">
             Connect your Valorant account in External Accounts to see data here
           </p>
         </div>
       )}
 
       {refreshMutation.error && (
-        <div className="mt-4 p-3 bg-red-900/20 border border-red-600/30 rounded-lg">
-          <p className="text-red-400 text-sm">
+        <div className="mt-4 rounded-lg border border-red-600/30 bg-red-900/20 p-3">
+          <p className="text-sm text-red-400">
             Error: {refreshMutation.error.message}
           </p>
         </div>
       )}
-      
+
       {/* Debug information */}
-      <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg">
-        <h4 className="text-blue-200 font-medium mb-2">Debug Instructions:</h4>
-        <ul className="text-blue-300 text-sm space-y-1 list-disc list-inside">
-          <li><strong>Test Cleanup:</strong> Tests the metadata cleanup API directly</li>
-          <li><strong>Force Remove Metadata:</strong> Removes VALORANT metadata from your account regardless of external account status</li>
-          <li><strong>Refresh:</strong> Fetches fresh VALORANT data from your connected account</li>
-          <li><strong>Console:</strong> Check browser console for detailed cleanup logs</li>
-          <li><strong>Expected:</strong> After removing external account, metadata should be cleaned automatically</li>
+      <div className="mt-4 rounded-lg border border-blue-600/30 bg-blue-900/20 p-3">
+        <h4 className="mb-2 font-medium text-blue-200">Debug Instructions:</h4>
+        <ul className="list-inside list-disc space-y-1 text-sm text-blue-300">
+          <li>
+            <strong>Test Cleanup:</strong> Tests the metadata cleanup API
+            directly
+          </li>
+          <li>
+            <strong>Force Remove Metadata:</strong> Removes VALORANT metadata
+            from your account regardless of external account status
+          </li>
+          <li>
+            <strong>Refresh:</strong> Fetches fresh VALORANT data from your
+            connected account
+          </li>
+          <li>
+            <strong>Console:</strong> Check browser console for detailed cleanup
+            logs
+          </li>
+          <li>
+            <strong>Expected:</strong> After removing external account, metadata
+            should be cleaned automatically
+          </li>
         </ul>
       </div>
     </Card>
   );
-} 
+}

@@ -67,19 +67,19 @@ export function MultiSelectGames({
   const [iconUrlError, setIconUrlError] = useState<string>("");
 
   const selectedGames = availableGames.filter((game) =>
-    selectedGameIds.includes(game.id)
+    selectedGameIds.includes(game.id),
   );
 
   // Validate URL function
   const validateIconUrl = (url: string): string => {
-    if (!url || url.trim() === '') {
-      return ''; // Empty is valid (optional field)
+    if (!url || url.trim() === "") {
+      return ""; // Empty is valid (optional field)
     }
     try {
       new URL(url.trim());
-      return ''; // Valid URL
+      return ""; // Valid URL
     } catch {
-      return 'Please enter a valid URL (e.g., https://example.com/icon.png)';
+      return "Please enter a valid URL (e.g., https://example.com/icon.png)";
     }
   };
 
@@ -96,7 +96,7 @@ export function MultiSelectGames({
     }
 
     // Validate icon URL
-    const iconError = validateIconUrl(customGameForm.icon ?? '');
+    const iconError = validateIconUrl(customGameForm.icon ?? "");
     if (iconError) {
       setIconUrlError(iconError);
       return;
@@ -128,7 +128,7 @@ export function MultiSelectGames({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+            className="w-full justify-between border-gray-700 bg-gray-800 text-white hover:bg-gray-700"
             disabled={disabled}
           >
             {selectedGames.length > 0 || customGames.length > 0
@@ -137,11 +137,11 @@ export function MultiSelectGames({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700">
+        <PopoverContent className="w-full border-gray-700 bg-gray-800 p-0">
           <Command className="bg-gray-800">
             <CommandInput
               placeholder="Search games..."
-              className="bg-gray-800 text-white border-none"
+              className="border-none bg-gray-800 text-white"
             />
             <CommandList>
               <CommandEmpty>
@@ -152,9 +152,9 @@ export function MultiSelectGames({
                     variant="outline"
                     size="sm"
                     onClick={() => setShowCustomGameForm(true)}
-                    className="mt-2 bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                    className="mt-2 border-gray-600 bg-gray-700 text-white hover:bg-gray-600"
                   >
-                    <Plus className="h-3 w-3 mr-1" />
+                    <Plus className="mr-1 h-3 w-3" />
                     Add Custom Game
                   </Button>
                 </div>
@@ -172,7 +172,7 @@ export function MultiSelectGames({
                         "mr-2 h-4 w-4",
                         selectedGameIds.includes(game.id)
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-0",
                       )}
                     />
                     <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export function MultiSelectGames({
                 ))}
                 <CommandItem
                   onSelect={() => setShowCustomGameForm(true)}
-                  className="text-cyan-400 hover:bg-gray-700 cursor-pointer"
+                  className="cursor-pointer text-cyan-400 hover:bg-gray-700"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Custom Game
@@ -206,13 +206,13 @@ export function MultiSelectGames({
       {/* Selected Games Display */}
       {(selectedGames.length > 0 || customGames.length > 0) && (
         <div className="space-y-2">
-          <Label className="text-gray-300 text-sm">Selected Games:</Label>
+          <Label className="text-sm text-gray-300">Selected Games:</Label>
           <div className="flex flex-wrap gap-2">
             {selectedGames.map((game) => (
               <Badge
                 key={game.id}
                 variant="outline"
-                className="bg-blue-600/20 text-blue-400 border-blue-500 flex items-center gap-1"
+                className="flex items-center gap-1 border-blue-500 bg-blue-600/20 text-blue-400"
               >
                 {game.icon && (
                   <img src={game.icon} alt={game.name} className="h-3 w-3" />
@@ -231,7 +231,7 @@ export function MultiSelectGames({
               <Badge
                 key={`custom-${index}`}
                 variant="outline"
-                className="bg-purple-600/20 text-purple-400 border-purple-500 flex items-center gap-1"
+                className="flex items-center gap-1 border-purple-500 bg-purple-600/20 text-purple-400"
               >
                 {game.name}
                 <span className="text-xs">({game.short_name})</span>
@@ -250,10 +250,10 @@ export function MultiSelectGames({
 
       {/* Custom Game Form */}
       {showCustomGameForm && (
-        <div className="border border-gray-700 rounded-lg p-4 bg-gray-800/50">
+        <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-white font-medium">Add Custom Game</Label>
+              <Label className="font-medium text-white">Add Custom Game</Label>
               <Button
                 type="button"
                 variant="ghost"
@@ -261,17 +261,25 @@ export function MultiSelectGames({
                 onClick={() => {
                   setShowCustomGameForm(false);
                   setIconUrlError("");
-                  setCustomGameForm({ name: "", short_name: "", icon: "", color: "" });
+                  setCustomGameForm({
+                    name: "",
+                    short_name: "",
+                    icon: "",
+                    color: "",
+                  });
                 }}
                 className="text-gray-400 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1">
-                <Label htmlFor="custom-game-name" className="text-gray-300 text-sm">
+                <Label
+                  htmlFor="custom-game-name"
+                  className="text-sm text-gray-300"
+                >
                   Game Name *
                 </Label>
                 <Input
@@ -279,14 +287,20 @@ export function MultiSelectGames({
                   placeholder="e.g., League of Legends"
                   value={customGameForm.name}
                   onChange={(e) =>
-                    setCustomGameForm((prev) => ({ ...prev, name: e.target.value }))
+                    setCustomGameForm((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
                   }
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="border-gray-600 bg-gray-700 text-white"
                 />
               </div>
-              
+
               <div className="space-y-1">
-                <Label htmlFor="custom-game-short" className="text-gray-300 text-sm">
+                <Label
+                  htmlFor="custom-game-short"
+                  className="text-sm text-gray-300"
+                >
                   Short Name *
                 </Label>
                 <Input
@@ -294,14 +308,20 @@ export function MultiSelectGames({
                   placeholder="e.g., LoL"
                   value={customGameForm.short_name}
                   onChange={(e) =>
-                    setCustomGameForm((prev) => ({ ...prev, short_name: e.target.value }))
+                    setCustomGameForm((prev) => ({
+                      ...prev,
+                      short_name: e.target.value,
+                    }))
                   }
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="border-gray-600 bg-gray-700 text-white"
                 />
               </div>
-              
+
               <div className="space-y-1">
-                <Label htmlFor="custom-game-icon" className="text-gray-300 text-sm">
+                <Label
+                  htmlFor="custom-game-icon"
+                  className="text-sm text-gray-300"
+                >
                   Icon URL (Optional)
                 </Label>
                 <Input
@@ -315,17 +335,20 @@ export function MultiSelectGames({
                     const error = validateIconUrl(value);
                     setIconUrlError(error);
                   }}
-                  className={`bg-gray-700 border-gray-600 text-white ${
-                    iconUrlError ? 'border-red-500 focus:border-red-500' : ''
+                  className={`border-gray-600 bg-gray-700 text-white ${
+                    iconUrlError ? "border-red-500 focus:border-red-500" : ""
                   }`}
                 />
                 {iconUrlError && (
-                  <p className="text-red-400 text-xs mt-1">{iconUrlError}</p>
+                  <p className="mt-1 text-xs text-red-400">{iconUrlError}</p>
                 )}
               </div>
-              
+
               <div className="space-y-1">
-                <Label htmlFor="custom-game-color" className="text-gray-300 text-sm">
+                <Label
+                  htmlFor="custom-game-color"
+                  className="text-sm text-gray-300"
+                >
                   Color (Optional)
                 </Label>
                 <Input
@@ -333,13 +356,16 @@ export function MultiSelectGames({
                   placeholder="#3B82F6"
                   value={customGameForm.color}
                   onChange={(e) =>
-                    setCustomGameForm((prev) => ({ ...prev, color: e.target.value }))
+                    setCustomGameForm((prev) => ({
+                      ...prev,
+                      color: e.target.value,
+                    }))
                   }
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="border-gray-600 bg-gray-700 text-white"
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
@@ -348,7 +374,12 @@ export function MultiSelectGames({
                 onClick={() => {
                   setShowCustomGameForm(false);
                   setIconUrlError("");
-                  setCustomGameForm({ name: "", short_name: "", icon: "", color: "" });
+                  setCustomGameForm({
+                    name: "",
+                    short_name: "",
+                    icon: "",
+                    color: "",
+                  });
                 }}
                 className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
@@ -359,13 +390,13 @@ export function MultiSelectGames({
                 size="sm"
                 onClick={handleAddCustomGame}
                 disabled={
-                  !customGameForm.name.trim() || 
-                  !customGameForm.short_name.trim() || 
+                  !customGameForm.name.trim() ||
+                  !customGameForm.short_name.trim() ||
                   !!iconUrlError
                 }
-                className="bg-cyan-600 hover:bg-cyan-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-cyan-600 text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Plus className="h-3 w-3 mr-1" />
+                <Plus className="mr-1 h-3 w-3" />
                 Add Game
               </Button>
             </div>
@@ -374,4 +405,4 @@ export function MultiSelectGames({
       )}
     </div>
   );
-} 
+}

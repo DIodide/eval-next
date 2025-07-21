@@ -31,46 +31,50 @@ interface BlogPostContentProps {
 // Get audience display name
 const getAudienceDisplayName = (audience: string) => {
   switch (audience) {
-    case 'player':
-      return 'players';
-    case 'school':
-      return 'schools/coaches';
-    case 'league':
-      return 'leagues';
+    case "player":
+      return "players";
+    case "school":
+      return "schools/coaches";
+    case "league":
+      return "leagues";
     default:
       return audience;
   }
 };
 
-export default function BlogPostContent({ post, renderedContent }: BlogPostContentProps) {
+export default function BlogPostContent({
+  post,
+  renderedContent,
+}: BlogPostContentProps) {
   const { user } = useUser();
-  
+
   // Check if user matches the target audience
   const userType = user?.unsafeMetadata?.userType;
-  const targetAudience = post.audience ?? 'player';
+  const targetAudience = post.audience ?? "player";
   const userMatchesAudience = !targetAudience || userType === targetAudience;
 
   return (
-    <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-gray-800/90 to-gray-900/90">
       <div className="p-8 md:p-12">
         {/* Audience Warning */}
         {!userMatchesAudience && (
-          <div className="mb-8 p-4 bg-yellow-900/20 border border-yellow-700/30 rounded-lg">
+          <div className="mb-8 rounded-lg border border-yellow-700/30 bg-yellow-900/20 p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
               <div>
-                <h4 className="text-yellow-300 font-orbitron font-semibold text-sm mb-1">
+                <h4 className="font-orbitron mb-1 text-sm font-semibold text-yellow-300">
                   Article Targeted for {getAudienceDisplayName(targetAudience)}
                 </h4>
-                <p className="text-yellow-200 text-sm font-rajdhani">
-                  This article is specifically designed for {getAudienceDisplayName(targetAudience)}. 
-                  Some interactive elements may not work as expected for your account type.
+                <p className="font-rajdhani text-sm text-yellow-200">
+                  This article is specifically designed for{" "}
+                  {getAudienceDisplayName(targetAudience)}. Some interactive
+                  elements may not work as expected for your account type.
                 </p>
               </div>
             </div>
           </div>
         )}
-        
+
         {/* Article Content */}
         <article className="prose prose-invert max-w-none">
           {renderedContent}
@@ -78,4 +82,4 @@ export default function BlogPostContent({ post, renderedContent }: BlogPostConte
       </div>
     </div>
   );
-} 
+}

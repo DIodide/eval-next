@@ -6,9 +6,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BuildingIcon, SendIcon, PlusIcon, CheckIcon, ChevronsUpDownIcon } from "lucide-react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  BuildingIcon,
+  SendIcon,
+  PlusIcon,
+  CheckIcon,
+  ChevronsUpDownIcon,
+} from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -94,45 +111,49 @@ export function SchoolAssociationRequestForm() {
   });
 
   // Get available schools
-  const { data: schools, isLoading: isLoadingSchools } = api.coachProfile.getAvailableSchools.useQuery();
+  const { data: schools, isLoading: isLoadingSchools } =
+    api.coachProfile.getAvailableSchools.useQuery();
 
   // Submit request mutation
-  const submitRequest = api.coachProfile.submitSchoolAssociationRequest.useMutation({
-    onSuccess: () => {
-      toast.success("School association request submitted successfully!");
-      setSelectedSchoolId("");
-      setRequestMessage("");
-      setComboboxOpen(false);
-      setStateComboboxOpen(false);
-      setRegionComboboxOpen(false);
-      setIsNewSchoolRequest(false);
-      setNewSchoolData({
-        name: "",
-        type: undefined,
-        location: "",
-        state: "",
-        region: "",
-        website: "",
-      });
-      // Refetch onboarding status and school info
-      void utils.coachProfile.getOnboardingStatus.invalidate();
-      void utils.coachProfile.getSchoolInfo.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to submit request");
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
-  });
+  const submitRequest =
+    api.coachProfile.submitSchoolAssociationRequest.useMutation({
+      onSuccess: () => {
+        toast.success("School association request submitted successfully!");
+        setSelectedSchoolId("");
+        setRequestMessage("");
+        setComboboxOpen(false);
+        setStateComboboxOpen(false);
+        setRegionComboboxOpen(false);
+        setIsNewSchoolRequest(false);
+        setNewSchoolData({
+          name: "",
+          type: undefined,
+          location: "",
+          state: "",
+          region: "",
+          website: "",
+        });
+        // Refetch onboarding status and school info
+        void utils.coachProfile.getOnboardingStatus.invalidate();
+        void utils.coachProfile.getSchoolInfo.invalidate();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to submit request");
+      },
+      onSettled: () => {
+        setIsSubmitting(false);
+      },
+    });
 
   const utils = api.useUtils();
 
-  const selectedSchool = schools?.find(school => school.id === selectedSchoolId);
+  const selectedSchool = schools?.find(
+    (school) => school.id === selectedSchoolId,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isNewSchoolRequest) {
       // Validate new school data
       if (!newSchoolData.name.trim()) {
@@ -154,17 +175,21 @@ export function SchoolAssociationRequestForm() {
       // Validate website URL if provided
       if (newSchoolData.website?.trim()) {
         const url = newSchoolData.website.trim();
-        
+
         // Require protocol (http:// or https://)
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          toast.error("Please enter a complete website URL starting with https:// or http://");
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+          toast.error(
+            "Please enter a complete website URL starting with https:// or http://",
+          );
           return;
         }
-        
+
         try {
           new URL(url);
         } catch {
-          toast.error("Please enter a valid website URL (e.g., https://example.com)");
+          toast.error(
+            "Please enter a valid website URL (e.g., https://example.com)",
+          );
           return;
         }
       }
@@ -182,17 +207,27 @@ export function SchoolAssociationRequestForm() {
       is_new_school_request: isNewSchoolRequest,
       proposed_school_name: isNewSchoolRequest ? newSchoolData.name : undefined,
       proposed_school_type: isNewSchoolRequest ? newSchoolData.type : undefined,
-      proposed_school_location: isNewSchoolRequest ? newSchoolData.location : undefined,
-      proposed_school_state: isNewSchoolRequest ? newSchoolData.state : undefined,
-      proposed_school_region: isNewSchoolRequest && newSchoolData.region ? newSchoolData.region : undefined,
-      proposed_school_website: isNewSchoolRequest && newSchoolData.website ? newSchoolData.website : undefined,
+      proposed_school_location: isNewSchoolRequest
+        ? newSchoolData.location
+        : undefined,
+      proposed_school_state: isNewSchoolRequest
+        ? newSchoolData.state
+        : undefined,
+      proposed_school_region:
+        isNewSchoolRequest && newSchoolData.region
+          ? newSchoolData.region
+          : undefined,
+      proposed_school_website:
+        isNewSchoolRequest && newSchoolData.website
+          ? newSchoolData.website
+          : undefined,
     });
   };
 
   return (
-    <Card className="bg-gray-800 border-gray-700">
+    <Card className="border-gray-700 bg-gray-800">
       <CardHeader>
-        <CardTitle className="text-white font-orbitron flex items-center gap-2">
+        <CardTitle className="font-orbitron flex items-center gap-2 text-white">
           <BuildingIcon className="h-5 w-5" />
           Request School Association
         </CardTitle>
@@ -213,9 +248,9 @@ export function SchoolAssociationRequestForm() {
                   setStateComboboxOpen(false);
                   setRegionComboboxOpen(false);
                 }}
-                className={`${!isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-white"} text-white border-gray-600`}
+                className={`${!isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-white"} border-gray-600 text-white`}
               >
-                <BuildingIcon className="h-4 w-4 mr-2" />
+                <BuildingIcon className="mr-2 h-4 w-4" />
                 Existing School
               </Button>
               <Button
@@ -228,9 +263,9 @@ export function SchoolAssociationRequestForm() {
                   setStateComboboxOpen(false);
                   setRegionComboboxOpen(false);
                 }}
-                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-white"} text-white border-gray-600`}
+                className={`${isNewSchoolRequest ? "bg-cyan-600 hover:bg-cyan-700" : "bg-gray-700 hover:bg-gray-600 hover:text-white"} border-gray-600 text-white`}
               >
-                <PlusIcon className="h-4 w-4 mr-2" />
+                <PlusIcon className="mr-2 h-4 w-4" />
                 Request New School
               </Button>
             </div>
@@ -240,23 +275,27 @@ export function SchoolAssociationRequestForm() {
             <>
               {/* School Combobox */}
               <div className="space-y-2">
-                <Label className="text-gray-300">
-                  Select School *
-                </Label>
+                <Label className="text-gray-300">Select School *</Label>
                 <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
                       aria-expanded={comboboxOpen}
-                      className="w-full justify-between bg-gray-700 border-gray-600 text-white hover:bg-gray-600 hover:text-white"
+                      className="w-full justify-between border-gray-600 bg-gray-700 text-white hover:bg-gray-600 hover:text-white"
                       disabled={isLoadingSchools}
                     >
                       {selectedSchoolId && selectedSchool ? (
                         <div className="flex flex-col text-left">
-                          <span className="font-medium">{selectedSchool.name}</span>
+                          <span className="font-medium">
+                            {selectedSchool.name}
+                          </span>
                           <span className="text-sm text-gray-400">
-                            {selectedSchool.type.replace('_', ' ')} • {selectedSchool.location}, {US_STATES.find(s => s.value === selectedSchool.state)?.label ?? selectedSchool.state}
+                            {selectedSchool.type.replace("_", " ")} •{" "}
+                            {selectedSchool.location},{" "}
+                            {US_STATES.find(
+                              (s) => s.value === selectedSchool.state,
+                            )?.label ?? selectedSchool.state}
                           </span>
                         </div>
                       ) : (
@@ -265,11 +304,11 @@ export function SchoolAssociationRequestForm() {
                       <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                  <PopoverContent className="w-full border-gray-600 bg-gray-700 p-0">
                     <Command className="bg-gray-700">
-                      <CommandInput 
-                        placeholder="Search schools by name, location, or state..." 
-                        className="bg-gray-700 text-white border-none"
+                      <CommandInput
+                        placeholder="Search schools by name, location, or state..."
+                        className="border-none bg-gray-700 text-white"
                       />
                       <CommandList>
                         <CommandEmpty className="py-6 text-center text-sm text-gray-400">
@@ -285,9 +324,9 @@ export function SchoolAssociationRequestForm() {
                                 setStateComboboxOpen(false);
                                 setRegionComboboxOpen(false);
                               }}
-                              className="bg-gray-600 hover:bg-gray-500 text-white border-gray-500"
+                              className="border-gray-500 bg-gray-600 text-white hover:bg-gray-500"
                             >
-                              <PlusIcon className="h-3 w-3 mr-1" />
+                              <PlusIcon className="mr-1 h-3 w-3" />
                               Request New School Instead
                             </Button>
                           </div>
@@ -306,18 +345,26 @@ export function SchoolAssociationRequestForm() {
                               <CheckIcon
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  selectedSchoolId === school.id ? "opacity-100" : "opacity-0"
+                                  selectedSchoolId === school.id
+                                    ? "opacity-100"
+                                    : "opacity-0",
                                 )}
                               />
                               <div className="flex flex-col">
-                                <span className="font-medium text-white">{school.name}</span>
+                                <span className="font-medium text-white">
+                                  {school.name}
+                                </span>
                                 <span className="text-sm text-gray-400">
-                                  {school.type.replace('_', ' ')} • {school.location}, {US_STATES.find(s => s.value === school.state)?.label ?? school.state}
+                                  {school.type.replace("_", " ")} •{" "}
+                                  {school.location},{" "}
+                                  {US_STATES.find(
+                                    (s) => s.value === school.state,
+                                  )?.label ?? school.state}
                                 </span>
                               </div>
                             </CommandItem>
                           ))}
-                          <div className="border-t border-gray-600 mx-1 my-1"></div>
+                          <div className="mx-1 my-1 border-t border-gray-600"></div>
                           <CommandItem
                             onSelect={() => {
                               setIsNewSchoolRequest(true);
@@ -340,10 +387,12 @@ export function SchoolAssociationRequestForm() {
           ) : (
             <>
               {/* New School Form */}
-              <div className="space-y-4 bg-gray-700 rounded-lg p-4">
-                <h4 className="text-white font-medium mb-2">New School Information</h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4 rounded-lg bg-gray-700 p-4">
+                <h4 className="mb-2 font-medium text-white">
+                  New School Information
+                </h4>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="schoolName" className="text-gray-300">
                       School Name *
@@ -353,11 +402,16 @@ export function SchoolAssociationRequestForm() {
                       type="text"
                       placeholder="Enter school name"
                       value={newSchoolData.name}
-                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, name: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white"
+                      onChange={(e) =>
+                        setNewSchoolData((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      className="border-gray-500 bg-gray-600 text-white"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="schoolType" className="text-gray-300">
                       School Type *
@@ -367,51 +421,75 @@ export function SchoolAssociationRequestForm() {
                         <Button
                           variant="outline"
                           role="combobox"
-                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500 hover:text-white"
+                          className="w-full justify-between border-gray-500 bg-gray-600 text-white hover:bg-gray-500 hover:text-white"
                         >
-                          {newSchoolData.type ? (
-                            newSchoolData.type === "HIGH_SCHOOL" ? "High School" :
-                            newSchoolData.type === "COLLEGE" ? "2-year post secondary institution (College)" : "4-year post secondary institution (University)"
-                          ) : "Select type..."}
+                          {newSchoolData.type
+                            ? newSchoolData.type === "HIGH_SCHOOL"
+                              ? "High School"
+                              : newSchoolData.type === "COLLEGE"
+                                ? "2-year post secondary institution (College)"
+                                : "4-year post secondary institution (University)"
+                            : "Select type..."}
                           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                      <PopoverContent className="w-full border-gray-600 bg-gray-700 p-0">
                         <Command className="bg-gray-700">
                           <CommandList>
                             <CommandGroup>
                               <CommandItem
-                                onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "HIGH_SCHOOL" }))}
+                                onSelect={() =>
+                                  setNewSchoolData((prev) => ({
+                                    ...prev,
+                                    type: "HIGH_SCHOOL",
+                                  }))
+                                }
                                 className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                               >
                                 <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    newSchoolData.type === "HIGH_SCHOOL" ? "opacity-100" : "opacity-0"
+                                    newSchoolData.type === "HIGH_SCHOOL"
+                                      ? "opacity-100"
+                                      : "opacity-0",
                                   )}
                                 />
                                 High School
                               </CommandItem>
                               <CommandItem
-                                onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "COLLEGE" }))}
+                                onSelect={() =>
+                                  setNewSchoolData((prev) => ({
+                                    ...prev,
+                                    type: "COLLEGE",
+                                  }))
+                                }
                                 className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                               >
                                 <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    newSchoolData.type === "COLLEGE" ? "opacity-100" : "opacity-0"
+                                    newSchoolData.type === "COLLEGE"
+                                      ? "opacity-100"
+                                      : "opacity-0",
                                   )}
                                 />
                                 2-year post secondary institution (College)
                               </CommandItem>
                               <CommandItem
-                                onSelect={() => setNewSchoolData(prev => ({ ...prev, type: "UNIVERSITY" }))}
+                                onSelect={() =>
+                                  setNewSchoolData((prev) => ({
+                                    ...prev,
+                                    type: "UNIVERSITY",
+                                  }))
+                                }
                                 className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
                               >
                                 <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    newSchoolData.type === "UNIVERSITY" ? "opacity-100" : "opacity-0"
+                                    newSchoolData.type === "UNIVERSITY"
+                                      ? "opacity-100"
+                                      : "opacity-0",
                                   )}
                                 />
                                 4-year post secondary institution (University)
@@ -422,7 +500,7 @@ export function SchoolAssociationRequestForm() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="schoolLocation" className="text-gray-300">
                       City/Location *
@@ -432,32 +510,44 @@ export function SchoolAssociationRequestForm() {
                       type="text"
                       placeholder="Enter city (e.g., Boston, San Francisco, etc.)"
                       value={newSchoolData.location}
-                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, location: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white placeholder:text-gray-400"
+                      onChange={(e) =>
+                        setNewSchoolData((prev) => ({
+                          ...prev,
+                          location: e.target.value,
+                        }))
+                      }
+                      className="border-gray-500 bg-gray-600 text-white placeholder:text-gray-400"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="schoolState" className="text-gray-300">
                       State *
                     </Label>
-                    <Popover open={stateComboboxOpen} onOpenChange={setStateComboboxOpen}>
+                    <Popover
+                      open={stateComboboxOpen}
+                      onOpenChange={setStateComboboxOpen}
+                    >
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           role="combobox"
                           aria-expanded={stateComboboxOpen}
-                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500 hover:text-white"
+                          className="w-full justify-between border-gray-500 bg-gray-600 text-white hover:bg-gray-500 hover:text-white"
                         >
-                          {newSchoolData.state ? US_STATES.find(s => s.value === newSchoolData.state)?.label : "Select state..."}
+                          {newSchoolData.state
+                            ? US_STATES.find(
+                                (s) => s.value === newSchoolData.state,
+                              )?.label
+                            : "Select state..."}
                           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                      <PopoverContent className="w-full border-gray-600 bg-gray-700 p-0">
                         <Command className="bg-gray-700">
-                          <CommandInput 
-                            placeholder="Search states..." 
-                            className="bg-gray-700 text-white border-none"
+                          <CommandInput
+                            placeholder="Search states..."
+                            className="border-none bg-gray-700 text-white"
                           />
                           <CommandList>
                             <CommandEmpty className="py-6 text-center text-sm text-gray-400">
@@ -466,20 +556,25 @@ export function SchoolAssociationRequestForm() {
                               </div>
                             </CommandEmpty>
                             <CommandGroup>
-                                                             {US_STATES.map((state) => (
-                                 <CommandItem
-                                   key={state.value}
-                                   value={state.label}
-                                   onSelect={() => {
-                                     setNewSchoolData(prev => ({ ...prev, state: state.value }));
-                                     setStateComboboxOpen(false);
-                                   }}
-                                   className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
-                                 >
+                              {US_STATES.map((state) => (
+                                <CommandItem
+                                  key={state.value}
+                                  value={state.label}
+                                  onSelect={() => {
+                                    setNewSchoolData((prev) => ({
+                                      ...prev,
+                                      state: state.value,
+                                    }));
+                                    setStateComboboxOpen(false);
+                                  }}
+                                  className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
+                                >
                                   <CheckIcon
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      newSchoolData.state === state.value ? "opacity-100" : "opacity-0"
+                                      newSchoolData.state === state.value
+                                        ? "opacity-100"
+                                        : "opacity-0",
                                     )}
                                   />
                                   {state.label}
@@ -491,28 +586,35 @@ export function SchoolAssociationRequestForm() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="schoolRegion" className="text-gray-300">
                       Region (Optional)
                     </Label>
-                    <Popover open={regionComboboxOpen} onOpenChange={setRegionComboboxOpen}>
+                    <Popover
+                      open={regionComboboxOpen}
+                      onOpenChange={setRegionComboboxOpen}
+                    >
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           role="combobox"
                           aria-expanded={regionComboboxOpen}
-                          className="w-full justify-between bg-gray-600 border-gray-500 text-white hover:bg-gray-500 hover:text-white"
+                          className="w-full justify-between border-gray-500 bg-gray-600 text-white hover:bg-gray-500 hover:text-white"
                         >
-                          {newSchoolData.region ? US_REGIONS.find(r => r.value === newSchoolData.region)?.label : "Select region..."}
+                          {newSchoolData.region
+                            ? US_REGIONS.find(
+                                (r) => r.value === newSchoolData.region,
+                              )?.label
+                            : "Select region..."}
                           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-full p-0 bg-gray-700 border-gray-600">
+                      <PopoverContent className="w-full border-gray-600 bg-gray-700 p-0">
                         <Command className="bg-gray-700">
-                          <CommandInput 
-                            placeholder="Search regions..." 
-                            className="bg-gray-700 text-white border-none"
+                          <CommandInput
+                            placeholder="Search regions..."
+                            className="border-none bg-gray-700 text-white"
                           />
                           <CommandList>
                             <CommandEmpty className="py-6 text-center text-sm text-gray-400">
@@ -524,7 +626,10 @@ export function SchoolAssociationRequestForm() {
                               <CommandItem
                                 value=""
                                 onSelect={() => {
-                                  setNewSchoolData(prev => ({ ...prev, region: "" }));
+                                  setNewSchoolData((prev) => ({
+                                    ...prev,
+                                    region: "",
+                                  }));
                                   setRegionComboboxOpen(false);
                                 }}
                                 className="text-gray-400 hover:bg-gray-600 hover:text-gray-400 data-[selected=true]:bg-gray-600 data-[selected=true]:text-gray-400"
@@ -532,7 +637,9 @@ export function SchoolAssociationRequestForm() {
                                 <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    !newSchoolData.region ? "opacity-100" : "opacity-0"
+                                    !newSchoolData.region
+                                      ? "opacity-100"
+                                      : "opacity-0",
                                   )}
                                 />
                                 No region selected
@@ -542,7 +649,10 @@ export function SchoolAssociationRequestForm() {
                                   key={region.value}
                                   value={region.label}
                                   onSelect={() => {
-                                    setNewSchoolData(prev => ({ ...prev, region: region.value }));
+                                    setNewSchoolData((prev) => ({
+                                      ...prev,
+                                      region: region.value,
+                                    }));
                                     setRegionComboboxOpen(false);
                                   }}
                                   className="text-white hover:bg-gray-600 hover:text-white data-[selected=true]:bg-gray-600 data-[selected=true]:text-white"
@@ -550,7 +660,9 @@ export function SchoolAssociationRequestForm() {
                                   <CheckIcon
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      newSchoolData.region === region.value ? "opacity-100" : "opacity-0"
+                                      newSchoolData.region === region.value
+                                        ? "opacity-100"
+                                        : "opacity-0",
                                     )}
                                   />
                                   {region.label}
@@ -562,7 +674,7 @@ export function SchoolAssociationRequestForm() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="schoolWebsite" className="text-gray-300">
                       Website (Optional)
@@ -572,8 +684,13 @@ export function SchoolAssociationRequestForm() {
                       type="url"
                       placeholder="https://example.com"
                       value={newSchoolData.website}
-                      onChange={(e) => setNewSchoolData(prev => ({ ...prev, website: e.target.value }))}
-                      className="bg-gray-600 border-gray-500 text-white placeholder:text-gray-400"
+                      onChange={(e) =>
+                        setNewSchoolData((prev) => ({
+                          ...prev,
+                          website: e.target.value,
+                        }))
+                      }
+                      className="border-gray-500 bg-gray-600 text-white placeholder:text-gray-400"
                     />
                   </div>
                 </div>
@@ -583,14 +700,28 @@ export function SchoolAssociationRequestForm() {
 
           {/* Selected School Info */}
           {selectedSchool && (
-            <div className="bg-gray-700 rounded-lg p-3">
-              <h4 className="text-white font-medium mb-2">Selected School</h4>
-              <div className="text-sm text-gray-300 space-y-1">
-                <p><span className="font-medium">Name:</span> {selectedSchool.name}</p>
-                <p><span className="font-medium">Type:</span> {selectedSchool.type.replace('_', ' ')}</p>
-                <p><span className="font-medium">Location:</span> {selectedSchool.location}, {US_STATES.find(s => s.value === selectedSchool.state)?.label ?? selectedSchool.state}</p>
+            <div className="rounded-lg bg-gray-700 p-3">
+              <h4 className="mb-2 font-medium text-white">Selected School</h4>
+              <div className="space-y-1 text-sm text-gray-300">
+                <p>
+                  <span className="font-medium">Name:</span>{" "}
+                  {selectedSchool.name}
+                </p>
+                <p>
+                  <span className="font-medium">Type:</span>{" "}
+                  {selectedSchool.type.replace("_", " ")}
+                </p>
+                <p>
+                  <span className="font-medium">Location:</span>{" "}
+                  {selectedSchool.location},{" "}
+                  {US_STATES.find((s) => s.value === selectedSchool.state)
+                    ?.label ?? selectedSchool.state}
+                </p>
                 {selectedSchool.region && (
-                  <p><span className="font-medium">Region:</span> {selectedSchool.region}</p>
+                  <p>
+                    <span className="font-medium">Region:</span>{" "}
+                    {selectedSchool.region}
+                  </p>
                 )}
               </div>
             </div>
@@ -606,10 +737,10 @@ export function SchoolAssociationRequestForm() {
               placeholder="Explain your connection to this school and why you should be associated..."
               value={requestMessage}
               onChange={(e) => setRequestMessage(e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white min-h-[100px]"
+              className="min-h-[100px] border-gray-600 bg-gray-700 text-white"
               maxLength={500}
             />
-            <div className="text-xs text-gray-400 text-right">
+            <div className="text-right text-xs text-gray-400">
               {requestMessage.length}/500 characters
             </div>
           </div>
@@ -617,30 +748,31 @@ export function SchoolAssociationRequestForm() {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={(!selectedSchoolId && !isNewSchoolRequest) || isSubmitting}
-            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-orbitron"
+            disabled={
+              (!selectedSchoolId && !isNewSchoolRequest) || isSubmitting
+            }
+            className="font-orbitron w-full bg-cyan-600 text-white hover:bg-cyan-700"
           >
             {isSubmitting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                 Submitting...
               </>
             ) : (
               <>
-                <SendIcon className="h-4 w-4 mr-2" />
+                <SendIcon className="mr-2 h-4 w-4" />
                 Submit Request
               </>
             )}
           </Button>
 
           <p className="text-xs text-gray-400">
-            {isNewSchoolRequest 
+            {isNewSchoolRequest
               ? "Your new school request will be reviewed by our administrators. If approved, the school will be created and you'll be associated with it."
-              : "Your request will be reviewed by our administrators. You'll be notified once it's processed."
-            }
+              : "Your request will be reviewed by our administrators. You'll be notified once it's processed."}
           </p>
         </form>
       </CardContent>
     </Card>
   );
-} 
+}

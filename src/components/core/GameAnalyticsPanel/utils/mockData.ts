@@ -1,4 +1,9 @@
-import type { ValorantStats, RocketLeagueStats, SmashStats, GameStats } from "../types";
+import type {
+  ValorantStats,
+  RocketLeagueStats,
+  SmashStats,
+  GameStats,
+} from "../types";
 
 // Mock Valorant stats for demo purposes
 export const mockValorantStats: ValorantStats = {
@@ -17,20 +22,20 @@ export const mockValorantStats: ValorantStats = {
   role: "Duelist",
   mainAgent: {
     name: "Jett",
-    image: "/ValAssets/Characters/add6443a-41bd-e414-f6ad-e58d267f4e95.png"
+    image: "/ValAssets/Characters/add6443a-41bd-e414-f6ad-e58d267f4e95.png",
   },
   mainGun: {
     name: "Vandal",
-    image: "/ValAssets/Weapons/9c82e19d-4575-0200-1a81-3eacf00cf872.png"
+    image: "/ValAssets/Weapons/9c82e19d-4575-0200-1a81-3eacf00cf872.png",
   },
   bestMap: {
     name: "Ascent",
-    image: "/ValAssets/Maps/7eaecc1b-4337-bbf6-6ab9-04b8f06b3319.png"
+    image: "/ValAssets/Maps/7eaecc1b-4337-bbf6-6ab9-04b8f06b3319.png",
   },
   worstMap: {
     name: "Icebox",
-    image: "/ValAssets/Maps/e2ad5c54-4114-a870-9641-8ea21279579a.png"
-  }
+    image: "/ValAssets/Maps/e2ad5c54-4114-a870-9641-8ea21279579a.png",
+  },
 };
 
 // Mock Rocket League stats for demo purposes
@@ -54,7 +59,7 @@ export const mockRocketLeagueStats: RocketLeagueStats = {
     boost_0_25: 25,
     boost_25_50: 20,
     boost_50_75: 15,
-    boost_75_100: 10
+    boost_75_100: 10,
   },
   doubles: {
     rank: "Champion II",
@@ -74,7 +79,7 @@ export const mockRocketLeagueStats: RocketLeagueStats = {
     boost_0_25: 23,
     boost_25_50: 18,
     boost_50_75: 17,
-    boost_75_100: 10
+    boost_75_100: 10,
   },
   standard: {
     rank: "Diamond III",
@@ -94,8 +99,8 @@ export const mockRocketLeagueStats: RocketLeagueStats = {
     boost_0_25: 28,
     boost_25_50: 19,
     boost_50_75: 14,
-    boost_75_100: 8
-  }
+    boost_75_100: 8,
+  },
 };
 
 // Mock Smash stats for demo purposes
@@ -104,7 +109,7 @@ export const mockSmashStats: SmashStats = {
     gamerTag: "DemoPlayer",
     prefix: "EVAL",
     mainCharacter: "Joker",
-    evalScore: 81.25
+    evalScore: 81.25,
   },
   stats: {
     set_win_rate: 0.73,
@@ -112,36 +117,36 @@ export const mockSmashStats: SmashStats = {
     clutch_factor: 0.45,
     events: 24,
     mains: {
-      "Joker": { games: 45, winrate: 0.78 },
+      Joker: { games: 45, winrate: 0.78 },
       "Pyra/Mythra": { games: 32, winrate: 0.69 },
-      "Wolf": { games: 28, winrate: 0.65 }
+      Wolf: { games: 28, winrate: 0.65 },
     },
     best_matchups: {
-      "Joker": {
-        "Ganondorf": { wins: 8, games: 9, winrate: 0.89 },
-        "King Dedede": { wins: 11, games: 13, winrate: 0.85 }
-      }
+      Joker: {
+        Ganondorf: { wins: 8, games: 9, winrate: 0.89 },
+        "King Dedede": { wins: 11, games: 13, winrate: 0.85 },
+      },
     },
     worst_matchups: {
-      "Joker": {
-        "Pikachu": { wins: 4, games: 13, winrate: 0.31 },
-        "Fox": { wins: 6, games: 16, winrate: 0.38 }
-      }
+      Joker: {
+        Pikachu: { wins: 4, games: 13, winrate: 0.31 },
+        Fox: { wins: 6, games: 16, winrate: 0.38 },
+      },
     },
     best_stages: {
-      "Battlefield": { wins: 18, losses: 4, winrate: 0.82 },
-      "Pokemon Stadium 2": { wins: 16, losses: 5, winrate: 0.76 }
+      Battlefield: { wins: 18, losses: 4, winrate: 0.82 },
+      "Pokemon Stadium 2": { wins: 16, losses: 5, winrate: 0.76 },
     },
     worst_stages: {
       "Final Destination": { wins: 9, losses: 11, winrate: 0.45 },
-      "Small Battlefield": { wins: 12, losses: 13, winrate: 0.48 }
-    }
+      "Small Battlefield": { wins: 12, losses: 13, winrate: 0.48 },
+    },
   },
   recentPlacements: [
     { event: "Weekly Tournament #45", placement: 3, entrants: 64 },
     { event: "Monthly Major", placement: 7, entrants: 128 },
-    { event: "Weekly Tournament #44", placement: 2, entrants: 48 }
-  ]
+    { event: "Weekly Tournament #44", placement: 2, entrants: 48 },
+  ],
 };
 
 // Check if a playerId is a demo/mock user
@@ -163,4 +168,4 @@ export const getMockStatsForGame = (gameId: string): GameStats | null => {
     default:
       return null;
   }
-}; 
+};

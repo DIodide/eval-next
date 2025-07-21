@@ -1,13 +1,18 @@
 import { useCallback } from "react";
 import { api } from "@/trpc/react";
-import type { GameId, GameStatsResult, CacheStrategy, GameStats } from "../types";
+import type {
+  GameId,
+  GameStatsResult,
+  CacheStrategy,
+  GameStats,
+} from "../types";
 import { DEFAULT_CACHE_STRATEGY } from "../utils/constants";
 import { isDemoUser, getMockStatsForGame } from "../utils/mockData";
 
 export function useGameStats(
   gameId: GameId,
   playerId: string,
-  options?: CacheStrategy
+  options?: CacheStrategy,
 ): GameStatsResult {
   const cacheOptions = {
     ...DEFAULT_CACHE_STRATEGY,
@@ -18,22 +23,24 @@ export function useGameStats(
   const isDemo = isDemoUser(playerId);
 
   // VALORANT stats (query with caching) - disabled for demo users
-  const valorantStatsQuery = api.valorantStats.getPlayerStatsByPlayerId.useQuery(
-    { playerId },
-    {
-      enabled: gameId === "valorant" && !!playerId && !isDemo,
-      ...cacheOptions,
-    }
-  );
+  const valorantStatsQuery =
+    api.valorantStats.getPlayerStatsByPlayerId.useQuery(
+      { playerId },
+      {
+        enabled: gameId === "valorant" && !!playerId && !isDemo,
+        ...cacheOptions,
+      },
+    );
 
   // Rocket League stats (query with caching) - disabled for demo users
-  const rocketLeagueStatsQuery = api.rocketLeagueStats.getAllPlayerStats.useQuery(
-    { playerId },
-    {
-      enabled: gameId === "rocket-league" && !!playerId && !isDemo,
-      ...cacheOptions,
-    }
-  );
+  const rocketLeagueStatsQuery =
+    api.rocketLeagueStats.getAllPlayerStats.useQuery(
+      { playerId },
+      {
+        enabled: gameId === "rocket-league" && !!playerId && !isDemo,
+        ...cacheOptions,
+      },
+    );
 
   // Smash Ultimate stats (query with caching) - disabled for demo users
   const smashStatsQuery = api.smashStats.getPlayerStatsByPlayerId.useQuery(
@@ -41,7 +48,7 @@ export function useGameStats(
     {
       enabled: gameId === "smash" && !!playerId && !isDemo,
       ...cacheOptions,
-    }
+    },
   );
 
   // Create unified interface
@@ -60,12 +67,13 @@ export function useGameStats(
     }
 
     switch (gameId) {
-      case 'valorant': {
-        const error = valorantStatsQuery.error ? 
-          new Error(valorantStatsQuery.error.message) : 
-          (valorantStatsQuery.data && !valorantStatsQuery.data.success ? 
-            new Error(valorantStatsQuery.data.message) : null);
-        
+      case "valorant": {
+        const error = valorantStatsQuery.error
+          ? new Error(valorantStatsQuery.error.message)
+          : valorantStatsQuery.data && !valorantStatsQuery.data.success
+            ? new Error(valorantStatsQuery.data.message)
+            : null;
+
         return {
           data: valorantStatsQuery.data?.data as GameStats | null,
           isLoading: valorantStatsQuery.isLoading,
@@ -73,12 +81,13 @@ export function useGameStats(
           refetch: () => void valorantStatsQuery.refetch(),
         };
       }
-      case 'rocket-league': {
-        const error = rocketLeagueStatsQuery.error ? 
-          new Error(rocketLeagueStatsQuery.error.message) : 
-          (rocketLeagueStatsQuery.data && !rocketLeagueStatsQuery.data.success ? 
-            new Error(rocketLeagueStatsQuery.data.message) : null);
-        
+      case "rocket-league": {
+        const error = rocketLeagueStatsQuery.error
+          ? new Error(rocketLeagueStatsQuery.error.message)
+          : rocketLeagueStatsQuery.data && !rocketLeagueStatsQuery.data.success
+            ? new Error(rocketLeagueStatsQuery.data.message)
+            : null;
+
         return {
           data: rocketLeagueStatsQuery.data?.data as GameStats | null,
           isLoading: rocketLeagueStatsQuery.isLoading,
@@ -86,12 +95,13 @@ export function useGameStats(
           refetch: () => void rocketLeagueStatsQuery.refetch(),
         };
       }
-      case 'smash': {
-        const error = smashStatsQuery.error ? 
-          new Error(smashStatsQuery.error.message) : 
-          (smashStatsQuery.data && !smashStatsQuery.data.success ? 
-            new Error(smashStatsQuery.data.message) : null);
-        
+      case "smash": {
+        const error = smashStatsQuery.error
+          ? new Error(smashStatsQuery.error.message)
+          : smashStatsQuery.data && !smashStatsQuery.data.success
+            ? new Error(smashStatsQuery.data.message)
+            : null;
+
         return {
           data: smashStatsQuery.data?.data as GameStats | null,
           isLoading: smashStatsQuery.isLoading,
@@ -99,14 +109,14 @@ export function useGameStats(
           refetch: () => void smashStatsQuery.refetch(),
         };
       }
-      case 'overwatch':
+      case "overwatch":
       default:
         return {
           data: null,
           isLoading: false,
-          error: new Error('Game not yet supported'),
+          error: new Error("Game not yet supported"),
           refetch: () => {
-            console.log('Refetch not implemented for', gameId);
+            console.log("Refetch not implemented for", gameId);
           },
         };
     }
@@ -121,7 +131,11 @@ export function useGameStats(
   return getStatsForGame();
 }
 
-export function useValorantStats(playerId: string, enabled = true, options?: CacheStrategy) {
+export function useValorantStats(
+  playerId: string,
+  enabled = true,
+  options?: CacheStrategy,
+) {
   const cacheOptions = {
     ...DEFAULT_CACHE_STRATEGY,
     ...options,
@@ -132,18 +146,26 @@ export function useValorantStats(playerId: string, enabled = true, options?: Cac
     {
       enabled: enabled && !!playerId,
       ...cacheOptions,
-    }
+    },
   );
 
   return {
     data: query.data?.data ?? null,
     isLoading: query.isLoading,
-    error: query.error ?? (query.data && !query.data.success ? new Error(query.data.message) : null),
+    error:
+      query.error ??
+      (query.data && !query.data.success
+        ? new Error(query.data.message)
+        : null),
     refetch: () => query.refetch(),
   };
 }
 
-export function useRocketLeagueStats(playerId: string, enabled = true, options?: CacheStrategy) {
+export function useRocketLeagueStats(
+  playerId: string,
+  enabled = true,
+  options?: CacheStrategy,
+) {
   const cacheOptions = {
     ...DEFAULT_CACHE_STRATEGY,
     ...options,
@@ -154,18 +176,26 @@ export function useRocketLeagueStats(playerId: string, enabled = true, options?:
     {
       enabled: enabled && !!playerId,
       ...cacheOptions,
-    }
+    },
   );
 
   return {
     data: query.data?.data ?? null,
     isLoading: query.isLoading,
-    error: query.error ?? (query.data && !query.data.success ? new Error(query.data.message) : null),
+    error:
+      query.error ??
+      (query.data && !query.data.success
+        ? new Error(query.data.message)
+        : null),
     refetch: () => query.refetch(),
   };
 }
 
-export function useSmashStats(playerId: string, enabled = true, options?: CacheStrategy) {
+export function useSmashStats(
+  playerId: string,
+  enabled = true,
+  options?: CacheStrategy,
+) {
   const cacheOptions = {
     ...DEFAULT_CACHE_STRATEGY,
     ...options,
@@ -176,13 +206,17 @@ export function useSmashStats(playerId: string, enabled = true, options?: CacheS
     {
       enabled: enabled && !!playerId,
       ...cacheOptions,
-    }
+    },
   );
 
   return {
     data: query.data?.data ?? null,
     isLoading: query.isLoading,
-    error: query.error ?? (query.data && !query.data.success ? new Error(query.data.message) : null),
+    error:
+      query.error ??
+      (query.data && !query.data.success
+        ? new Error(query.data.message)
+        : null),
     refetch: () => query.refetch(),
   };
-} 
+}
