@@ -23,6 +23,8 @@ import {
   UserIcon,
   CalendarIcon,
   MessageSquareIcon,
+  CrownIcon,
+  GraduationCapIcon,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -67,38 +69,96 @@ export default function SchoolRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<
     "PENDING" | "APPROVED" | "REJECTED" | undefined
   >();
+  const [requestTypeFilter, setRequestTypeFilter] = useState<
+    "all" | "coach" | "league"
+  >("all");
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Fetch requests with pagination
-
+  // Fetch coach school association requests
   const {
-    data: requestsData,
-    isLoading,
-    refetch,
-  } = api.schoolAssociationRequests.getRequests.useQuery({
-    search: searchTerm || undefined,
-    status: statusFilter,
-    page: 1,
-    limit: 50,
-  });
+    data: coachRequestsData,
+    isLoading: isLoadingCoachRequests,
+    refetch: refetchCoachRequests,
+  } = api.schoolAssociationRequests.getRequests.useQuery(
+    {
+      search: searchTerm || undefined,
+      status: statusFilter,
+      page: 1,
+      limit: 50,
+    },
+    {
+      enabled: requestTypeFilter === "all" || requestTypeFilter === "coach",
+    },
+  );
 
-  // Get pending count for the header
+  // Fetch league school creation requests
+  const {
+    data: leagueRequestsData,
+    isLoading: isLoadingLeagueRequests,
+    refetch: refetchLeagueRequests,
+  } = api.leagueSchoolCreationRequests.getRequests.useQuery(
+    {
+      search: searchTerm || undefined,
+      status: statusFilter,
+      page: 1,
+      limit: 50,
+    },
+    {
+      enabled: requestTypeFilter === "all" || requestTypeFilter === "league",
+    },
+  );
 
-  const pendingCountQuery =
+  // Get pending counts for the header
+  const coachPendingCountQuery =
     api.schoolAssociationRequests.getPendingCount.useQuery();
+  const leaguePendingCountQuery =
+    api.leagueSchoolCreationRequests.getPendingCount.useQuery();
 
-  const pendingCount = pendingCountQuery.data;
+  const coachPendingCount = coachPendingCountQuery.data ?? 0;
+  const leaguePendingCount = leaguePendingCountQuery.data ?? 0;
+  const totalPendingCount = coachPendingCount + leaguePendingCount;
 
-  // Approve request mutation
-  const approveRequest =
+  // Combine and sort requests
+  const combinedRequests = (() => {
+    const coach =
+      requestTypeFilter === "all" || requestTypeFilter === "coach"
+        ? (coachRequestsData?.requests ?? []).map((req) => ({
+            ...req,
+            requestType: "coach" as const,
+          }))
+        : [];
+    const league =
+      requestTypeFilter === "all" || requestTypeFilter === "league"
+        ? (leagueRequestsData?.requests ?? []).map((req) => ({
+            ...req,
+            requestType: "league" as const,
+          }))
+        : [];
+
+    return [...coach, ...league].sort((a, b) => {
+      // Sort by status (PENDING first) then by date
+      if (a.status !== b.status) {
+        const statusOrder = { PENDING: 0, APPROVED: 1, REJECTED: 2 };
+        return statusOrder[a.status] - statusOrder[b.status];
+      }
+      return (
+        new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime()
+      );
+    });
+  })();
+
+  const isLoading = isLoadingCoachRequests || isLoadingLeagueRequests;
+
+  // Coach school association request mutations
+  const approveCoachRequest =
     api.schoolAssociationRequests.approveRequest.useMutation({
       onSuccess: () => {
         toast.success("School association request approved successfully!");
         setSelectedRequest(null);
         setAdminNotes("");
-        void refetch();
+        void refetchCoachRequests();
       },
       onError: (error) => {
         toast.error(error.message || "Failed to approve request");
@@ -108,14 +168,13 @@ export default function SchoolRequestsPage() {
       },
     });
 
-  // Reject request mutation
-  const rejectRequest = api.schoolAssociationRequests.rejectRequest.useMutation(
-    {
+  const rejectCoachRequest =
+    api.schoolAssociationRequests.rejectRequest.useMutation({
       onSuccess: () => {
         toast.success("School association request rejected");
         setSelectedRequest(null);
         setAdminNotes("");
-        void refetch();
+        void refetchCoachRequests();
       },
       onError: (error) => {
         toast.error(error.message || "Failed to reject request");
@@ -123,28 +182,80 @@ export default function SchoolRequestsPage() {
       onSettled: () => {
         setIsProcessing(false);
       },
-    },
-  );
-
-  const handleApprove = async (requestId: string) => {
-    setIsProcessing(true);
-    await approveRequest.mutateAsync({
-      requestId,
-      adminNotes: adminNotes || undefined,
     });
+
+  // League school creation request mutations
+  const approveLeagueRequest =
+    api.leagueSchoolCreationRequests.approveRequest.useMutation({
+      onSuccess: () => {
+        toast.success("League school creation request approved successfully!");
+        setSelectedRequest(null);
+        setAdminNotes("");
+        void refetchLeagueRequests();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to approve request");
+      },
+      onSettled: () => {
+        setIsProcessing(false);
+      },
+    });
+
+  const rejectLeagueRequest =
+    api.leagueSchoolCreationRequests.rejectRequest.useMutation({
+      onSuccess: () => {
+        toast.success("League school creation request rejected");
+        setSelectedRequest(null);
+        setAdminNotes("");
+        void refetchLeagueRequests();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to reject request");
+      },
+      onSettled: () => {
+        setIsProcessing(false);
+      },
+    });
+
+  const handleApprove = async (
+    requestId: string,
+    requestType: "coach" | "league",
+  ) => {
+    setIsProcessing(true);
+    if (requestType === "coach") {
+      await approveCoachRequest.mutateAsync({
+        requestId,
+        adminNotes: adminNotes || undefined,
+      });
+    } else {
+      await approveLeagueRequest.mutateAsync({
+        requestId,
+        adminNotes: adminNotes || undefined,
+      });
+    }
   };
 
-  const handleReject = async (requestId: string) => {
+  const handleReject = async (
+    requestId: string,
+    requestType: "coach" | "league",
+  ) => {
     if (!adminNotes.trim()) {
       toast.error("Admin notes are required for rejection");
       return;
     }
 
     setIsProcessing(true);
-    await rejectRequest.mutateAsync({
-      requestId,
-      adminNotes,
-    });
+    if (requestType === "coach") {
+      await rejectCoachRequest.mutateAsync({
+        requestId,
+        adminNotes,
+      });
+    } else {
+      await rejectLeagueRequest.mutateAsync({
+        requestId,
+        adminNotes,
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -190,18 +301,19 @@ export default function SchoolRequestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-orbitron text-3xl font-bold text-white">
-            School Association Requests
+            School Requests Management
           </h1>
           <p className="mt-2 text-gray-400">
-            Manage coach school association requests and onboarding
+            Manage coach school association requests and league school creation
+            requests
           </p>
         </div>
-        {pendingCount !== undefined && pendingCount > 0 && (
+        {totalPendingCount > 0 && (
           <Badge
             variant="outline"
             className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
           >
-            {pendingCount} Pending
+            {totalPendingCount} Pending
           </Badge>
         )}
       </div>
@@ -266,7 +378,7 @@ export default function SchoolRequestsPage() {
               <p className="text-gray-400">Loading requests...</p>
             </CardContent>
           </Card>
-        ) : !requestsData?.requests.length ? (
+        ) : !combinedRequests.length ? (
           <Card className="border-gray-800 bg-gray-900">
             <CardContent className="p-8 text-center">
               <BuildingIcon className="mx-auto mb-4 h-12 w-12 text-gray-600" />
@@ -276,7 +388,7 @@ export default function SchoolRequestsPage() {
             </CardContent>
           </Card>
         ) : (
-          requestsData.requests.map((request) => (
+          combinedRequests.map((request) => (
             <Card
               key={request.id}
               className={`border-gray-800 bg-gray-900 transition-colors ${
@@ -300,31 +412,58 @@ export default function SchoolRequestsPage() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {/* Coach Info */}
+                      {/* Requester Info */}
                       <div className="space-y-2">
                         <h3 className="flex items-center gap-2 font-medium text-white">
                           <UserIcon className="h-4 w-4" />
-                          Coach Information
+                          {request.requestType === "coach"
+                            ? "Coach Information"
+                            : "League Administrator Information"}
                         </h3>
                         <div className="space-y-1 text-sm text-gray-300">
-                          <p>
-                            <span className="font-medium">Name:</span>{" "}
-                            {request.coach.first_name} {request.coach.last_name}
-                          </p>
-                          <p>
-                            <span className="font-medium">Email:</span>{" "}
-                            {request.coach.email}
-                          </p>
-                          <p>
-                            <span className="font-medium">Username:</span>{" "}
-                            {request.coach.username}
-                          </p>
-                          <p>
-                            <span className="font-medium">Joined:</span>{" "}
-                            {new Date(
-                              request.coach.created_at,
-                            ).toLocaleDateString()}
-                          </p>
+                          {request.requestType === "coach" ? (
+                            <>
+                              <p>
+                                <span className="font-medium">Name:</span>{" "}
+                                {request.coach.first_name}{" "}
+                                {request.coach.last_name}
+                              </p>
+                              <p>
+                                <span className="font-medium">Email:</span>{" "}
+                                {request.coach.email}
+                              </p>
+                              <p>
+                                <span className="font-medium">Username:</span>{" "}
+                                {request.coach.username}
+                              </p>
+                              <p>
+                                <span className="font-medium">Joined:</span>{" "}
+                                {new Date(
+                                  request.coach.created_at,
+                                ).toLocaleDateString()}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p>
+                                <span className="font-medium">Name:</span>{" "}
+                                {request.administrator.first_name}{" "}
+                                {request.administrator.last_name}
+                              </p>
+                              <p>
+                                <span className="font-medium">Email:</span>{" "}
+                                {request.administrator.email}
+                              </p>
+                              <p>
+                                <span className="font-medium">Username:</span>{" "}
+                                {request.administrator.username}
+                              </p>
+                              <p>
+                                <span className="font-medium">League ID:</span>{" "}
+                                {request.administrator.league}
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -335,8 +474,47 @@ export default function SchoolRequestsPage() {
                           School Information
                         </h3>
                         <div className="space-y-1 text-sm text-gray-300">
-                          {request.is_new_school_request ? (
-                            // New school creation request
+                          {request.requestType === "league" ? (
+                            // League school creation request - always creating new school
+                            <>
+                              <p>
+                                <span className="font-medium">Name:</span>{" "}
+                                {request.proposed_school_name}{" "}
+                                <span className="text-cyan-400">
+                                  (New School Request)
+                                </span>
+                              </p>
+                              <p>
+                                <span className="font-medium">Type:</span>{" "}
+                                {request.proposed_school_type.replace("_", " ")}
+                              </p>
+                              <p>
+                                <span className="font-medium">Location:</span>{" "}
+                                {request.proposed_school_location},{" "}
+                                {request.proposed_school_state}
+                              </p>
+                              {request.proposed_school_region && (
+                                <p>
+                                  <span className="font-medium">Region:</span>{" "}
+                                  {request.proposed_school_region}
+                                </p>
+                              )}
+                              {request.proposed_school_website && (
+                                <p>
+                                  <span className="font-medium">Website:</span>{" "}
+                                  <a
+                                    href={request.proposed_school_website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-cyan-400 hover:underline"
+                                  >
+                                    {request.proposed_school_website}
+                                  </a>
+                                </p>
+                              )}
+                            </>
+                          ) : request.is_new_school_request ? (
+                            // Coach new school creation request
                             <>
                               <p>
                                 <span className="font-medium">Name:</span>{" "}
@@ -380,7 +558,7 @@ export default function SchoolRequestsPage() {
                               )}
                             </>
                           ) : (
-                            // Existing school association request
+                            // Coach existing school association request
                             <>
                               <p>
                                 <span className="font-medium">Name:</span>{" "}
@@ -459,7 +637,9 @@ export default function SchoolRequestsPage() {
                           </div>
                           <div className="flex gap-2">
                             <Button
-                              onClick={() => handleApprove(request.id)}
+                              onClick={() =>
+                                handleApprove(request.id, request.requestType)
+                              }
                               disabled={isProcessing}
                               className="flex-1 bg-green-600 text-white hover:bg-green-700"
                             >
@@ -467,7 +647,9 @@ export default function SchoolRequestsPage() {
                               Approve
                             </Button>
                             <Button
-                              onClick={() => handleReject(request.id)}
+                              onClick={() =>
+                                handleReject(request.id, request.requestType)
+                              }
                               disabled={isProcessing || !adminNotes.trim()}
                               variant="destructive"
                               className="flex-1"
@@ -505,10 +687,12 @@ export default function SchoolRequestsPage() {
       </div>
 
       {/* Pagination Info */}
-      {requestsData && (
+      {combinedRequests.length > 0 && (
         <div className="text-center text-sm text-gray-400">
-          Showing {requestsData.requests.length} of{" "}
-          {requestsData.pagination.total} requests
+          Showing {combinedRequests.length} of{" "}
+          {(coachRequestsData?.pagination.total ?? 0) +
+            (leagueRequestsData?.pagination.total ?? 0)}{" "}
+          requests
         </div>
       )}
     </div>

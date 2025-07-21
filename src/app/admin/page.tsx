@@ -85,9 +85,13 @@ export default function AdminDashboard() {
     api.schoolAssociationRequests.getPendingCount.useQuery();
   const { data: pendingLeagueRequests } =
     api.leagueAssociationRequests.getPendingCount.useQuery();
+  const { data: pendingLeagueSchoolCreationRequests } =
+    api.leagueSchoolCreationRequests.getPendingCount.useQuery();
 
   const totalPending =
-    (pendingSchoolRequests ?? 0) + (pendingLeagueRequests ?? 0);
+    (pendingSchoolRequests ?? 0) +
+    (pendingLeagueRequests ?? 0) +
+    (pendingLeagueSchoolCreationRequests ?? 0);
 
   return (
     <div className="space-y-8">
@@ -133,15 +137,17 @@ export default function AdminDashboard() {
                       <ClipboardList className="h-4 w-4" />
                       <span>School Requests</span>
                     </div>
-                    {pendingSchoolRequests !== undefined &&
-                      pendingSchoolRequests > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
-                        >
-                          {pendingSchoolRequests}
-                        </Badge>
-                      )}
+                    {(pendingSchoolRequests ?? 0) +
+                      (pendingLeagueSchoolCreationRequests ?? 0) >
+                      0 && (
+                      <Badge
+                        variant="outline"
+                        className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+                      >
+                        {(pendingSchoolRequests ?? 0) +
+                          (pendingLeagueSchoolCreationRequests ?? 0)}
+                      </Badge>
+                    )}
                   </div>
                 </Button>
               </Link>

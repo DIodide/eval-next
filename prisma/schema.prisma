@@ -150,8 +150,9 @@ model LeagueAdministrator {
   updated_at        DateTime @updatedAt
 
   // Relationships
-  league_ref           League?                    @relation(fields: [league_id], references: [id])
-  association_requests LeagueAssociationRequest[]
+  league_ref               League?                       @relation(fields: [league_id], references: [id])
+  association_requests     LeagueAssociationRequest[]
+  school_creation_requests LeagueSchoolCreationRequest[]
 
   @@map("league_administrators")
 }
@@ -188,6 +189,39 @@ model LeagueAssociationRequest {
   gameId        String?             @db.Uuid
 
   @@map("league_association_requests")
+}
+
+/// League school creation requests (for leagues to create new schools)
+model LeagueSchoolCreationRequest {
+  id               String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  administrator_id String                     @db.Uuid
+  status           LeagueSchoolCreationStatus @default(PENDING)
+  request_message  String
+  admin_notes      String?
+  requested_at     DateTime                   @default(now()) @db.Timestamp(6)
+  reviewed_at      DateTime?                  @db.Timestamp(6)
+  reviewed_by      String?
+  created_at       DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at       DateTime                   @updatedAt
+
+  // Proposed school fields
+  proposed_school_name     String
+  proposed_school_type     SchoolType
+  proposed_school_location String
+  proposed_school_state    String
+  proposed_school_region   String?
+  proposed_school_website  String?
+
+  // Created school reference (set after approval)
+  created_school_id String? @db.Uuid
+
+  // Relationships
+  administrator  LeagueAdministrator @relation(fields: [administrator_id], references: [id], onDelete: Cascade)
+  created_school School?             @relation("LeagueCreatedSchools", fields: [created_school_id], references: [id])
+
+  @@index([requested_at])
+  @@index([administrator_id])
+  @@map("league_school_creation_requests")
 }
 
 /// Games supported by the platform
@@ -272,7 +306,7 @@ model PlayerSocialConnection {
 
 /// Schools (High Schools, Colleges, Universities)
 model School {
-  id                      String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                      String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                    String
   type                    SchoolType
   location                String
@@ -284,16 +318,17 @@ model School {
   bio                     String?
   email                   String?
   phone                   String?
-  created_at              DateTime                   @default(now()) @db.Timestamp(6)
-  updated_at              DateTime                   @updatedAt
+  created_at              DateTime                      @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                      @updatedAt
   coaches                 Coach[]
   league_memberships      LeagueSchool[]
   players                 Player[]
   association_requests    SchoolAssociationRequest[]
-  created_school_requests SchoolAssociationRequest[] @relation("CreatedSchoolRequests")
+  created_school_requests SchoolAssociationRequest[]    @relation("CreatedSchoolRequests")
   teams                   Team[]
   tryouts                 Tryout[]
   SchoolAnnouncement      SchoolAnnouncement[]
+  league_created_schools  LeagueSchoolCreationRequest[] @relation("LeagueCreatedSchools")
 
   @@unique([name, type, state])
   @@map("schools")
@@ -675,6 +710,12 @@ enum SchoolAssociationStatus {
 }
 
 enum LeagueAssociationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LeagueSchoolCreationStatus {
   PENDING
   APPROVED
   REJECTED

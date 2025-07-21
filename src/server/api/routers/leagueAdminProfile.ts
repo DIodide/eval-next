@@ -961,6 +961,90 @@ export const leagueAdminProfileRouter = createTRPCRouter({
     }
   }),
 
+  // Get schools with cursor-based pagination (infinite query)
+  getLeagueSchoolsInfinite: leagueAdminProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(50).default(10),
+        cursor: z.string().optional(), // LeagueSchool ID for cursor
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+      const { limit, cursor } = input;
+
+      try {
+        // Get the league administrator to verify they have a league association
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: { league_id: true },
+        });
+
+        if (!leagueAdmin?.league_id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "You must be associated with a league to view league schools",
+          });
+        }
+
+        const leagueSchools = await withRetry(() =>
+          ctx.db.leagueSchool.findMany({
+            take: limit + 1, // Take one extra to determine if there are more
+            cursor: cursor ? { id: cursor } : undefined,
+            skip: cursor ? 1 : 0, // Skip the cursor
+            where: {
+              league_id: leagueAdmin.league_id!,
+            },
+            include: {
+              school: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  location: true,
+                  state: true,
+                  region: true,
+                  logo_url: true,
+                  _count: {
+                    select: {
+                      players: true,
+                      coaches: true,
+                      teams: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              joined_at: "asc",
+            },
+          }),
+        );
+
+        let nextCursor: string | undefined = undefined;
+        if (leagueSchools.length > limit) {
+          // Remove the extra item we fetched
+          const nextItem = leagueSchools.pop();
+          nextCursor = nextItem!.id;
+        }
+
+        return {
+          items: leagueSchools,
+          nextCursor,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error fetching league schools:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch league schools",
+        });
+      }
+    }),
+
   // Add an existing school to the league
   addSchoolToLeague: leagueAdminProcedure
     .input(
@@ -1130,6 +1214,271 @@ export const leagueAdminProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to remove school from league",
+        });
+      }
+    }),
+
+  // Submit a school creation request
+  submitSchoolCreationRequest: leagueAdminProcedure
+    .input(
+      z.object({
+        proposed_school_name: z.string().min(1).max(200),
+        proposed_school_type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]),
+        proposed_school_location: z.string().min(1).max(200),
+        proposed_school_state: z.string().min(2).max(50),
+        proposed_school_region: z.string().max(50).optional(),
+        proposed_school_website: z.string().url().optional(),
+        request_message: z.string().min(10).max(500),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // Get the league administrator information
+        const leagueAdmin = await ctx.db.leagueAdministrator.findUnique({
+          where: { id: leagueAdminId },
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+            league_id: true,
+          },
+        });
+
+        if (!leagueAdmin) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "League administrator not found",
+          });
+        }
+
+        if (!leagueAdmin.league_id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "You must be associated with a league to request new schools",
+          });
+        }
+
+        // Create the school creation request
+        const request = await withRetry(() =>
+          ctx.db.leagueSchoolCreationRequest.create({
+            data: {
+              administrator_id: leagueAdminId,
+              request_message: input.request_message,
+              proposed_school_name: input.proposed_school_name,
+              proposed_school_type: input.proposed_school_type,
+              proposed_school_location: input.proposed_school_location,
+              proposed_school_state: input.proposed_school_state,
+              proposed_school_region: input.proposed_school_region,
+              proposed_school_website: input.proposed_school_website,
+            },
+          }),
+        );
+
+        return {
+          success: true,
+          request_id: request.id,
+          message: "School creation request submitted for admin review",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error submitting school creation request:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to submit school creation request",
+        });
+      }
+    }),
+
+  // Get school creation requests for this league admin
+  getSchoolCreationRequests: leagueAdminProcedure.query(async ({ ctx }) => {
+    const leagueAdminId = ctx.leagueAdminId;
+
+    try {
+      const requests = await withRetry(() =>
+        ctx.db.leagueSchoolCreationRequest.findMany({
+          where: {
+            administrator_id: leagueAdminId,
+          },
+          include: {
+            created_school: {
+              select: {
+                id: true,
+                name: true,
+                type: true,
+                location: true,
+                state: true,
+              },
+            },
+          },
+          orderBy: {
+            created_at: "desc",
+          },
+        }),
+      );
+
+      return requests;
+    } catch (error) {
+      console.error("Error fetching school creation requests:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch school creation requests",
+      });
+    }
+  }),
+
+  // Update a school creation request (only pending requests)
+  updateSchoolCreationRequest: leagueAdminProcedure
+    .input(
+      z.object({
+        request_id: z.string().uuid(),
+        proposed_school_name: z.string().min(1).max(200),
+        proposed_school_type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]),
+        proposed_school_location: z.string().min(1).max(200),
+        proposed_school_state: z.string().min(2).max(50),
+        proposed_school_region: z.string().max(50).optional(),
+        proposed_school_website: z.string().url().optional(),
+        request_message: z.string().min(10).max(500),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // First verify the request exists, belongs to this admin, and is pending
+        const existingRequest =
+          await ctx.db.leagueSchoolCreationRequest.findUnique({
+            where: { id: input.request_id },
+            select: {
+              id: true,
+              administrator_id: true,
+              status: true,
+            },
+          });
+
+        if (!existingRequest) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "School creation request not found",
+          });
+        }
+
+        if (existingRequest.administrator_id !== leagueAdminId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only update your own school creation requests",
+          });
+        }
+
+        if (existingRequest.status !== "PENDING") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You can only update pending requests",
+          });
+        }
+
+        // Update the request
+        const updatedRequest = await withRetry(() =>
+          ctx.db.leagueSchoolCreationRequest.update({
+            where: { id: input.request_id },
+            data: {
+              proposed_school_name: input.proposed_school_name,
+              proposed_school_type: input.proposed_school_type,
+              proposed_school_location: input.proposed_school_location,
+              proposed_school_state: input.proposed_school_state,
+              proposed_school_region: input.proposed_school_region,
+              proposed_school_website: input.proposed_school_website,
+              request_message: input.request_message,
+              updated_at: new Date(),
+            },
+          }),
+        );
+
+        return {
+          success: true,
+          message: "School creation request updated successfully",
+          request: updatedRequest,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error updating school creation request:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school creation request",
+        });
+      }
+    }),
+
+  // Delete a school creation request (only pending requests)
+  deleteSchoolCreationRequest: leagueAdminProcedure
+    .input(
+      z.object({
+        request_id: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const leagueAdminId = ctx.leagueAdminId;
+
+      try {
+        // First verify the request exists, belongs to this admin, and is pending
+        const existingRequest =
+          await ctx.db.leagueSchoolCreationRequest.findUnique({
+            where: { id: input.request_id },
+            select: {
+              id: true,
+              administrator_id: true,
+              status: true,
+              proposed_school_name: true,
+            },
+          });
+
+        if (!existingRequest) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "School creation request not found",
+          });
+        }
+
+        if (existingRequest.administrator_id !== leagueAdminId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only delete your own school creation requests",
+          });
+        }
+
+        if (existingRequest.status !== "PENDING") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You can only delete pending requests",
+          });
+        }
+
+        // Delete the request
+        await withRetry(() =>
+          ctx.db.leagueSchoolCreationRequest.delete({
+            where: { id: input.request_id },
+          }),
+        );
+
+        return {
+          success: true,
+          message: `School creation request for "${existingRequest.proposed_school_name}" has been deleted`,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error deleting school creation request:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete school creation request",
         });
       }
     }),
