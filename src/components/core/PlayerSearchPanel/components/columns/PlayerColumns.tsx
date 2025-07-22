@@ -122,7 +122,11 @@ export function usePlayerColumns({
           return (
             <div className="space-y-1">
               <div className="font-medium text-white">
-                {player.academicInfo.classYear ?? "No class year"}
+                {player.academicInfo.classYear
+                  ? isNaN(Number(player.academicInfo.classYear))
+                    ? player.academicInfo.classYear // Show text as-is for non-numeric values
+                    : `Class of ${player.academicInfo.classYear}` // Add "Class of" only for years
+                  : "No class year"}
               </div>
               <div className="text-sm text-gray-400">
                 GPA: {gpaNumber?.toFixed(2) ?? "N/A"}

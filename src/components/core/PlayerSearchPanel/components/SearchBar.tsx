@@ -15,6 +15,7 @@ export function SearchBar({
   loading = false,
   onFilterToggle,
   showFilterButton = true,
+  filterPanelOpen = false,
 }: SearchBarProps) {
   const handleClearSearch = () => {
     onChange("");
@@ -58,8 +59,13 @@ export function SearchBar({
           variant="outline"
           size="icon"
           onClick={onFilterToggle}
-          className="border-gray-600 bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"
+          className={`border-gray-600 transition-colors ${
+            filterPanelOpen
+              ? "border-cyan-600 bg-cyan-600 text-white hover:bg-cyan-700"
+              : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"
+          }`}
           aria-label="Toggle filters"
+          aria-pressed={filterPanelOpen}
         >
           <Filter className="h-4 w-4" />
         </Button>

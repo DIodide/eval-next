@@ -109,13 +109,12 @@ export const GAME_ICONS: Record<string, string> = {
   SSBU: "",
 };
 
-// Class year options
-export const CLASS_YEARS = [
-  "Freshman",
-  "Sophomore",
-  "Junior",
-  "Senior",
-] as const;
+// Class year options - Generate graduation years from current year to 6 years out
+const currentYear = new Date().getFullYear();
+export const CLASS_YEARS = Array.from(
+  { length: 8 }, // 8 years: current year through 7 years out
+  (_, i) => (currentYear + i).toString(),
+);
 
 // School type options
 export const SCHOOL_TYPES = [

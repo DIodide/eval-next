@@ -3,14 +3,12 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Star, Filter, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { PlayerSearchPanelProps, PlayerSearchResult } from "./types";
 import { DEFAULT_FILTERS, PERFORMANCE_CONFIG } from "./utils/constants";
 import { usePlayerSearch } from "./hooks/usePlayerSearch";
 import { usePlayerFavorites } from "./hooks/usePlayerFavorites";
-import { usePermissions } from "./hooks/usePermissions";
 import { SearchBar } from "./components/SearchBar";
 import { FilterPanel } from "./components/FilterPanel";
 import { PlayerTable } from "./components/PlayerTable";
@@ -53,7 +51,6 @@ export function PlayerSearchPanel({
 }: PlayerSearchPanelProps) {
   const [currentGameId, setCurrentGameId] = useState<string>(initialGame ?? "");
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const [hasOptimisticUpdates, setHasOptimisticUpdates] = useState(false);
 
   // Initialize hooks
   const combinedFilters = {
@@ -78,11 +75,6 @@ export function PlayerSearchPanel({
 
   const { favoritePlayer, unfavoritePlayer, pendingFavorites } =
     usePlayerFavorites();
-
-  const { canManageFavorites } = usePermissions({
-    permissionLevel,
-    allowedFeatures,
-  });
 
   // Fetch available games
   const { data: games = [] } = api.playerProfile.getAvailableGames.useQuery();
@@ -150,13 +142,6 @@ export function PlayerSearchPanel({
 
   // Handle favorite toggle
   const handleFavoriteToggle = async (player: PlayerSearchResult) => {
-    if (!canManageFavorites) {
-      toast.error("Permission denied", {
-        description: "You don't have permission to manage bookmarks",
-      });
-      return;
-    }
-
     if (pendingFavorites.has(player.id)) {
       return; // Prevent duplicate requests
     }
@@ -167,7 +152,6 @@ export function PlayerSearchPanel({
       } else {
         await favoritePlayer(player.id, { tags: ["prospect"] });
       }
-      setHasOptimisticUpdates(true);
       onFavoriteToggle?.(player.id, !player.isFavorited);
     } catch (error) {
       console.error("Error toggling favorite:", error);
@@ -177,13 +161,6 @@ export function PlayerSearchPanel({
   // Handle player selection
   const handlePlayerSelect = (player: PlayerSearchResult) => {
     onPlayerSelect?.(player);
-  };
-
-  // Handle refresh
-  const handleRefresh = () => {
-    void utils.playerSearch.searchPlayersInfinite.invalidate();
-    setHasOptimisticUpdates(false);
-    toast.info("Refreshing player data...");
   };
 
   // Handle prefetching for smoother navigation (hover-based)
@@ -211,9 +188,9 @@ export function PlayerSearchPanel({
 
   return (
     <OnboardingGuard>
-      <div className={`min-h-screen bg-gray-900 ${className ?? ""}`}>
+      <div className={cn("relative min-h-screen bg-gray-900", className)}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-700 p-6">
+        <div className="border-b border-gray-700 p-6">
           <div>
             <h1 className="font-orbitron text-3xl font-bold text-white">
               Player Search
@@ -222,68 +199,14 @@ export function PlayerSearchPanel({
               Search and recruit players across all supported games
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            {/* Refresh Button */}
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-              className={`border-gray-600 bg-white text-black hover:border-gray-500 ${
-                hasOptimisticUpdates ? "ring-2 ring-cyan-400" : ""
-              }`}
-              title={
-                hasOptimisticUpdates
-                  ? "Click to sync with server data"
-                  : "Refresh player data"
-              }
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
-              {hasOptimisticUpdates && (
-                <span className="ml-1 text-xs text-cyan-600">•</span>
-              )}
-            </Button>
-
-            {/* Favorites Only Toggle */}
-            {canManageFavorites && (
-              <Button
-                variant={filters.favoritedOnly ? "default" : "outline"}
-                onClick={() =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    favoritedOnly: !prev.favoritedOnly,
-                  }))
-                }
-                className={`gap-2 ${
-                  filters.favoritedOnly
-                    ? "bg-cyan-600 hover:bg-cyan-700"
-                    : "border-gray-600 bg-white text-black"
-                }`}
-              >
-                <Star
-                  className={`h-4 w-4 ${filters.favoritedOnly ? "fill-current" : ""}`}
-                />
-                {filters.favoritedOnly ? "Showing Bookmarks" : "Bookmarks Only"}
-              </Button>
-            )}
-
-            {/* Filter Toggle */}
-            {showFilters && (
-              <Button
-                variant="outline"
-                onClick={() => setFilterPanelOpen(!filterPanelOpen)}
-                className="gap-2 border-gray-600 bg-white text-black hover:border-gray-500"
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* Main Content Area */}
         <div
-          className={`flex-1 p-6 ${filterPanelOpen ? "mr-80" : ""} transition-all duration-300`}
+          className={cn(
+            "relative flex-1 p-6 transition-all duration-300",
+            filterPanelOpen && "lg:mr-80",
+          )}
         >
           {/* Search Bar */}
           <div className="mb-6">
@@ -300,6 +223,7 @@ export function PlayerSearchPanel({
                   : undefined
               }
               showFilterButton={showFilters}
+              filterPanelOpen={filterPanelOpen}
             />
           </div>
 

@@ -246,6 +246,7 @@ export interface SearchBarProps {
   loading?: boolean;
   onFilterToggle?: () => void;
   showFilterButton?: boolean;
+  filterPanelOpen?: boolean;
 }
 
 // State Management Types

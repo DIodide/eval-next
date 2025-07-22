@@ -153,7 +153,13 @@ export function PlayerCard({
 
             {/* Academic Info */}
             <div className="flex items-center justify-between text-xs text-gray-400">
-              <span>{player.academicInfo.classYear ?? "No class year"}</span>
+              <span>
+                {player.academicInfo.classYear
+                  ? isNaN(Number(player.academicInfo.classYear))
+                    ? player.academicInfo.classYear // Show text as-is for non-numeric values
+                    : `Class of ${player.academicInfo.classYear}` // Add "Class of" only for years
+                  : "No class year"}
+              </span>
               <span>GPA: {gpaNumber?.toFixed(2) ?? "N/A"}</span>
             </div>
 
