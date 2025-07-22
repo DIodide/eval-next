@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,65 @@ export function PlayerTable({
   onPlayerSelect,
   onFavoriteToggle,
 }: PlayerTableProps) {
+  // Track optimistic favorite states for instant visual feedback
+  const [optimisticFavorites, setOptimisticFavorites] = useState<
+    Map<string, boolean>
+  >(new Map());
+
+  // Handle favorite toggle with optimistic updates
+  const handleFavoriteToggle = useCallback(
+    (player: PlayerSearchResult) => {
+      // Immediately update visual state for optimistic rendering
+      const newFavoriteState = !player.isFavorited;
+      setOptimisticFavorites((prev) =>
+        new Map(prev).set(player.id, newFavoriteState),
+      );
+
+      // Call the actual mutation
+      onFavoriteToggle?.(player);
+
+      // Fallback timeout cleanup (the useEffect above should handle this more reliably)
+      setTimeout(() => {
+        setOptimisticFavorites((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(player.id);
+          return newMap;
+        });
+      }, 3000); // Fallback cleanup in case server response is very slow
+    },
+    [onFavoriteToggle],
+  );
+
+  // Get the effective favorite state (optimistic override or actual)
+  const getEffectiveFavoriteState = useCallback(
+    (player: PlayerSearchResult): boolean => {
+      return optimisticFavorites.get(player.id) ?? player.isFavorited;
+    },
+    [optimisticFavorites],
+  );
+
+  // Clear optimistic state when server data updates (more reliable than timeout)
+  React.useEffect(() => {
+    // Clear optimistic overrides for players whose server state has actually changed
+    setOptimisticFavorites((prevOptimistic) => {
+      const newOptimistic = new Map(prevOptimistic);
+      let hasChanges = false;
+
+      for (const player of players) {
+        const optimisticState = newOptimistic.get(player.id);
+        if (
+          optimisticState !== undefined &&
+          optimisticState === player.isFavorited
+        ) {
+          // Server state now matches our optimistic state, so we can clear the override
+          newOptimistic.delete(player.id);
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? newOptimistic : prevOptimistic;
+    });
+  }, [players]); // Runs when players data changes (i.e., after server sync)
   if (loading) {
     return (
       <div className="bg-gray-800">
@@ -189,19 +248,21 @@ export function PlayerTable({
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onFavoriteToggle?.(player);
+                      handleFavoriteToggle(player);
                     }}
-                    className={`h-8 w-8 p-0 ${
-                      player.isFavorited
+                    className={`h-8 w-8 p-0 transition-colors ${
+                      getEffectiveFavoriteState(player)
                         ? "text-cyan-400 hover:bg-gray-700 hover:text-cyan-300"
                         : "text-gray-500 hover:bg-gray-700 hover:text-white"
                     }`}
                     aria-label={
-                      player.isFavorited ? "Remove bookmark" : "Add bookmark"
+                      getEffectiveFavoriteState(player)
+                        ? "Remove bookmark"
+                        : "Add bookmark"
                     }
                   >
                     <Bookmark
-                      className={`h-4 w-4 ${player.isFavorited ? "fill-current" : ""}`}
+                      className={`h-4 w-4 transition-all ${getEffectiveFavoriteState(player) ? "fill-current" : ""}`}
                     />
                   </Button>
 

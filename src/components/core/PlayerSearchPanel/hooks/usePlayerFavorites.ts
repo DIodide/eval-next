@@ -28,8 +28,9 @@ export function usePlayerFavorites(): UsePlayerFavoritesReturn {
       return { player_id };
     },
     onSuccess: () => {
-      // Invalidate both queries to update data
-      void utils.playerSearch.searchPlayersInfinite.invalidate();
+      // Invalidate the correct queries to update data
+      void utils.playerSearch.searchPlayersPaginated.invalidate();
+      void utils.playerSearch.searchPlayersInfinite.invalidate(); // Keep for backward compatibility
       void utils.playerSearch.getFavorites.invalidate();
     },
     onError: (error) => {
@@ -61,8 +62,9 @@ export function usePlayerFavorites(): UsePlayerFavoritesReturn {
         return { player_id };
       },
       onSuccess: () => {
-        // Invalidate both queries to update data
-        void utils.playerSearch.searchPlayersInfinite.invalidate();
+        // Invalidate the correct queries to update data
+        void utils.playerSearch.searchPlayersPaginated.invalidate();
+        void utils.playerSearch.searchPlayersInfinite.invalidate(); // Keep for backward compatibility
         void utils.playerSearch.getFavorites.invalidate();
       },
       onError: (error) => {

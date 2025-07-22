@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,40 @@ export function PlayerCard({
   onFavoriteToggle,
   compact = false,
 }: PlayerCardProps) {
+  // Track optimistic favorite state for instant visual feedback
+  const [optimisticFavorite, setOptimisticFavorite] = useState<boolean | null>(
+    null,
+  );
+
+  // Handle favorite toggle with optimistic updates
+  const handleFavoriteToggle = useCallback(() => {
+    // Immediately update visual state for optimistic rendering
+    const newFavoriteState = !player.isFavorited;
+    setOptimisticFavorite(newFavoriteState);
+
+    // Call the actual mutation
+    onFavoriteToggle(player);
+
+    // Fallback timeout cleanup (the useEffect above should handle this more reliably)
+    setTimeout(() => {
+      setOptimisticFavorite(null);
+    }, 3000); // Fallback cleanup in case server response is very slow
+  }, [player, onFavoriteToggle]);
+
+  // Get the effective favorite state (optimistic override or actual)
+  const effectiveFavoriteState = optimisticFavorite ?? player.isFavorited;
+
+  // Clear optimistic state when server data updates (more reliable than timeout)
+  useEffect(() => {
+    if (
+      optimisticFavorite !== null &&
+      optimisticFavorite === player.isFavorited
+    ) {
+      // Server state now matches our optimistic state, so we can clear the override
+      setOptimisticFavorite(null);
+    }
+  }, [player.isFavorited, optimisticFavorite]); // Runs when player favorite state changes
+
   const gpaNumber = player.academicInfo.gpa
     ? parseFloat(String(player.academicInfo.gpa))
     : null;
@@ -47,19 +81,19 @@ export function PlayerCard({
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onFavoriteToggle(player);
+                    handleFavoriteToggle();
                   }}
-                  className={`h-8 w-8 p-0 ${
-                    player.isFavorited
+                  className={`h-8 w-8 p-0 transition-colors ${
+                    effectiveFavoriteState
                       ? "text-cyan-400 hover:text-cyan-300"
                       : "text-gray-500 hover:text-white"
                   }`}
                   aria-label={
-                    player.isFavorited ? "Remove bookmark" : "Add bookmark"
+                    effectiveFavoriteState ? "Remove bookmark" : "Add bookmark"
                   }
                 >
                   <Bookmark
-                    className={`h-4 w-4 ${player.isFavorited ? "fill-current" : ""}`}
+                    className={`h-4 w-4 transition-all ${effectiveFavoriteState ? "fill-current" : ""}`}
                   />
                 </Button>
 
