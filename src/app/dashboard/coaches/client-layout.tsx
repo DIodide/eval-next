@@ -140,7 +140,7 @@ export function CoachesDashboardClientLayout({
   ];
 
   return (
-    <div className="flex max-h-[calc(100vh-80px)] bg-[#0f0f1a]">
+    <div className="flex min-h-[calc(100vh-80px)] bg-[#0f0f1a]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -152,11 +152,11 @@ export function CoachesDashboardClientLayout({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-800 bg-[#1a1a2e] transition-transform duration-200 ease-in-out lg:static lg:inset-0 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-800 bg-[#1a1a2e] transition-transform duration-200 ease-in-out lg:static lg:inset-0 lg:translate-x-0 lg:min-h-full",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full min-h-full flex-col lg:min-h-[calc(100vh-80px)]">
           {/* Sidebar header */}
           <div className="flex items-center justify-between border-b border-gray-800/50 bg-gradient-to-r from-slate-600/10 to-blue-600/10 p-6">
             <div className="flex items-center space-x-3">
@@ -372,7 +372,7 @@ export function CoachesDashboardClientLayout({
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-auto p-6">{children}</div>
+        <div className="flex-1">{children}</div>
       </div>
     </div>
   );

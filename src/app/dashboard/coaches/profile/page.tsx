@@ -481,7 +481,7 @@ export default function CoachProfilePage() {
 
   if (profileLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div>
@@ -593,7 +593,7 @@ export default function CoachProfilePage() {
 
   if (!profile) {
     return (
-      <div className="py-12 text-center">
+      <div className="p-6 py-12 text-center">
         <AlertCircleIcon className="mx-auto mb-4 h-16 w-16 text-red-400" />
         <h3 className="font-orbitron mb-2 text-xl text-white">
           Profile Not Found
@@ -606,7 +606,7 @@ export default function CoachProfilePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
