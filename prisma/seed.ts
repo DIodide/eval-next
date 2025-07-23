@@ -1877,7 +1877,7 @@ async function main() {
       eval: 69.27919372,
     },
     {
-      username: "RADICAL RUBEN",
+      username: "RADICALRUBEN",
       firstName: "Ruben",
       lastName: "Santiago",
       team: "Bronx River High School",
@@ -2066,7 +2066,7 @@ async function main() {
       eval: 66.96280766,
     },
     {
-      username: "tomato bisque",
+      username: "tomatobisque",
       firstName: "Jayleen",
       lastName: "Unknown",
       team: "Plainfield High School",
@@ -2183,7 +2183,7 @@ async function main() {
       eval: 77.53210694,
     },
     {
-      username: "Seijuro Akashi",
+      username: "SeijuroAkashi",
       firstName: "Aiden",
       lastName: "M",
       team: "Livingston High School",
@@ -2201,7 +2201,7 @@ async function main() {
       eval: 85.06315237,
     },
     {
-      username: "i luv abgs",
+      username: "iluvabgs",
       firstName: "Atiksh",
       lastName: "A",
       team: "Livingston High School",
@@ -2273,7 +2273,7 @@ async function main() {
       eval: 70.45602644,
     },
     {
-      username: "MHS Pyroxy",
+      username: "MHSPyroxy",
       firstName: "Samir",
       lastName: "Unknown",
       team: "Middlesex High School",
@@ -2282,7 +2282,7 @@ async function main() {
       eval: 82.73161049,
     },
     {
-      username: "MHS Soy Milk",
+      username: "MHSSoyMilk",
       firstName: "Eric",
       lastName: "Unknown",
       team: "Middlesex High School",
@@ -2291,7 +2291,7 @@ async function main() {
       eval: 80.16837109,
     },
     {
-      username: "MHS zhen",
+      username: "MHSzhen",
       firstName: "Dennis",
       lastName: "Unknown",
       team: "Middlesex High School",
@@ -2300,7 +2300,7 @@ async function main() {
       eval: 92.31627781,
     },
     {
-      username: "MHS zinny",
+      username: "MHSzinny",
       firstName: "Marco",
       lastName: "Unknown",
       team: "Middlesex High School",
@@ -2309,7 +2309,7 @@ async function main() {
       eval: 83.15657968,
     },
     {
-      username: "MHS pr1sm",
+      username: "MHSpr1sm",
       firstName: "Troy",
       lastName: "Unknown",
       team: "Middlesex High School",
@@ -2336,7 +2336,7 @@ async function main() {
       eval: 83.63034781,
     },
     {
-      username: "LFT Dandojo",
+      username: "LFTDandojo",
       firstName: "Daniel",
       lastName: "Ng",
       team: "Old Bridge High School",
@@ -2363,7 +2363,7 @@ async function main() {
       eval: 80.73328311,
     },
     {
-      username: "Kim Chaewon",
+      username: "KimChaewon",
       firstName: "Dean",
       lastName: "Wong",
       team: "Old Bridge High School",
@@ -2390,7 +2390,7 @@ async function main() {
       eval: 81.42877924,
     },
     {
-      username: "Sempie ichinese",
+      username: "Sempieichinese",
       firstName: "Vincent",
       lastName: "Chen",
       team: "Cherry Hill High School East",
@@ -2417,7 +2417,7 @@ async function main() {
       eval: 85.20318191,
     },
     {
-      username: "That Barney Guy",
+      username: "ThatBarneyGuy",
       firstName: "Taddeo",
       lastName: "Wang",
       team: "NVRHS Demarest",
@@ -2453,7 +2453,7 @@ async function main() {
       eval: 76.759805,
     },
     {
-      username: "Mini C9 Oxy",
+      username: "MiniC9Oxy",
       firstName: "James",
       lastName: "Kim",
       team: "NVRHS Demarest",
@@ -2489,7 +2489,7 @@ async function main() {
       eval: 79.05248152,
     },
     {
-      username: "i like bananasss",
+      username: "ilikebananasss",
       firstName: "Andrew",
       lastName: "Conforti",
       team: "Ocean Township High School",
@@ -2561,7 +2561,7 @@ async function main() {
       eval: 74.12618073,
     },
     {
-      username: "FLAWLESS LIKE ME",
+      username: "FLAWLESSLIKEME",
       firstName: "Alex",
       lastName: "Unknown",
       team: "David Brearley High School",
@@ -2606,7 +2606,7 @@ async function main() {
       eval: 81.14431801,
     },
     {
-      username: "Funny Valentine",
+      username: "FunnyValentine",
       firstName: "Gabe",
       lastName: "M",
       team: "Barnegat High School",
@@ -2822,7 +2822,7 @@ async function main() {
       eval: 83.57556873,
     },
     {
-      username: "The Professor",
+      username: "TheProfessor",
       firstName: "Jordan",
       lastName: "Unknown",
       team: "Community Health Academy of the Heights",
@@ -2831,7 +2831,7 @@ async function main() {
       eval: 89.08572014,
     },
     {
-      username: "sensei wu",
+      username: "senseiwu",
       firstName: "Alex",
       lastName: "Unknown",
       team: "Community Health Academy of the Heights",
