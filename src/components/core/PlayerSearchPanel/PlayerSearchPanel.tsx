@@ -13,6 +13,7 @@ import { SearchBar } from "./components/SearchBar";
 import { FilterPanel } from "./components/FilterPanel";
 import { PlayerTable } from "./components/PlayerTable";
 import { Pagination } from "./components/Pagination";
+import { PlayerProfilePreview } from "./components/PlayerProfilePreview";
 import { api } from "@/trpc/react";
 import { OnboardingGuard } from "@/components/ui/OnboardingGuard";
 
@@ -51,6 +52,9 @@ export function PlayerSearchPanel({
 }: PlayerSearchPanelProps) {
   const [currentGameId, setCurrentGameId] = useState<string>(initialGame ?? "");
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [previewPlayer, setPreviewPlayer] = useState<PlayerSearchResult | null>(
+    null,
+  );
 
   // Initialize hooks
   const combinedFilters = {
@@ -158,8 +162,13 @@ export function PlayerSearchPanel({
     }
   };
 
-  // Handle player selection
+  // Handle player selection - show preview modal instead of navigating
   const handlePlayerSelect = (player: PlayerSearchResult) => {
+    setPreviewPlayer(player);
+  };
+
+  // Handle viewing full profile from preview modal
+  const handleViewFullProfile = (player: PlayerSearchResult) => {
     onPlayerSelect?.(player);
   };
 
@@ -325,6 +334,14 @@ export function PlayerSearchPanel({
             onClose={() => setFilterPanelOpen(false)}
           />
         )}
+
+        {/* Player Profile Preview Modal */}
+        <PlayerProfilePreview
+          player={previewPlayer}
+          isOpen={previewPlayer !== null}
+          onClose={() => setPreviewPlayer(null)}
+          onViewFullProfile={handleViewFullProfile}
+        />
       </div>
     </OnboardingGuard>
   );

@@ -1,6 +1,7 @@
 // Main component export
 export { PlayerSearchPanel as default } from "./PlayerSearchPanel";
 export { PlayerSearchPanel } from "./PlayerSearchPanel";
+export { PlayerProfilePreview } from "./components/PlayerProfilePreview";
 
 // Type exports
 export type {
