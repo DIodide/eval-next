@@ -44,7 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -203,6 +203,13 @@ function AddSchoolDialog() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedState, setSelectedState] = useState<string>("all");
   const [showNewSchoolForm, setShowNewSchoolForm] = useState(false);
+
+  // Reset to search view when dialog opens
+  useEffect(() => {
+    if (open) {
+      setShowNewSchoolForm(false);
+    }
+  }, [open]);
 
   // New school form state
   const [newSchoolData, setNewSchoolData] = useState<{
@@ -1044,421 +1051,437 @@ export default function LeagueSchoolsPage() {
     leagueSchools?.reduce((sum, ls) => sum + ls.school._count.coaches, 0) ?? 0;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-orbitron text-3xl font-bold text-white">
-            Manage Schools
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Add schools to your league and manage their participation
-          </p>
+    <div className="p-6">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-orbitron text-3xl font-bold text-white">
+              Manage Schools
+            </h1>
+            <p className="mt-2 text-gray-400">
+              Add schools to your league and manage their participation
+            </p>
+          </div>
+          <div className="mt-4 sm:mt-0">
+            <AddSchoolDialog />
+          </div>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <AddSchoolDialog />
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Card className="border-gray-800 bg-[#1a1a2e]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-400">
+                Total Schools
+              </CardTitle>
+              <Building2Icon className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {totalSchools}
+              </div>
+              <p className="text-xs text-gray-400">Schools in your league</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 bg-[#1a1a2e]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-400">
+                Total Players
+              </CardTitle>
+              <Users className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {totalPlayers}
+              </div>
+              <p className="text-xs text-gray-400">Across all schools</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 bg-[#1a1a2e]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-400">
+                Total Coaches
+              </CardTitle>
+              <GraduationCap className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {totalCoaches}
+              </div>
+              <p className="text-xs text-gray-400">Across all schools</p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card className="border-gray-800 bg-[#1a1a2e]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              Total Schools
+        {/* Schools List */}
+        <Card className="border-b border-gray-800 bg-gray-800">
+          <CardHeader>
+            <CardTitle className="font-orbitron flex items-center gap-2 text-white">
+              <Building2Icon className="h-5 w-5" />
+              League Schools ({totalSchools})
             </CardTitle>
-            <Building2Icon className="h-4 w-4 text-purple-400" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{totalSchools}</div>
-            <p className="text-xs text-gray-400">Schools in your league</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-gray-800 bg-[#1a1a2e]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              Total Players
-            </CardTitle>
-            <Users className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{totalPlayers}</div>
-            <p className="text-xs text-gray-400">Across all schools</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-gray-800 bg-[#1a1a2e]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              Total Coaches
-            </CardTitle>
-            <GraduationCap className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{totalCoaches}</div>
-            <p className="text-xs text-gray-400">Across all schools</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Schools List */}
-      <Card className="border-b border-gray-800 bg-gray-800">
-        <CardHeader>
-          <CardTitle className="font-orbitron flex items-center gap-2 text-white">
-            <Building2Icon className="h-5 w-5" />
-            League Schools ({totalSchools})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isError ? (
-            <div className="bg-gray-800 py-12 text-center text-gray-400">
-              <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-600" />
-              <h3 className="mb-2 text-lg font-medium text-red-400">
-                Failed to Load Schools
-              </h3>
-              <p className="mx-auto mb-6 max-w-md text-sm">
-                There was an error loading your league schools. Please try
-                refreshing the page.
-              </p>
-            </div>
-          ) : totalSchools > 0 ? (
-            <div className="divide-y divide-gray-700">
-              {leagueSchools?.map((leagueSchool, index) => (
-                <div
-                  key={leagueSchool.id}
-                  className={`flex items-center justify-between border-gray-700 bg-gray-800 p-4 transition-colors first:border-t-0 hover:bg-gray-700 ${
-                    index === leagueSchools.length - 1 ? "rounded-b-lg" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage
-                        src={leagueSchool.school.logo_url ?? undefined}
-                      />
-                      <AvatarFallback className="bg-gray-700 text-lg text-white">
-                        {leagueSchool.school.name
-                          .split(" ")
-                          .map((w) => w[0])
-                          .join("")
-                          .slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="mb-2 flex items-center gap-3">
-                        <Link
-                          href={`/profiles/school/${leagueSchool.school.id}`}
-                        >
-                          <h3 className="font-orbitron cursor-pointer text-lg font-semibold text-white transition-colors hover:text-purple-300">
-                            {leagueSchool.school.name}
-                          </h3>
-                        </Link>
-                        <SchoolTypeBadge type={leagueSchool.school.type} />
-                      </div>
-                      <div className="mb-2 flex items-center gap-2 text-gray-400">
-                        <MapPin className="h-4 w-4" />
-                        <span>
-                          {leagueSchool.school.location},{" "}
-                          {leagueSchool.school.state}
-                        </span>
-                        {leagueSchool.school.region && (
-                          <span className="text-gray-500">
-                            • {leagueSchool.school.region}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-6 text-sm text-gray-400">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>
-                            {leagueSchool.school._count.players} players
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <GraduationCap className="h-4 w-4" />
-                          <span>
-                            {leagueSchool.school._count.coaches} coaches
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Building2Icon className="h-4 w-4" />
-                          <span>{leagueSchool.school._count.teams} teams</span>
-                        </div>
-                        <div className="text-gray-500">
-                          Joined{" "}
-                          {new Date(
-                            leagueSchool.joined_at,
-                          ).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Link href={`/profiles/school/${leagueSchool.school.id}`}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                      >
-                        <ExternalLink className="mr-1 h-4 w-4" />
-                        View Profile
-                      </Button>
-                    </Link>
-                    <Button
-                      onClick={() =>
-                        handleRemoveSchool(
-                          leagueSchool.id,
-                          leagueSchool.school.name,
-                        )
-                      }
-                      disabled={removeSchoolMutation.isPending}
-                      variant="outline"
-                      size="sm"
-                      className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
-                    >
-                      {removeSchoolMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2Icon className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-
-              {/* Load More Button */}
-              {hasNextPage && (
-                <div className="bg-gray-800 pt-4 text-center">
-                  <Button
-                    onClick={() => void fetchNextPage()}
-                    disabled={isFetchingNextPage}
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                  >
-                    {isFetchingNextPage ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Loading more schools...
-                      </>
-                    ) : (
-                      <>
-                        Load More Schools
-                        <PlusIcon className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-gray-800 py-12 text-center text-gray-400">
-              <Building2Icon className="mx-auto mb-4 h-16 w-16 text-gray-600" />
-              <h3 className="mb-2 text-lg font-medium">No schools added yet</h3>
-              <p className="mx-auto mb-6 max-w-md text-sm">
-                Get started by adding schools to your league. Schools can
-                participate with their teams and players in your competitions.
-              </p>
-              <AddSchoolDialog />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* School Creation Requests */}
-      <Card className="border-b border-gray-800 bg-gray-800">
-        <CardHeader>
-          <CardTitle className="font-orbitron flex items-center gap-2 text-white">
-            <GraduationCap className="h-5 w-5" />
-            School Creation Requests ({schoolCreationRequests?.length ?? 0})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoadingRequests ? (
-            <div className="space-y-3 p-6">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full bg-gray-700" />
-              ))}
-            </div>
-          ) : schoolCreationRequests && schoolCreationRequests.length > 0 ? (
-            <div className="divide-y divide-gray-700">
-              {schoolCreationRequests
-                .sort((a, b) => {
-                  // Sort by status (PENDING first) then by date (newest first)
-                  if (a.status !== b.status) {
-                    const statusOrder = {
-                      PENDING: 0,
-                      APPROVED: 1,
-                      REJECTED: 2,
-                    };
-                    return (
-                      statusOrder[a.status as keyof typeof statusOrder] -
-                      statusOrder[b.status as keyof typeof statusOrder]
-                    );
-                  }
-                  return (
-                    new Date(b.requested_at).getTime() -
-                    new Date(a.requested_at).getTime()
-                  );
-                })
-                .map((request, index, array) => (
+          <CardContent className="p-0">
+            {isError ? (
+              <div className="bg-gray-800 py-12 text-center text-gray-400">
+                <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-600" />
+                <h3 className="mb-2 text-lg font-medium text-red-400">
+                  Failed to Load Schools
+                </h3>
+                <p className="mx-auto mb-6 max-w-md text-sm">
+                  There was an error loading your league schools. Please try
+                  refreshing the page.
+                </p>
+              </div>
+            ) : totalSchools > 0 ? (
+              <div className="divide-y divide-gray-700">
+                {leagueSchools?.map((leagueSchool, index) => (
                   <div
-                    key={request.id}
+                    key={leagueSchool.id}
                     className={`flex items-center justify-between border-gray-700 bg-gray-800 p-4 transition-colors first:border-t-0 hover:bg-gray-700 ${
-                      index === array.length - 1 ? "rounded-b-lg" : ""
+                      index === leagueSchools.length - 1 ? "rounded-b-lg" : ""
                     }`}
                   >
-                    <div className="flex-1">
-                      <div className="mb-2 flex items-center gap-3">
-                        <h3 className="font-orbitron text-lg font-semibold text-white">
-                          {request.proposed_school_name}
-                        </h3>
-                        <Badge
-                          className={
-                            request.status === "PENDING"
-                              ? "border-yellow-500 bg-yellow-500/20 text-yellow-400"
-                              : request.status === "APPROVED"
-                                ? "border-green-500 bg-green-500/20 text-green-400"
-                                : "border-red-500 bg-red-500/20 text-red-400"
-                          }
-                        >
-                          {request.status}
-                        </Badge>
-                      </div>
-                      <div className="mb-2 flex items-center gap-4 text-sm text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <GraduationCap className="h-4 w-4" />
-                          {request.proposed_school_type.replace("_", " ")}
-                        </span>
-                        <span className="flex items-center gap-1">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage
+                          src={leagueSchool.school.logo_url ?? undefined}
+                        />
+                        <AvatarFallback className="bg-gray-700 text-lg text-white">
+                          {leagueSchool.school.name
+                            .split(" ")
+                            .map((w) => w[0])
+                            .join("")
+                            .slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center gap-3">
+                          <Link
+                            href={`/profiles/school/${leagueSchool.school.id}`}
+                          >
+                            <h3 className="font-orbitron cursor-pointer text-lg font-semibold text-white transition-colors hover:text-purple-300">
+                              {leagueSchool.school.name}
+                            </h3>
+                          </Link>
+                          <SchoolTypeBadge type={leagueSchool.school.type} />
+                        </div>
+                        <div className="mb-2 flex items-center gap-2 text-gray-400">
                           <MapPin className="h-4 w-4" />
-                          {request.proposed_school_location},{" "}
-                          {request.proposed_school_state}
-                        </span>
-                        <span className="text-gray-500">
-                          {new Date(request.requested_at).toLocaleDateString()}
-                        </span>
+                          <span>
+                            {leagueSchool.school.location},{" "}
+                            {leagueSchool.school.state}
+                          </span>
+                          {leagueSchool.school.region && (
+                            <span className="text-gray-500">
+                              • {leagueSchool.school.region}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-6 text-sm text-gray-400">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            <span>
+                              {leagueSchool.school._count.players} players
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <GraduationCap className="h-4 w-4" />
+                            <span>
+                              {leagueSchool.school._count.coaches} coaches
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Building2Icon className="h-4 w-4" />
+                            <span>
+                              {leagueSchool.school._count.teams} teams
+                            </span>
+                          </div>
+                          <div className="text-gray-500">
+                            Joined{" "}
+                            {new Date(
+                              leagueSchool.joined_at,
+                            ).toLocaleDateString()}
+                          </div>
+                        </div>
                       </div>
-                      {request.request_message && (
-                        <p className="mb-2 text-sm text-gray-300">
-                          &quot;{request.request_message}&quot;
-                        </p>
-                      )}
-                      {request.admin_notes && (
-                        <div className="rounded bg-gray-700 p-2 text-sm">
-                          <span className="font-semibold text-gray-300">
-                            Admin Notes:{" "}
-                          </span>
-                          <span className="text-gray-400">
-                            {request.admin_notes}
-                          </span>
-                        </div>
-                      )}
-                      {request.created_school && (
-                        <div className="mt-2 rounded border border-green-700 bg-green-900/20 p-2 text-sm">
-                          <span className="font-semibold text-green-300">
-                            School Created:{" "}
-                          </span>
-                          <span className="text-green-200">
-                            {request.created_school.name}
-                          </span>
-                          <span className="ml-2 text-gray-400">
-                            ({request.created_school.location},{" "}
-                            {request.created_school.state})
-                          </span>
-                        </div>
-                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {request.status === "PENDING" && (
-                        <>
-                          <Button
-                            onClick={() => handleEditRequest(request)}
-                            variant="outline"
-                            size="sm"
-                            className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
-                          >
-                            <EditIcon className="mr-1 h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() =>
-                              handleDeleteRequest(
-                                request.id,
-                                request.proposed_school_name,
-                              )
-                            }
-                            variant="outline"
-                            size="sm"
-                            className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
-                          >
-                            <Trash2Icon className="mr-1 h-4 w-4" />
-                            Delete
-                          </Button>
-                        </>
-                      )}
-                      {request.created_school && (
-                        <Link
-                          href={`/profiles/school/${request.created_school.id}`}
+                    <div className="flex items-center gap-3">
+                      <Link href={`/profiles/school/${leagueSchool.school.id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
                         >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                          >
-                            <ExternalLink className="mr-1 h-4 w-4" />
-                            View School
-                          </Button>
-                        </Link>
-                      )}
+                          <ExternalLink className="mr-1 h-4 w-4" />
+                          View Profile
+                        </Button>
+                      </Link>
+                      <Button
+                        onClick={() =>
+                          handleRemoveSchool(
+                            leagueSchool.id,
+                            leagueSchool.school.name,
+                          )
+                        }
+                        disabled={removeSchoolMutation.isPending}
+                        variant="outline"
+                        size="sm"
+                        className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                      >
+                        {removeSchoolMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2Icon className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 ))}
-            </div>
-          ) : (
-            <div className="bg-gray-800 py-12 text-center text-gray-400">
-              <GraduationCap className="mx-auto mb-4 h-16 w-16 text-gray-600" />
-              <h3 className="mb-2 text-lg font-medium">
-                No school requests yet
-              </h3>
-              <p className="mx-auto mb-6 max-w-md text-sm">
-                When you submit requests for new schools, they will appear here
-                with their approval status.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Confirmation Dialog */}
-      <ConfirmRemoveDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
-        schoolName={confirmDialog.schoolName}
-        onConfirm={handleConfirmRemove}
-        isLoading={removeSchoolMutation.isPending}
-      />
+                {/* Load More Button */}
+                {hasNextPage && (
+                  <div className="bg-gray-800 pt-4 text-center">
+                    <Button
+                      onClick={() => void fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      variant="outline"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      {isFetchingNextPage ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading more schools...
+                        </>
+                      ) : (
+                        <>
+                          Load More Schools
+                          <PlusIcon className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-800 py-12 text-center text-gray-400">
+                <Building2Icon className="mx-auto mb-4 h-16 w-16 text-gray-600" />
+                <h3 className="mb-2 text-lg font-medium">
+                  No schools added yet
+                </h3>
+                <p className="mx-auto mb-6 max-w-md text-sm">
+                  Get started by adding schools to your league. Schools can
+                  participate with their teams and players in your competitions.
+                </p>
+                <AddSchoolDialog />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Edit School Request Dialog */}
-      <EditSchoolRequestDialog
-        open={editRequestDialog.open}
-        onOpenChange={(open) =>
-          setEditRequestDialog((prev) => ({ ...prev, open }))
-        }
-        request={editRequestDialog.request}
-        onSubmit={(data) => updateSchoolRequestMutation.mutate(data)}
-        isLoading={updateSchoolRequestMutation.isPending}
-      />
+        {/* School Creation Requests */}
+        <Card className="border-b border-gray-800 bg-gray-800">
+          <CardHeader>
+            <CardTitle className="font-orbitron flex items-center gap-2 text-white">
+              <GraduationCap className="h-5 w-5" />
+              School Creation Requests ({schoolCreationRequests?.length ?? 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoadingRequests ? (
+              <div className="space-y-3 p-6">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full bg-gray-700" />
+                ))}
+              </div>
+            ) : schoolCreationRequests && schoolCreationRequests.length > 0 ? (
+              <div className="divide-y divide-gray-700">
+                {schoolCreationRequests
+                  .sort((a, b) => {
+                    // Sort by status (PENDING first) then by date (newest first)
+                    if (a.status !== b.status) {
+                      const statusOrder = {
+                        PENDING: 0,
+                        APPROVED: 1,
+                        REJECTED: 2,
+                      };
+                      return (
+                        statusOrder[a.status as keyof typeof statusOrder] -
+                        statusOrder[b.status as keyof typeof statusOrder]
+                      );
+                    }
+                    return (
+                      new Date(b.requested_at).getTime() -
+                      new Date(a.requested_at).getTime()
+                    );
+                  })
+                  .map((request, index, array) => (
+                    <div
+                      key={request.id}
+                      className={`flex items-center justify-between border-gray-700 bg-gray-800 p-4 transition-colors first:border-t-0 hover:bg-gray-700 ${
+                        index === array.length - 1 ? "rounded-b-lg" : ""
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center gap-3">
+                          <h3 className="font-orbitron text-lg font-semibold text-white">
+                            {request.proposed_school_name}
+                          </h3>
+                          <Badge
+                            className={
+                              request.status === "PENDING"
+                                ? "border-yellow-500 bg-yellow-500/20 text-yellow-400"
+                                : request.status === "APPROVED"
+                                  ? "border-green-500 bg-green-500/20 text-green-400"
+                                  : "border-red-500 bg-red-500/20 text-red-400"
+                            }
+                          >
+                            {request.status}
+                          </Badge>
+                        </div>
+                        <div className="mb-2 flex items-center gap-4 text-sm text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <GraduationCap className="h-4 w-4" />
+                            {request.proposed_school_type.replace("_", " ")}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            {request.proposed_school_location},{" "}
+                            {request.proposed_school_state}
+                          </span>
+                          <span className="text-gray-500">
+                            {new Date(
+                              request.requested_at,
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {request.request_message && (
+                          <p className="mb-2 text-sm text-gray-300">
+                            &quot;{request.request_message}&quot;
+                          </p>
+                        )}
+                        {request.admin_notes && (
+                          <div className="rounded bg-gray-700 p-2 text-sm">
+                            <span className="font-semibold text-gray-300">
+                              Admin Notes:{" "}
+                            </span>
+                            <span className="text-gray-400">
+                              {request.admin_notes}
+                            </span>
+                          </div>
+                        )}
+                        {request.created_school && (
+                          <div className="mt-2 rounded border border-green-700 bg-green-900/20 p-2 text-sm">
+                            <span className="font-semibold text-green-300">
+                              School Created:{" "}
+                            </span>
+                            <span className="text-green-200">
+                              {request.created_school.name}
+                            </span>
+                            <span className="ml-2 text-gray-400">
+                              ({request.created_school.location},{" "}
+                              {request.created_school.state})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {request.status === "PENDING" && (
+                          <>
+                            <Button
+                              onClick={() => handleEditRequest(request)}
+                              variant="outline"
+                              size="sm"
+                              className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+                            >
+                              <EditIcon className="mr-1 h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() =>
+                                handleDeleteRequest(
+                                  request.id,
+                                  request.proposed_school_name,
+                                )
+                              }
+                              variant="outline"
+                              size="sm"
+                              className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                            >
+                              <Trash2Icon className="mr-1 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </>
+                        )}
+                        {request.created_school && (
+                          <Link
+                            href={`/profiles/school/${request.created_school.id}`}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                            >
+                              <ExternalLink className="mr-1 h-4 w-4" />
+                              View School
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="bg-gray-800 py-12 text-center text-gray-400">
+                <GraduationCap className="mx-auto mb-4 h-16 w-16 text-gray-600" />
+                <h3 className="mb-2 text-lg font-medium">
+                  No school requests yet
+                </h3>
+                <p className="mx-auto mb-6 max-w-md text-sm">
+                  When you submit requests for new schools, they will appear
+                  here with their approval status.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Delete School Request Dialog */}
-      <DeleteSchoolRequestDialog
-        open={deleteRequestDialog.open}
-        onOpenChange={(open) =>
-          setDeleteRequestDialog((prev) => ({ ...prev, open }))
-        }
-        schoolName={deleteRequestDialog.schoolName}
-        onConfirm={handleConfirmDeleteRequest}
-        isLoading={deleteSchoolRequestMutation.isPending}
-      />
+        {/* Confirmation Dialog */}
+        <ConfirmRemoveDialog
+          open={confirmDialog.open}
+          onOpenChange={(open) =>
+            setConfirmDialog((prev) => ({ ...prev, open }))
+          }
+          schoolName={confirmDialog.schoolName}
+          onConfirm={handleConfirmRemove}
+          isLoading={removeSchoolMutation.isPending}
+        />
+
+        {/* Edit School Request Dialog */}
+        <EditSchoolRequestDialog
+          open={editRequestDialog.open}
+          onOpenChange={(open) =>
+            setEditRequestDialog((prev) => ({ ...prev, open }))
+          }
+          request={editRequestDialog.request}
+          onSubmit={(data) => updateSchoolRequestMutation.mutate(data)}
+          isLoading={updateSchoolRequestMutation.isPending}
+        />
+
+        {/* Delete School Request Dialog */}
+        <DeleteSchoolRequestDialog
+          open={deleteRequestDialog.open}
+          onOpenChange={(open) =>
+            setDeleteRequestDialog((prev) => ({ ...prev, open }))
+          }
+          schoolName={deleteRequestDialog.schoolName}
+          onConfirm={handleConfirmDeleteRequest}
+          isLoading={deleteSchoolRequestMutation.isPending}
+        />
+      </div>
     </div>
   );
 }

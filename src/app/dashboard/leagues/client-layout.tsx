@@ -20,6 +20,7 @@ import {
   EyeIcon,
   BuildingIcon,
   BarChart3Icon,
+  CrownIcon,
 } from "lucide-react";
 import { isLeagueAdminOnboarded } from "@/lib/client/permissions";
 import { api } from "@/trpc/react";
@@ -146,7 +147,7 @@ export function LeaguesDashboardClientLayout({
   ];
 
   return (
-    <div className="flex h-screen bg-[#0f0f1a]">
+    <div className="flex min-h-[calc(100vh-80px)] bg-[#0f0f1a]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -158,31 +159,36 @@ export function LeaguesDashboardClientLayout({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-800 bg-[#1a1a2e] transition-transform duration-200 ease-in-out lg:static lg:inset-0 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-800 bg-[#1a1a2e] transition-transform duration-200 ease-in-out lg:static lg:inset-0 lg:min-h-full lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full min-h-full flex-col lg:min-h-[calc(100vh-80px)]">
           {/* Sidebar header */}
-          <div className="flex items-center justify-between border-b border-gray-800 p-4">
-            <div>
-              <h2 className="font-orbitron text-xl font-bold text-white">
-                League Dashboard
-              </h2>
-              <p className="mt-1 text-xs text-gray-400">
-                {user?.firstName} {user?.lastName}
-              </p>
-              {!isOnboarded && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-yellow-400">
-                  <LockIcon className="h-3 w-3" />
-                  Pending Onboarding
+          <div className="flex items-center justify-between border-b border-gray-800/50 bg-gradient-to-r from-purple-600/10 to-violet-600/10 p-6">
+            <div className="flex items-center space-x-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-600">
+                <CrownIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="font-orbitron text-lg font-bold text-white">
+                  League Portal
+                </h2>
+                <p className="font-rajdhani text-xs text-gray-400">
+                  {user?.firstName} {user?.lastName}
                 </p>
-              )}
+                {!isOnboarded && (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-amber-400">
+                    <LockIcon className="h-3 w-3" />
+                    Pending Onboarding
+                  </p>
+                )}
+              </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-white lg:hidden"
+              className="text-gray-400 hover:bg-gray-800/50 hover:text-white lg:hidden"
               onClick={() => setSidebarOpen(false)}
             >
               <XIcon className="h-5 w-5" />
@@ -191,13 +197,17 @@ export function LeaguesDashboardClientLayout({
 
           {/* Navigation */}
           <nav className="flex-1 p-4">
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 const isDisabled =
                   (item.requiresOnboarding && !isOnboarded) ||
                   item.enabled === false;
+                const hasSubItems = item.subItems && item.subItems.length > 0;
+                const hasActiveSubItem =
+                  hasSubItems &&
+                  item.subItems.some((subItem) => pathname === subItem.href);
 
                 return (
                   <li key={item.href}>
@@ -205,53 +215,105 @@ export function LeaguesDashboardClientLayout({
                     {isDisabled ? (
                       <div
                         className={cn(
-                          "flex cursor-not-allowed items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium opacity-50",
+                          "flex cursor-not-allowed items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium opacity-50",
                           "text-gray-500",
                         )}
                       >
-                        <LockIcon className="h-4 w-4" />
-                        {item.title}
+                        <div className="rounded-lg bg-gray-800/30 p-2">
+                          <LockIcon className="h-4 w-4" />
+                        </div>
+                        <span className="font-rajdhani font-medium">
+                          {item.title}
+                        </span>
                       </div>
                     ) : (
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
-                          isActive
-                            ? "bg-indigo-600 text-white"
-                            : "text-gray-300 hover:bg-gray-800 hover:text-white",
+                          "group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
+                          isActive || hasActiveSubItem
+                            ? "border border-purple-500/30 bg-gradient-to-r from-purple-600/20 to-violet-600/20 text-white shadow-lg shadow-purple-500/10"
+                            : "text-gray-300 hover:border hover:border-gray-600/30 hover:bg-gradient-to-r hover:from-gray-800/50 hover:to-gray-700/50 hover:text-white",
                         )}
                         onClick={() => setSidebarOpen(false)}
                       >
-                        <Icon className="h-5 w-5" />
-                        {item.title}
+                        {/* Active indicator */}
+                        {(isActive || hasActiveSubItem) && (
+                          <div className="absolute top-0 left-0 h-full w-1 rounded-r-full bg-gradient-to-b from-purple-400 to-violet-500" />
+                        )}
+
+                        {/* Icon with enhanced styling */}
+                        <div
+                          className={cn(
+                            "rounded-lg p-2 transition-all duration-200",
+                            isActive || hasActiveSubItem
+                              ? "bg-gradient-to-br from-purple-500/20 to-violet-500/20 text-purple-400"
+                              : "text-gray-400 group-hover:bg-gray-700/30 group-hover:text-white",
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </div>
+
+                        <span className="font-rajdhani font-medium">
+                          {item.title}
+                        </span>
+
+                        {/* Subtle glow effect for active items */}
+                        {(isActive || hasActiveSubItem) && (
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600/5 to-violet-600/5" />
+                        )}
                       </Link>
                     )}
 
-                    {/* Sub-items (only show if enabled and they exist) */}
-                    {item.subItems &&
+                    {/* Sub-items with improved styling */}
+                    {hasSubItems &&
+                      item.subItems &&
                       item.subItems.length > 0 &&
                       !isDisabled && (
-                        <ul className="mt-2 ml-8 space-y-1">
+                        <ul className="mt-2 ml-6 space-y-1 border-l border-gray-700/50 pl-4">
                           {item.subItems.map((subItem) => {
                             const SubIcon = subItem.icon;
                             const isSubActive = pathname === subItem.href;
+                            const isSubDisabled =
+                              subItem.requiresOnboarding && !isOnboarded;
 
                             return (
                               <li key={subItem.href}>
-                                <Link
-                                  href={subItem.href}
-                                  className={cn(
-                                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                                    isSubActive
-                                      ? "bg-indigo-500 text-white"
-                                      : "text-gray-400 hover:bg-gray-700 hover:text-white",
-                                  )}
-                                  onClick={() => setSidebarOpen(false)}
-                                >
-                                  <SubIcon className="h-4 w-4" />
-                                  {subItem.title}
-                                </Link>
+                                {isSubDisabled ? (
+                                  <div className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 opacity-50">
+                                    <div className="rounded p-1">
+                                      <LockIcon className="h-3 w-3" />
+                                    </div>
+                                    <span className="font-rajdhani text-xs">
+                                      {subItem.title}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <Link
+                                    href={subItem.href}
+                                    className={cn(
+                                      "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                                      isSubActive
+                                        ? "border border-purple-500/20 bg-gradient-to-r from-purple-500/15 to-violet-500/15 text-purple-400"
+                                        : "text-gray-400 hover:bg-gray-800/30 hover:text-white",
+                                    )}
+                                    onClick={() => setSidebarOpen(false)}
+                                  >
+                                    <div
+                                      className={cn(
+                                        "rounded p-1 transition-all duration-200",
+                                        isSubActive
+                                          ? "text-purple-400"
+                                          : "text-gray-500 group-hover:text-gray-300",
+                                      )}
+                                    >
+                                      <SubIcon className="h-3 w-3" />
+                                    </div>
+                                    <span className="font-rajdhani text-xs">
+                                      {subItem.title}
+                                    </span>
+                                  </Link>
+                                )}
                               </li>
                             );
                           })}
@@ -263,19 +325,40 @@ export function LeaguesDashboardClientLayout({
             </ul>
           </nav>
 
-          <Separator className="bg-gray-800" />
+          <Separator className="bg-gray-800/50" />
 
-          {/* Footer */}
-          <div className="p-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <MenuIcon className="mr-2 h-4 w-4" />
-              Close Menu
-            </Button>
+          {/* Enhanced Footer */}
+          <div className="space-y-3 p-4">
+            {/* League Status */}
+            <div className="rounded-lg border border-gray-700/30 bg-gradient-to-r from-gray-800/50 to-gray-700/30 p-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-rajdhani text-gray-400">
+                  League Status
+                </span>
+                <div className="flex items-center gap-1">
+                  {isOnboarded ? (
+                    <>
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-green-400"></div>
+                      <span className="font-rajdhani font-medium text-green-400">
+                        Active
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-amber-400"></div>
+                      <span className="font-rajdhani font-medium text-amber-400">
+                        Pending
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Copyright */}
+            <p className="font-rajdhani text-center text-xs text-gray-500">
+              © 2024 EVAL Gaming
+            </p>
           </div>
         </div>
       </div>
@@ -296,7 +379,7 @@ export function LeaguesDashboardClientLayout({
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-auto p-6">{children}</div>
+        <div className="flex-1">{children}</div>
       </div>
     </div>
   );

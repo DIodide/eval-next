@@ -160,172 +160,178 @@ export default function LeagueDashboardPage() {
 
   // Main dashboard for onboarded league admins
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-orbitron text-3xl font-bold text-white">
-            League Dashboard
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Manage your league, teams, and player information
-          </p>
-        </div>
-        <div className="mt-4 flex gap-3 sm:mt-0">
-          {leagueProfile?.league_ref && (
-            <Link href={`/profiles/leagues/${leagueProfile.league_ref.id}`}>
-              <Button
-                variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-              >
-                <EyeIcon className="mr-2 h-4 w-4" />
-                View Public Profile
-              </Button>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card className="border-gray-800 bg-[#1a1a2e]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              Total Players
-            </CardTitle>
-            <UsersIcon className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">--</div>
-            <p className="text-xs text-gray-400">Active league participants</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-gray-800 bg-[#1a1a2e]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              Total Teams
-            </CardTitle>
-            <TrophyIcon className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">--</div>
-            <p className="text-xs text-gray-400">Registered teams</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-gray-800 bg-[#1a1a2e]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              League Status
-            </CardTitle>
-            <ClockIcon className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">Active</div>
-            <p className="text-xs text-gray-400">Current season status</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Action Cards */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Link href="/dashboard/leagues/players">
-          <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <UsersIcon className="h-5 w-5 text-purple-400" />
-                Manage Players
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-400">
-                View, edit, and manage all players participating in your league.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/leagues/teams">
-          <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <TrophyIcon className="h-5 w-5 text-purple-400" />
-                Manage Teams
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-400">
-                Organize teams, manage rosters, and track performance.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/leagues/schools">
-          <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Building2Icon className="h-5 w-5 text-purple-400" />
-                Manage Schools
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-400">
-                Add schools to your league and manage their participation.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/leagues/rankings">
-          <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <BarChart3Icon className="h-5 w-5 text-purple-400" />
-                Manage Rankings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-400">
-                Track player performance, team standings, and leaderboards.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/leagues/profile">
-          <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <SettingsIcon className="h-5 w-5 text-purple-400" />
-                League Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-400">
-                Update league information, settings, and public profile details.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Recent Activity */}
-      <Card className="border-gray-800 bg-[#1a1a2e]">
-        <CardHeader>
-          <CardTitle className="text-white">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="py-8 text-center text-gray-400">
-            <ClockIcon className="mx-auto mb-4 h-12 w-12 text-gray-600" />
-            <p>No recent activity to display</p>
-            <p className="text-sm">
-              Activity will appear here as you manage your league
+    <div className="p-6">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-orbitron text-3xl font-bold text-white">
+              League Dashboard
+            </h1>
+            <p className="mt-2 text-gray-400">
+              Manage your league, teams, and player information
             </p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="mt-4 flex gap-3 sm:mt-0">
+            {leagueProfile?.league_ref && (
+              <Link href={`/profiles/leagues/${leagueProfile.league_ref.id}`}>
+                <Button
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                >
+                  <EyeIcon className="mr-2 h-4 w-4" />
+                  View Public Profile
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Card className="border-gray-800 bg-[#1a1a2e]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-400">
+                Total Players
+              </CardTitle>
+              <UsersIcon className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">--</div>
+              <p className="text-xs text-gray-400">
+                Active league participants
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 bg-[#1a1a2e]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-400">
+                Total Teams
+              </CardTitle>
+              <TrophyIcon className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">--</div>
+              <p className="text-xs text-gray-400">Registered teams</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 bg-[#1a1a2e]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-400">
+                League Status
+              </CardTitle>
+              <ClockIcon className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">Active</div>
+              <p className="text-xs text-gray-400">Current season status</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Link href="/dashboard/leagues/players">
+            <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <UsersIcon className="h-5 w-5 text-purple-400" />
+                  Manage Players
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-400">
+                  View, edit, and manage all players participating in your
+                  league.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/leagues/teams">
+            <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <TrophyIcon className="h-5 w-5 text-purple-400" />
+                  Manage Teams
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-400">
+                  Organize teams, manage rosters, and track performance.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/leagues/schools">
+            <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Building2Icon className="h-5 w-5 text-purple-400" />
+                  Manage Schools
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-400">
+                  Add schools to your league and manage their participation.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/leagues/rankings">
+            <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <BarChart3Icon className="h-5 w-5 text-purple-400" />
+                  Manage Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-400">
+                  Track player performance, team standings, and leaderboards.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/leagues/profile">
+            <Card className="cursor-pointer border-gray-800 bg-[#1a1a2e] transition-colors hover:border-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <SettingsIcon className="h-5 w-5 text-purple-400" />
+                  League Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-400">
+                  Update league information, settings, and public profile
+                  details.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Recent Activity */}
+        <Card className="border-gray-800 bg-[#1a1a2e]">
+          <CardHeader>
+            <CardTitle className="text-white">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="py-8 text-center text-gray-400">
+              <ClockIcon className="mx-auto mb-4 h-12 w-12 text-gray-600" />
+              <p>No recent activity to display</p>
+              <p className="text-sm">
+                Activity will appear here as you manage your league
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
