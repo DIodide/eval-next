@@ -11,7 +11,6 @@ import {
   Building,
   Code,
   GraduationCap,
-  Sparkles,
 } from "lucide-react";
 
 export const metadata: Metadata = staticPageMetadata.aboutPartners;
@@ -24,11 +23,6 @@ const partners = [
       "The official high school esports league for New Jersey, featuring competitive play across multiple titles and fostering the next generation of esports talent.",
     website: "https://gsesports.org/",
     category: "League Partner",
-    highlights: [
-      "Official NJ High School League",
-      "Multi-Game Tournaments",
-      "Player Development",
-    ],
   },
   {
     name: "Princeton Keller Center",
@@ -37,11 +31,6 @@ const partners = [
       "Princeton University's hub for entrepreneurship, innovation, and impact-driven startups, supporting EVAL's mission to revolutionize esports recruitment.",
     website: "https://kellercenter.princeton.edu/people/startups-teams/eval",
     category: "Innovation Partner",
-    highlights: [
-      "Startup Incubation",
-      "Business Development",
-      "Academic Support",
-    ],
   },
 ];
 
@@ -50,41 +39,25 @@ const partnershipTypes = [
     icon: GraduationCap,
     title: "Educational Institutions",
     description:
-      "Connect with talented players for your esports programs and academic initiatives",
-    benefits: [
-      "Direct access to verified players",
-      "Custom recruitment tools",
-      "Academic partnership opportunities",
-    ],
+      "Connect with talented players for your esports programs and academic initiatives through our comprehensive recruitment platform.",
   },
   {
     icon: Users,
     title: "Gaming Organizations",
     description:
-      "Discover and recruit the next generation of esports talent through our platform",
-    benefits: [
-      "Advanced player analytics",
-      "Scouting dashboard",
-      "Tournament integration",
-    ],
+      "Discover and recruit the next generation of esports talent with advanced analytics and scouting tools.",
   },
   {
     icon: Code,
     title: "Technology Partners",
     description:
-      "Integrate your tools and services with our growing platform ecosystem",
-    benefits: [
-      "API access",
-      "Co-marketing opportunities",
-      "Technical collaboration",
-    ],
+      "Integrate your tools and services with our growing platform ecosystem through API access and technical collaboration.",
   },
   {
     icon: Building,
     title: "Corporate Sponsors",
     description:
-      "Support the future of esports while reaching our engaged community",
-    benefits: ["Brand visibility", "Community engagement", "Event sponsorship"],
+      "Support the future of esports while reaching our engaged community through brand visibility and event partnerships.",
   },
 ];
 
@@ -98,13 +71,6 @@ export default function PartnersPage() {
 
         <div className="relative z-10 container mx-auto px-6">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-cyan-400/30 bg-gradient-to-r from-cyan-400/20 to-purple-400/20 px-6 py-3">
-              <Handshake className="h-5 w-5 text-cyan-400" />
-              <span className="font-orbitron text-sm tracking-wider text-cyan-400">
-                BUILDING THE FUTURE TOGETHER
-              </span>
-            </div>
-
             <h1 className="font-orbitron cyber-text mb-6 text-5xl font-black text-white md:text-7xl">
               OUR{" "}
               <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
@@ -145,16 +111,6 @@ export default function PartnersPage() {
                 className="group overflow-hidden border-gray-700 bg-gradient-to-br from-gray-800 to-gray-900 transition-all duration-500 hover:-translate-y-2 hover:border-cyan-400/50 hover:shadow-2xl hover:shadow-cyan-400/20"
               >
                 <CardContent className="p-8">
-                  {/* Category Badge */}
-                  <div className="mb-6 flex items-start justify-between">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-gradient-to-r from-cyan-400/20 to-purple-400/20 px-4 py-2">
-                      <Sparkles className="h-4 w-4 text-cyan-400" />
-                      <span className="font-orbitron text-xs tracking-wider text-cyan-400">
-                        {partner.category}
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Logo */}
                   <div className="mb-8 text-center">
                     <div className="relative inline-block rounded-2xl border border-gray-700/50 bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 group-hover:border-cyan-400/30">
@@ -176,21 +132,6 @@ export default function PartnersPage() {
                     <p className="font-rajdhani mb-6 text-lg leading-relaxed text-gray-300">
                       {partner.description}
                     </p>
-
-                    {/* Highlights */}
-                    <div className="mb-8 space-y-3">
-                      {partner.highlights.map((highlight, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-center gap-3"
-                        >
-                          <div className="h-2 w-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-400"></div>
-                          <span className="font-rajdhani text-gray-300">
-                            {highlight}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
                   </div>
 
                   {/* CTA */}
@@ -199,7 +140,7 @@ export default function PartnersPage() {
                       href={partner.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group/btn inline-block"
+                      className="group/btn inline-block cursor-pointer"
                     >
                       <Button className="font-orbitron bg-gradient-to-r from-cyan-400 to-purple-400 px-8 py-3 font-bold tracking-wider text-black shadow-lg shadow-cyan-400/25 transition-all duration-300 group-hover/btn:shadow-cyan-400/40 hover:from-cyan-500 hover:to-purple-500">
                         <span>VISIT WEBSITE</span>
@@ -240,20 +181,9 @@ export default function PartnersPage() {
                       <h3 className="font-orbitron mb-3 text-xl font-bold text-white transition-colors group-hover:text-cyan-400">
                         {type.title}
                       </h3>
-                      <p className="font-rajdhani mb-6 leading-relaxed text-gray-300">
+                      <p className="font-rajdhani leading-relaxed text-gray-300">
                         {type.description}
                       </p>
-
-                      <div className="space-y-3">
-                        {type.benefits.map((benefit, idx) => (
-                          <div key={idx} className="flex items-center gap-3">
-                            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-400"></div>
-                            <span className="font-rajdhani text-sm text-gray-300">
-                              {benefit}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -270,13 +200,6 @@ export default function PartnersPage() {
 
         <div className="relative z-10 container mx-auto px-6">
           <div className="mx-auto max-w-5xl text-center">
-            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-cyan-400/30 bg-gradient-to-r from-cyan-400/20 to-purple-400/20 px-6 py-3">
-              <Handshake className="h-5 w-5 text-cyan-400" />
-              <span className="font-orbitron text-sm tracking-wider text-cyan-400">
-                JOIN OUR NETWORK
-              </span>
-            </div>
-
             <h3 className="font-orbitron cyber-text mb-8 text-4xl font-black text-white md:text-6xl">
               BECOME A{" "}
               <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
@@ -291,7 +214,7 @@ export default function PartnersPage() {
               achievement.
             </p>
 
-            <Link href="/about/contact">
+            <Link href="/about/contact" className="cursor-pointer">
               <Button className="font-orbitron bg-gradient-to-r from-cyan-400 via-purple-400 to-orange-400 px-12 py-4 text-xl font-bold tracking-wider text-black shadow-2xl transition-all duration-300 hover:scale-105 hover:from-cyan-500 hover:via-purple-500 hover:to-orange-500 hover:shadow-purple-400/30">
                 <Handshake className="mr-3 h-6 w-6" />
                 BECOME A PARTNER
