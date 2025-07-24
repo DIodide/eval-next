@@ -208,13 +208,13 @@ export function GameAnalyticsPanel({
   const content = (
     <Card
       className={`border-gray-700/50 bg-[#1a1a2e]/80 shadow-xl backdrop-blur-sm ${
-        size === "compact" ? "p-4" : "p-6"
+        size === "compact" ? "gap-0 p-4" : "gap-0 p-6"
       } ${className}`}
     >
       {/* Header */}
       {(showHeader || publicHeader) && (
         <div
-          className={`${size === "compact" ? "mb-4 flex flex-col gap-3" : "mb-6 flex flex-col gap-6"} ${headerClassName}`}
+          className={`${size === "compact" ? "mb-4 flex flex-col gap-3" : "mb-6 flex flex-col gap-3"} ${headerClassName}`}
         >
           {/* Regular Header - Full header with manage connections */}
           {showHeader && !publicHeader && (
@@ -238,55 +238,67 @@ export function GameAnalyticsPanel({
                   </p>
                 </div>
               </div>
-              <Link
-                href="/dashboard/player/profile"
-                target={openLinksInNewTab ? "_blank" : undefined}
-                rel={openLinksInNewTab ? "noopener noreferrer" : undefined}
-              >
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="border-gray-600 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:border-gray-500 hover:from-blue-500 hover:to-purple-500"
+              <div className="flex items-center gap-4">
+                {/* Game Selection */}
+                <div onKeyDown={handleKeyboardNavigation}>
+                  <GameSelector
+                    games={availableGames}
+                    selectedGame={selectedGame}
+                    connections={allConnections}
+                    onSelect={handleGameSelect}
+                  />
+                </div>
+                <Link
+                  href="/dashboard/player/profile"
+                  target={openLinksInNewTab ? "_blank" : undefined}
+                  rel={openLinksInNewTab ? "noopener noreferrer" : undefined}
                 >
-                  Manage Connections
-                  <ArrowRightIcon className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="border-gray-600 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:border-gray-500 hover:from-blue-500 hover:to-purple-500"
+                  >
+                    Manage Connections
+                    <ArrowRightIcon className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           )}
 
           {/* Public Header - Just the title, no manage connections */}
           {publicHeader && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center">
-                <Image
-                  src={currentGame?.image ?? "/eval/logos/emblem.png"}
-                  alt={`${currentGame?.name ?? "Game"} Logo`}
-                  width={32}
-                  height={32}
-                  className="object-contain"
-                />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center">
+                  <Image
+                    src={currentGame?.image ?? "/eval/logos/emblem.png"}
+                    alt={`${currentGame?.name ?? "Game"} Logo`}
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-orbitron text-xl font-bold text-white">
+                    Game Analytics
+                  </h3>
+                  <p className="font-rajdhani text-xs text-gray-400">
+                    Performance insights across all games
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-orbitron text-xl font-bold text-white">
-                  Game Analytics
-                </h3>
-                <p className="font-rajdhani text-xs text-gray-400">
-                  Performance insights across all games
-                </p>
+              {/* Game Selection */}
+              <div onKeyDown={handleKeyboardNavigation}>
+                <GameSelector
+                  games={availableGames}
+                  selectedGame={selectedGame}
+                  connections={allConnections}
+                  onSelect={handleGameSelect}
+                />
               </div>
             </div>
           )}
-
-          {/* Game Selection - Show for both regular and public headers */}
-          <div onKeyDown={handleKeyboardNavigation}>
-            <GameSelector
-              games={availableGames}
-              selectedGame={selectedGame}
-              connections={allConnections}
-              onSelect={handleGameSelect}
-            />
-          </div>
 
           {/* Connection Status */}
           {showConnectionPrompts && !isConnected && (

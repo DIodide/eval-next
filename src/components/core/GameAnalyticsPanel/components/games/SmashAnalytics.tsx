@@ -264,14 +264,14 @@ export function SmashAnalytics({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Information Panel */}
       {showInfoPanel && (
-        <div className="rounded-lg border border-green-700/30 bg-green-900/20 p-4">
+        <div className="rounded-lg border border-green-700/30 bg-green-900/20 p-3">
           <div className="flex items-start gap-3">
-            <InfoIcon className="mt-0.5 h-5 w-5 text-green-400" />
+            <InfoIcon className="mt-0.5 h-4 w-4 text-green-400" />
             <div>
-              <h4 className="font-orbitron mb-2 text-sm font-semibold text-green-300">
+              <h4 className="font-orbitron mb-1 text-sm font-semibold text-green-300">
                 About These Statistics
               </h4>
               <div className="font-rajdhani space-y-1 text-xs text-green-200">
@@ -295,37 +295,78 @@ export function SmashAnalytics({
         </div>
       )}
 
-      {/* Player Account Info */}
-      <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
-        <div className="font-rajdhani mb-1 flex items-center gap-1 text-xs text-gray-400">
-          SMASH ULTIMATE ACCOUNT
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-              <p>Connected start.gg account information and main character.</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <div className="flex items-center gap-4">
+      {/* Combined Player Account Info and Main Character Details */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Player Account Info */}
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <div className="font-rajdhani mb-2 flex items-center gap-1 text-xs text-gray-400">
+            SMASH ULTIMATE ACCOUNT
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                <p>
+                  Connected start.gg account information and main character.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <div className="font-orbitron text-lg font-bold text-green-400">
             {playerInfo.prefix !== "Unknown" ? `${playerInfo.prefix} ` : ""}
             {playerInfo.gamerTag}
           </div>
-          <div className="text-sm text-gray-400">
-            Main:{" "}
-            <span className="font-semibold text-green-400">
-              {playerInfo.mainCharacter}
-            </span>
+        </div>
+
+        {/* Main Character Details */}
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <h3 className="font-orbitron mb-3 text-sm font-bold text-white">
+            Main Character Stats
+          </h3>
+          <div className="space-y-2">
+            {Object.entries(playerStats.mains).map(
+              ([character, characterStats]) => (
+                <div
+                  key={character}
+                  className="flex items-center justify-between rounded-md bg-gray-800/50 p-2"
+                >
+                  <div className="flex items-center gap-2">
+                    {characterStats.image_path ? (
+                      <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                        <Image
+                          src={characterStats.image_path}
+                          alt={character}
+                          fill
+                          className="object-cover"
+                          sizes="24px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                    )}
+                    <span className="font-rajdhani text-sm font-medium text-gray-200">
+                      {character}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-rajdhani text-xs text-gray-400">
+                      {characterStats.games}g
+                    </span>
+                    <div className="font-orbitron rounded border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs text-green-400">
+                      {(characterStats.winrate * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
 
-      {/* Core Performance Metrics - Top Row */}
+      {/* Core Performance Metrics */}
       <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
-        <div className="rounded-tl-lg rounded-tr-none rounded-br-none rounded-bl-none border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-4 text-center md:rounded-tl-lg">
-          <div className="font-orbitron mb-1 text-3xl font-bold text-purple-300">
+        <div className="rounded-tl-lg border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-3 text-center">
+          <div className="font-orbitron mb-1 text-2xl font-bold text-purple-300">
             {((playerInfo.evalScore / 100) * 100).toFixed(1)}
           </div>
           <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-purple-400">
@@ -344,12 +385,12 @@ export function SmashAnalytics({
           </div>
         </div>
 
-        <div className="rounded-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
+        <div className="border border-gray-700 bg-gray-900 p-3 text-center">
           <div className="font-orbitron mb-1 text-xl font-bold text-yellow-400">
             {(playerStats.set_win_rate * 100).toFixed(1)}%
           </div>
           <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
-            SET WIN RATE
+            SET WIN
             <Tooltip>
               <TooltipTrigger asChild>
                 <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
@@ -364,12 +405,12 @@ export function SmashAnalytics({
           </div>
         </div>
 
-        <div className="rounded-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
+        <div className="border border-gray-700 bg-gray-900 p-3 text-center">
           <div className="font-orbitron mb-1 text-xl font-bold text-blue-400">
             {(playerStats.game_win_rate * 100).toFixed(1)}%
           </div>
           <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
-            GAME WIN RATE
+            GAME WIN
             <Tooltip>
               <TooltipTrigger asChild>
                 <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
@@ -383,12 +424,12 @@ export function SmashAnalytics({
           </div>
         </div>
 
-        <div className="rounded-tl-none rounded-tr-lg rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-tr-lg">
+        <div className="rounded-tr-lg border border-gray-700 bg-gray-900 p-3 text-center">
           <div className="font-orbitron mb-1 text-xl font-bold text-purple-400">
             {(playerStats.clutch_factor * 100).toFixed(1)}%
           </div>
           <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
-            CLUTCH FACTOR
+            CLUTCH
             <Tooltip>
               <TooltipTrigger asChild>
                 <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
@@ -404,302 +445,242 @@ export function SmashAnalytics({
         </div>
       </div>
 
-      {/* Detailed Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Main Characters */}
-        <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
-          <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-white">
-            Smash Ultimate Main
-          </h3>
-          <div className="space-y-3">
-            {Object.entries(playerStats.mains).map(
-              ([character, characterStats]) => (
+      {/* Recent Placements - Compact */}
+      <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+        <h3 className="font-orbitron mb-3 text-sm font-bold text-white">
+          Recent Tournament Placements
+        </h3>
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          {recentPlacements.slice(0, 4).map((result, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between rounded-md bg-gray-800/50 p-2"
+            >
+              <span className="font-rajdhani mr-2 flex-1 truncate text-sm font-medium text-gray-200">
+                {result.event}
+              </span>
+              <div className="flex flex-shrink-0 items-center gap-2">
+                <span className="font-rajdhani text-xs text-gray-400">
+                  {result.entrants}
+                </span>
                 <div
-                  key={character}
-                  className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
+                  className={`font-orbitron rounded px-2 py-0.5 text-xs ${
+                    result.placement === 1
+                      ? "bg-yellow-400/20 text-yellow-300"
+                      : result.placement === 2
+                        ? "bg-gray-300/20 text-gray-200"
+                        : result.placement === 3
+                          ? "bg-orange-600/20 text-orange-400"
+                          : result.placement <= 8
+                            ? "bg-yellow-600/20 text-yellow-400"
+                            : "bg-gray-700/50 text-gray-300"
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    {characterStats.image_path ? (
-                      <div className="relative h-8 w-8 cursor-pointer overflow-hidden rounded-lg transition-transform hover:scale-105">
-                        <Image
-                          src={characterStats.image_path}
-                          alt={character}
-                          fill
-                          className="object-cover"
-                          sizes="32px"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                    )}
-                    <span className="font-rajdhani font-medium text-gray-200">
-                      {character}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-rajdhani text-sm text-gray-400">
-                      {characterStats.games} games
-                    </span>
-                    <div className="font-orbitron rounded border border-green-500/30 bg-green-500/10 px-2 py-1 text-sm text-green-400">
-                      {(characterStats.winrate * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
-        </div>
-
-        {/* Recent Placements */}
-        <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
-          <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-white">
-            Recent Placements
-          </h3>
-          <div className="divide-y divide-gray-800/50 rounded-2xl bg-gray-800 p-2">
-            {recentPlacements.slice(0, 4).map((result, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between bg-gray-800/50 p-2"
-              >
-                <div className="flex items-center">
-                  <span className="font-rajdhani font-medium text-gray-200">
-                    {result.event}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-rajdhani text-sm text-gray-400">
-                    {result.entrants} entrants
-                  </span>
-                  <div
-                    className={`font-orbitron px-2 py-1 text-sm ${
-                      result.placement === 1
-                        ? "bg-yellow-400/20 text-yellow-300"
-                        : result.placement === 2
-                          ? "bg-gray-300/20 text-gray-200"
-                          : result.placement === 3
-                            ? "bg-orange-600/20 text-orange-400"
-                            : result.placement <= 8
-                              ? "bg-yellow-600/20 text-yellow-400"
-                              : "bg-gray-700/50 text-gray-300"
-                    }`}
-                  >
-                    #{result.placement}
-                  </div>
+                  #{result.placement}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Matchup Analysis */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Best Matchups */}
-        <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
-          <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-emerald-400">
-            <TrendingUpIcon className="h-5 w-5" />
+      {/* Matchup Analysis - Compact Layout */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Best & Worst Matchups Combined */}
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <h3 className="font-orbitron mb-3 flex items-center gap-2 text-sm font-bold text-emerald-400">
+            <TrendingUpIcon className="h-4 w-4" />
             Best Matchups
           </h3>
-          <p className="font-rajdhani mb-4 text-sm text-gray-400">
-            Your strongest character matchups
-          </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {Object.entries(playerStats.best_matchups).flatMap(
               ([character, opponents]) =>
-                Object.entries(opponents).map(([opponent, data]) => (
-                  <div
-                    key={`${character}-${opponent}`}
-                    className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
-                  >
-                    <div className="flex items-center gap-3">
+                Object.entries(opponents)
+                  .slice(0, 3)
+                  .map(([opponent, data]) => (
+                    <div
+                      key={`${character}-${opponent}`}
+                      className="flex items-center justify-between rounded-md bg-gray-800/50 p-2"
+                    >
                       <div className="flex items-center gap-2">
-                        {data.player_character_image ? (
-                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
-                            <Image
-                              src={data.player_character_image}
-                              alt={character}
-                              fill
-                              className="object-cover"
-                              sizes="24px"
-                            />
-                          </div>
-                        ) : null}
-                        <span className="font-rajdhani text-sm font-medium text-gray-200">
-                          {character}
+                        <div className="flex items-center gap-1">
+                          {data.player_character_image ? (
+                            <div className="relative h-5 w-5 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                              <Image
+                                src={data.player_character_image}
+                                alt={character}
+                                fill
+                                className="object-cover"
+                                sizes="20px"
+                              />
+                            </div>
+                          ) : null}
+                          <span className="font-rajdhani text-xs text-gray-200">
+                            {character.slice(0, 8)}
+                          </span>
+                        </div>
+                        <span className="font-rajdhani text-xs text-gray-400">
+                          vs
                         </span>
+                        <div className="flex items-center gap-1">
+                          {data.opponent_character_image ? (
+                            <div className="relative h-5 w-5 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                              <Image
+                                src={data.opponent_character_image}
+                                alt={opponent}
+                                fill
+                                className="object-cover"
+                                sizes="20px"
+                              />
+                            </div>
+                          ) : null}
+                          <span className="font-rajdhani text-xs text-gray-200">
+                            {opponent.slice(0, 8)}
+                          </span>
+                        </div>
                       </div>
-                      <span className="font-rajdhani text-xs text-gray-400">
-                        vs
-                      </span>
                       <div className="flex items-center gap-2">
-                        {data.opponent_character_image ? (
-                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
-                            <Image
-                              src={data.opponent_character_image}
-                              alt={opponent}
-                              fill
-                              className="object-cover"
-                              sizes="24px"
-                            />
-                          </div>
-                        ) : null}
-                        <span className="font-rajdhani text-sm font-medium text-gray-200">
-                          {opponent}
+                        <span className="font-rajdhani text-xs text-gray-300">
+                          {data.wins}-{data.games - data.wins}
+                        </span>
+                        <span
+                          className={`font-orbitron text-xs ${getWinRateColor(data.winrate)}`}
+                        >
+                          {(data.winrate * 100).toFixed(0)}%
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-rajdhani text-sm text-gray-300">
-                        {data.wins}-{data.games - data.wins}
-                      </span>
-                      <span
-                        className={`font-orbitron text-sm ${getWinRateColor(data.winrate)}`}
-                      >
-                        {(data.winrate * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                )),
+                  )),
             )}
           </div>
         </div>
 
-        {/* Worst Matchups */}
-        <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
-          <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-red-400">
-            <TrendingDownIcon className="h-5 w-5" />
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <h3 className="font-orbitron mb-3 flex items-center gap-2 text-sm font-bold text-red-400">
+            <TrendingDownIcon className="h-4 w-4" />
             Worst Matchups
           </h3>
-          <p className="font-rajdhani mb-4 text-sm text-gray-400">
-            Matchups that need improvement
-          </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {Object.entries(playerStats.worst_matchups).flatMap(
               ([character, opponents]) =>
-                Object.entries(opponents).map(([opponent, data]) => (
-                  <div
-                    key={`${character}-${opponent}`}
-                    className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
-                  >
-                    <div className="flex items-center gap-3">
+                Object.entries(opponents)
+                  .slice(0, 3)
+                  .map(([opponent, data]) => (
+                    <div
+                      key={`${character}-${opponent}`}
+                      className="flex items-center justify-between rounded-md bg-gray-800/50 p-2"
+                    >
                       <div className="flex items-center gap-2">
-                        {data.player_character_image ? (
-                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
-                            <Image
-                              src={data.player_character_image}
-                              alt={character}
-                              fill
-                              className="object-cover"
-                              sizes="24px"
-                            />
-                          </div>
-                        ) : null}
-                        <span className="font-rajdhani text-sm font-medium text-gray-200">
-                          {character}
+                        <div className="flex items-center gap-1">
+                          {data.player_character_image ? (
+                            <div className="relative h-5 w-5 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                              <Image
+                                src={data.player_character_image}
+                                alt={character}
+                                fill
+                                className="object-cover"
+                                sizes="20px"
+                              />
+                            </div>
+                          ) : null}
+                          <span className="font-rajdhani text-xs text-gray-200">
+                            {character.slice(0, 8)}
+                          </span>
+                        </div>
+                        <span className="font-rajdhani text-xs text-gray-400">
+                          vs
                         </span>
+                        <div className="flex items-center gap-1">
+                          {data.opponent_character_image ? (
+                            <div className="relative h-5 w-5 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                              <Image
+                                src={data.opponent_character_image}
+                                alt={opponent}
+                                fill
+                                className="object-cover"
+                                sizes="20px"
+                              />
+                            </div>
+                          ) : null}
+                          <span className="font-rajdhani text-xs text-gray-200">
+                            {opponent.slice(0, 8)}
+                          </span>
+                        </div>
                       </div>
-                      <span className="font-rajdhani text-xs text-gray-400">
-                        vs
-                      </span>
                       <div className="flex items-center gap-2">
-                        {data.opponent_character_image ? (
-                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
-                            <Image
-                              src={data.opponent_character_image}
-                              alt={opponent}
-                              fill
-                              className="object-cover"
-                              sizes="24px"
-                            />
-                          </div>
-                        ) : null}
-                        <span className="font-rajdhani text-sm font-medium text-gray-200">
-                          {opponent}
+                        <span className="font-rajdhani text-xs text-gray-300">
+                          {data.wins}-{data.games - data.wins}
+                        </span>
+                        <span
+                          className={`font-orbitron text-xs ${getWinRateColor(data.winrate)}`}
+                        >
+                          {(data.winrate * 100).toFixed(0)}%
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-rajdhani text-sm text-gray-300">
-                        {data.wins}-{data.games - data.wins}
-                      </span>
-                      <span
-                        className={`font-orbitron text-sm ${getWinRateColor(data.winrate)}`}
-                      >
-                        {(data.winrate * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                )),
+                  )),
             )}
           </div>
         </div>
       </div>
 
-      {/* Stage Performance */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Best Stages */}
-        <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
-          <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-emerald-400">
-            <TrendingUpIcon className="h-5 w-5" />
+      {/* Stage Performance - Compact */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <h3 className="font-orbitron mb-3 flex items-center gap-2 text-sm font-bold text-emerald-400">
+            <TrendingUpIcon className="h-4 w-4" />
             Best Stages
           </h3>
-          <p className="font-rajdhani mb-4 text-sm text-gray-400">
-            Stages where you perform best
-          </p>
-          <div className="space-y-3">
-            {Object.entries(playerStats.best_stages).map(
-              ([stage, stageStats]) => (
+          <div className="space-y-2">
+            {Object.entries(playerStats.best_stages)
+              .slice(0, 4)
+              .map(([stage, stageStats]) => (
                 <div
                   key={stage}
-                  className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
+                  className="flex items-center justify-between rounded-md bg-gray-800/50 p-2"
                 >
-                  <span className="font-rajdhani font-medium text-gray-200">
+                  <span className="font-rajdhani mr-2 flex-1 truncate text-sm font-medium text-gray-200">
                     {stage}
                   </span>
-                  <div className="flex items-center gap-3">
-                    <span className="font-rajdhani text-sm text-gray-300">
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    <span className="font-rajdhani text-xs text-gray-300">
                       {stageStats.wins}-{stageStats.losses}
                     </span>
-                    <div className="font-orbitron rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-sm text-emerald-400">
-                      {(stageStats.winrate * 100).toFixed(1)}%
+                    <div className="font-orbitron rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400">
+                      {(stageStats.winrate * 100).toFixed(0)}%
                     </div>
                   </div>
                 </div>
-              ),
-            )}
+              ))}
           </div>
         </div>
 
-        {/* Worst Stages */}
-        <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
-          <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-red-400">
-            <TrendingDownIcon className="h-5 w-5" />
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <h3 className="font-orbitron mb-3 flex items-center gap-2 text-sm font-bold text-red-400">
+            <TrendingDownIcon className="h-4 w-4" />
             Worst Stages
           </h3>
-          <p className="font-rajdhani mb-4 text-sm text-gray-400">
-            Stages that need more practice
-          </p>
-          <div className="space-y-3">
-            {Object.entries(playerStats.worst_stages).map(
-              ([stage, stageStats]) => (
+          <div className="space-y-2">
+            {Object.entries(playerStats.worst_stages)
+              .slice(0, 4)
+              .map(([stage, stageStats]) => (
                 <div
                   key={stage}
-                  className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
+                  className="flex items-center justify-between rounded-md bg-gray-800/50 p-2"
                 >
-                  <span className="font-rajdhani font-medium text-gray-200">
+                  <span className="font-rajdhani mr-2 flex-1 truncate text-sm font-medium text-gray-200">
                     {stage}
                   </span>
-                  <div className="flex items-center gap-3">
-                    <span className="font-rajdhani text-sm text-gray-300">
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    <span className="font-rajdhani text-xs text-gray-300">
                       {stageStats.wins}-{stageStats.losses}
                     </span>
-                    <div className="font-orbitron rounded border border-red-500/30 bg-red-500/10 px-2 py-1 text-sm text-red-400">
-                      {(stageStats.winrate * 100).toFixed(1)}%
+                    <div className="font-orbitron rounded border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-xs text-red-400">
+                      {(stageStats.winrate * 100).toFixed(0)}%
                     </div>
                   </div>
                 </div>
-              ),
-            )}
+              ))}
           </div>
         </div>
       </div>
