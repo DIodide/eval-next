@@ -508,66 +508,13 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
               </div>
             </motion.div>
 
-            {/* Action Buttons and Performance Stats */}
+            {/* Action Buttons */}
             <motion.div
               className="flex flex-col gap-4 lg:ml-auto"
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
             >
-              {/* Performance Stats */}
-              <div className="flex flex-col gap-3">
-                {player?.game_profiles?.length > 0 &&
-                  player.game_profiles[0]?.combine_score && (
-                    <motion.div
-                      className="rounded-xl border border-purple-500/40 bg-gradient-to-r from-purple-600/30 via-purple-500/30 to-pink-600/30 p-4 shadow-xl backdrop-blur-sm"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-purple-500/30 p-2">
-                          <StarIcon className="h-5 w-5 text-purple-300" />
-                        </div>
-                        <div>
-                          <p className="font-rajdhani text-sm font-medium text-purple-300">
-                            EVAL Score
-                          </p>
-                          <p className="font-orbitron text-2xl font-bold text-white">
-                            {Number(
-                              player.game_profiles[0]?.combine_score,
-                            ).toFixed(1)}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                {player?.game_profiles?.length > 0 &&
-                  player.game_profiles[0]?.league_score && (
-                    <motion.div
-                      className="rounded-xl border border-blue-500/40 bg-gradient-to-r from-blue-600/30 via-blue-500/30 to-cyan-600/30 p-4 shadow-xl backdrop-blur-sm"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-blue-500/30 p-2">
-                          <AwardIcon className="h-5 w-5 text-blue-300" />
-                        </div>
-                        <div>
-                          <p className="font-rajdhani text-sm font-medium text-blue-300">
-                            League Score
-                          </p>
-                          <p className="font-orbitron text-2xl font-bold text-white">
-                            {Number(
-                              player.game_profiles[0]?.league_score,
-                            ).toFixed(1)}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-              </div>
-
-              {/* Action Buttons */}
               <div className="flex flex-col gap-3">
                 <Button
                   onClick={handleShareProfile}
