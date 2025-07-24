@@ -194,7 +194,6 @@ function getSocialDisplayName(platform: string) {
   }
 }
 
-
 interface PlayerProfilePageProps {
   params: Promise<{
     username: string;
@@ -1055,6 +1054,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   targetPlayerProfile={player}
                   showConnectionPrompts={true}
                   publicHeader={true}
+                  showInfoPanel={false}
                 />
               </CardContent>
             </Card>
