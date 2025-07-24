@@ -17,6 +17,7 @@ export function ValorantAnalytics({
   error,
   viewMode = "self",
   showInfoPanel = true, // Default to true to maintain current behavior
+  size = "default",
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -125,6 +126,97 @@ export function ValorantAnalytics({
     );
   }
 
+  // Compact mode for embedding in smaller spaces (like player previews)
+  if (size === "compact") {
+    return (
+      <div className="space-y-3">
+        {/* Compact Core Metrics */}
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <div className="rounded-lg border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-3 text-center">
+            <div className="font-orbitron mb-1 text-xl font-bold text-purple-300">
+              {valorantStats.stats.evalScore}
+            </div>
+            <div className="font-rajdhani text-xs text-purple-400">
+              EVAL SCORE
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-red-700/30 bg-gradient-to-r from-red-900/50 to-red-800/50 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-red-300">
+              {valorantStats.stats.rank}
+            </div>
+            <div className="font-rajdhani text-xs text-red-400">RANK</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-green-400">
+              {valorantStats.stats.gameWinRate}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">WIN RATE</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-orange-400">
+              {valorantStats.stats.kda}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">K/D/A</div>
+          </div>
+        </div>
+
+        {/* Compact Agent & Map Info */}
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+            <div className="font-rajdhani mb-1 text-xs text-gray-400">
+              MAIN AGENT
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
+                {valorantStats.mainAgent.image ? (
+                  <Image
+                    src={valorantStats.mainAgent.image}
+                    alt={valorantStats.mainAgent.name}
+                    width={24}
+                    height={24}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-500">IMG</span>
+                )}
+              </div>
+              <div className="font-orbitron text-sm font-bold text-white">
+                {valorantStats.mainAgent.name}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+            <div className="font-rajdhani mb-1 text-xs text-gray-400">
+              BEST MAP
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
+                {valorantStats.bestMap.image ? (
+                  <Image
+                    src={valorantStats.bestMap.image}
+                    alt={valorantStats.bestMap.name}
+                    width={24}
+                    height={24}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-500">IMG</span>
+                )}
+              </div>
+              <div className="font-orbitron text-sm font-bold text-green-400">
+                {valorantStats.bestMap.name}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Information Panel */}
@@ -225,7 +317,7 @@ export function ValorantAnalytics({
             </div>
           </div>
 
-          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 p-4 text-center md:rounded-none">
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
             <div className="font-orbitron mb-1 text-xl font-bold text-green-400">
               {valorantStats.stats.gameWinRate}
             </div>
@@ -245,7 +337,7 @@ export function ValorantAnalytics({
             </div>
           </div>
 
-          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 p-4 text-center md:rounded-tr-lg">
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-tr-lg">
             <div className="font-orbitron mb-1 text-xl font-bold text-blue-400">
               {valorantStats.stats.roundWinRate}
             </div>

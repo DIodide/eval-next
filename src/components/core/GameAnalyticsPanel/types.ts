@@ -49,6 +49,7 @@ export interface GameAnalyticsPanelProps {
   showConnectionPrompts?: boolean;
   showInfoPanel?: boolean; // Show/hide the "About These Statistics" information panel (default: true)
   openLinksInNewTab?: boolean; // For blog/news context where links should open in new tab
+  size?: "default" | "compact"; // Size variant for different use cases
 
   // Styling
   className?: string;
@@ -234,6 +235,7 @@ export interface GameComponentProps {
   error: Error | null;
   viewMode?: "self" | "other";
   showInfoPanel?: boolean; // Show/hide the "About These Statistics" information panel (default: true)
+  size?: "default" | "compact"; // Size variant for different layouts
   onRetry?: () => void;
   onConnect?: () => void;
 }

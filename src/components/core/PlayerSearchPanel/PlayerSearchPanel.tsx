@@ -341,6 +341,7 @@ export function PlayerSearchPanel({
           isOpen={previewPlayer !== null}
           onClose={() => setPreviewPlayer(null)}
           onViewFullProfile={handleViewFullProfile}
+          onFavoriteToggle={handleFavoriteToggle}
         />
       </div>
     </OnboardingGuard>

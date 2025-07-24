@@ -37,6 +37,7 @@ export function SmashAnalytics({
   error,
   viewMode = "self",
   showInfoPanel = true, // Default to true to maintain current behavior
+  size = "default",
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -165,6 +166,103 @@ export function SmashAnalytics({
 
   const { playerInfo, stats: playerStats, recentPlacements } = smashStats;
 
+  // Compact mode for embedding in smaller spaces (like player previews)
+  if (size === "compact") {
+    return (
+      <div className="space-y-3">
+        {/* Compact Core Metrics */}
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <div className="rounded-lg border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-3 text-center">
+            <div className="font-orbitron mb-1 text-xl font-bold text-purple-300">
+              {((playerInfo.evalScore / 100) * 100).toFixed(1)}
+            </div>
+            <div className="font-rajdhani text-xs text-purple-400">
+              EVAL SCORE
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-yellow-400">
+              {(playerStats.set_win_rate * 100).toFixed(1)}%
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">SET WIN</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-blue-400">
+              {(playerStats.game_win_rate * 100).toFixed(1)}%
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">GAME WIN</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-purple-400">
+              {playerStats.events}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">EVENTS</div>
+          </div>
+        </div>
+
+        {/* Compact Player & Main Info */}
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+            <div className="font-rajdhani mb-1 text-xs text-gray-400">
+              PLAYER TAG
+            </div>
+            <div className="font-orbitron text-sm font-bold text-green-400">
+              {playerInfo.prefix !== "Unknown" ? `${playerInfo.prefix} ` : ""}
+              {playerInfo.gamerTag}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+            <div className="font-rajdhani mb-1 text-xs text-gray-400">
+              MAIN CHARACTER
+            </div>
+            <div className="font-orbitron text-sm font-bold text-white">
+              {playerInfo.mainCharacter}
+            </div>
+          </div>
+        </div>
+
+        {/* Compact Recent Placements */}
+        {recentPlacements.length > 0 && (
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+            <div className="font-rajdhani mb-2 text-xs text-gray-400">
+              RECENT PLACEMENTS
+            </div>
+            <div className="space-y-1">
+              {recentPlacements.slice(0, 2).map((result, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="font-rajdhani truncate text-gray-300">
+                    {result.event}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-rajdhani text-xs text-gray-400">
+                      {result.entrants}
+                    </span>
+                    <span
+                      className={`font-orbitron rounded px-2 py-1 text-xs ${
+                        result.placement <= 8
+                          ? "bg-yellow-600/20 text-yellow-400"
+                          : "bg-gray-700/50 text-gray-300"
+                      }`}
+                    >
+                      #{result.placement}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Information Panel */}
@@ -246,7 +344,7 @@ export function SmashAnalytics({
           </div>
         </div>
 
-        <div className="rounded-none border border-gray-700 p-4 text-center md:rounded-none">
+        <div className="rounded-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
           <div className="font-orbitron mb-1 text-xl font-bold text-yellow-400">
             {(playerStats.set_win_rate * 100).toFixed(1)}%
           </div>
@@ -266,7 +364,7 @@ export function SmashAnalytics({
           </div>
         </div>
 
-        <div className="rounded-none border border-gray-700 p-4 text-center md:rounded-none">
+        <div className="rounded-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
           <div className="font-orbitron mb-1 text-xl font-bold text-blue-400">
             {(playerStats.game_win_rate * 100).toFixed(1)}%
           </div>
@@ -285,7 +383,7 @@ export function SmashAnalytics({
           </div>
         </div>
 
-        <div className="rounded-tl-none rounded-tr-lg rounded-br-none rounded-bl-none border border-gray-700 p-4 text-center md:rounded-tr-lg">
+        <div className="rounded-tl-none rounded-tr-lg rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-tr-lg">
           <div className="font-orbitron mb-1 text-xl font-bold text-purple-400">
             {(playerStats.clutch_factor * 100).toFixed(1)}%
           </div>
@@ -306,69 +404,12 @@ export function SmashAnalytics({
         </div>
       </div>
 
-      {/* Secondary Stats Row */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
-          <div className="font-rajdhani mb-1 flex items-center gap-1 text-xs text-gray-400">
-            EVENTS ATTENDED
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>Total number of competitive tournaments attended.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="font-orbitron text-2xl font-bold text-white">
-            {playerStats.events}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
-          <div className="font-rajdhani mb-1 flex items-center gap-1 text-xs text-gray-400">
-            MAIN CHARACTERS
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>
-                  Characters you play most frequently in competitive matches.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="font-orbitron text-2xl font-bold text-white">
-            {Object.keys(playerStats.mains).length}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
-          <div className="font-rajdhani mb-1 flex items-center gap-1 text-xs text-gray-400">
-            RECENT PLACEMENTS
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>Your most recent tournament placement results.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="font-orbitron text-2xl font-bold text-white">
-            {recentPlacements.length}
-          </div>
-        </div>
-      </div>
-
       {/* Detailed Stats Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Main Characters */}
         <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
           <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-white">
-            <UserIcon className="h-5 w-5 text-green-400" />
-            Main Characters
+            Smash Ultimate Main
           </h3>
           <div className="space-y-3">
             {Object.entries(playerStats.mains).map(
@@ -412,32 +453,34 @@ export function SmashAnalytics({
         {/* Recent Placements */}
         <div className="rounded-lg border border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm">
           <h3 className="font-orbitron mb-4 flex items-center gap-2 text-lg font-bold text-white">
-            <TrophyIcon className="h-5 w-5 text-yellow-400" />
             Recent Placements
           </h3>
-          <div className="space-y-3">
+          <div className="divide-y divide-gray-800/50 rounded-2xl bg-gray-800 p-2">
             {recentPlacements.slice(0, 4).map((result, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
+                className="flex items-center justify-between bg-gray-800/50 p-2"
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`h-3 w-3 rounded-full ${result.placement <= 8 ? "bg-yellow-500" : "bg-gray-500"}`}
-                  ></div>
+                <div className="flex items-center">
                   <span className="font-rajdhani font-medium text-gray-200">
                     {result.event}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <span className="font-rajdhani text-sm text-gray-400">
                     {result.entrants} entrants
                   </span>
                   <div
-                    className={`font-orbitron rounded px-2 py-1 text-sm ${
-                      result.placement <= 8
-                        ? "border border-yellow-600/30 bg-yellow-600/20 text-yellow-400"
-                        : "border border-gray-600/30 bg-gray-700/50 text-gray-300"
+                    className={`font-orbitron px-2 py-1 text-sm ${
+                      result.placement === 1
+                        ? "bg-yellow-400/20 text-yellow-300"
+                        : result.placement === 2
+                          ? "bg-gray-300/20 text-gray-200"
+                          : result.placement === 3
+                            ? "bg-orange-600/20 text-orange-400"
+                            : result.placement <= 8
+                              ? "bg-yellow-600/20 text-yellow-400"
+                              : "bg-gray-700/50 text-gray-300"
                     }`}
                   >
                     #{result.placement}

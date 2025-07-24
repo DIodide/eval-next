@@ -18,6 +18,7 @@ export function RocketLeagueAnalytics({
   error,
   viewMode = "self",
   showInfoPanel = true, // Default to true to maintain current behavior
+  size = "default",
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -165,6 +166,93 @@ export function RocketLeagueAnalytics({
     );
   }
 
+  // Compact mode for embedding in smaller spaces (like player previews)
+  if (size === "compact") {
+    return (
+      <div className="space-y-3">
+        {/* Compact Core Metrics */}
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <div className="rounded-lg border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-3 text-center">
+            <div className="font-orbitron mb-1 text-xl font-bold text-purple-300">
+              {currentPlaylistStats.eval_score?.toFixed(1) ?? "N/A"}
+            </div>
+            <div className="font-rajdhani text-xs text-purple-400">
+              EVAL SCORE
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-orange-700/30 bg-gradient-to-r from-orange-900/50 to-orange-800/50 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-orange-300">
+              {currentPlaylistStats.rank}
+            </div>
+            <div className="font-rajdhani text-xs text-orange-400">RANK</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-green-400">
+              {Math.round(currentPlaylistStats.win_percentage * 100)}%
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">WIN RATE</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-lg font-bold text-blue-400">
+              {currentPlaylistStats.count}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">GAMES</div>
+          </div>
+        </div>
+
+        {/* Compact Performance Stats */}
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-sm font-bold text-orange-400">
+              {currentPlaylistStats.goals.toFixed(2)}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">GOALS/G</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-sm font-bold text-cyan-400">
+              {currentPlaylistStats.saves.toFixed(2)}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">SAVES/G</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-sm font-bold text-green-400">
+              {currentPlaylistStats.assists.toFixed(2)}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">ASSISTS/G</div>
+          </div>
+
+          <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-center">
+            <div className="font-orbitron mb-1 text-sm font-bold text-purple-400">
+              {currentPlaylistStats.mvps_per_game.toFixed(3)}
+            </div>
+            <div className="font-rajdhani text-xs text-gray-400">MVP RATE</div>
+          </div>
+        </div>
+
+        {/* Compact Playlist Info */}
+        <div className="rounded-lg border border-gray-700 bg-gray-900 p-3">
+          <div className="font-rajdhani mb-1 text-xs text-gray-400">
+            CURRENT PLAYLIST
+          </div>
+          <div className="font-orbitron text-sm font-bold text-orange-400 capitalize">
+            {selectedPlaylist === "standard"
+              ? "3v3 Standard"
+              : selectedPlaylist === "doubles"
+                ? "2v2 Doubles"
+                : selectedPlaylist === "duels"
+                  ? "1v1 Duels"
+                  : selectedPlaylist}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Information Panel */}
@@ -286,7 +374,7 @@ export function RocketLeagueAnalytics({
             </div>
           </div>
 
-          <div className="rounded-none border border-gray-700 p-4 text-center md:rounded-none">
+          <div className="rounded-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
             <div className="font-orbitron mb-1 text-xl font-bold text-green-400">
               {Math.round(currentPlaylistStats.win_percentage * 100)}%
             </div>
@@ -303,7 +391,7 @@ export function RocketLeagueAnalytics({
             </div>
           </div>
 
-          <div className="rounded-tl-none rounded-tr-lg rounded-br-none rounded-bl-none border border-gray-700 p-4 text-center md:rounded-tr-lg">
+          <div className="rounded-tl-none rounded-tr-lg rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-tr-lg">
             <div className="font-orbitron mb-1 text-xl font-bold text-blue-400">
               {currentPlaylistStats.count}
             </div>

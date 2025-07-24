@@ -17,8 +17,60 @@ export function ComingSoon({
   isConnected,
   viewMode = "self",
   showInfoPanel: _showInfoPanel = true, // Include for consistency but not used
+  size = "default",
   onConnect,
 }: ComingSoonProps) {
+  // Compact mode for embedding in smaller spaces
+  if (size === "compact") {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-lg border border-yellow-700/30 bg-yellow-900/20 p-4 text-center">
+          <ClockIcon className="mx-auto mb-2 h-8 w-8 text-yellow-400" />
+          <h4 className="font-orbitron mb-1 text-sm font-semibold text-yellow-300">
+            {gameName} Coming Soon
+          </h4>
+          <p className="font-rajdhani text-xs text-yellow-200">
+            Analytics in development
+          </p>
+          {!isConnected && viewMode === "self" && (
+            <div className="mt-3">
+              {onConnect ? (
+                <Button
+                  onClick={onConnect}
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
+                >
+                  Connect Account
+                </Button>
+              ) : (
+                <Link href="/dashboard/player/profile/external-accounts">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-yellow-400/50 text-yellow-400 hover:border-yellow-400 hover:bg-yellow-500/10"
+                  >
+                    Connect Account
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
+          {isConnected && (
+            <div className="mt-3 rounded-lg border border-green-700/30 bg-green-900/20 p-2">
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-400"></div>
+                <span className="font-rajdhani text-xs text-green-300">
+                  Account Connected
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-yellow-700/30 bg-yellow-900/20 p-6 text-center">

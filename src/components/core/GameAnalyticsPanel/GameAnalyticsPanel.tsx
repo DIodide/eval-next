@@ -42,6 +42,7 @@ export function GameAnalyticsPanel({
   showConnectionPrompts = true,
   showInfoPanel = true, // Default to true to maintain current behavior
   openLinksInNewTab = false,
+  size = "default",
   className = "",
   headerClassName = "",
   contentClassName = "",
@@ -173,6 +174,7 @@ export function GameAnalyticsPanel({
       onRetry: handleDataRefresh,
       onConnect: showConnectionPrompts ? handleConnectionClick : undefined,
       showInfoPanel,
+      size,
     };
 
     switch (selectedGame) {
@@ -205,11 +207,15 @@ export function GameAnalyticsPanel({
 
   const content = (
     <Card
-      className={`border-gray-700/50 bg-[#1a1a2e]/80 p-6 shadow-xl backdrop-blur-sm ${className}`}
+      className={`border-gray-700/50 bg-[#1a1a2e]/80 shadow-xl backdrop-blur-sm ${
+        size === "compact" ? "p-4" : "p-6"
+      } ${className}`}
     >
       {/* Header */}
       {(showHeader || publicHeader) && (
-        <div className={`mb-6 flex flex-col gap-6 ${headerClassName}`}>
+        <div
+          className={`${size === "compact" ? "mb-4 flex flex-col gap-3" : "mb-6 flex flex-col gap-6"} ${headerClassName}`}
+        >
           {/* Regular Header - Full header with manage connections */}
           {showHeader && !publicHeader && (
             <div className="flex items-center justify-between">
@@ -295,7 +301,9 @@ export function GameAnalyticsPanel({
       )}
 
       {/* Game Content */}
-      <div className={`space-y-6 ${contentClassName}`}>
+      <div
+        className={`${size === "compact" ? "space-y-4" : "space-y-6"} ${contentClassName}`}
+      >
         <Suspense fallback={<LoadingState game={selectedGame} />}>
           {renderGameContent()}
         </Suspense>

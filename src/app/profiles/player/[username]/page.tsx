@@ -394,7 +394,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900/10 to-gray-900"
+      className="via-black-900/50 min-h-screen bg-gradient-to-br from-gray-900 to-gray-900"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -561,196 +561,184 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
         {/* Player Details Card */}
         <motion.div className="relative" variants={itemVariants}>
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-pink-600/5 blur-xl" />
-          <motion.div
-            variants={cardHoverVariants}
-            initial="rest"
-            whileHover="hover"
-          >
-            <Card className="relative border-blue-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
-                  <div className="rounded-lg bg-blue-500/20 p-2">
-                    <UserIcon className="h-6 w-6 text-blue-400" />
-                  </div>
-                  Player Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                  {/* Player Details */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3, duration: 0.6 }}
-                  >
-                    <div className="mb-4 flex items-center gap-2">
-                      <div className="rounded-lg bg-blue-500/20 p-2">
-                        <Zap className="h-5 w-5 text-blue-400" />
-                      </div>
-                      <h3 className="font-orbitron text-xl font-semibold text-white">
-                        Player Info
-                      </h3>
+          <Card className="relative border-blue-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
+                <div className="rounded-lg bg-blue-500/20 p-2">
+                  <UserIcon className="h-6 w-6 text-blue-400" />
+                </div>
+                Player Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {/* Player Details */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3, duration: 0.6 }}
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="rounded-lg bg-blue-500/20 p-2">
+                      <Zap className="h-5 w-5 text-blue-400" />
                     </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
-                        <div className="flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4 text-gray-400" />
-                          <span className="font-rajdhani text-gray-400">
-                            Class:
-                          </span>
-                        </div>
-                        <Badge
-                          variant="secondary"
-                          className="border-blue-600/30 bg-blue-600/20 text-blue-400"
-                        >
-                          {player.class_year ?? "N/A"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
-                        <div className="flex items-center gap-2">
-                          <BookOpenIcon className="h-4 w-4 text-gray-400" />
-                          <span className="font-rajdhani text-gray-400">
-                            School:
-                          </span>
-                        </div>
-                        <span className="max-w-32 truncate text-right text-sm text-gray-300">
-                          {player?.school_ref?.name ?? player?.school ?? "N/A"}
+                    <h3 className="font-orbitron text-xl font-semibold text-white">
+                      Player Info
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-gray-400" />
+                        <span className="font-rajdhani text-gray-400">
+                          Class:
                         </span>
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
-                        <div className="flex items-center gap-2">
-                          <GamepadIcon className="h-4 w-4 text-gray-400" />
-                          <span className="font-rajdhani text-gray-400">
-                            Main Game:
-                          </span>
-                        </div>
-                        <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                          {player?.main_game?.name ?? "N/A"}
-                        </Badge>
+                      <Badge
+                        variant="secondary"
+                        className="border-blue-600/30 bg-blue-600/20 text-blue-400"
+                      >
+                        {player.class_year ?? "N/A"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
+                      <div className="flex items-center gap-2">
+                        <BookOpenIcon className="h-4 w-4 text-gray-400" />
+                        <span className="font-rajdhani text-gray-400">
+                          School:
+                        </span>
                       </div>
-                      {player?.game_profiles?.length > 0 &&
-                        player.game_profiles[0]?.role && (
-                          <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
-                            <div className="flex items-center gap-2">
-                              <Target className="h-4 w-4 text-gray-400" />
-                              <span className="font-rajdhani text-gray-400">
-                                Role:
-                              </span>
-                            </div>
-                            <span className="font-rajdhani font-medium text-gray-300">
-                              {player.game_profiles[0]?.role}
+                      <span className="max-w-32 truncate text-right text-sm text-gray-300">
+                        {player?.school_ref?.name ?? player?.school ?? "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
+                      <div className="flex items-center gap-2">
+                        <GamepadIcon className="h-4 w-4 text-gray-400" />
+                        <span className="font-rajdhani text-gray-400">
+                          Main Game:
+                        </span>
+                      </div>
+                      <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                        {player?.main_game?.name ?? "N/A"}
+                      </Badge>
+                    </div>
+                    {player?.game_profiles?.length > 0 &&
+                      player.game_profiles[0]?.role && (
+                        <div className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3 backdrop-blur-sm">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-gray-400" />
+                            <span className="font-rajdhani text-gray-400">
+                              Role:
                             </span>
                           </div>
-                        )}
-                    </div>
-                  </motion.div>
+                          <span className="font-rajdhani font-medium text-gray-300">
+                            {player.game_profiles[0]?.role}
+                          </span>
+                        </div>
+                      )}
+                  </div>
+                </motion.div>
 
-                  {/* Performance */}
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4, duration: 0.6 }}
-                  >
-                    <div className="mb-4 flex items-center gap-2">
-                      <div className="rounded-lg bg-purple-500/20 p-2">
-                        <TrophyIcon className="h-5 w-5 text-purple-400" />
-                      </div>
-                      <h3 className="font-orbitron text-xl font-semibold text-white">
-                        Performance
-                      </h3>
+                {/* Performance */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="rounded-lg bg-purple-500/20 p-2">
+                      <TrophyIcon className="h-5 w-5 text-purple-400" />
                     </div>
-                    <div className="space-y-4">
-                      {/* EVAL Score */}
-                      {player.game_profiles.length > 0 &&
-                        player.game_profiles[0]?.combine_score && (
-                          <motion.div
-                            className="rounded-xl border border-purple-500/30 bg-gradient-to-r from-purple-600/20 via-purple-500/20 to-pink-600/20 p-6 shadow-xl backdrop-blur-sm"
-                            variants={statsCardVariants}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-rajdhani text-sm font-medium text-purple-300">
-                                  EVAL Score
-                                </p>
-                                <p className="font-orbitron text-3xl font-bold text-white">
-                                  {Number(
-                                    player.game_profiles[0]?.combine_score,
-                                  ).toFixed(1)}
-                                </p>
-                              </div>
-                              <div className="rounded-full bg-purple-500/20 p-3">
-                                <StarIcon className="h-8 w-8 text-purple-300" />
-                              </div>
+                    <h3 className="font-orbitron text-xl font-semibold text-white">
+                      Performance
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    {/* EVAL Score */}
+                    {player.game_profiles.length > 0 &&
+                      player.game_profiles[0]?.combine_score && (
+                        <motion.div
+                          className="rounded-xl border border-purple-500/30 bg-gradient-to-r from-purple-600/20 via-purple-500/20 to-pink-600/20 p-6 shadow-xl backdrop-blur-sm"
+                          variants={statsCardVariants}
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-rajdhani text-sm font-medium text-purple-300">
+                                EVAL Score
+                              </p>
+                              <p className="font-orbitron text-3xl font-bold text-white">
+                                {Number(
+                                  player.game_profiles[0]?.combine_score,
+                                ).toFixed(1)}
+                              </p>
                             </div>
-                          </motion.div>
-                        )}
+                            <div className="rounded-full bg-purple-500/20 p-3">
+                              <StarIcon className="h-8 w-8 text-purple-300" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
 
-                      {/* League Score */}
-                      {player.game_profiles.length > 0 &&
-                        player.game_profiles[0]?.league_score && (
-                          <motion.div
-                            className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-600/20 via-blue-500/20 to-cyan-600/20 p-6 shadow-xl backdrop-blur-sm"
-                            variants={statsCardVariants}
-                            whileHover={{ scale: 1.02 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-rajdhani text-sm font-medium text-blue-300">
-                                  League Score
-                                </p>
-                                <p className="font-orbitron text-3xl font-bold text-white">
-                                  {Number(
-                                    player.game_profiles[0]?.league_score,
-                                  ).toFixed(1)}
-                                </p>
-                              </div>
-                              <div className="rounded-full bg-blue-500/20 p-3">
-                                <AwardIcon className="h-8 w-8 text-blue-300" />
-                              </div>
+                    {/* League Score */}
+                    {player.game_profiles.length > 0 &&
+                      player.game_profiles[0]?.league_score && (
+                        <motion.div
+                          className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-600/20 via-blue-500/20 to-cyan-600/20 p-6 shadow-xl backdrop-blur-sm"
+                          variants={statsCardVariants}
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-rajdhani text-sm font-medium text-blue-300">
+                                League Score
+                              </p>
+                              <p className="font-orbitron text-3xl font-bold text-white">
+                                {Number(
+                                  player.game_profiles[0]?.league_score,
+                                ).toFixed(1)}
+                              </p>
                             </div>
-                          </motion.div>
-                        )}
-                    </div>
-                  </motion.div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                            <div className="rounded-full bg-blue-500/20 p-3">
+                              <AwardIcon className="h-8 w-8 text-blue-300" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                  </div>
+                </motion.div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Enhanced Bio Section */}
         {player.bio && (
           <motion.div className="relative" variants={itemVariants}>
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-pink-600/5 blur-xl" />
-            <motion.div
-              variants={cardHoverVariants}
-              initial="rest"
-              whileHover="hover"
-            >
-              <Card className="relative border-blue-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
-                    <div className="rounded-lg bg-blue-500/20 p-2">
-                      <UserIcon className="h-6 w-6 text-blue-400" />
-                    </div>
-                    About
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <motion.p
-                    className="font-rajdhani text-lg leading-relaxed text-gray-300"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
-                  >
-                    {player.bio}
-                  </motion.p>
-                </CardContent>
-              </Card>
-            </motion.div>
+            <Card className="relative border-blue-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
+                  <div className="rounded-lg bg-blue-500/20 p-2">
+                    <UserIcon className="h-6 w-6 text-blue-400" />
+                  </div>
+                  About
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <motion.p
+                  className="font-rajdhani text-lg leading-relaxed text-gray-300"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.8 }}
+                >
+                  {player.bio}
+                </motion.p>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 
@@ -763,98 +751,92 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
             recruitingInfo.graduation_date) && (
             <motion.div className="relative" variants={itemVariants}>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-green-600/5 via-blue-600/5 to-purple-600/5 blur-xl" />
-              <motion.div
-                variants={cardHoverVariants}
-                initial="rest"
-                whileHover="hover"
-              >
-                <Card className="relative border-green-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
-                      <div className="rounded-lg bg-green-500/20 p-2">
-                        <BookOpenIcon className="h-6 w-6 text-green-400" />
-                      </div>
-                      Academic & Recruiting Profile
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                      {/* Academic Information */}
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3, duration: 0.6 }}
-                      >
-                        <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
-                          <AwardIcon className="h-5 w-5 text-green-400" />
-                          Academic Information
-                        </h3>
-                        <div className="space-y-4">
-                          {recruitingInfo.intended_major && (
-                            <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
-                              <span className="font-rajdhani text-sm font-medium text-gray-400">
-                                Intended Major:
-                              </span>
-                              <p className="font-rajdhani mt-1 text-lg text-gray-300">
-                                {recruitingInfo.intended_major}
-                              </p>
-                            </div>
-                          )}
-                          {recruitingInfo.graduation_date && (
-                            <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
-                              <span className="font-rajdhani text-sm font-medium text-gray-400">
-                                Expected Graduation:
-                              </span>
-                              <p className="font-rajdhani mt-1 text-lg text-gray-300">
-                                {recruitingInfo.graduation_date}
-                              </p>
-                            </div>
-                          )}
-                          {recruitingInfo.gpa && (
-                            <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
-                              <span className="font-rajdhani text-sm font-medium text-gray-400">
-                                GPA:
-                              </span>
-                              <p className="font-rajdhani mt-1 text-lg font-bold text-gray-300">
-                                {Number(recruitingInfo.gpa).toFixed(2)}
-                              </p>
-                            </div>
-                          )}
-                          {recruitingInfo.academic_bio && (
-                            <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
-                              <span className="font-rajdhani text-sm font-medium text-gray-400">
-                                Academic Achievements:
-                              </span>
-                              <p className="font-rajdhani mt-2 leading-relaxed text-gray-300">
-                                {recruitingInfo.academic_bio}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-
-                      {/* Extracurricular Activities */}
-                      {recruitingInfo.extra_curriculars && (
-                        <motion.div
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4, duration: 0.6 }}
-                        >
-                          <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
-                            <Users className="h-5 w-5 text-green-400" />
-                            Extracurricular Activities
-                          </h3>
-                          <div className="rounded-xl border border-gray-700/50 bg-gradient-to-br from-gray-800/60 to-gray-900/60 p-6 shadow-lg backdrop-blur-sm">
-                            <p className="font-rajdhani text-lg leading-relaxed text-gray-300">
-                              {recruitingInfo.extra_curriculars}
+              <Card className="relative border-green-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
+                    <div className="rounded-lg bg-green-500/20 p-2">
+                      <BookOpenIcon className="h-6 w-6 text-green-400" />
+                    </div>
+                    Academic & Recruiting Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    {/* Academic Information */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3, duration: 0.6 }}
+                    >
+                      <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
+                        <AwardIcon className="h-5 w-5 text-green-400" />
+                        Academic Information
+                      </h3>
+                      <div className="space-y-4">
+                        {recruitingInfo.intended_major && (
+                          <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
+                            <span className="font-rajdhani text-sm font-medium text-gray-400">
+                              Intended Major:
+                            </span>
+                            <p className="font-rajdhani mt-1 text-lg text-gray-300">
+                              {recruitingInfo.intended_major}
                             </p>
                           </div>
-                        </motion.div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                        )}
+                        {recruitingInfo.graduation_date && (
+                          <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
+                            <span className="font-rajdhani text-sm font-medium text-gray-400">
+                              Expected Graduation:
+                            </span>
+                            <p className="font-rajdhani mt-1 text-lg text-gray-300">
+                              {recruitingInfo.graduation_date}
+                            </p>
+                          </div>
+                        )}
+                        {recruitingInfo.gpa && (
+                          <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
+                            <span className="font-rajdhani text-sm font-medium text-gray-400">
+                              GPA:
+                            </span>
+                            <p className="font-rajdhani mt-1 text-lg font-bold text-gray-300">
+                              {Number(recruitingInfo.gpa).toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+                        {recruitingInfo.academic_bio && (
+                          <div className="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4 backdrop-blur-sm">
+                            <span className="font-rajdhani text-sm font-medium text-gray-400">
+                              Academic Achievements:
+                            </span>
+                            <p className="font-rajdhani mt-2 leading-relaxed text-gray-300">
+                              {recruitingInfo.academic_bio}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Extracurricular Activities */}
+                    {recruitingInfo.extra_curriculars && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4, duration: 0.6 }}
+                      >
+                        <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
+                          <Users className="h-5 w-5 text-green-400" />
+                          Extracurricular Activities
+                        </h3>
+                        <div className="rounded-xl border border-gray-700/50 bg-gradient-to-br from-gray-800/60 to-gray-900/60 p-6 shadow-lg backdrop-blur-sm">
+                          <p className="font-rajdhani text-lg leading-relaxed text-gray-300">
+                            {recruitingInfo.extra_curriculars}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           )}
 
@@ -863,149 +845,133 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
           player.social_connections.length > 0) && (
           <motion.div className="relative" variants={itemVariants}>
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-600/5 via-blue-600/5 to-purple-600/5 blur-xl" />
-            <motion.div
-              variants={cardHoverVariants}
-              initial="rest"
-              whileHover="hover"
-            >
-              <Card className="relative border-cyan-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
-                    <div className="rounded-lg bg-cyan-500/20 p-2">
-                      <MessageCircleIcon className="h-6 w-6 text-cyan-400" />
-                    </div>
-                    Connected Accounts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                    {/* Platform Connections */}
-                    {player.platform_connections.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3, duration: 0.6 }}
-                      >
-                        <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
-                          <GamepadIcon className="h-5 w-5 text-cyan-400" />
-                          Gaming Platforms
-                        </h3>
-                        <div className="space-y-4">
-                          {player.platform_connections.map(
-                            (connection, index) => (
-                              <motion.div
-                                key={connection.platform}
-                                className="flex items-center justify-between rounded-xl border border-cyan-500/20 bg-gradient-to-r from-gray-800/60 to-gray-900/60 p-4 shadow-lg backdrop-blur-sm"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                  delay: 0.4 + index * 0.1,
-                                  duration: 0.4,
-                                }}
-                                whileHover={{ scale: 1.02, y: -2 }}
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div
-                                    className={`flex h-10 w-10 items-center justify-center rounded-full ${getPlatformColor(connection.platform)} shadow-lg`}
-                                  >
-                                    {getPlatformIcon(connection.platform)}
-                                  </div>
-                                  <div>
-                                    <p className="font-rajdhani text-lg font-medium text-white">
-                                      {getPlatformDisplayName(
-                                        connection.platform,
-                                      )}
-                                    </p>
-                                    <p className="text-sm text-gray-400">
-                                      {connection.username}
-                                    </p>
-                                  </div>
-                                </div>
-                                <ExternalLinkIcon className="h-5 w-5 text-cyan-400" />
-                              </motion.div>
-                            ),
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Social Connections */}
-                    {player.social_connections.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                      >
-                        <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
-                          <MessageCircleIcon className="h-5 w-5 text-cyan-400" />
-                          Social Media
-                        </h3>
-                        <div className="space-y-4">
-                          {player.social_connections.map(
-                            (connection, index) => (
-                              <motion.div
-                                key={connection.platform}
-                                className="flex items-center justify-between rounded-xl border border-cyan-500/20 bg-gradient-to-r from-gray-800/60 to-gray-900/60 p-4 shadow-lg backdrop-blur-sm"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                  delay: 0.5 + index * 0.1,
-                                  duration: 0.4,
-                                }}
-                                whileHover={{ scale: 1.02, y: -2 }}
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div
-                                    className={`flex h-10 w-10 items-center justify-center rounded-full ${getSocialColor(connection.platform)} shadow-lg`}
-                                  >
-                                    {getSocialIcon(connection.platform)}
-                                  </div>
-                                  <div>
-                                    <p className="font-rajdhani text-lg font-medium text-white">
-                                      {getSocialDisplayName(
-                                        connection.platform,
-                                      )}
-                                    </p>
-                                    <p className="text-sm text-gray-400">
-                                      {connection.username}
-                                    </p>
-                                  </div>
-                                </div>
-                                <ExternalLinkIcon className="h-5 w-5 text-cyan-400" />
-                              </motion.div>
-                            ),
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
+            <Card className="relative border-cyan-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="font-orbitron flex items-center gap-3 text-2xl text-white">
+                  <div className="rounded-lg bg-cyan-500/20 p-2">
+                    <MessageCircleIcon className="h-6 w-6 text-cyan-400" />
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                  Connected Accounts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                  {/* Platform Connections */}
+                  {player.platform_connections.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3, duration: 0.6 }}
+                    >
+                      <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
+                        <GamepadIcon className="h-5 w-5 text-cyan-400" />
+                        Gaming Platforms
+                      </h3>
+                      <div className="space-y-4">
+                        {player.platform_connections.map(
+                          (connection, index) => (
+                            <motion.div
+                              key={connection.platform}
+                              className="flex items-center justify-between rounded-xl border border-cyan-500/20 bg-gradient-to-r from-gray-800/60 to-gray-900/60 p-4 shadow-lg backdrop-blur-sm"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                delay: 0.4 + index * 0.1,
+                                duration: 0.4,
+                              }}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                            >
+                              <div className="flex items-center gap-4">
+                                <div
+                                  className={`flex h-10 w-10 items-center justify-center rounded-full ${getPlatformColor(connection.platform)} shadow-lg`}
+                                >
+                                  {getPlatformIcon(connection.platform)}
+                                </div>
+                                <div>
+                                  <p className="font-rajdhani text-lg font-medium text-white">
+                                    {getPlatformDisplayName(
+                                      connection.platform,
+                                    )}
+                                  </p>
+                                  <p className="text-sm text-gray-400">
+                                    {connection.username}
+                                  </p>
+                                </div>
+                              </div>
+                              <ExternalLinkIcon className="h-5 w-5 text-cyan-400" />
+                            </motion.div>
+                          ),
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Social Connections */}
+                  {player.social_connections.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4, duration: 0.6 }}
+                    >
+                      <h3 className="font-orbitron mb-6 flex items-center gap-2 text-xl font-semibold text-white">
+                        <MessageCircleIcon className="h-5 w-5 text-cyan-400" />
+                        Social Media
+                      </h3>
+                      <div className="space-y-4">
+                        {player.social_connections.map((connection, index) => (
+                          <motion.div
+                            key={connection.platform}
+                            className="flex items-center justify-between rounded-xl border border-cyan-500/20 bg-gradient-to-r from-gray-800/60 to-gray-900/60 p-4 shadow-lg backdrop-blur-sm"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              delay: 0.5 + index * 0.1,
+                              duration: 0.4,
+                            }}
+                            whileHover={{ scale: 1.02, y: -2 }}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div
+                                className={`flex h-10 w-10 items-center justify-center rounded-full ${getSocialColor(connection.platform)} shadow-lg`}
+                              >
+                                {getSocialIcon(connection.platform)}
+                              </div>
+                              <div>
+                                <p className="font-rajdhani text-lg font-medium text-white">
+                                  {getSocialDisplayName(connection.platform)}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  {connection.username}
+                                </p>
+                              </div>
+                            </div>
+                            <ExternalLinkIcon className="h-5 w-5 text-cyan-400" />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 
         {/* Enhanced Game Statistics */}
         <motion.div className="relative" variants={itemVariants}>
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-600/5 via-red-600/5 to-pink-600/5 blur-xl" />
-          <motion.div
-            variants={cardHoverVariants}
-            initial="rest"
-            whileHover="hover"
-          >
-            <Card className="relative border-orange-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 shadow-xl backdrop-blur-sm">
-              <CardContent className="relative bottom-6 p-0">
-                <GameAnalyticsPanel
-                  playerId={player.id}
-                  viewMode="other"
-                  targetPlayerProfile={player}
-                  showConnectionPrompts={true}
-                  publicHeader={true}
-                  showInfoPanel={false}
-                />
-              </CardContent>
-            </Card>
-          </motion.div>
+          <Card className="relative border-orange-500/20 bg-gradient-to-br from-gray-800/90 to-gray-900/90 p-0 px-0 shadow-xl backdrop-blur-sm">
+            <CardContent className="relative px-0">
+              <GameAnalyticsPanel
+                playerId={player.id}
+                viewMode="other"
+                targetPlayerProfile={player}
+                showConnectionPrompts={false}
+                publicHeader={true}
+                showInfoPanel={false}
+              />
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </motion.div>
