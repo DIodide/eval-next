@@ -8,12 +8,15 @@ export interface SSBUCharacterStats {
   games: number;
   wins: number;
   winrate: number;
+  image_path: string; // New field for character images
 }
 
 export interface SSBUMatchupData {
   wins: number;
   games: number;
   winrate: number;
+  player_character_image: string; // New field for player character image
+  opponent_character_image: string; // New field for opponent character image
 }
 
 export interface SSBUStageStats {

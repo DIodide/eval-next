@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
+import Image from "next/image";
 import type { GameComponentProps, SmashStats } from "../../types";
 
 // Helper functions for colors
@@ -374,7 +375,19 @@ export function SmashAnalytics({
                   className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                    {characterStats.image_path ? (
+                      <div className="relative h-8 w-8 cursor-pointer overflow-hidden rounded-lg transition-transform hover:scale-105">
+                        <Image
+                          src={characterStats.image_path}
+                          alt={character}
+                          fill
+                          className="object-cover"
+                          sizes="32px"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                    )}
                     <span className="font-rajdhani font-medium text-gray-200">
                       {character}
                     </span>
@@ -452,9 +465,43 @@ export function SmashAnalytics({
                     key={`${character}-${opponent}`}
                     className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
                   >
-                    <span className="font-rajdhani text-sm font-medium text-gray-200">
-                      {character} vs {opponent}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        {data.player_character_image ? (
+                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                            <Image
+                              src={data.player_character_image}
+                              alt={character}
+                              fill
+                              className="object-cover"
+                              sizes="24px"
+                            />
+                          </div>
+                        ) : null}
+                        <span className="font-rajdhani text-sm font-medium text-gray-200">
+                          {character}
+                        </span>
+                      </div>
+                      <span className="font-rajdhani text-xs text-gray-400">
+                        vs
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {data.opponent_character_image ? (
+                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                            <Image
+                              src={data.opponent_character_image}
+                              alt={opponent}
+                              fill
+                              className="object-cover"
+                              sizes="24px"
+                            />
+                          </div>
+                        ) : null}
+                        <span className="font-rajdhani text-sm font-medium text-gray-200">
+                          {opponent}
+                        </span>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="font-rajdhani text-sm text-gray-300">
                         {data.wins}-{data.games - data.wins}
@@ -488,9 +535,43 @@ export function SmashAnalytics({
                     key={`${character}-${opponent}`}
                     className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"
                   >
-                    <span className="font-rajdhani text-sm font-medium text-gray-200">
-                      {character} vs {opponent}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        {data.player_character_image ? (
+                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                            <Image
+                              src={data.player_character_image}
+                              alt={character}
+                              fill
+                              className="object-cover"
+                              sizes="24px"
+                            />
+                          </div>
+                        ) : null}
+                        <span className="font-rajdhani text-sm font-medium text-gray-200">
+                          {character}
+                        </span>
+                      </div>
+                      <span className="font-rajdhani text-xs text-gray-400">
+                        vs
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {data.opponent_character_image ? (
+                          <div className="relative h-6 w-6 cursor-pointer overflow-hidden rounded transition-transform hover:scale-105">
+                            <Image
+                              src={data.opponent_character_image}
+                              alt={opponent}
+                              fill
+                              className="object-cover"
+                              sizes="24px"
+                            />
+                          </div>
+                        ) : null}
+                        <span className="font-rajdhani text-sm font-medium text-gray-200">
+                          {opponent}
+                        </span>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="font-rajdhani text-sm text-gray-300">
                         {data.wins}-{data.games - data.wins}

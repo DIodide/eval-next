@@ -171,6 +171,7 @@ export interface SmashStats {
       {
         games: number;
         winrate: number;
+        image_path: string; // Character image path
       }
     >;
     best_matchups: Record<
@@ -181,6 +182,8 @@ export interface SmashStats {
           wins: number;
           games: number;
           winrate: number;
+          player_character_image: string; // Player character image path
+          opponent_character_image: string; // Opponent character image path
         }
       >
     >;
@@ -192,6 +195,8 @@ export interface SmashStats {
           wins: number;
           games: number;
           winrate: number;
+          player_character_image: string; // Player character image path
+          opponent_character_image: string; // Opponent character image path
         }
       >
     >;

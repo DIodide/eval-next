@@ -117,20 +117,56 @@ export const mockSmashStats: SmashStats = {
     clutch_factor: 0.45,
     events: 24,
     mains: {
-      Joker: { games: 45, winrate: 0.78 },
-      "Pyra/Mythra": { games: 32, winrate: 0.69 },
-      Wolf: { games: 28, winrate: 0.65 },
+      Joker: {
+        games: 45,
+        winrate: 0.78,
+        image_path: "/SSBUAssets/Joker1.png",
+      },
+      "Pyra/Mythra": {
+        games: 32,
+        winrate: 0.69,
+        image_path: "/SSBUAssets/Pyra1.png",
+      },
+      Wolf: {
+        games: 28,
+        winrate: 0.65,
+        image_path: "/SSBUAssets/Wolf1.png",
+      },
     },
     best_matchups: {
       Joker: {
-        Ganondorf: { wins: 8, games: 9, winrate: 0.89 },
-        "King Dedede": { wins: 11, games: 13, winrate: 0.85 },
+        Ganondorf: {
+          wins: 8,
+          games: 9,
+          winrate: 0.89,
+          player_character_image: "/SSBUAssets/Joker1.png",
+          opponent_character_image: "/SSBUAssets/Ganondorf1.png",
+        },
+        "King Dedede": {
+          wins: 11,
+          games: 13,
+          winrate: 0.85,
+          player_character_image: "/SSBUAssets/Joker1.png",
+          opponent_character_image: "/SSBUAssets/KingDedede1.png",
+        },
       },
     },
     worst_matchups: {
       Joker: {
-        Pikachu: { wins: 4, games: 13, winrate: 0.31 },
-        Fox: { wins: 6, games: 16, winrate: 0.38 },
+        Pikachu: {
+          wins: 4,
+          games: 13,
+          winrate: 0.31,
+          player_character_image: "/SSBUAssets/Joker1.png",
+          opponent_character_image: "/SSBUAssets/Pikachu1.png",
+        },
+        Fox: {
+          wins: 6,
+          games: 16,
+          winrate: 0.38,
+          player_character_image: "/SSBUAssets/Joker1.png",
+          opponent_character_image: "/SSBUAssets/Fox1.png",
+        },
       },
     },
     best_stages: {
