@@ -17,6 +17,7 @@ export function RocketLeagueAnalytics({
   isLoading,
   error,
   viewMode = "self",
+  showInfoPanel = true, // Default to true to maintain current behavior
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -167,31 +168,33 @@ export function RocketLeagueAnalytics({
   return (
     <div className="space-y-6">
       {/* Information Panel */}
-      <div className="rounded-lg border border-orange-700/30 bg-orange-900/20 p-4">
-        <div className="flex items-start gap-3">
-          <InfoIcon className="mt-0.5 h-5 w-5 text-orange-400" />
-          <div>
-            <h4 className="font-orbitron mb-2 text-sm font-semibold text-orange-300">
-              About These Statistics
-            </h4>
-            <div className="font-rajdhani space-y-1 text-xs text-orange-200">
-              <p>
-                • <strong>Competitive matches only:</strong> All statistics are
-                based exclusively on ranked competitive gameplay.
-              </p>
-              <p>
-                • <strong>Rank-standardized scoring:</strong> Performance
-                expectations are adjusted based on your rank tier.
-              </p>
-              <p>
-                • <strong>EVAL Score:</strong> Comprehensive metric (0-100)
-                measuring performance across mechanics, positioning, and game
-                impact.
-              </p>
+      {showInfoPanel && (
+        <div className="rounded-lg border border-orange-700/30 bg-orange-900/20 p-4">
+          <div className="flex items-start gap-3">
+            <InfoIcon className="mt-0.5 h-5 w-5 text-orange-400" />
+            <div>
+              <h4 className="font-orbitron mb-2 text-sm font-semibold text-orange-300">
+                About These Statistics
+              </h4>
+              <div className="font-rajdhani space-y-1 text-xs text-orange-200">
+                <p>
+                  • <strong>Competitive matches only:</strong> All statistics
+                  are based exclusively on ranked competitive gameplay.
+                </p>
+                <p>
+                  • <strong>Rank-standardized scoring:</strong> Performance
+                  expectations are adjusted based on your rank tier.
+                </p>
+                <p>
+                  • <strong>EVAL Score:</strong> Comprehensive metric (0-100)
+                  measuring performance across mechanics, positioning, and game
+                  impact.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Playlist Selector */}
       <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">

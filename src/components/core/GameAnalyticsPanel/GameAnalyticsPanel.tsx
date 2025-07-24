@@ -40,6 +40,7 @@ export function GameAnalyticsPanel({
   showHeader = true,
   publicHeader = false,
   showConnectionPrompts = true,
+  showInfoPanel = true, // Default to true to maintain current behavior
   openLinksInNewTab = false,
   className = "",
   headerClassName = "",
@@ -171,6 +172,7 @@ export function GameAnalyticsPanel({
       viewMode: _viewMode,
       onRetry: handleDataRefresh,
       onConnect: showConnectionPrompts ? handleConnectionClick : undefined,
+      showInfoPanel,
     };
 
     switch (selectedGame) {

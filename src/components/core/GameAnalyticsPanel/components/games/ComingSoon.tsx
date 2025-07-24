@@ -16,6 +16,7 @@ export function ComingSoon({
   platform,
   isConnected,
   viewMode = "self",
+  showInfoPanel: _showInfoPanel = true, // Include for consistency but not used
   onConnect,
 }: ComingSoonProps) {
   return (

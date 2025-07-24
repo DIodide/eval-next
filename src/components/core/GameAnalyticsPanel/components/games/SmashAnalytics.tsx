@@ -36,6 +36,7 @@ export function SmashAnalytics({
   isLoading,
   error,
   viewMode = "self",
+  showInfoPanel = true, // Default to true to maintain current behavior
   onRetry,
   onConnect,
 }: GameComponentProps) {
@@ -167,32 +168,34 @@ export function SmashAnalytics({
   return (
     <div className="space-y-6">
       {/* Information Panel */}
-      <div className="rounded-lg border border-green-700/30 bg-green-900/20 p-4">
-        <div className="flex items-start gap-3">
-          <InfoIcon className="mt-0.5 h-5 w-5 text-green-400" />
-          <div>
-            <h4 className="font-orbitron mb-2 text-sm font-semibold text-green-300">
-              About These Statistics
-            </h4>
-            <div className="font-rajdhani space-y-1 text-xs text-green-200">
-              <p>
-                • <strong>Tournament matches only:</strong> All statistics are
-                based exclusively on competitive tournament gameplay.
-              </p>
-              <p>
-                • <strong>Skill-adjusted scoring:</strong> Performance
-                expectations are adjusted based on your skill level and
-                tournament caliber.
-              </p>
-              <p>
-                • <strong>EVAL Score:</strong> Comprehensive metric (0-100)
-                measuring performance across technical skill, adaptability, and
-                tournament success.
-              </p>
+      {showInfoPanel && (
+        <div className="rounded-lg border border-green-700/30 bg-green-900/20 p-4">
+          <div className="flex items-start gap-3">
+            <InfoIcon className="mt-0.5 h-5 w-5 text-green-400" />
+            <div>
+              <h4 className="font-orbitron mb-2 text-sm font-semibold text-green-300">
+                About These Statistics
+              </h4>
+              <div className="font-rajdhani space-y-1 text-xs text-green-200">
+                <p>
+                  • <strong>Tournament matches only:</strong> All statistics are
+                  based exclusively on competitive tournament gameplay.
+                </p>
+                <p>
+                  • <strong>Skill-adjusted scoring:</strong> Performance
+                  expectations are adjusted based on your skill level and
+                  tournament caliber.
+                </p>
+                <p>
+                  • <strong>EVAL Score:</strong> Comprehensive metric (0-100)
+                  measuring performance across technical skill, adaptability,
+                  and tournament success.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Player Account Info */}
       <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">

@@ -47,6 +47,7 @@ export interface GameAnalyticsPanelProps {
   showHeader?: boolean;
   publicHeader?: boolean;
   showConnectionPrompts?: boolean;
+  showInfoPanel?: boolean; // Show/hide the "About These Statistics" information panel (default: true)
   openLinksInNewTab?: boolean; // For blog/news context where links should open in new tab
 
   // Styling
@@ -232,6 +233,7 @@ export interface GameComponentProps {
   isLoading: boolean;
   error: Error | null;
   viewMode?: "self" | "other";
+  showInfoPanel?: boolean; // Show/hide the "About These Statistics" information panel (default: true)
   onRetry?: () => void;
   onConnect?: () => void;
 }
@@ -252,6 +254,7 @@ export interface ErrorStateProps {
 export interface ComingSoonProps {
   game: GameId;
   isConnected: boolean;
+  showInfoPanel?: boolean; // Include for consistency
   onConnect?: () => void;
 }
 
