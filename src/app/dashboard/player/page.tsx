@@ -169,7 +169,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Game Analytics - Moved to Top */}
-      <GameAnalyticsPanel />
+      <GameAnalyticsPanel showInfoPanel={false} />
 
       {/* Enhanced Stats Grid */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
