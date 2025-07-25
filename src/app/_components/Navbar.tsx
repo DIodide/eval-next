@@ -192,52 +192,52 @@ export default function Navbar() {
           <SignedIn>
             <Link
               href="/dashboard"
-              className="nav-link heading-section text-sm text-white transition-colors hover:text-gray-200"
+              className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
             >
               DASHBOARD
             </Link>
           </SignedIn>
           <Link
             href="/recruiting"
-            className="nav-link heading-section text-sm text-white transition-colors hover:text-gray-200"
+            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
           >
             RECRUITING
           </Link>
           <Link
             href="/news"
-            className="nav-link heading-section text-sm text-white transition-colors hover:text-gray-200"
+            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
           >
             NEWS
           </Link>
           <DropdownMenu>
-            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-sm tracking-wide text-white transition-colors hover:text-gray-200">
+            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
               RANKINGS <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/rankings/leagues">
-                <DropdownMenuItem className="font-inter dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white hover:bg-white/10 focus:bg-white/10">
+                <DropdownMenuItem className="font-inter dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
                   LEAGUES
                 </DropdownMenuItem>
               </Link>
               <Link href="/rankings/combines">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white hover:bg-white/10 focus:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
                   COMBINES
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
           <DropdownMenu>
-            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-sm tracking-wide text-white transition-colors hover:text-gray-200">
+            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
               TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/tryouts/combines">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white hover:bg-white/10 focus:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
                   EVAL COMBINES
                 </DropdownMenuItem>
               </Link>
               <Link href="/tryouts/college">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white hover:bg-white/10 focus:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
                   COLLEGE
                 </DropdownMenuItem>
               </Link>
@@ -246,33 +246,33 @@ export default function Navbar() {
           <SignedOut>
             <Link
               href="/pricing"
-              className="nav-link heading-section text-sm text-white transition-colors hover:text-gray-200"
+              className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
             >
               PRICING
             </Link>
           </SignedOut>
           <DropdownMenu>
-            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-sm tracking-wide text-white transition-colors hover:text-gray-200">
+            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/about/partners">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                   OUR PARTNERS
                 </DropdownMenuItem>
               </Link>
               <Link href="/about/team">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                   OUR TEAM
                 </DropdownMenuItem>
               </Link>
               <Link href="/about/contact">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                   CONTACT
                 </DropdownMenuItem>
               </Link>
               <Link href="/about/faq">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                   FAQs
                 </DropdownMenuItem>
               </Link>
@@ -280,43 +280,43 @@ export default function Navbar() {
           </DropdownMenu>
           {isAdmin && !isCheckingAdmin && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-sm tracking-wide text-white transition-colors hover:text-red-400">
+              <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-red-400">
                 <Shield className="mr-1 h-4 w-4" />
                 ADMIN <ChevronDown className="ml-1 h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="glass-morphism border-white/20">
                 <Link href="/admin">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     ADMIN DASHBOARD
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-player-profile">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     PLAYER PROFILE TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-tryouts">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     TRYOUTS TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-combines">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     COMBINES TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-messages">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     MESSAGES TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/test-player-search">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     PLAYER SEARCH TEST
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/admin/settings">
-                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-sm text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
+                  <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white focus:bg-white/10 data-[highlighted]:bg-white/10">
                     ADMIN SETTINGS
                   </DropdownMenuItem>
                 </Link>
