@@ -182,7 +182,7 @@ function getSocialDisplayName(platform: string) {
     case "github":
       return "GitHub";
     case "discord":
-      return "Discord";
+      return "Discord"; //
     case "instagram":
       return "Instagram";
     case "twitch":
