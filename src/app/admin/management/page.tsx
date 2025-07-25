@@ -92,6 +92,16 @@ export default function AdminManagementPage() {
   const [isSchoolModalOpen, setIsSchoolModalOpen] = useState(false);
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
 
+  // League school management states
+  const [isManageSchoolsModalOpen, setIsManageSchoolsModalOpen] =
+    useState(false);
+  const [managingLeagueSchools, setManagingLeagueSchools] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [leagueSchoolSearch, setLeagueSchoolSearch] = useState("");
+  const [availableSchoolsSearch, setAvailableSchoolsSearch] = useState("");
+
   // Fetch leagues
   const {
     data: leaguesData,
@@ -127,6 +137,38 @@ export default function AdminManagementPage() {
 
   // Fetch games for main game selection
   const { data: gamesData } = api.adminManagement.getGames.useQuery();
+
+  // League school management queries
+  const {
+    data: leagueSchoolsData,
+    isLoading: leagueSchoolsLoading,
+    refetch: refetchLeagueSchools,
+  } = api.adminManagement.getLeagueSchools.useQuery(
+    {
+      league_id: managingLeagueSchools?.id ?? "",
+      limit: 50,
+      offset: 0,
+    },
+    {
+      enabled: !!managingLeagueSchools?.id,
+    },
+  );
+
+  const {
+    data: availableSchoolsData,
+    isLoading: availableSchoolsLoading,
+    refetch: refetchAvailableSchools,
+  } = api.adminManagement.getAvailableSchoolsForLeague.useQuery(
+    {
+      league_id: managingLeagueSchools?.id ?? "",
+      search: availableSchoolsSearch || undefined,
+      limit: 50,
+      offset: 0,
+    },
+    {
+      enabled: !!managingLeagueSchools?.id,
+    },
+  );
 
   // Mutations
   const updateLeagueMutation = api.adminManagement.updateLeague.useMutation({
@@ -185,6 +227,45 @@ export default function AdminManagementPage() {
       });
     },
   });
+
+  // League school management mutations
+  const addSchoolToLeagueMutation =
+    api.adminManagement.addSchoolToLeague.useMutation({
+      onSuccess: (data) => {
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+        void refetchLeagueSchools();
+        void refetchAvailableSchools();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+
+  const removeSchoolFromLeagueMutation =
+    api.adminManagement.removeSchoolFromLeague.useMutation({
+      onSuccess: (data) => {
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+        void refetchLeagueSchools();
+        void refetchAvailableSchools();
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
   const handleEditLeague = (league: {
     id: string;
@@ -306,6 +387,29 @@ export default function AdminManagementPage() {
       scholastic_contact_email: editingPlayer.scholastic_contact_email,
       extra_curriculars: editingPlayer.extra_curriculars,
       academic_bio: editingPlayer.academic_bio,
+    });
+  };
+
+  // League school management handlers
+  const handleManageLeagueSchools = (league: { id: string; name: string }) => {
+    setManagingLeagueSchools(league);
+    setIsManageSchoolsModalOpen(true);
+    setLeagueSchoolSearch("");
+    setAvailableSchoolsSearch("");
+  };
+
+  const handleAddSchoolToLeague = (schoolId: string) => {
+    if (!managingLeagueSchools) return;
+
+    void addSchoolToLeagueMutation.mutate({
+      league_id: managingLeagueSchools.id,
+      school_id: schoolId,
+    });
+  };
+
+  const handleRemoveSchoolFromLeague = (leagueSchoolId: string) => {
+    void removeSchoolFromLeagueMutation.mutate({
+      league_school_id: leagueSchoolId,
     });
   };
 
@@ -542,15 +646,29 @@ export default function AdminManagementPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-white/20 text-gray-300 hover:text-white"
+                                  className="cursor-pointer border-white/20 text-gray-300 hover:text-white"
                                 >
                                   <ExternalLink className="mr-2 h-4 w-4" />
                                   View Profile
                                 </Button>
                               </Link>
                               <Button
+                                onClick={() =>
+                                  handleManageLeagueSchools({
+                                    id: league.id,
+                                    name: league.name,
+                                  })
+                                }
+                                variant="outline"
+                                size="sm"
+                                className="cursor-pointer border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/10 hover:text-cyan-200"
+                              >
+                                <Building className="mr-2 h-4 w-4" />
+                                Manage Schools
+                              </Button>
+                              <Button
                                 onClick={() => handleEditLeague(league)}
-                                className="bg-gradient-to-r from-cyan-500 to-cyan-600 font-bold text-black hover:from-cyan-600 hover:to-cyan-700"
+                                className="cursor-pointer bg-gradient-to-r from-cyan-500 to-cyan-600 font-bold text-black hover:from-cyan-600 hover:to-cyan-700"
                               >
                                 <Edit3 className="mr-2 h-4 w-4" />
                                 Edit
@@ -1859,6 +1977,259 @@ export default function AdminManagementPage() {
                         Save Changes
                       </>
                     )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Manage League Schools Modal */}
+        <Dialog
+          open={isManageSchoolsModalOpen}
+          onOpenChange={setIsManageSchoolsModalOpen}
+        >
+          <DialogContent className="max-h-[80vh] max-w-6xl overflow-y-auto border-white/20 bg-gray-900 text-white">
+            <DialogHeader>
+              <DialogTitle className="font-orbitron text-xl font-bold text-cyan-400">
+                Manage Schools - {managingLeagueSchools?.name}
+              </DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Add or remove schools from this league. Schools can be
+                forcefully added or removed as needed.
+              </DialogDescription>
+            </DialogHeader>
+
+            {managingLeagueSchools && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  {/* Current Schools in League */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-white">
+                        Schools in League
+                      </h4>
+                      <Badge
+                        variant="secondary"
+                        className="bg-cyan-500/20 text-cyan-400"
+                      >
+                        {leagueSchoolsData?.total ?? 0} schools
+                      </Badge>
+                    </div>
+
+                    {/* Search for current schools */}
+                    <div className="relative">
+                      <Search className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search current schools..."
+                        value={leagueSchoolSearch}
+                        onChange={(e) => setLeagueSchoolSearch(e.target.value)}
+                        className="border-white/20 bg-gray-800/50 pl-10 text-white placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* Schools list */}
+                    <div className="max-h-96 space-y-2 overflow-y-auto rounded-lg border border-white/10 bg-gray-800/30 p-4">
+                      {leagueSchoolsLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+                          <span className="ml-2 text-gray-300">
+                            Loading schools...
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {leagueSchoolsData?.schools
+                            ?.filter(
+                              (ls) =>
+                                !leagueSchoolSearch ||
+                                ls.school.name
+                                  .toLowerCase()
+                                  .includes(leagueSchoolSearch.toLowerCase()) ||
+                                ls.school.location
+                                  ?.toLowerCase()
+                                  .includes(leagueSchoolSearch.toLowerCase()),
+                            )
+                            .map((leagueSchool) => (
+                              <div
+                                key={leagueSchool.id}
+                                className="flex items-center justify-between rounded-lg border border-white/10 bg-gray-700/30 p-3"
+                              >
+                                <div className="flex items-center space-x-3">
+                                  {leagueSchool.school.logo_url ? (
+                                    <div className="relative h-10 w-10 overflow-hidden rounded-lg">
+                                      <Image
+                                        src={leagueSchool.school.logo_url}
+                                        alt={`${leagueSchool.school.name} logo`}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-600/50">
+                                      <Building className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="font-medium text-white">
+                                      {leagueSchool.school.name}
+                                    </p>
+                                    <p className="text-sm text-gray-400">
+                                      {leagueSchool.school.location},{" "}
+                                      {leagueSchool.school.state}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  onClick={() =>
+                                    handleRemoveSchoolFromLeague(
+                                      leagueSchool.id,
+                                    )
+                                  }
+                                  disabled={
+                                    removeSchoolFromLeagueMutation.isPending
+                                  }
+                                  variant="outline"
+                                  size="sm"
+                                  className="cursor-pointer border-red-400/30 text-red-300 hover:bg-red-400/10 hover:text-red-200"
+                                >
+                                  {removeSchoolFromLeagueMutation.isPending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    "Remove"
+                                  )}
+                                </Button>
+                              </div>
+                            ))}
+                          {(!leagueSchoolsData?.schools ||
+                            leagueSchoolsData.schools.length === 0) && (
+                            <div className="py-8 text-center">
+                              <Building className="mx-auto h-12 w-12 text-gray-500" />
+                              <p className="mt-2 text-gray-400">
+                                No schools in this league yet
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Available Schools to Add */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-white">
+                        Available Schools
+                      </h4>
+                      <Badge
+                        variant="secondary"
+                        className="bg-orange-500/20 text-orange-400"
+                      >
+                        {availableSchoolsData?.total ?? 0} available
+                      </Badge>
+                    </div>
+
+                    {/* Search for available schools */}
+                    <div className="relative">
+                      <Search className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search available schools..."
+                        value={availableSchoolsSearch}
+                        onChange={(e) =>
+                          setAvailableSchoolsSearch(e.target.value)
+                        }
+                        className="border-white/20 bg-gray-800/50 pl-10 text-white placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* Available schools list */}
+                    <div className="max-h-96 space-y-2 overflow-y-auto rounded-lg border border-white/10 bg-gray-800/30 p-4">
+                      {availableSchoolsLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-orange-400" />
+                          <span className="ml-2 text-gray-300">
+                            Loading schools...
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {availableSchoolsData?.schools?.map((school) => (
+                            <div
+                              key={school.id}
+                              className="flex items-center justify-between rounded-lg border border-white/10 bg-gray-700/30 p-3"
+                            >
+                              <div className="flex items-center space-x-3">
+                                {school.logo_url ? (
+                                  <div className="relative h-10 w-10 overflow-hidden rounded-lg">
+                                    <Image
+                                      src={school.logo_url}
+                                      alt={`${school.name} logo`}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-600/50">
+                                    <Building className="h-5 w-5 text-gray-400" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-medium text-white">
+                                    {school.name}
+                                  </p>
+                                  <p className="text-sm text-gray-400">
+                                    {school.location}, {school.state}
+                                  </p>
+                                  <div className="mt-1 flex space-x-4 text-xs text-gray-500">
+                                    <span>{school._count.coaches} coaches</span>
+                                    <span>{school._count.players} players</span>
+                                    <span>{school._count.teams} teams</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() =>
+                                  handleAddSchoolToLeague(school.id)
+                                }
+                                disabled={addSchoolToLeagueMutation.isPending}
+                                className="cursor-pointer bg-gradient-to-r from-green-500 to-green-600 font-bold text-black hover:from-green-600 hover:to-green-700"
+                                size="sm"
+                              >
+                                {addSchoolToLeagueMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  "Add"
+                                )}
+                              </Button>
+                            </div>
+                          ))}
+                          {(!availableSchoolsData?.schools ||
+                            availableSchoolsData.schools.length === 0) && (
+                            <div className="py-8 text-center">
+                              <Building className="mx-auto h-12 w-12 text-gray-500" />
+                              <p className="mt-2 text-gray-400">
+                                {availableSchoolsSearch
+                                  ? "No schools found matching your search"
+                                  : "All schools are already in this league"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsManageSchoolsModalOpen(false);
+                      setManagingLeagueSchools(null);
+                    }}
+                    className="cursor-pointer border-white/20 text-gray-300 hover:text-white"
+                  >
+                    Close
                   </Button>
                 </div>
               </div>
