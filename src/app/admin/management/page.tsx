@@ -347,13 +347,17 @@ export default function AdminManagementPage() {
   const handleSaveLeague = () => {
     if (!editingLeague) return;
 
-    void updateLeagueMutation.mutate({
+    const leagueData = {
       id: editingLeague.id,
       name: editingLeague.name,
       description: editingLeague.description,
       logo_url: editingLeague.logo_url,
       banner_url: editingLeague.banner_url,
-    });
+    };
+
+    console.log("Saving League Data:", leagueData);
+
+    void updateLeagueMutation.mutate(leagueData);
   };
 
   const handleSaveSchool = () => {
@@ -1061,7 +1065,7 @@ export default function AdminManagementPage() {
 
         {/* League Edit Modal */}
         <Dialog open={isLeagueModalOpen} onOpenChange={setIsLeagueModalOpen}>
-          <DialogContent className="max-w-2xl border-white/20 bg-gray-900 text-white">
+          <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto border-white/20 bg-gray-900 text-white">
             <DialogHeader>
               <DialogTitle className="font-orbitron text-xl font-bold text-cyan-400">
                 Edit League

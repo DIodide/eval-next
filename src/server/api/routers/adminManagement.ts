@@ -9,8 +9,32 @@ const updateLeagueSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional().nullable(),
-  logo_url: z.string().url().optional().nullable().or(z.literal("")),
-  banner_url: z.string().url().optional().nullable().or(z.literal("")),
+  logo_url: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => {
+      if (!val || val === "") return true;
+      try {
+        new URL(val);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "Invalid URL format"),
+  banner_url: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => {
+      if (!val || val === "") return true;
+      try {
+        new URL(val);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "Invalid URL format"),
 });
 
 const updateSchoolSchema = z.object({
@@ -76,6 +100,8 @@ export const adminManagementRouter = createTRPCRouter({
       try {
         const { id, ...updateData } = input;
 
+        console.log("Update League Input:", { id, updateData });
+
         // Remove empty strings and convert to null for optional fields
         const cleanedData: Record<string, string | null> = {};
 
@@ -86,6 +112,8 @@ export const adminManagementRouter = createTRPCRouter({
             cleanedData[key] = value;
           }
         }
+
+        console.log("Cleaned Data for League Update:", cleanedData);
 
         const updatedLeague = await withRetry(() =>
           ctx.db.league.update({
@@ -101,6 +129,8 @@ export const adminManagementRouter = createTRPCRouter({
             },
           }),
         );
+
+        console.log("Updated League Result:", updatedLeague);
 
         return updatedLeague;
       } catch (error) {
