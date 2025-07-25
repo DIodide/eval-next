@@ -273,18 +273,18 @@ export function ValorantAnalytics({
       )}
 
       {/* Connected Stats Sections */}
-      {/* Hero Section - EVAL Score & Rank */}
-      <div className="border-gradient-to-r rounded-xl border bg-gradient-to-r from-purple-500/20 from-purple-900/30 to-red-500/20 to-red-900/30 p-6 shadow-2xl">
-        <div className="flex flex-col items-center gap-6 md:flex-row md:justify-between">
-          <div className="text-center md:text-left">
-            <div className="font-orbitron text-5xl font-bold text-purple-300">
+      <div className="space-y-0">
+        {/* Core Performance Metrics - Top Row */}
+        <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
+          <div className="rounded-tl-lg rounded-tr-none rounded-br-none rounded-bl-none border border-purple-700/30 bg-gradient-to-r from-purple-900/50 to-purple-800/50 p-4 text-center md:rounded-tl-lg">
+            <div className="font-orbitron mb-1 text-3xl font-bold text-purple-300">
               {valorantStats.stats.evalScore}
             </div>
-            <div className="font-rajdhani flex items-center justify-center gap-1 text-lg text-purple-400 md:justify-start">
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-purple-400">
               EVAL SCORE
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 cursor-help text-purple-500 hover:text-purple-300" />
+                  <InfoIcon className="h-3 w-3 cursor-help text-purple-500 hover:text-purple-300" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
                   <p>
@@ -297,17 +297,15 @@ export function ValorantAnalytics({
             </div>
           </div>
 
-          <div className="hidden h-16 w-px bg-gradient-to-b from-transparent via-gray-500 to-transparent md:block"></div>
-
-          <div className="text-center md:text-right">
-            <div className="font-orbitron text-4xl font-bold text-red-300">
+          <div className="rounded-tl-none rounded-tr-lg rounded-br-none rounded-bl-none border border-red-700/30 bg-gradient-to-r from-red-900/50 to-red-800/50 p-4 text-center md:rounded-tr-none">
+            <div className="font-orbitron mb-1 text-xl font-bold text-red-300">
               {valorantStats.stats.rank}
             </div>
-            <div className="font-rajdhani flex items-center justify-center gap-1 text-lg text-red-400 md:justify-end">
-              CURRENT RANK
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-red-400">
+              RANK
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 cursor-help text-red-500 hover:text-red-300" />
+                  <InfoIcon className="h-3 w-3 cursor-help text-red-500 hover:text-red-300" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
                   <p>
@@ -318,70 +316,52 @@ export function ValorantAnalytics({
               </Tooltip>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Player Profile Section */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Main Agent - Large Card */}
-        <div className="lg:col-span-2">
-          <div className="rounded-lg border border-gray-700 bg-gray-900 p-6">
-            <div className="font-rajdhani mb-3 flex items-center gap-1 text-sm text-gray-400">
-              MAIN AGENT
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-none">
+            <div className="font-orbitron mb-1 text-xl font-bold text-green-400">
+              {valorantStats.stats.gameWinRate}
+            </div>
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
+              GAME WIN %
               <Tooltip>
                 <TooltipTrigger asChild>
                   <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
                   <p>
-                    Most frequently played agent based on match history and
-                    performance statistics.
+                    Percentage of games won out of total games played. Measures
+                    overall team success rate.
                   </p>
                 </TooltipContent>
               </Tooltip>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-gray-600 bg-gray-800">
-                {valorantStats.mainAgent.image ? (
-                  <Image
-                    src={valorantStats.mainAgent.image}
-                    alt={valorantStats.mainAgent.name}
-                    width={64}
-                    height={64}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      const img = e.currentTarget as HTMLImageElement;
-                      const span = img.nextElementSibling as HTMLSpanElement;
-                      img.style.display = "none";
-                      if (span) span.style.display = "flex";
-                    }}
-                  />
-                ) : null}
-                <span
-                  className="text-sm text-gray-500"
-                  style={{
-                    display: valorantStats.mainAgent.image ? "none" : "flex",
-                  }}
-                >
-                  IMG
-                </span>
-              </div>
-              <div>
-                <div className="font-orbitron text-2xl font-bold text-white">
-                  {valorantStats.mainAgent.name}
-                </div>
-                <div className="font-rajdhani text-sm text-gray-400">
-                  Primary Agent
-                </div>
-              </div>
+          </div>
+
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-tr-lg">
+            <div className="font-orbitron mb-1 text-xl font-bold text-blue-400">
+              {valorantStats.stats.roundWinRate}
+            </div>
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
+              ROUND WIN %
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                  <p>
+                    Percentage of individual rounds won. More granular than game
+                    win rate and shows consistent performance.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
 
-        {/* Role & Weapon Stack */}
-        <div className="flex flex-col gap-4">
-          <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
-            <div className="font-rajdhani mb-1 flex items-center gap-1 text-xs text-gray-400">
+        {/* Role, Agent, and Weapon Row */}
+        <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
+          <div className="rounded-none border border-gray-700 bg-gray-900 p-4">
+            <div className="font-rajdhani mb-2 flex items-center gap-1 text-xs text-gray-400">
               MAIN ROLE
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -395,12 +375,59 @@ export function ValorantAnalytics({
                 </TooltipContent>
               </Tooltip>
             </div>
-            <div className="font-orbitron text-lg font-bold text-cyan-400">
+            <div className="font-orbitron text-xl font-bold text-cyan-400">
               {valorantStats.role}
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+          <div className="rounded-none border border-gray-700 bg-gray-900 p-4">
+            <div className="font-rajdhani mb-2 flex items-center gap-1 text-xs text-gray-400">
+              MAIN AGENT
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                  <p>
+                    Most frequently played agent based on match history and
+                    performance statistics.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
+                {valorantStats.mainAgent.image ? (
+                  <Image
+                    src={valorantStats.mainAgent.image}
+                    alt={valorantStats.mainAgent.name}
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      const span = img.nextElementSibling as HTMLSpanElement;
+                      img.style.display = "none";
+                      if (span) span.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <span
+                  className="text-xs text-gray-500"
+                  style={{
+                    display: valorantStats.mainAgent.image ? "none" : "flex",
+                  }}
+                >
+                  IMG
+                </span>
+              </div>
+              <div className="font-orbitron text-lg font-bold text-white">
+                {valorantStats.mainAgent.name}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-none border border-gray-700 bg-gray-900 p-4">
             <div className="font-rajdhani mb-2 flex items-center gap-1 text-xs text-gray-400">
               MAIN WEAPON
               <Tooltip>
@@ -415,14 +442,14 @@ export function ValorantAnalytics({
                 </TooltipContent>
               </Tooltip>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-12 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-16 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
                 {valorantStats.mainGun.image ? (
                   <Image
                     src={valorantStats.mainGun.image}
                     alt={valorantStats.mainGun.name}
-                    width={48}
-                    height={32}
+                    width={64}
+                    height={40}
                     className="h-full w-full object-contain"
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement;
@@ -441,146 +468,23 @@ export function ValorantAnalytics({
                   IMG
                 </span>
               </div>
-              <div className="font-orbitron text-sm font-bold text-white">
+              <div className="font-orbitron text-lg font-bold text-white">
                 {valorantStats.mainGun.name}
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Performance Overview */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-lg border border-green-700/30 bg-green-900/20 p-4 text-center">
-          <div className="font-orbitron text-2xl font-bold text-green-400">
-            {valorantStats.stats.gameWinRate}
-          </div>
-          <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-green-300">
-            GAME WIN %
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-green-500 hover:text-green-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>
-                  Percentage of games won out of total games played. Measures
-                  overall team success rate.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-blue-700/30 bg-blue-900/20 p-4 text-center">
-          <div className="font-orbitron text-2xl font-bold text-blue-400">
-            {valorantStats.stats.roundWinRate}
-          </div>
-          <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-blue-300">
-            ROUND WIN %
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-blue-500 hover:text-blue-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>
-                  Percentage of individual rounds won. More granular than game
-                  win rate and shows consistent performance.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-orange-700/30 bg-orange-900/20 p-4 text-center">
-          <div className="font-orbitron text-2xl font-bold text-orange-400">
-            {valorantStats.stats.acs}
-          </div>
-          <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-orange-300">
-            ACS
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-orange-500 hover:text-orange-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>
-                  Average Combat Score - comprehensive metric measuring overall
-                  impact per round including damage, kills, and utility usage.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-cyan-700/30 bg-cyan-900/20 p-4 text-center">
-          <div className="font-orbitron text-2xl font-bold text-cyan-400">
-            {valorantStats.stats.clutchFactor}
-          </div>
-          <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-cyan-300">
-            CLUTCH FACTOR
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <InfoIcon className="h-3 w-3 cursor-help text-cyan-500 hover:text-cyan-300" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                <p>
-                  Win rate in 1vX clutch situations. Measures performance under
-                  pressure when outnumbered.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section: Maps & Combat Stats */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Map Performance */}
-        <div className="rounded-lg border border-gray-700 bg-gray-900 p-5">
-          <h3 className="font-orbitron mb-4 text-lg font-semibold text-white">
-            Map Performance
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg border border-green-700/30 bg-green-900/20 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
-                  {valorantStats.bestMap.image ? (
-                    <Image
-                      src={valorantStats.bestMap.image}
-                      alt={valorantStats.bestMap.name}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        const span = img.nextElementSibling as HTMLSpanElement;
-                        img.style.display = "none";
-                        if (span) span.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <span
-                    className="text-xs text-gray-500"
-                    style={{
-                      display: valorantStats.bestMap.image ? "none" : "flex",
-                    }}
-                  >
-                    IMG
-                  </span>
-                </div>
-                <div>
-                  <div className="font-orbitron text-sm font-bold text-green-400">
-                    {valorantStats.bestMap.name}
-                  </div>
-                  <div className="font-rajdhani text-xs text-green-300">
-                    Best Map
-                  </div>
-                </div>
-              </div>
+        {/* Maps Row */}
+        <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
+          <div className="rounded-none border border-gray-700 bg-gray-900 p-4">
+            <div className="font-rajdhani mb-2 flex items-center gap-1 text-xs text-gray-400">
+              BEST MAP
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 cursor-help text-green-500 hover:text-green-300" />
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
                 </TooltipTrigger>
-                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white">
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
                   <p>
                     Highest win rate and performance map. Shows where the player
                     excels most consistently.
@@ -588,48 +492,46 @@ export function ValorantAnalytics({
                 </TooltipContent>
               </Tooltip>
             </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-red-700/30 bg-red-900/20 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
-                  {valorantStats.worstMap.image ? (
-                    <Image
-                      src={valorantStats.worstMap.image}
-                      alt={valorantStats.worstMap.name}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        const span = img.nextElementSibling as HTMLSpanElement;
-                        img.style.display = "none";
-                        if (span) span.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <span
-                    className="text-xs text-gray-500"
-                    style={{
-                      display: valorantStats.worstMap.image ? "none" : "flex",
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
+                {valorantStats.bestMap.image ? (
+                  <Image
+                    src={valorantStats.bestMap.image}
+                    alt={valorantStats.bestMap.name}
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      const span = img.nextElementSibling as HTMLSpanElement;
+                      img.style.display = "none";
+                      if (span) span.style.display = "flex";
                     }}
-                  >
-                    IMG
-                  </span>
-                </div>
-                <div>
-                  <div className="font-orbitron text-sm font-bold text-red-400">
-                    {valorantStats.worstMap.name}
-                  </div>
-                  <div className="font-rajdhani text-xs text-red-300">
-                    Needs Improvement
-                  </div>
-                </div>
+                  />
+                ) : null}
+                <span
+                  className="text-xs text-gray-500"
+                  style={{
+                    display: valorantStats.bestMap.image ? "none" : "flex",
+                  }}
+                >
+                  IMG
+                </span>
               </div>
+              <div className="font-orbitron text-lg font-bold text-green-400">
+                {valorantStats.bestMap.name}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-none border border-gray-700 bg-gray-900 p-4">
+            <div className="font-rajdhani mb-2 flex items-center gap-1 text-xs text-gray-400">
+              WORST MAP
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 cursor-help text-red-500 hover:text-red-300" />
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
                 </TooltipTrigger>
-                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white">
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
                   <p>
                     Lowest win rate and performance map. Indicates areas for
                     improvement.
@@ -637,54 +539,120 @@ export function ValorantAnalytics({
                 </TooltipContent>
               </Tooltip>
             </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-gray-600 bg-gray-800">
+                {valorantStats.worstMap.image ? (
+                  <Image
+                    src={valorantStats.worstMap.image}
+                    alt={valorantStats.worstMap.name}
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget as HTMLImageElement;
+                      const span = img.nextElementSibling as HTMLSpanElement;
+                      img.style.display = "none";
+                      if (span) span.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <span
+                  className="text-xs text-gray-500"
+                  style={{
+                    display: valorantStats.worstMap.image ? "none" : "flex",
+                  }}
+                >
+                  IMG
+                </span>
+              </div>
+              <div className="font-orbitron text-lg font-bold text-red-400">
+                {valorantStats.worstMap.name}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Combat Statistics */}
-        <div className="rounded-lg border border-gray-700 bg-gray-900 p-5">
-          <h3 className="font-orbitron mb-4 text-lg font-semibold text-white">
-            Combat Statistics
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="font-orbitron text-xl font-bold text-red-400">
-                {valorantStats.stats.kda}
-              </div>
-              <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
-                K/D/A RATIO
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                    <p>
-                      Kills/Deaths/Assists ratio. Shows average performance per
-                      game in eliminations and team support.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+        {/* Detailed Performance Metrics - Bottom Row */}
+        <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-bl-lg">
+            <div className="font-orbitron mb-1 text-xl font-bold text-red-400">
+              {valorantStats.stats.kda}
             </div>
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
+              K/D/A
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                  <p>
+                    Kills/Deaths/Assists ratio. Shows average performance per
+                    game in eliminations and team support.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
 
-            <div className="text-center">
-              <div className="font-orbitron text-xl font-bold text-yellow-400">
-                {valorantStats.stats.kastPercent}
-              </div>
-              <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
-                KAST %
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
-                    <p>
-                      Percentage of rounds where the player got a Kill, Assist,
-                      Survived, or was Traded. Measures consistent round
-                      contribution.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-br-none">
+            <div className="font-orbitron mb-1 text-xl font-bold text-orange-400">
+              {valorantStats.stats.acs}
+            </div>
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
+              ACS
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                  <p>
+                    Average Combat Score - comprehensive metric measuring
+                    overall impact per round including damage, kills, and
+                    utility usage.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div className="rounded-tl-none rounded-tr-none rounded-br-none rounded-bl-lg border border-gray-700 bg-gray-900 p-4 text-center md:rounded-bl-none">
+            <div className="font-orbitron mb-1 text-xl font-bold text-yellow-400">
+              {valorantStats.stats.kastPercent}
+            </div>
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
+              KAST%
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                  <p>
+                    Percentage of rounds where the player got a Kill, Assist,
+                    Survived, or was Traded. Measures consistent round
+                    contribution.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div className="rounded-tl-none rounded-tr-none rounded-br-lg rounded-bl-none border border-gray-700 bg-gray-900 p-4 text-center md:rounded-br-lg">
+            <div className="font-orbitron mb-1 text-xl font-bold text-cyan-400">
+              {valorantStats.stats.clutchFactor}
+            </div>
+            <div className="font-rajdhani flex items-center justify-center gap-1 text-xs text-gray-400">
+              CLUTCH FACTOR
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-3 w-3 cursor-help text-gray-500 hover:text-gray-300" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-48 border-gray-600 bg-black text-white md:max-w-56">
+                  <p>
+                    Win rate in 1vX clutch situations. Measures performance
+                    under pressure when outnumbered.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
