@@ -1,4 +1,4 @@
-# User Authentication & Onboarding Flow
+# User Authentication & Onboarding Flows
 
 ## Overview
 
