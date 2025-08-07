@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Code Quality Analyzer",
+  "description": "Monitors source code files for changes and provides automated code quality analysis including code smells, design patterns, and best practices suggestions",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.js",
+      "src/**/*.jsx",
+      "prisma/schema.prisma",
+      "*.config.js",
+      "*.config.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified code files for potential improvements. Focus on:\n\n1. **Code Smells**: Identify long functions, duplicate code, complex conditionals, and other maintainability issues\n2. **Design Patterns**: Suggest appropriate design patterns that could improve code structure\n3. **Best Practices**: Check for TypeScript best practices, React patterns, Next.js conventions, and tRPC usage\n4. **Performance**: Look for potential performance optimizations including database queries, component rendering, and bundle size\n5. **Security**: Identify potential security vulnerabilities or unsafe patterns\n6. **Accessibility**: Check for accessibility improvements in React components\n7. **Testing**: Suggest areas that would benefit from additional testing coverage\n\nFor each suggestion, provide:\n- Clear explanation of the issue\n- Specific code examples showing the problem\n- Recommended solution with example implementation\n- Priority level (High/Medium/Low)\n- Estimated impact on code quality\n\nFocus on actionable improvements that maintain existing functionality while enhancing readability, maintainability, and performance."
+  }
+}
