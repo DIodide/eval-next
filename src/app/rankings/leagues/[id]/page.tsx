@@ -11,22 +11,17 @@ import {
   Users,
   MapPin,
   ChevronRight,
-  TrendingUp,
   User,
   Loader2,
   Globe,
   ExternalLink,
+  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { api } from "@/trpc/react";
-
-function TrendIcon({ trend }: { trend: string }) {
-  if (trend === "up") return <TrendingUp className="h-4 w-4 text-green-400" />;
-  if (trend === "down")
-    return <TrendingUp className="h-4 w-4 rotate-180 text-red-400" />;
-  return <div className="h-4 w-4" />;
-}
+import { GSEStatsModal } from "@/components/GSEStatsModal";
+import type { GSERocketLeaguePlayer } from "@/types/gse";
 
 const gameColors = {
   VALORANT: "from-red-500 to-red-700",
@@ -52,14 +47,30 @@ const statusColors = {
 export default function LeagueDetailPage() {
   const params = useParams();
   const leagueId = params.id as string;
-  const [activeTab, setActiveTab] = useState("teams");
+  const [activeTab, setActiveTab] = useState("players");
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] =
+    useState<GSERocketLeaguePlayer | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   const {
     data: league,
     isLoading,
     error,
   } = api.leagues.getById.useQuery({ id: leagueId });
+
+  // Check if this is the GSE league for Rocket League
+  const isGSERocketLeague =
+    league?.short_name === "GSE" ||
+    league?.league_games?.some((lg) => lg.game.short_name === "Rocket League");
+
+  console.log("isGSERocketLeague", isGSERocketLeague);
+  // Fetch GSE external data if applicable
+  const gseQuery = api.gse.getRocketLeaguePlayers.useQuery(undefined, {
+    enabled: isGSERocketLeague,
+  });
+  const gseRocketLeaguePlayers = gseQuery.data;
+  const gsePlayersLoading = gseQuery.isLoading;
 
   // Set default game when league loads
   useEffect(() => {
@@ -78,6 +89,11 @@ export default function LeagueDetailPage() {
       id: leagueId,
       limit: 20,
     });
+
+  const handleViewStats = (player: GSERocketLeaguePlayer) => {
+    setSelectedPlayer(player);
+    setIsStatsModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -475,10 +491,15 @@ export default function LeagueDetailPage() {
               <CardHeader>
                 <CardTitle className="font-orbitron text-xl font-bold tracking-wide text-white">
                   Player Rankings
+                  {isGSERocketLeague && (
+                    <Badge className="ml-3 bg-gradient-to-r from-blue-500 to-blue-600 text-xs">
+                      Live GSE Data
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {playersLoading ? (
+                {(isGSERocketLeague ? gsePlayersLoading : playersLoading) ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-400/20 to-purple-500/20">
                       <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
@@ -486,6 +507,135 @@ export default function LeagueDetailPage() {
                     <span className="ml-3 font-medium text-gray-300">
                       Loading players...
                     </span>
+                  </div>
+                ) : isGSERocketLeague &&
+                  gseRocketLeaguePlayers &&
+                  gseRocketLeaguePlayers.length > 0 ? (
+                  <div className="space-y-3">
+                    {/* Desktop Table Header - Hidden on Mobile */}
+                    <div className="font-orbitron hidden grid-cols-12 gap-4 border-b border-gray-600/50 px-5 py-3 text-sm font-bold text-gray-400 md:grid">
+                      <div className="col-span-1 text-center">RANK</div>
+                      <div className="col-span-4">PLAYER</div>
+                      <div className="col-span-2 text-center">EVAL</div>
+                      <div className="col-span-2 text-center">GAMES</div>
+                      <div className="col-span-2 text-center">CAR</div>
+                      <div className="col-span-1 text-center">STATS</div>
+                    </div>
+
+                    {/* GSE Players Responsive Table Rows */}
+                    {gseRocketLeaguePlayers.map((player, index) => (
+                      <div
+                        key={player.id}
+                        className="group rounded-md border border-white/10 bg-slate-900/15 backdrop-blur-sm transition-all duration-300 hover:border-blue-400/30 hover:bg-slate-700/10 hover:shadow-lg hover:shadow-blue-400/10"
+                      >
+                        {/* Desktop Layout */}
+                        <div className="hidden grid-cols-12 items-center gap-4 p-5 md:grid">
+                          <div className="col-span-1 flex justify-center">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-lg">
+                              <span className="font-orbitron text-sm font-black text-black">
+                                {index + 1}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="col-span-4">
+                            <h3 className="font-orbitron font-bold text-white transition-colors group-hover:text-blue-200">
+                              {player.ign}
+                            </h3>
+                            <p className="text-sm font-medium text-gray-400">
+                              GSE Player
+                            </p>
+                            <p className="text-xs font-medium text-gray-500">
+                              {player.stats.total_wins}W -{" "}
+                              {player.stats.total_losses}L
+                            </p>
+                          </div>
+
+                          <div className="col-span-2 text-center">
+                            <p className="font-orbitron font-black text-blue-400">
+                              {Number(player.eval_score).toFixed(1)}
+                            </p>
+                          </div>
+
+                          <div className="col-span-2 text-center">
+                            <p className="font-medium text-gray-300">
+                              {player.total_games}
+                            </p>
+                          </div>
+
+                          <div className="col-span-2 text-center">
+                            <p className="text-sm font-medium text-gray-300">
+                              {player.stats.main_car}
+                            </p>
+                          </div>
+
+                          <div className="col-span-1 flex justify-center">
+                            <button
+                              onClick={() => handleViewStats(player)}
+                              className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 p-2 transition-all duration-300 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
+                            >
+                              <BarChart3 className="h-4 w-4 text-white" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Mobile Layout */}
+                        <div className="p-4 md:hidden">
+                          <div className="flex items-start space-x-4">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-lg">
+                              <span className="font-orbitron text-xs font-black text-black">
+                                {index + 1}
+                              </span>
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-orbitron truncate font-bold text-white transition-colors group-hover:text-blue-200">
+                                {player.ign}
+                              </h3>
+                              <p className="truncate text-sm font-medium text-gray-400">
+                                GSE Player • {player.stats.main_car}
+                              </p>
+
+                              <div className="mt-3 grid grid-cols-4 gap-2 border-t border-gray-600/30 pt-3">
+                                <div className="text-center">
+                                  <p className="text-xs font-medium text-gray-400">
+                                    EVAL
+                                  </p>
+                                  <p className="font-orbitron text-sm font-black text-blue-400">
+                                    {Number(player.eval_score).toFixed(1)}
+                                  </p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs font-medium text-gray-400">
+                                    GAMES
+                                  </p>
+                                  <p className="text-sm font-medium text-gray-300">
+                                    {player.total_games}
+                                  </p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs font-medium text-gray-400">
+                                    W-L
+                                  </p>
+                                  <p className="text-sm font-medium text-gray-300">
+                                    {player.stats.total_wins}-
+                                    {player.stats.total_losses}
+                                  </p>
+                                </div>
+                                <div className="text-center">
+                                  <button
+                                    onClick={() => handleViewStats(player)}
+                                    className="mx-auto rounded-full bg-gradient-to-r from-blue-500 to-blue-600 p-1.5 transition-all duration-300 hover:from-blue-600 hover:to-blue-700"
+                                  >
+                                    <BarChart3 className="h-4 w-4 text-white" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : topPlayers && topPlayers.length > 0 ? (
                   <div className="space-y-3">
@@ -760,6 +910,16 @@ export default function LeagueDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* GSE Stats Modal */}
+      {selectedPlayer && (
+        <GSEStatsModal
+          isOpen={isStatsModalOpen}
+          onClose={() => setIsStatsModalOpen(false)}
+          playerName={selectedPlayer.ign}
+          stats={selectedPlayer.stats}
+        />
+      )}
     </div>
   );
 }
