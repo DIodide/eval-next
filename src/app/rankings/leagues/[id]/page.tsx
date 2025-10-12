@@ -543,7 +543,7 @@ export default function LeagueDetailPage() {
                               {player.ign}
                             </h3>
                             <p className="text-sm font-medium text-gray-400">
-                              GSE Player
+                              {player.team ?? "GSE Player"}
                             </p>
                             <p className="text-xs font-medium text-gray-500">
                               {player.stats.total_wins}W -{" "}
@@ -593,7 +593,10 @@ export default function LeagueDetailPage() {
                                 {player.ign}
                               </h3>
                               <p className="truncate text-sm font-medium text-gray-400">
-                                GSE Player • {player.stats.main_car}
+                                {player.team
+                                  ? `${player.team} • `
+                                  : "GSE Player • "}
+                                {player.stats.main_car}
                               </p>
 
                               <div className="mt-3 grid grid-cols-4 gap-2 border-t border-gray-600/30 pt-3">
