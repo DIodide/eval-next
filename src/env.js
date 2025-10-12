@@ -21,6 +21,9 @@ export const env = createEnv({
     CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
     EVAL_API_BASE: z.string(),
 
+    // GSE External Database
+    GSE_DATABASE_URL: z.string().url(),
+
     // Discord webhook URLs (optional)
     DISCORD_WEBHOOK_GENERAL: z.string().optional(),
     DISCORD_WEBHOOK_ADMIN: z.string().optional(),
@@ -63,6 +66,7 @@ export const env = createEnv({
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
     EVAL_API_BASE: process.env.EVAL_API_BASE,
+    GSE_DATABASE_URL: process.env.GSE_DATABASE_URL,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
     DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,
