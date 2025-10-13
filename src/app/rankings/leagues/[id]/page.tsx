@@ -301,7 +301,7 @@ export default function LeagueDetailPage() {
         </div>
 
         {/* Game Selection Tabs - Only show if multiple games */}
-        {league.league_games && league.league_games.length > 1 && (
+        {/* {league.league_games && league.league_games.length > 1 && (
           <div className="mb-6">
             <div className="mb-4 flex items-center justify-center">
               <span className="font-orbitron mr-4 text-sm font-bold text-gray-400">
@@ -324,7 +324,7 @@ export default function LeagueDetailPage() {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Rankings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
