@@ -2,19 +2,8 @@
 
 import type React from "react";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -22,16 +11,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Mail,
-  Phone,
-  MapPin,
-  Send,
-  MessageSquare,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { env } from "@/env";
+import {
+  AlertCircle,
+  CheckCircle,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Send,
+} from "lucide-react";
+import { useState } from "react";
 
 export default function AboutContactPage() {
   const [formData, setFormData] = useState({
@@ -366,6 +366,7 @@ export default function AboutContactPage() {
                     <Input
                       id="subject"
                       value={formData.subject}
+                      maxLength={200}
                       onChange={(e) =>
                         handleInputChange("subject", e.target.value)
                       }
@@ -386,6 +387,7 @@ export default function AboutContactPage() {
                     <Textarea
                       id="message"
                       value={formData.message}
+                      maxLength={1200}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         handleInputChange("message", e.target.value)
                       }
