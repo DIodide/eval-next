@@ -24,7 +24,7 @@
     "db:reset:full": "npm run db:reset:confirm && npm run db:seed",
     "dev": "concurrently \"next dev --turbo\" \"ngrok http --url=fluent-peacock-grown.ngrok-free.app 3000\"",
     "dev:next": "next dev --turbo",
-    "dev:ngrok": "ngrok http --url=bison-pleased-unicorn.ngrok-free.app 3000",
+    "dev:ngrok": "ngrok http --url=fluent-peacock-grown.ngrok-free.app 3000",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "postinstall": "prisma generate && prisma migrate deploy && tsx prisma/seed_production.ts",
