@@ -1,6 +1,10 @@
 import { db } from "@/server/db";
-import type { PurchaseProductType, PurchaseStatus } from "@prisma/client";
-import Stripe from "stripe";
+import type {
+  Prisma,
+  PurchaseProductType,
+  PurchaseStatus,
+} from "@prisma/client";
+import type Stripe from "stripe";
 import { stripe } from "./stripe";
 
 /**
@@ -67,8 +71,10 @@ export async function syncPurchaseFromPaymentIntent(
     currency: paymentIntent.currency,
     status: mapPaymentIntentStatus(paymentIntent.status),
     metadata: paymentIntent.metadata
-      ? JSON.parse(JSON.stringify(paymentIntent.metadata))
-      : null,
+      ? (JSON.parse(
+          JSON.stringify(paymentIntent.metadata),
+        ) as Prisma.InputJsonValue)
+      : undefined,
   };
 
   // Upsert purchase
@@ -111,8 +117,8 @@ export async function syncPurchaseFromCheckoutSession(
     currency: session.currency ?? "usd",
     status: mapCheckoutSessionStatus(session.payment_status),
     metadata: session.metadata
-      ? JSON.parse(JSON.stringify(session.metadata))
-      : null,
+      ? (JSON.parse(JSON.stringify(session.metadata)) as Prisma.InputJsonValue)
+      : undefined,
   };
 
   // Upsert purchase

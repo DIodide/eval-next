@@ -43,13 +43,59 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function PricingPage() {
+function SearchParamsHandler({
+  setPaymentStatusDialog,
+}: {
+  setPaymentStatusDialog: React.Dispatch<
+    React.SetStateAction<{
+      open: boolean;
+      type: "success" | "failed" | "canceled" | null;
+      planName?: string;
+      message?: string;
+    }>
+  >;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    const plan = searchParams.get("plan");
+
+    if (success === "true") {
+      const planName =
+        plan === "gold"
+          ? "EVAL Gold"
+          : plan === "platinum"
+            ? "EVAL Platinum"
+            : "Premium";
+      setPaymentStatusDialog({
+        open: true,
+        type: "success",
+        planName,
+      });
+      router.replace("/pricing", { scroll: false });
+    }
+
+    if (canceled === "true") {
+      setPaymentStatusDialog({
+        open: true,
+        type: "canceled",
+      });
+      router.replace("/pricing", { scroll: false });
+    }
+  }, [searchParams, router, setPaymentStatusDialog]);
+
+  return null;
+}
+
+function PricingPageContent() {
   const { user } = useUser();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Get user type from Clerk metadata to determine default tab
   const userType = user?.publicMetadata?.userType as
@@ -77,10 +123,9 @@ export default function PricingPage() {
   });
 
   // Fetch customer data if user is logged in
-  const { data: customerData, isLoading: isLoadingCustomer } =
-    api.payments.getCustomer.useQuery(undefined, {
-      enabled: !!user,
-    });
+  const { data: customerData } = api.payments.getCustomer.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   // Create subscription checkout mutation
   const createSubscriptionCheckout =
@@ -238,38 +283,6 @@ export default function PricingPage() {
 
   const currentPlan = getCurrentPlan();
 
-  // Handle success/cancel redirects
-  useEffect(() => {
-    const success = searchParams.get("success");
-    const canceled = searchParams.get("canceled");
-    const plan = searchParams.get("plan");
-
-    if (success === "true") {
-      const planName =
-        plan === "gold"
-          ? "EVAL Gold"
-          : plan === "platinum"
-            ? "EVAL Platinum"
-            : "Premium";
-      setPaymentStatusDialog({
-        open: true,
-        type: "success",
-        planName,
-      });
-      // Clean up URL
-      router.replace("/pricing", { scroll: false });
-    }
-
-    if (canceled === "true") {
-      setPaymentStatusDialog({
-        open: true,
-        type: "canceled",
-      });
-      // Clean up URL
-      router.replace("/pricing", { scroll: false });
-    }
-  }, [searchParams, router]);
-
   // Update active tab when userType becomes available
   useEffect(() => {
     if (userType === "coach") {
@@ -283,6 +296,11 @@ export default function PricingPage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30">
+      {/* Search params handler wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <SearchParamsHandler setPaymentStatusDialog={setPaymentStatusDialog} />
+      </Suspense>
+
       {/* Enhanced Background with Floating Elements */}
       <div className="absolute inset-0 bg-black/50"></div>
       <div className="absolute top-20 left-10 h-32 w-32 animate-pulse rounded-full bg-cyan-500/20 blur-xl"></div>
@@ -1161,7 +1179,7 @@ export default function PricingPage() {
                 </div>
                 <div className="space-y-2">
                   <p className="font-rajdhani text-sm font-semibold text-white">
-                    What's next?
+                    What&apos;s next?
                   </p>
                   <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
                     <li className="flex items-start">
@@ -1219,7 +1237,7 @@ export default function PricingPage() {
                   PAYMENT FAILED
                 </DialogTitle>
                 <DialogDescription className="font-rajdhani text-base text-gray-300">
-                  We couldn't process your payment
+                  We couldn&apos;t process your payment
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -1366,5 +1384,13 @@ export default function PricingPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <PricingPageContent />
+    </Suspense>
   );
 }

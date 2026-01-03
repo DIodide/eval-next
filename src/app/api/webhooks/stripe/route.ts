@@ -9,7 +9,7 @@ import { syncSubscriptionFromStripe } from "@/lib/server/stripe-subscriptions";
 import { db } from "@/server/db";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         await syncSubscriptionFromStripe(subscription);
 
         // Grant entitlements based on subscription
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object;
         await syncSubscriptionFromStripe(subscription);
 
         // Revoke entitlements when subscription is canceled
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "payment_intent.succeeded": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await syncPurchaseFromPaymentIntent(paymentIntent);
 
         // Grant entitlements for one-time purchases
@@ -125,13 +125,13 @@ export async function POST(req: NextRequest) {
       }
 
       case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await syncPurchaseFromPaymentIntent(paymentIntent);
         break;
       }
 
       case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         await syncPurchaseFromCheckoutSession(session);
 
         // Handle subscription checkout completion
@@ -146,14 +146,14 @@ export async function POST(req: NextRequest) {
 
       // mostly same as "invoice.paid" but with different event type
       case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object;
         // TODO: provision entitlements for the invoice such as credits, items, etc.
         console.log("Successful Invoice for customer", invoice.customer);
         break;
       }
 
       case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object;
         // Handle failed payment - subscription may be past_due
         // invoice.customer
         console.log("Failed Invoice for customer", invoice.customer);

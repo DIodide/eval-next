@@ -1,5 +1,5 @@
 import { db } from "@/server/db";
-import type { EntitlementSource } from "@prisma/client";
+import type { EntitlementSource, Prisma } from "@prisma/client";
 
 /**
  * Feature keys enum - centralize feature names to avoid typos
@@ -110,7 +110,9 @@ export async function grantEntitlement(
       subscription_id: options?.subscriptionId ?? null,
       purchase_id: options?.purchaseId ?? null,
       expires_at: options?.expiresAt ?? null,
-      metadata: options?.metadata ? JSON.parse(JSON.stringify(options.metadata)) : null,
+      metadata: options?.metadata
+        ? (JSON.parse(JSON.stringify(options.metadata)) as Prisma.InputJsonValue)
+        : undefined,
       is_active: true,
     },
     update: {
@@ -118,7 +120,9 @@ export async function grantEntitlement(
       subscription_id: options?.subscriptionId ?? null,
       purchase_id: options?.purchaseId ?? null,
       expires_at: options?.expiresAt ?? null,
-      metadata: options?.metadata ? JSON.parse(JSON.stringify(options.metadata)) : null,
+      metadata: options?.metadata
+        ? (JSON.parse(JSON.stringify(options.metadata)) as Prisma.InputJsonValue)
+        : undefined,
       is_active: true,
       updated_at: new Date(),
     },

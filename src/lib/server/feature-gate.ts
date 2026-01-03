@@ -1,5 +1,15 @@
+import type { createTRPCContext } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { hasFeatureAccess, type FeatureKey } from "./entitlements";
+
+type Context = Awaited<ReturnType<typeof createTRPCContext>>;
+
+type MiddlewareParams = {
+  next: (opts: {
+    ctx: Context & { hasFeatureAccess?: boolean };
+  }) => Promise<unknown>;
+  ctx: Context;
+};
 
 /**
  * tRPC middleware to gate procedures behind feature access
@@ -9,8 +19,8 @@ import { hasFeatureAccess, type FeatureKey } from "./entitlements";
  *   .use(requireFeature(FEATURE_KEYS.PREMIUM_SEARCH));
  */
 export function requireFeature(featureKey: FeatureKey) {
-  return async ({ next, ctx }: { next: any; ctx: any }) => {
-    if (!ctx.auth.userId) {
+  return async ({ next, ctx }: MiddlewareParams) => {
+    if (!ctx.auth?.userId) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User not authenticated",
