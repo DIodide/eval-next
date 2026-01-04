@@ -1,14 +1,14 @@
 // This router is used to get the school profile, tryouts, games, and stats for a school
 
-import { z } from "zod";
+import { withRetry } from "@/lib/server/db-utils";
 import {
   createTRPCRouter,
-  publicProcedure,
   onboardedCoachProcedure,
+  publicProcedure,
 } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
-import { withRetry } from "@/lib/server/db-utils";
 import type { Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 // Input validation schema for school information updates
 const schoolInfoUpdateSchema = z.object({
@@ -75,17 +75,29 @@ export const schoolProfileRouter = createTRPCRouter({
         where: { id: input.id },
         select: {
           id: true,
+          slug: true,
           name: true,
           type: true,
           location: true,
           state: true,
           region: true,
+          country: true,
+          country_iso2: true,
           website: true,
           email: true,
           phone: true,
           bio: true,
           logo_url: true,
           banner_url: true,
+          esports_titles: true,
+          social_links: true,
+          discord_handle: true,
+          in_state_tuition: true,
+          out_of_state_tuition: true,
+          minimum_gpa: true,
+          minimum_sat: true,
+          minimum_act: true,
+          scholarships_available: true,
           created_at: true,
           coaches: {
             select: {
@@ -198,17 +210,29 @@ export const schoolProfileRouter = createTRPCRouter({
           where: { id: schoolId },
           select: {
             id: true,
+            slug: true,
             name: true,
             type: true,
             location: true,
             state: true,
             region: true,
+            country: true,
+            country_iso2: true,
             website: true,
             email: true,
             phone: true,
             bio: true,
             logo_url: true,
             banner_url: true,
+            esports_titles: true,
+            social_links: true,
+            discord_handle: true,
+            in_state_tuition: true,
+            out_of_state_tuition: true,
+            minimum_gpa: true,
+            minimum_sat: true,
+            minimum_act: true,
+            scholarships_available: true,
             created_at: true,
             updated_at: true,
           },
@@ -896,6 +920,109 @@ export const schoolProfileRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete school announcement",
+        });
+      }
+    }),
+
+  // Public endpoint to search and filter colleges
+  searchColleges: publicProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        gameIds: z.array(z.string().uuid()).optional(),
+        hasScholarships: z.boolean().optional(),
+        inUS: z.boolean().optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const { search, gameIds, hasScholarships, inUS, limit, offset } = input;
+
+        const where: Prisma.SchoolWhereInput = {
+          // Only return colleges/universities
+          type: {
+            in: ["COLLEGE", "UNIVERSITY"],
+          },
+        };
+
+        // Search filter
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: "insensitive" } },
+            { location: { contains: search, mode: "insensitive" } },
+            { state: { contains: search, mode: "insensitive" } },
+          ];
+        }
+
+        //! TODO: Check game against the esports_titles array
+        // Game filter - check if school has any of the specified games in esports_titles
+        if (gameIds && gameIds.length > 0) {
+          // Get game names from IDs
+          const games = await ctx.db.game.findMany({
+            where: { id: { in: gameIds } },
+            select: { name: true },
+          });
+          const gameNames = games.map((g) => g.name);
+          if (gameNames.length > 0) {
+            where.esports_titles = {
+              hasSome: gameNames,
+            };
+          }
+        }
+
+        // Scholarships filter
+        if (hasScholarships !== undefined) {
+          where.scholarships_available = hasScholarships;
+        }
+
+        // In/Out of US filter
+        if (inUS !== undefined) {
+          if (inUS) {
+            where.country_iso2 = "US";
+          } else {
+            where.country_iso2 = { not: "US" };
+          }
+        }
+
+        const [schools, total] = await Promise.all([
+          withRetry(() =>
+            ctx.db.school.findMany({
+              where,
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                type: true,
+                location: true,
+                state: true,
+                region: true,
+                country: true,
+                country_iso2: true,
+                logo_url: true,
+                esports_titles: true,
+                scholarships_available: true,
+                bio: true,
+              },
+              orderBy: [{ name: "asc" }],
+              skip: offset,
+              take: limit,
+            }),
+          ),
+          withRetry(() => ctx.db.school.count({ where })),
+        ]);
+
+        return {
+          schools,
+          total,
+          hasMore: offset + limit < total,
+        };
+      } catch (error) {
+        console.error("Error searching colleges:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to search colleges",
         });
       }
     }),
