@@ -21,8 +21,12 @@ export const env = createEnv({
     CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
     EVAL_API_BASE: z.string(),
 
+    // Stripe Payment Processing
+    STRIPE_SECRET_KEY: z.string(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
     // GSE External Database
-    GSE_DATABASE_URL: z.string().url(),
+    GSE_DATABASE_URL: z.string().url().optional(),
 
     // Discord webhook URLs (optional)
     DISCORD_WEBHOOK_GENERAL: z.string().optional(),
@@ -48,6 +52,9 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string(),
     NEXT_PUBLIC_POSTHOG_HOST: z.string(),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID: z.string(),
+    NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID: z.string(),
   },
 
   /**
@@ -66,6 +73,8 @@ export const env = createEnv({
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
     EVAL_API_BASE: process.env.EVAL_API_BASE,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     GSE_DATABASE_URL: process.env.GSE_DATABASE_URL,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
@@ -88,6 +97,12 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID:
+      process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID,
+    NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID:
+      process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

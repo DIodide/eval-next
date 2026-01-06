@@ -1,20 +1,18 @@
 "use client";
-import Link from "next/link";
-import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  ChevronDown,
-  Search,
-  User,
-  GraduationCap,
-  X,
-  Shield,
-  Menu,
-  Trophy,
-  DollarSign,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { api } from "@/trpc/react";
 import {
   SignInButton,
   SignUpButton,
@@ -24,18 +22,20 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { api } from "@/trpc/react";
+  ChevronDown,
+  DollarSign,
+  GraduationCap,
+  Menu,
+  Search,
+  Shield,
+  Trophy,
+  User,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 type SearchResult = {
   id: string;
@@ -226,7 +226,7 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
               TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
@@ -242,15 +242,15 @@ export default function Navbar() {
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuContent>
-          </DropdownMenu>
-          <SignedOut>
+          </DropdownMenu> */}
+          {/* <SignedOut>
             <Link
               href="/pricing"
               className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
             >
               PRICING
             </Link>
-          </SignedOut>
+          </SignedOut> */}
           <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
