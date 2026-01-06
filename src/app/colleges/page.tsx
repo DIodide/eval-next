@@ -70,12 +70,13 @@ export default function CollegesPage() {
     <div className="min-h-screen bg-black/95 text-white">
       {/* Header */}
       <div className="border-b border-gray-800 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 py-12">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-6 text-center">
           <h1 className="font-orbitron mb-4 text-4xl font-black text-white md:text-5xl">
             COLLEGE DIRECTORY
           </h1>
           <p className="font-rajdhani text-xl text-gray-300">
             Discover colleges and universities with esports programs
+            <span className="text-cyan-400"> you are interested in</span>.
           </p>
         </div>
       </div>

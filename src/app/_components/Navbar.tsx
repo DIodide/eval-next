@@ -12,11 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { api } from "@/trpc/react";
 import {
   SignInButton,
@@ -84,8 +79,6 @@ export default function Navbar() {
 
   // Check if we're on a dashboard route
   const isDashboardRoute = pathname?.startsWith("/dashboard");
-  // Check if we're on the home page
-  const isHomePage = pathname === "/";
 
   // Check admin status when user is signed in
   useEffect(() => {
@@ -137,17 +130,15 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Show search results when input is focused or we are loading/received data
+  // Show search results when we have results and input is focused
   useEffect(() => {
     setShowSearchResults(
-      searchQuery.length >= 2 &&
-        (searchInputFocused || isSearchLoading || searchResults !== undefined),
+      searchInputFocused &&
+        searchQuery.length >= 2 &&
+        (searchResults?.results.length ?? 0) > 0 &&
+        !isSearchLoading,
     );
   }, [searchInputFocused, searchQuery, searchResults, isSearchLoading]);
-
-  const desktopPopoverOpen =
-    searchQuery.length >= 2 &&
-    (searchInputFocused || isSearchLoading || showSearchResults);
 
   const handleSearchResultClick = (result: SearchResult) => {
     if (!result?.link) return;
@@ -217,12 +208,6 @@ export default function Navbar() {
             className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
           >
             NEWS
-          </Link>
-          <Link
-            href="/colleges"
-            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
-          >
-            COLLEGES
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
@@ -342,158 +327,139 @@ export default function Navbar() {
 
         {/* Mobile menu button and user actions */}
         <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Search - Hidden on mobile, visible on md+, and hidden on home page */}
-          {!isHomePage && (
-            <div className="hidden md:block">
-              <Popover
-                modal={false}
-                open={desktopPopoverOpen}
-                onOpenChange={(open) => {
-                  if (
-                    !open &&
-                    document.activeElement !== searchInputRef.current
-                  ) {
-                    setShowSearchResults(false);
-                    setSearchInputFocused(false);
-                  }
+          {/* Search - Hidden on mobile/tablet, visible on lg+ (same as desktop nav) */}
+          <div className="relative hidden lg:block">
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="SEARCH PLAYERS, COACHES, SCHOOLS & LEAGUES"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchInputFocused(true)}
+              className="search-rainbow font-orbitron glass-morphism text-premium w-64 rounded-xl border-white/20 py-2 pr-10 pl-4 text-white transition-all duration-300 focus:w-72"
+            />
+            {isSearchLoading && searchQuery.length >= 2 ? (
+              <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
+              </div>
+            ) : (
+              <Search className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+            )}
+
+            {/* Search Results Dropdown */}
+            {(showSearchResults ||
+              (isSearchLoading && searchQuery.length >= 2)) && (
+              <div
+                ref={searchResultsRef}
+                className="glass-morphism esports-card absolute top-full right-0 z-50 mt-2 w-max max-w-lg min-w-96 rounded-xl border border-white/20 shadow-lg"
+                style={{
+                  maxHeight:
+                    searchResults && searchResults.results.length === 1
+                      ? "auto"
+                      : "20rem",
+                  overflowY:
+                    searchResults && searchResults.results.length <= 2
+                      ? "hidden"
+                      : "auto",
+                  overflowX: "hidden",
                 }}
               >
-                <PopoverTrigger asChild>
-                  <div className="relative">
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      placeholder="SEARCH PLAYERS, COACHES, SCHOOLS & LEAGUES"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => setSearchInputFocused(true)}
-                      className="search-rainbow font-orbitron glass-morphism text-premium w-64 rounded-xl border-white/20 py-2 pr-10 pl-4 text-white transition-all duration-300 focus:w-72"
-                    />
-                    {isSearchLoading && searchQuery.length >= 2 ? (
-                      <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
-                      </div>
-                    ) : (
-                      <Search className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                    )}
-                  </div>
-                </PopoverTrigger>
-
-                <PopoverContent
-                  ref={searchResultsRef}
-                  align="start"
-                  sideOffset={8}
-                  className="glass-morphism esports-card w-[32rem] max-w-[calc(100vw-2rem)] min-w-[24rem] border border-white/20 p-0 shadow-lg"
-                  style={{
-                    maxHeight:
-                      searchResults && searchResults.results.length === 1
-                        ? "auto"
-                        : "20rem",
-                    overflowY:
-                      searchResults && searchResults.results.length <= 2
-                        ? "hidden"
-                        : "auto",
-                    overflowX: "hidden",
-                  }}
-                >
-                  {isSearchLoading && searchQuery.length >= 2 ? (
-                    <div className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center space-x-3">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
-                        <span className="font-inter text-gray-300">
-                          Searching...
-                        </span>
-                      </div>
+                {isSearchLoading && searchQuery.length >= 2 ? (
+                  <div className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
+                      <span className="font-inter text-gray-300">
+                        Searching...
+                      </span>
                     </div>
-                  ) : (
-                    searchResults?.results.map((result) => (
-                      <button
-                        key={result.id}
-                        onClick={() => handleSearchResultClick(result)}
-                        className="group w-full border-b border-white/10 px-6 py-4 text-left transition-all duration-300 last:border-b-0 hover:bg-white/10"
-                      >
-                        <div className="flex items-center space-x-3">
-                          {/* Profile Image or Game Icon */}
-                          <div className="flex-shrink-0">
-                            {result.image_url ? (
-                              <Image
-                                src={result.image_url}
-                                alt={result.title}
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
-                              />
-                            ) : result.type === "PLAYER" &&
-                              result.game?.icon ? (
-                              <Image
-                                src={result.game.icon}
-                                alt={result.game.name}
-                                width={40}
-                                height={40}
-                                className="h-10 w-10 rounded object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
-                              />
-                            ) : result.type === "SCHOOL" ? (
-                              <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-purple-500 to-blue-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
-                                <GraduationCap className="h-5 w-5 text-white" />
-                              </div>
-                            ) : result.type === "LEAGUE" ? (
-                              <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-yellow-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
-                                <Trophy className="h-5 w-5 text-white" />
-                              </div>
-                            ) : (
-                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
-                                <User className="h-5 w-5 text-white" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Result Info */}
-                          <div className="min-w-0 flex-1">
-                            <div className="font-inter truncate font-semibold text-white transition-colors duration-300 group-hover:text-cyan-300">
-                              {result.title}
+                  </div>
+                ) : (
+                  searchResults?.results.map((result) => (
+                    <button
+                      key={result.id}
+                      onClick={() => handleSearchResultClick(result)}
+                      className="group w-full border-b border-white/10 px-6 py-4 text-left transition-all duration-300 last:border-b-0 hover:bg-white/10"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {/* Profile Image or Game Icon */}
+                        <div className="flex-shrink-0">
+                          {result.image_url ? (
+                            <Image
+                              src={result.image_url}
+                              alt={result.title}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
+                            />
+                          ) : result.type === "PLAYER" && result.game?.icon ? (
+                            <Image
+                              src={result.game.icon}
+                              alt={result.game.name}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
+                            />
+                          ) : result.type === "SCHOOL" ? (
+                            <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-purple-500 to-blue-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
+                              <GraduationCap className="h-5 w-5 text-white" />
                             </div>
-                            <div className="font-inter truncate text-sm text-gray-300">
-                              {result.subtitle}
+                          ) : result.type === "LEAGUE" ? (
+                            <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-yellow-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
+                              <Trophy className="h-5 w-5 text-white" />
                             </div>
-                            {result.type === "PLAYER" && result.game && (
-                              <div className="mt-1 text-xs font-medium text-cyan-400">
-                                {result.game.name}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Type Badge */}
-                          <div className="flex-shrink-0">
-                            <span
-                              className={`font-inter rounded-full px-3 py-1 text-xs font-semibold tracking-wide transition-all duration-300 ${
-                                result.type === "PLAYER"
-                                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white group-hover:from-cyan-400 group-hover:to-blue-500"
-                                  : result.type === "COACH"
-                                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white group-hover:from-green-400 group-hover:to-emerald-500"
-                                    : result.type === "LEAGUE"
-                                      ? "bg-gradient-to-r from-orange-500 to-yellow-600 text-white group-hover:from-orange-400 group-hover:to-yellow-500"
-                                      : "bg-gradient-to-r from-purple-500 to-violet-600 text-white group-hover:from-purple-400 group-hover:to-violet-500"
-                              }`}
-                            >
-                              {result.type}
-                            </span>
-                          </div>
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
+                              <User className="h-5 w-5 text-white" />
+                            </div>
+                          )}
                         </div>
-                      </button>
-                    ))
-                  )}
 
-                  {!isSearchLoading &&
-                    searchQuery.length >= 2 &&
-                    searchResults?.results.length === 0 && (
-                      <div className="font-inter px-6 py-4 text-center text-gray-400">
-                        No results found for &quot;{searchQuery}&quot;
+                        {/* Result Info */}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-inter truncate font-semibold text-white transition-colors duration-300 group-hover:text-cyan-300">
+                            {result.title}
+                          </div>
+                          <div className="font-inter truncate text-sm text-gray-300">
+                            {result.subtitle}
+                          </div>
+                          {result.type === "PLAYER" && result.game && (
+                            <div className="mt-1 text-xs font-medium text-cyan-400">
+                              {result.game.name}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Type Badge */}
+                        <div className="flex-shrink-0">
+                          <span
+                            className={`font-inter rounded-full px-3 py-1 text-xs font-semibold tracking-wide transition-all duration-300 ${
+                              result.type === "PLAYER"
+                                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white group-hover:from-cyan-400 group-hover:to-blue-500"
+                                : result.type === "COACH"
+                                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white group-hover:from-green-400 group-hover:to-emerald-500"
+                                  : result.type === "LEAGUE"
+                                    ? "bg-gradient-to-r from-orange-500 to-yellow-600 text-white group-hover:from-orange-400 group-hover:to-yellow-500"
+                                    : "bg-gradient-to-r from-purple-500 to-violet-600 text-white group-hover:from-purple-400 group-hover:to-violet-500"
+                            }`}
+                          >
+                            {result.type}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
+                    </button>
+                  ))
+                )}
+
+                {!isSearchLoading &&
+                  searchQuery.length >= 2 &&
+                  searchResults?.results.length === 0 && (
+                    <div className="font-inter px-6 py-4 text-center text-gray-400">
+                      No results found for &quot;{searchQuery}&quot;
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
 
           {/* User buttons - visible on desktop */}
           <div className="hidden items-center space-x-4 md:flex">
@@ -602,148 +568,146 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="border-t border-gray-700 bg-black/95 backdrop-blur-sm lg:hidden">
           <div className="container mx-auto space-y-4 px-4 py-4">
-            {/* Mobile Search - Hidden on home page */}
-            {!isHomePage && (
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="SEARCH PLAYERS, COACHES, SCHOOLS & LEAGUES"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setSearchInputFocused(true)}
-                  className="search-rainbow glass-morphism font-inter w-full rounded-xl py-3 pr-12 pl-4 text-white transition-all duration-300"
-                />
-                {isSearchLoading && searchQuery.length >= 2 ? (
-                  <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="absolute top-1/2 right-3 -translate-y-1/2 transform"
-                  >
-                    <Search className="h-5 w-5 text-gray-400" />
-                  </button>
-                )}
+            {/* Mobile Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="SEARCH PLAYERS, COACHES, SCHOOLS & LEAGUES"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchInputFocused(true)}
+                className="search-rainbow glass-morphism font-inter w-full rounded-xl py-3 pr-12 pl-4 text-white transition-all duration-300"
+              />
+              {isSearchLoading && searchQuery.length >= 2 ? (
+                <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 transform"
+                >
+                  <Search className="h-5 w-5 text-gray-400" />
+                </button>
+              )}
 
-                {/* Mobile Search Results */}
-                {(showSearchResults ||
-                  (isSearchLoading && searchQuery.length >= 2)) && (
-                  <div
-                    className="glass-morphism esports-card absolute top-full right-0 left-0 z-50 mt-2 rounded-xl border border-white/20 shadow-lg"
-                    style={{
-                      maxHeight:
-                        searchResults && searchResults.results.length === 1
-                          ? "auto"
-                          : "20rem",
-                      overflowY:
-                        searchResults && searchResults.results.length <= 2
-                          ? "hidden"
-                          : "auto",
-                      overflowX: "hidden",
-                    }}
-                  >
-                    {isSearchLoading && searchQuery.length >= 2 ? (
-                      <div className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center space-x-3">
-                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
-                          <span className="font-inter text-gray-300">
-                            Searching...
-                          </span>
-                        </div>
+              {/* Mobile Search Results */}
+              {(showSearchResults ||
+                (isSearchLoading && searchQuery.length >= 2)) && (
+                <div
+                  className="glass-morphism esports-card absolute top-full right-0 left-0 z-50 mt-2 rounded-xl border border-white/20 shadow-lg"
+                  style={{
+                    maxHeight:
+                      searchResults && searchResults.results.length === 1
+                        ? "auto"
+                        : "20rem",
+                    overflowY:
+                      searchResults && searchResults.results.length <= 2
+                        ? "hidden"
+                        : "auto",
+                    overflowX: "hidden",
+                  }}
+                >
+                  {isSearchLoading && searchQuery.length >= 2 ? (
+                    <div className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></div>
+                        <span className="font-inter text-gray-300">
+                          Searching...
+                        </span>
                       </div>
-                    ) : (
-                      searchResults?.results.map((result) => (
-                        <button
-                          key={result.id}
-                          onClick={() => {
-                            handleSearchResultClick(result);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className="group w-full border-b border-white/10 px-6 py-4 text-left transition-all duration-300 last:border-b-0 hover:bg-white/10"
-                        >
-                          <div className="flex items-center space-x-3">
-                            {/* Profile Image or Game Icon */}
-                            <div className="flex-shrink-0">
-                              {result.image_url ? (
-                                <Image
-                                  src={result.image_url}
-                                  alt={result.title}
-                                  width={40}
-                                  height={40}
-                                  className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
-                                />
-                              ) : result.type === "PLAYER" &&
-                                result.game?.icon ? (
-                                <Image
-                                  src={result.game.icon}
-                                  alt={result.game.name}
-                                  width={40}
-                                  height={40}
-                                  className="h-10 w-10 rounded object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
-                                />
-                              ) : result.type === "SCHOOL" ? (
-                                <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-purple-500 to-blue-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
-                                  <GraduationCap className="h-5 w-5 text-white" />
-                                </div>
-                              ) : result.type === "LEAGUE" ? (
-                                <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-yellow-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
-                                  <Trophy className="h-5 w-5 text-white" />
-                                </div>
-                              ) : (
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
-                                  <User className="h-5 w-5 text-white" />
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Result Info */}
-                            <div className="min-w-0 flex-1">
-                              <div className="font-inter truncate font-semibold text-white transition-colors duration-300 group-hover:text-cyan-300">
-                                {result.title}
+                    </div>
+                  ) : (
+                    searchResults?.results.map((result) => (
+                      <button
+                        key={result.id}
+                        onClick={() => {
+                          handleSearchResultClick(result);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="group w-full border-b border-white/10 px-6 py-4 text-left transition-all duration-300 last:border-b-0 hover:bg-white/10"
+                      >
+                        <div className="flex items-center space-x-3">
+                          {/* Profile Image or Game Icon */}
+                          <div className="flex-shrink-0">
+                            {result.image_url ? (
+                              <Image
+                                src={result.image_url}
+                                alt={result.title}
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded-full object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
+                              />
+                            ) : result.type === "PLAYER" &&
+                              result.game?.icon ? (
+                              <Image
+                                src={result.game.icon}
+                                alt={result.game.name}
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded object-cover ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50"
+                              />
+                            ) : result.type === "SCHOOL" ? (
+                              <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-purple-500 to-blue-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
+                                <GraduationCap className="h-5 w-5 text-white" />
                               </div>
-                              <div className="font-inter truncate text-sm text-gray-300">
-                                {result.subtitle}
+                            ) : result.type === "LEAGUE" ? (
+                              <div className="flex h-10 w-10 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-yellow-600 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
+                                <Trophy className="h-5 w-5 text-white" />
                               </div>
-                              {result.type === "PLAYER" && result.game && (
-                                <div className="mt-1 text-xs font-medium text-cyan-400">
-                                  {result.game.name}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Type Badge */}
-                            <div className="flex-shrink-0">
-                              <span
-                                className={`font-inter rounded-full px-3 py-1 text-xs font-semibold tracking-wide transition-all duration-300 ${
-                                  result.type === "PLAYER"
-                                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white group-hover:from-cyan-400 group-hover:to-blue-500"
-                                    : result.type === "COACH"
-                                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white group-hover:from-green-400 group-hover:to-emerald-500"
-                                      : result.type === "LEAGUE"
-                                        ? "bg-gradient-to-r from-orange-500 to-yellow-600 text-white group-hover:from-orange-400 group-hover:to-yellow-500"
-                                        : "bg-gradient-to-r from-purple-500 to-violet-600 text-white group-hover:from-purple-400 group-hover:to-violet-500"
-                                }`}
-                              >
-                                {result.type}
-                              </span>
-                            </div>
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 ring-2 ring-white/20 transition-all duration-300 group-hover:ring-cyan-400/50">
+                                <User className="h-5 w-5 text-white" />
+                              </div>
+                            )}
                           </div>
-                        </button>
-                      ))
-                    )}
 
-                    {!isSearchLoading &&
-                      searchQuery.length >= 2 &&
-                      searchResults?.results.length === 0 && (
-                        <div className="font-inter px-6 py-4 text-center text-gray-400">
-                          No results found for &quot;{searchQuery}&quot;
+                          {/* Result Info */}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-inter truncate font-semibold text-white transition-colors duration-300 group-hover:text-cyan-300">
+                              {result.title}
+                            </div>
+                            <div className="font-inter truncate text-sm text-gray-300">
+                              {result.subtitle}
+                            </div>
+                            {result.type === "PLAYER" && result.game && (
+                              <div className="mt-1 text-xs font-medium text-cyan-400">
+                                {result.game.name}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Type Badge */}
+                          <div className="flex-shrink-0">
+                            <span
+                              className={`font-inter rounded-full px-3 py-1 text-xs font-semibold tracking-wide transition-all duration-300 ${
+                                result.type === "PLAYER"
+                                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white group-hover:from-cyan-400 group-hover:to-blue-500"
+                                  : result.type === "COACH"
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white group-hover:from-green-400 group-hover:to-emerald-500"
+                                    : result.type === "LEAGUE"
+                                      ? "bg-gradient-to-r from-orange-500 to-yellow-600 text-white group-hover:from-orange-400 group-hover:to-yellow-500"
+                                      : "bg-gradient-to-r from-purple-500 to-violet-600 text-white group-hover:from-purple-400 group-hover:to-violet-500"
+                              }`}
+                            >
+                              {result.type}
+                            </span>
+                          </div>
                         </div>
-                      )}
-                  </div>
-                )}
-              </div>
-            )}
+                      </button>
+                    ))
+                  )}
+
+                  {!isSearchLoading &&
+                    searchQuery.length >= 2 &&
+                    searchResults?.results.length === 0 && (
+                      <div className="font-inter px-6 py-4 text-center text-gray-400">
+                        No results found for &quot;{searchQuery}&quot;
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
 
             {/* Mobile Navigation Links */}
             <div className="space-y-3">
@@ -773,14 +737,6 @@ export default function Navbar() {
                 NEWS
               </Link>
 
-              <Link
-                href="/colleges"
-                className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                COLLEGES
-              </Link>
-
               {/* Rankings Submenu */}
               <div className="space-y-2">
                 <div className="font-orbitron py-2 text-white">RANKINGS</div>
@@ -803,7 +759,7 @@ export default function Navbar() {
               </div>
 
               {/* Tryouts Submenu */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <div className="font-orbitron py-2 text-white">TRYOUTS</div>
                 <div className="space-y-2 pl-4">
                   <Link
@@ -821,9 +777,9 @@ export default function Navbar() {
                     COLLEGE
                   </Link>
                 </div>
-              </div>
+              </div> */}
 
-              <SignedOut>
+              {/* <SignedOut>
                 <Link
                   href="/pricing"
                   className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
@@ -831,9 +787,9 @@ export default function Navbar() {
                 >
                   PRICING
                 </Link>
-              </SignedOut>
+              </SignedOut> */}
 
-              <SignedIn>
+              {/* <SignedIn>
                 <Link
                   href="/pricing"
                   className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
@@ -841,7 +797,7 @@ export default function Navbar() {
                 >
                   PRICING
                 </Link>
-              </SignedIn>
+              </SignedIn> */}
 
               {/* About Us Submenu */}
               <div className="space-y-2">
