@@ -1,23 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  Shield,
-  MessageSquare,
-  User,
-  Trophy,
-  Users,
-  Settings,
-  Home,
-  ArrowLeft,
   Activity,
+  ArrowLeft,
   ClipboardList,
-  Gamepad2,
   Crown,
   FolderOpen,
+  Gamepad2,
+  Home,
+  MessageSquare,
+  Settings,
+  Shield,
+  Trophy,
+  User,
+  Users,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const adminRoutes = [
   {
