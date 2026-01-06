@@ -219,13 +219,15 @@ export default function HomePage() {
                   <Search className="h-5 w-5" />
                 </span>
                 <div className="flex flex-col">
-                  <span className="font-orbitron text-lg font-semibold">
-                    Search for colleges
+                  <div className="flex items-center gap-2">
+                    <span className="font-orbitron text-lg font-semibold">
+                      Search for colleges
+                    </span>
                     <span
-                      className="ml-2 inline-block h-5 w-[2px] translate-y-[1px] animate-pulse bg-cyan-300/80"
+                      className="blink-caret inline-block h-6 w-[2px] bg-cyan-200/90"
                       aria-hidden
                     />
-                  </span>
+                  </div>
                   <span className="font-rajdhani text-sm text-gray-300">
                     by scholarships, supported games and location
                   </span>

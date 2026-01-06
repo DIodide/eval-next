@@ -6,9 +6,21 @@ import {
   onboardedCoachProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+
+// Social links validation schema
+const socialLinksSchema = z
+  .object({
+    facebook: z.string().url().optional().or(z.literal("")).nullable(),
+    twitter: z.string().url().optional().or(z.literal("")).nullable(),
+    instagram: z.string().url().optional().or(z.literal("")).nullable(),
+    youtube: z.string().url().optional().or(z.literal("")).nullable(),
+    twitch: z.string().url().optional().or(z.literal("")).nullable(),
+  })
+  .optional()
+  .nullable();
 
 // Input validation schema for school information updates
 const schoolInfoUpdateSchema = z.object({
@@ -18,6 +30,20 @@ const schoolInfoUpdateSchema = z.object({
   phone: z.string().max(20).optional().or(z.literal("")),
   logo_url: z.string().url().optional().or(z.literal("")),
   banner_url: z.string().url().optional().or(z.literal("")),
+  // Social media
+  discord_handle: z.string().max(100).optional().or(z.literal("")),
+  social_links: socialLinksSchema,
+  // Tuition information
+  in_state_tuition: z.string().max(50).optional().or(z.literal("")),
+  out_of_state_tuition: z.string().max(50).optional().or(z.literal("")),
+  // Academic requirements
+  minimum_gpa: z.number().min(0).max(4).optional().nullable(),
+  minimum_sat: z.number().int().min(400).max(1600).optional().nullable(),
+  minimum_act: z.number().int().min(1).max(36).optional().nullable(),
+  // Scholarships
+  scholarships_available: z.boolean().optional(),
+  // Esports titles (game names)
+  esports_titles: z.array(z.string()).optional(),
 });
 
 // Input validation schema for announcements
@@ -282,15 +308,7 @@ export const schoolProfileRouter = createTRPCRouter({
         }
 
         // Build update data
-        const updateData: {
-          bio?: string | null;
-          website?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          logo_url?: string | null;
-          banner_url?: string | null;
-          updated_at: Date;
-        } = {
+        const updateData: Prisma.SchoolUpdateInput = {
           updated_at: new Date(),
         };
 
@@ -312,6 +330,43 @@ export const schoolProfileRouter = createTRPCRouter({
         if (input.banner_url !== undefined) {
           updateData.banner_url =
             input.banner_url === "" ? null : input.banner_url;
+        }
+        // Social media fields
+        if (input.discord_handle !== undefined) {
+          updateData.discord_handle =
+            input.discord_handle === "" ? null : input.discord_handle;
+        }
+        if (input.social_links !== undefined) {
+          updateData.social_links = input.social_links ?? Prisma.DbNull;
+        }
+        // Tuition fields
+        if (input.in_state_tuition !== undefined) {
+          updateData.in_state_tuition =
+            input.in_state_tuition === "" ? null : input.in_state_tuition;
+        }
+        if (input.out_of_state_tuition !== undefined) {
+          updateData.out_of_state_tuition =
+            input.out_of_state_tuition === ""
+              ? null
+              : input.out_of_state_tuition;
+        }
+        // Academic requirements
+        if (input.minimum_gpa !== undefined) {
+          updateData.minimum_gpa = input.minimum_gpa;
+        }
+        if (input.minimum_sat !== undefined) {
+          updateData.minimum_sat = input.minimum_sat;
+        }
+        if (input.minimum_act !== undefined) {
+          updateData.minimum_act = input.minimum_act;
+        }
+        // Scholarships
+        if (input.scholarships_available !== undefined) {
+          updateData.scholarships_available = input.scholarships_available;
+        }
+        // Esports titles
+        if (input.esports_titles !== undefined) {
+          updateData.esports_titles = input.esports_titles;
         }
 
         const updatedSchool = await withRetry(() =>
