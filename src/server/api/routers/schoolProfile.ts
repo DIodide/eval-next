@@ -929,7 +929,7 @@ export const schoolProfileRouter = createTRPCRouter({
     .input(
       z.object({
         search: z.string().optional(),
-        gameIds: z.array(z.string().uuid()).optional(),
+        gameNames: z.array(z.string().min(1)).optional(),
         hasScholarships: z.boolean().optional(),
         inUS: z.boolean().optional(),
         limit: z.number().min(1).max(100).default(50),
@@ -938,7 +938,8 @@ export const schoolProfileRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const { search, gameIds, hasScholarships, inUS, limit, offset } = input;
+        const { search, gameNames, hasScholarships, inUS, limit, offset } =
+          input;
 
         const where: Prisma.SchoolWhereInput = {
           // Only return colleges/universities
@@ -956,20 +957,11 @@ export const schoolProfileRouter = createTRPCRouter({
           ];
         }
 
-        //! TODO: Check game against the esports_titles array
-        // Game filter - check if school has any of the specified games in esports_titles
-        if (gameIds && gameIds.length > 0) {
-          // Get game names from IDs
-          const games = await ctx.db.game.findMany({
-            where: { id: { in: gameIds } },
-            select: { name: true },
-          });
-          const gameNames = games.map((g) => g.name);
-          if (gameNames.length > 0) {
-            where.esports_titles = {
-              hasSome: gameNames,
-            };
-          }
+        // Game filter - check against provided game names (UI hardcoded list)
+        if (gameNames && gameNames.length > 0) {
+          where.esports_titles = {
+            hasSome: gameNames,
+          };
         }
 
         // Scholarships filter

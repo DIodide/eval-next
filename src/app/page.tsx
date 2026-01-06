@@ -11,13 +11,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { getAvailableGameNames } from "@/lib/game-logos";
 import { api } from "@/trpc/react";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { Calendar, GraduationCap, Quote, Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import FAQSection from "./_components/FAQSection";
 
 // Helper function to calculate spots remaining
@@ -946,15 +947,15 @@ function CollegeSearchModal({
 }) {
   const router = useRouter();
 
-  // Get available games
-  const { data: games } = api.tryouts.getGames.useQuery();
+  // Get available games from hardcoded logo mapping
+  const availableGames = useMemo(() => getAvailableGameNames(), []);
 
   // Search colleges
   const { data: searchResults, isLoading } =
     api.schoolProfile.searchColleges.useQuery(
       {
         search: searchQuery || undefined,
-        gameIds: selectedGames.length > 0 ? selectedGames : undefined,
+        gameNames: selectedGames.length > 0 ? selectedGames : undefined,
         hasScholarships: hasScholarships,
         inUS: inUS,
         limit: 20,
@@ -965,11 +966,11 @@ function CollegeSearchModal({
       },
     );
 
-  const handleGameToggle = (gameId: string) => {
-    if (selectedGames.includes(gameId)) {
-      onSelectedGamesChange(selectedGames.filter((id) => id !== gameId));
+  const handleGameToggle = (gameName: string) => {
+    if (selectedGames.includes(gameName)) {
+      onSelectedGamesChange(selectedGames.filter((name) => name !== gameName));
     } else {
-      onSelectedGamesChange([...selectedGames, gameId]);
+      onSelectedGamesChange([...selectedGames, gameName]);
     }
   };
 
@@ -1016,23 +1017,23 @@ function CollegeSearchModal({
               </div>
 
               {/* Games Filter */}
-              {games && games.length > 0 && (
+              {availableGames.length > 0 && (
                 <div>
                   <div className="font-rajdhani mb-2 text-sm font-medium text-gray-300">
                     Games Supported
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {games.map((game) => (
+                    {availableGames.map((gameName) => (
                       <button
-                        key={game.id}
-                        onClick={() => handleGameToggle(game.id)}
+                        key={gameName}
+                        onClick={() => handleGameToggle(gameName)}
                         className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
-                          selectedGames.includes(game.id)
+                          selectedGames.includes(gameName)
                             ? "border-cyan-400 bg-cyan-400/20 text-cyan-400"
                             : "border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500"
                         }`}
                       >
-                        {game.name}
+                        {gameName}
                       </button>
                     ))}
                   </div>

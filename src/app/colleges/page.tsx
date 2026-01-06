@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { getAvailableGameNames } from "@/lib/game-logos";
 import { api } from "@/trpc/react";
 import { GraduationCap, MapPin, Search, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function CollegesPage() {
   const router = useRouter();
@@ -21,15 +22,15 @@ export default function CollegesPage() {
   const [page, setPage] = useState(0);
   const limit = 24;
 
-  // Get available games
-  const { data: games } = api.tryouts.getGames.useQuery();
+  // Get available games from hardcoded logo mapping
+  const availableGames = useMemo(() => getAvailableGameNames(), []);
 
   // Search colleges
   const { data: searchResults, isLoading } =
     api.schoolProfile.searchColleges.useQuery(
       {
         search: searchQuery || undefined,
-        gameIds: selectedGames.length > 0 ? selectedGames : undefined,
+        gameNames: selectedGames.length > 0 ? selectedGames : undefined,
         hasScholarships: hasScholarships,
         inUS: inUS,
         limit,
@@ -40,11 +41,11 @@ export default function CollegesPage() {
       },
     );
 
-  const handleGameToggle = (gameId: string) => {
-    if (selectedGames.includes(gameId)) {
-      setSelectedGames(selectedGames.filter((id) => id !== gameId));
+  const handleGameToggle = (gameName: string) => {
+    if (selectedGames.includes(gameName)) {
+      setSelectedGames(selectedGames.filter((name) => name !== gameName));
     } else {
-      setSelectedGames([...selectedGames, gameId]);
+      setSelectedGames([...selectedGames, gameName]);
     }
     setPage(0); // Reset to first page when filter changes
   };
@@ -121,24 +122,24 @@ export default function CollegesPage() {
               </div>
 
               {/* Games Filter */}
-              {games && games.length > 0 && (
+              {availableGames.length > 0 && (
                 <div>
                   <label className="font-rajdhani mb-2 block text-sm font-medium text-gray-300">
                     Games Supported
                   </label>
                   <div className="max-h-64 space-y-2 overflow-y-auto">
-                    {games.map((game) => (
+                    {availableGames.map((gameName) => (
                       <label
-                        key={game.id}
+                        key={gameName}
                         className="flex cursor-pointer items-center space-x-2"
                       >
                         <Checkbox
-                          checked={selectedGames.includes(game.id)}
-                          onCheckedChange={() => handleGameToggle(game.id)}
+                          checked={selectedGames.includes(gameName)}
+                          onCheckedChange={() => handleGameToggle(gameName)}
                           className="border-gray-600"
                         />
                         <span className="font-rajdhani text-sm text-gray-300">
-                          {game.name}
+                          {gameName}
                         </span>
                       </label>
                     ))}
