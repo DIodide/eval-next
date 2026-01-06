@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,38 +10,154 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PRICING_PLANS } from "@/lib/pricing-config";
+import { api } from "@/trpc/react";
+import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import {
-  Check,
-  X,
-  Zap,
-  Calendar,
+  AlertCircle,
+  ArrowRight,
   BarChart3,
-  Trophy,
-  Users,
+  Calendar,
+  Check,
+  CheckCircle2,
+  CreditCard,
+  ExternalLink,
   GraduationCap,
+  Loader2,
   Target,
+  Trophy,
   User,
+  Users,
+  X,
+  XCircle,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { SignUpButton, SignInButton, useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 
-export default function PricingPage() {
+function SearchParamsHandler({
+  setPaymentStatusDialog,
+}: {
+  setPaymentStatusDialog: React.Dispatch<
+    React.SetStateAction<{
+      open: boolean;
+      type: "success" | "failed" | "canceled" | null;
+      planName?: string;
+      message?: string;
+    }>
+  >;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    const plan = searchParams.get("plan");
+
+    if (success === "true") {
+      const planName =
+        plan === "gold"
+          ? "EVAL Gold"
+          : plan === "platinum"
+            ? "EVAL Platinum"
+            : "Premium";
+      setPaymentStatusDialog({
+        open: true,
+        type: "success",
+        planName,
+      });
+      router.replace("/pricing", { scroll: false });
+    }
+
+    if (canceled === "true") {
+      setPaymentStatusDialog({
+        open: true,
+        type: "canceled",
+      });
+      router.replace("/pricing", { scroll: false });
+    }
+  }, [searchParams, router, setPaymentStatusDialog]);
+
+  return null;
+}
+
+function PricingPageContent() {
   const { user } = useUser();
   const router = useRouter();
+
+  // Get user type from Clerk metadata to determine default tab
+  const userType = user?.publicMetadata?.userType as
+    | "player"
+    | "coach"
+    | "league"
+    | undefined;
   const [requestDemoOpen, setRequestDemoOpen] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<
     "player" | "coach" | null
   >(null);
+  const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"players" | "coaches" | "leagues">(
+    "players",
+  );
+  const [paymentStatusDialog, setPaymentStatusDialog] = useState<{
+    open: boolean;
+    type: "success" | "failed" | "canceled" | null;
+    planName?: string;
+    message?: string;
+  }>({
+    open: false,
+    type: null,
+  });
+
+  // Fetch customer data if user is logged in
+  const { data: customerData } = api.payments.getCustomer.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  // Create subscription checkout mutation
+  const createSubscriptionCheckout =
+    api.payments.createSubscriptionCheckout.useMutation({
+      onSuccess: (data) => {
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      },
+      onError: (error) => {
+        setPaymentStatusDialog({
+          open: true,
+          type: "failed",
+          message: error.message,
+        });
+        setLoadingCheckout(null);
+      },
+    });
+
+  // Create customer portal session mutation
+  const createPortalSession = api.payments.createPortalSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: (error) => {
+      toast.error("Failed to open customer portal", {
+        description: error.message,
+      });
+    },
+  });
 
   const handleScheduleDemo = () => {
     window.open("https://calendly.com/evalgaming/eval-demo", "_blank");
@@ -81,8 +197,110 @@ export default function PricingPage() {
     }
   };
 
+  const handleSubscribe = async (planId: "gold" | "platinum") => {
+    if (!user) {
+      setShowSignUpModal(true);
+      return;
+    }
+
+    const plan =
+      PRICING_PLANS.COACHES[planId.toUpperCase() as "GOLD" | "PLATINUM"];
+
+    if (!plan.priceId) {
+      setPaymentStatusDialog({
+        open: true,
+        type: "failed",
+        message:
+          "Pricing not configured. Please contact support to set up this plan.",
+      });
+      return;
+    }
+
+    setLoadingCheckout(planId);
+
+    try {
+      const baseUrl = window.location.origin;
+      const result = await createSubscriptionCheckout.mutateAsync({
+        priceId: plan.priceId,
+        successUrl: `${baseUrl}/pricing?success=true&plan=${planId}`,
+        cancelUrl: `${baseUrl}/pricing?canceled=true`,
+        metadata: {
+          plan_id: planId,
+          plan_name: plan.name,
+        },
+      });
+
+      // If subscription was updated (not new checkout), redirect to success
+      if (result.updated && result.url) {
+        window.location.href = result.url;
+        return;
+      }
+
+      // Otherwise, redirect to Stripe checkout
+      if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      // Error handled in mutation onError
+      console.error("Checkout error:", error);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    if (!user) return;
+
+    try {
+      const baseUrl = window.location.origin;
+      await createPortalSession.mutateAsync({
+        returnUrl: `${baseUrl}/pricing`,
+      });
+    } catch (error) {
+      // Error handled in mutation onError
+      console.error("Portal error:", error);
+    }
+  };
+
+  // Get current subscription plan
+  const currentSubscription = customerData?.subscriptions.find(
+    (sub) => sub.status === "ACTIVE" || sub.status === "TRIALING",
+  );
+
+  // Determine which plan the user currently has based on price ID
+  const getCurrentPlan = () => {
+    if (!currentSubscription?.stripePriceId) return null;
+
+    const goldPriceId = PRICING_PLANS.COACHES.GOLD.priceId;
+    const platinumPriceId = PRICING_PLANS.COACHES.PLATINUM.priceId;
+
+    if (currentSubscription.stripePriceId === goldPriceId) {
+      return "gold";
+    }
+    if (currentSubscription.stripePriceId === platinumPriceId) {
+      return "platinum";
+    }
+    return null;
+  };
+
+  const currentPlan = getCurrentPlan();
+
+  // Update active tab when userType becomes available
+  useEffect(() => {
+    if (userType === "coach") {
+      setActiveTab("coaches");
+    } else if (userType === "league") {
+      setActiveTab("leagues");
+    } else if (userType === "player") {
+      setActiveTab("players");
+    }
+  }, [userType]);
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30">
+      {/* Search params handler wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <SearchParamsHandler setPaymentStatusDialog={setPaymentStatusDialog} />
+      </Suspense>
+
       {/* Enhanced Background with Floating Elements */}
       <div className="absolute inset-0 bg-black/50"></div>
       <div className="absolute top-20 left-10 h-32 w-32 animate-pulse rounded-full bg-cyan-500/20 blur-xl"></div>
@@ -109,6 +327,39 @@ export default function PricingPage() {
             Choose the perfect plan to elevate your esports journey
           </p>
 
+          {/* Subscription Status Banner */}
+          {user && currentSubscription && (
+            <div className="mx-auto mb-6 max-w-2xl rounded-lg border border-green-400/30 bg-gradient-to-r from-green-600/20 to-green-400/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
+                    <Check className="h-5 w-5 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-orbitron text-sm font-bold text-green-400">
+                      ACTIVE SUBSCRIPTION
+                    </p>
+                    <p className="font-rajdhani text-xs text-gray-300">
+                      Until{" "}
+                      {new Date(
+                        currentSubscription.currentPeriodEnd,
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleManageSubscription}
+                  variant="outline"
+                  size="sm"
+                  className="border-green-400/50 text-green-400 hover:bg-green-400/10"
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Manage
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-center">
             <Button
               onClick={() => setRequestDemoOpen(true)}
@@ -121,23 +372,29 @@ export default function PricingPage() {
 
         {/* Enhanced Pricing Tabs */}
         <div className="glass-morphism rounded-2xl border-white/20 p-6 md:p-8">
-          <Tabs defaultValue="players" className="mx-auto w-full max-w-6xl">
-            <TabsList className="mx-auto mb-8 grid w-full max-w-sm grid-cols-3 rounded-full bg-black/40 p-1">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) =>
+              setActiveTab(value as "players" | "coaches" | "leagues")
+            }
+            className="mx-auto w-full max-w-6xl"
+          >
+            <TabsList className="mx-auto mb-8 w-full max-w-sm rounded-full bg-black/40 py-5">
               <TabsTrigger
                 value="players"
-                className="font-orbitron rounded-full px-3 py-2 text-sm text-white transition-all duration-300 data-[state=active]:bg-cyan-400 data-[state=active]:text-black"
+                className="font-orbitron rounded-full px-3 py-4 text-sm text-white transition-all duration-300 data-[state=active]:bg-cyan-400 data-[state=active]:text-black"
               >
                 PLAYERS
               </TabsTrigger>
               <TabsTrigger
                 value="coaches"
-                className="font-orbitron rounded-full px-3 py-2 text-sm text-white transition-all duration-300 data-[state=active]:bg-orange-400 data-[state=active]:text-black"
+                className="font-orbitron rounded-full px-3 py-4 text-sm text-white transition-all duration-300 data-[state=active]:bg-orange-400 data-[state=active]:text-black"
               >
                 COACHES
               </TabsTrigger>
               <TabsTrigger
                 value="leagues"
-                className="font-orbitron rounded-full px-3 py-2 text-sm text-white transition-all duration-300 data-[state=active]:bg-purple-400 data-[state=active]:text-black"
+                className="font-orbitron rounded-full px-3 py-4 text-sm text-white transition-all duration-300 data-[state=active]:bg-purple-400 data-[state=active]:text-black"
               >
                 LEAGUES
               </TabsTrigger>
@@ -340,12 +597,47 @@ export default function PricingPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button
-                      onClick={handleCoachCTA}
-                      className="font-orbitron w-full transform bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all duration-300 hover:scale-105 hover:from-orange-500 hover:to-orange-600"
-                    >
-                      UPGRADE NOW
-                    </Button>
+                    {currentPlan === "gold" ? (
+                      <Button
+                        onClick={handleManageSubscription}
+                        variant="outline"
+                        className="font-orbitron w-full border-orange-400/50 text-orange-400 transition-all duration-300 hover:bg-orange-400/10"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        MANAGE SUBSCRIPTION
+                      </Button>
+                    ) : currentPlan === "platinum" ? (
+                      <Button
+                        onClick={() => handleSubscribe("gold")}
+                        disabled={loadingCheckout !== null}
+                        variant="outline"
+                        className="font-orbitron w-full border-orange-400/50 text-orange-400 transition-all duration-300 hover:bg-orange-400/10 disabled:opacity-50"
+                      >
+                        {loadingCheckout === "gold" ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            PROCESSING...
+                          </>
+                        ) : (
+                          "DOWNGRADE TO GOLD"
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleSubscribe("gold")}
+                        disabled={loadingCheckout !== null}
+                        className="font-orbitron w-full transform bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all duration-300 hover:scale-105 hover:from-orange-500 hover:to-orange-600 disabled:opacity-50"
+                      >
+                        {loadingCheckout === "gold" ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            PROCESSING...
+                          </>
+                        ) : (
+                          "UPGRADE NOW"
+                        )}
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
 
@@ -415,12 +707,46 @@ export default function PricingPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button
-                      onClick={handleCoachCTA}
-                      className="font-orbitron w-full transform bg-gradient-to-r from-purple-400 to-purple-500 text-black transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-600"
-                    >
-                      GO PREMIUM
-                    </Button>
+                    {currentPlan === "platinum" ? (
+                      <Button
+                        onClick={handleManageSubscription}
+                        variant="outline"
+                        className="font-orbitron w-full border-purple-400/50 text-purple-400 transition-all duration-300 hover:bg-purple-400/10"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        MANAGE SUBSCRIPTION
+                      </Button>
+                    ) : currentPlan === "gold" ? (
+                      <Button
+                        onClick={() => handleSubscribe("platinum")}
+                        disabled={loadingCheckout !== null}
+                        className="font-orbitron w-full transform bg-gradient-to-r from-purple-400 to-purple-500 text-black transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-600 disabled:opacity-50"
+                      >
+                        {loadingCheckout === "platinum" ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            PROCESSING...
+                          </>
+                        ) : (
+                          "UPGRADE TO PLATINUM"
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleSubscribe("platinum")}
+                        disabled={loadingCheckout !== null}
+                        className="font-orbitron w-full transform bg-gradient-to-r from-purple-400 to-purple-500 text-black transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-600 disabled:opacity-50"
+                      >
+                        {loadingCheckout === "platinum" ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            PROCESSING...
+                          </>
+                        ) : (
+                          "GO PREMIUM"
+                        )}
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </div>
@@ -814,6 +1140,257 @@ export default function PricingPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Status Dialog */}
+      <Dialog
+        open={paymentStatusDialog.open}
+        onOpenChange={(open) =>
+          setPaymentStatusDialog({ ...paymentStatusDialog, open })
+        }
+      >
+        <DialogContent className="glass-morphism max-w-md border-white/20 text-white sm:max-w-md">
+          {paymentStatusDialog.type === "success" && (
+            <>
+              <DialogHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-500/20 to-green-400/20">
+                  <CheckCircle2 className="h-10 w-10 text-green-400" />
+                </div>
+                <DialogTitle className="font-orbitron text-2xl font-bold text-white">
+                  SUBSCRIPTION ACTIVATED!
+                </DialogTitle>
+                <DialogDescription className="font-rajdhani text-base text-gray-300">
+                  Welcome to {paymentStatusDialog.planName ?? "Premium"}!
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="rounded-lg border border-green-400/30 bg-gradient-to-r from-green-600/10 to-green-400/10 p-4">
+                  <div className="flex items-start space-x-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-400" />
+                    <div className="flex-1">
+                      <p className="font-rajdhani text-sm font-semibold text-white">
+                        Your subscription is now active
+                      </p>
+                      <p className="font-rajdhani mt-1 text-xs text-gray-300">
+                        You now have access to all premium features. Your
+                        billing cycle will renew automatically.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-rajdhani text-sm font-semibold text-white">
+                    What&apos;s next?
+                  </p>
+                  <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
+                    <li className="flex items-start">
+                      <ArrowRight className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-400" />
+                      <span>
+                        Access your dashboard to explore premium features
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowRight className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-400" />
+                      <span>
+                        Start recruiting with advanced search and analytics
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowRight className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-400" />
+                      <span>
+                        Manage your subscription anytime from your account
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <DialogFooter className="flex-col gap-2 sm:flex-row">
+                <Button
+                  onClick={() => {
+                    setPaymentStatusDialog({ open: false, type: null });
+                    router.push("/dashboard/coaches");
+                  }}
+                  className="font-orbitron w-full bg-gradient-to-r from-green-500 to-green-600 text-white transition-all hover:from-green-600 hover:to-green-700 sm:w-auto"
+                >
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setPaymentStatusDialog({ open: false, type: null });
+                  }}
+                  variant="outline"
+                  className="font-rajdhani w-full border-gray-600 text-gray-300 hover:bg-gray-800 sm:w-auto"
+                >
+                  Stay on Pricing
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {paymentStatusDialog.type === "failed" && (
+            <>
+              <DialogHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500/20 to-red-400/20">
+                  <XCircle className="h-10 w-10 text-red-400" />
+                </div>
+                <DialogTitle className="font-orbitron text-2xl font-bold text-white">
+                  PAYMENT FAILED
+                </DialogTitle>
+                <DialogDescription className="font-rajdhani text-base text-gray-300">
+                  We couldn&apos;t process your payment
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="rounded-lg border border-red-400/30 bg-gradient-to-r from-red-600/10 to-red-400/10 p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
+                    <div className="flex-1">
+                      <p className="font-rajdhani text-sm font-semibold text-white">
+                        {paymentStatusDialog.message ??
+                          "There was an issue processing your payment"}
+                      </p>
+                      <p className="font-rajdhani mt-1 text-xs text-gray-300">
+                        Please check your payment method and try again, or
+                        contact support if the problem persists.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-rajdhani text-sm font-semibold text-white">
+                    Common issues:
+                  </p>
+                  <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
+                    <li className="flex items-start">
+                      <X className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-400" />
+                      <span>Insufficient funds or card declined</span>
+                    </li>
+                    <li className="flex items-start">
+                      <X className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-400" />
+                      <span>Expired or invalid payment method</span>
+                    </li>
+                    <li className="flex items-start">
+                      <X className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-400" />
+                      <span>Network or processing error</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <DialogFooter className="flex-col gap-2 sm:flex-row">
+                <Button
+                  onClick={() => {
+                    setPaymentStatusDialog({ open: false, type: null });
+                    // Retry checkout - user can click the button again
+                  }}
+                  className="font-orbitron w-full bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all hover:from-orange-500 hover:to-orange-600 sm:w-auto"
+                >
+                  Try Again
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.open("mailto:support@evalgaming.com", "_blank");
+                  }}
+                  variant="outline"
+                  className="font-rajdhani w-full border-gray-600 text-gray-300 hover:bg-gray-800 sm:w-auto"
+                >
+                  Contact Support
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setPaymentStatusDialog({ open: false, type: null });
+                  }}
+                  variant="ghost"
+                  className="font-rajdhani w-full text-gray-400 hover:text-gray-300 sm:w-auto"
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {paymentStatusDialog.type === "canceled" && (
+            <>
+              <DialogHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500/20 to-yellow-400/20">
+                  <AlertCircle className="h-10 w-10 text-yellow-400" />
+                </div>
+                <DialogTitle className="font-orbitron text-2xl font-bold text-white">
+                  CHECKOUT CANCELED
+                </DialogTitle>
+                <DialogDescription className="font-rajdhani text-base text-gray-300">
+                  No charges were made to your account
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="rounded-lg border border-yellow-400/30 bg-gradient-to-r from-yellow-600/10 to-yellow-400/10 p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
+                    <div className="flex-1">
+                      <p className="font-rajdhani text-sm font-semibold text-white">
+                        Your checkout was canceled
+                      </p>
+                      <p className="font-rajdhani mt-1 text-xs text-gray-300">
+                        You can return to complete your subscription anytime. No
+                        payment was processed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-rajdhani text-sm font-semibold text-white">
+                    Ready to upgrade?
+                  </p>
+                  <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
+                    <li className="flex items-start">
+                      <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-yellow-400" />
+                      <span>All plans include a full feature set</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-yellow-400" />
+                      <span>Cancel anytime with no long-term commitment</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-yellow-400" />
+                      <span>Secure payment processing via Stripe</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <DialogFooter className="flex-col gap-2 sm:flex-row">
+                <Button
+                  onClick={() => {
+                    setPaymentStatusDialog({ open: false, type: null });
+                    // Scroll to pricing plans
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="font-orbitron w-full bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all hover:from-orange-500 hover:to-orange-600 sm:w-auto"
+                >
+                  View Plans
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setPaymentStatusDialog({ open: false, type: null });
+                  }}
+                  variant="outline"
+                  className="font-rajdhani w-full border-gray-600 text-gray-300 hover:bg-gray-800 sm:w-auto"
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <PricingPageContent />
+    </Suspense>
   );
 }

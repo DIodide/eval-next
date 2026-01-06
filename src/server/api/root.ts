@@ -18,6 +18,7 @@ import { adminDirectoryRouter } from "@/server/api/routers/adminDirectory";
 import { adminManagementRouter } from "@/server/api/routers/adminManagement";
 import { publicSearchRouter } from "@/server/api/routers/publicSearch";
 import { gseRouter } from "@/server/api/routers/gse";
+import { paymentsRouter } from "@/server/api/routers/payments";
 
 /**
  * This is the primary router for your server.
@@ -44,6 +45,7 @@ export const appRouter = createTRPCRouter({
   adminDirectory: adminDirectoryRouter,
   adminManagement: adminManagementRouter,
   gse: gseRouter,
+  payments: paymentsRouter,
 });
 
 // export type definition of API
