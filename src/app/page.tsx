@@ -206,7 +206,10 @@ export default function HomePage() {
             </div>
             <button
               type="button"
-              onClick={() => setShowSearchModal(true)}
+              onClick={() => {
+                router.push("/colleges");
+                // setShowSearchModal(true);
+              }}
               className="group relative flex w-full cursor-text items-center justify-between overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-6 py-4 text-left text-white shadow-lg shadow-cyan-500/10 transition-all duration-500 ease-out hover:border-cyan-400/60 hover:shadow-cyan-400/30 focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:outline-none"
             >
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-orange-500/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -217,6 +220,10 @@ export default function HomePage() {
                 <div className="flex flex-col">
                   <span className="font-orbitron text-lg font-semibold">
                     Search for colleges
+                    <span
+                      className="ml-2 inline-block h-5 w-[2px] translate-y-[1px] animate-pulse bg-cyan-300/80"
+                      aria-hidden
+                    />
                   </span>
                   <span className="font-rajdhani text-sm text-gray-300">
                     by scholarships, supported games and location
@@ -245,6 +252,56 @@ export default function HomePage() {
               </Button>
             </Link>
           </div>
+
+          {/* Alternative CTA Buttons */}
+
+          {/* CTA: Get started */}
+          {/* <div className="mx-auto mb-2 max-w-4xl">
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 via-cyan-500/5 to-purple-500/5 p-6 shadow-lg shadow-cyan-500/10 backdrop-blur-sm md:p-8">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-2">
+                  <p className="font-rajdhani text-xs tracking-[0.2em] text-cyan-300/80 uppercase">
+                    Get started today
+                  </p>
+                  <h3 className="font-orbitron text-2xl font-black text-white md:text-3xl">
+                    I am a...
+                  </h3>
+                  <p className="font-rajdhani text-sm text-gray-300">
+                    Pick your track to begin recruiting or discover programs.
+                  </p>
+                </div>
+
+                <div className="grid w-full gap-3 sm:grid-cols-2 md:max-w-md">
+                  <Link href="/recruiting">
+                    <Button
+                      size="lg"
+                      className="group font-orbitron flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-500 px-6 py-4 text-lg font-bold tracking-wide text-black shadow-lg shadow-cyan-400/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-cyan-400/40 focus-visible:ring-2 focus-visible:ring-cyan-300/70"
+                    >
+                      <span className="flex items-center gap-3">
+                        <User className="h-5 w-5" />
+                        Player
+                      </span>
+                      <ArrowRight className="h-4 w-4 opacity-80 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+
+                  <Link href="/recruiting">
+                    <Button
+                      size="lg"
+                      className="group font-orbitron flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 px-6 py-4 text-lg font-bold tracking-wide text-black shadow-lg shadow-orange-400/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-orange-400/40 focus-visible:ring-2 focus-visible:ring-orange-300/70"
+                    >
+                      <span className="flex items-center gap-3">
+                        <GraduationCap className="h-5 w-5" />
+                        Coach
+                      </span>
+                      <ArrowRight className="h-4 w-4 opacity-80 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div> */}
+          {/* End of Alternative CTA Buttons */}
         </div>
       </section>
 

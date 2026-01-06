@@ -137,10 +137,17 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Show search results when we have results and input is focused
+  // Show search results when input is focused or we are loading/received data
   useEffect(() => {
-    setShowSearchResults(searchInputFocused && searchQuery.length >= 2);
-  }, [searchInputFocused, searchQuery]);
+    setShowSearchResults(
+      searchQuery.length >= 2 &&
+        (searchInputFocused || isSearchLoading || searchResults !== undefined),
+    );
+  }, [searchInputFocused, searchQuery, searchResults, isSearchLoading]);
+
+  const desktopPopoverOpen =
+    searchQuery.length >= 2 &&
+    (searchInputFocused || isSearchLoading || showSearchResults);
 
   const handleSearchResultClick = (result: SearchResult) => {
     if (!result?.link) return;
@@ -339,13 +346,13 @@ export default function Navbar() {
           {!isHomePage && (
             <div className="hidden md:block">
               <Popover
-                open={
-                  (showSearchResults ||
-                    (isSearchLoading && searchQuery.length >= 2)) &&
-                  searchQuery.length >= 2
-                }
+                modal={false}
+                open={desktopPopoverOpen}
                 onOpenChange={(open) => {
-                  if (!open) {
+                  if (
+                    !open &&
+                    document.activeElement !== searchInputRef.current
+                  ) {
                     setShowSearchResults(false);
                     setSearchInputFocused(false);
                   }
