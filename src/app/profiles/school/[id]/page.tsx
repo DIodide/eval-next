@@ -616,8 +616,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         region: schoolData.region,
         country: schoolData.country,
         country_iso2: schoolData.country_iso2,
-        esports_titles:
-          ((schoolData as any).esports_titles as string[] | undefined) || [],
+        esports_titles: schoolData.esports_titles ?? [],
         social_links: schoolData.social_links as {
           facebook?: string | null;
           twitter?: string | null;
@@ -632,9 +631,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         minimum_sat: schoolData.minimum_sat,
         minimum_act: schoolData.minimum_act,
         scholarships_available: schoolData.scholarships_available,
-        coaches: transformCoachData(
-          ((schoolData as any).coaches as CoachData[] | undefined) || [],
-        ),
+        coaches: transformCoachData(schoolData.coaches ?? []),
       }
     : null;
 
@@ -1039,7 +1036,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 </div>
 
                 {/* Social Media Links */}
-                {(school.social_links || school.discord_handle) && (
+                {(school.social_links ?? school.discord_handle) && (
                   <div className="mt-4 border-t border-gray-700/50 pt-4">
                     <div className="mb-3 flex items-center gap-2">
                       <MessageSquareIcon className="h-4 w-4 text-cyan-400" />
@@ -1115,7 +1112,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 )}
 
                 {/* Tuition Information */}
-                {(school.in_state_tuition || school.out_of_state_tuition) && (
+                {(school.in_state_tuition ?? school.out_of_state_tuition) && (
                   <div className="mt-4 border-t border-gray-700/50 pt-4">
                     <div className="mb-3 flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-cyan-400" />
@@ -1149,8 +1146,8 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 )}
 
                 {/* Academic Requirements */}
-                {(school.minimum_gpa ||
-                  school.minimum_sat ||
+                {(school.minimum_gpa ??
+                  school.minimum_sat ??
                   school.minimum_act) && (
                   <div className="mt-4 border-t border-gray-700/50 pt-4">
                     <div className="mb-3 flex items-center gap-2">
