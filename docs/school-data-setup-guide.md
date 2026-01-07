@@ -50,7 +50,10 @@ npx prisma generate
 
 ## Step 2: Align College Details with Database (Optional but Recommended)
 
-- Update Army West Point name in json file to match what's in the database (manually)
+- Update the following in json file to match what's in the database (manually)
+  - Heidelberg University(csv) vs Heidelberg Esports(JSON)
+  - Army West Point vs West Point Esports
+    -Davenport University (CSV) vs Davenport Esports (JSON)
 - Also add the college_details.json and school_rows.csv in the current folder
 
 Before importing, align the JSON data with your existing database to ensure consistency:
