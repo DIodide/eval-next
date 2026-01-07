@@ -198,6 +198,12 @@ export default function Navbar() {
             </Link>
           </SignedIn>
           <Link
+            href="/colleges"
+            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
+          >
+            COLLEGES
+          </Link>
+          <Link
             href="/recruiting"
             className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
           >

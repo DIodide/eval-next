@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Activity,
   ArrowLeft,
+  Building,
   ClipboardList,
   Crown,
   FolderOpen,
@@ -69,6 +70,11 @@ const adminRoutes = [
     href: "/admin/combines",
     label: "Manage Combines",
     icon: Trophy,
+  },
+  {
+    href: "/admin/management?tab=schools",
+    label: "Manage Schools",
+    icon: Building,
   },
   {
     href: "/admin/system-health",
