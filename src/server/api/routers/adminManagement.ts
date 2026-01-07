@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/server/db-utils";
+import { adminProcedure, createTRPCRouter } from "@/server/api/trpc";
 import type { Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 // Validation schemas for updates
 const updateLeagueSchema = z.object({
@@ -744,20 +744,21 @@ export const adminManagementRouter = createTRPCRouter({
           type: input.type,
           location: input.location,
           slug,
-          state: input.state || null,
-          region: input.region || null,
-          country: input.country || null,
-          country_iso2: input.country_iso2 || "US",
-          website: input.website === "" ? null : input.website || null,
-          email: input.email === "" ? null : input.email || null,
-          phone: input.phone || null,
-          bio: input.bio || null,
-          logo_url: input.logo_url === "" ? null : input.logo_url || null,
-          banner_url: input.banner_url === "" ? null : input.banner_url || null,
-          esports_titles: input.esports_titles || [],
-          scholarships_available: input.scholarships_available || false,
-          in_state_tuition: input.in_state_tuition || null,
-          out_of_state_tuition: input.out_of_state_tuition || null,
+          state: input.state ?? null,
+          region: input.region ?? null,
+          country: input.country ?? null,
+          country_iso2: input.country_iso2 ?? "US",
+          website: input.website === "" ? null : (input.website ?? null),
+          email: input.email === "" ? null : (input.email ?? null),
+          phone: input.phone ?? null,
+          bio: input.bio ?? null,
+          logo_url: input.logo_url === "" ? null : (input.logo_url ?? null),
+          banner_url:
+            input.banner_url === "" ? null : (input.banner_url ?? null),
+          esports_titles: input.esports_titles ?? [],
+          scholarships_available: input.scholarships_available ?? false,
+          in_state_tuition: input.in_state_tuition ?? null,
+          out_of_state_tuition: input.out_of_state_tuition ?? null,
           minimum_gpa: input.minimum_gpa ?? null,
           minimum_sat: input.minimum_sat ?? null,
           minimum_act: input.minimum_act ?? null,
