@@ -12,11 +12,19 @@
  * - Smart refetch on mount and reconnect for fresh data
  */
 
-import { useState, useMemo, useEffect, Suspense } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useSearchParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
+import type { GameType } from "@/app/tryouts/_components/GameCarousel";
+import GameCarousel from "@/app/tryouts/_components/GameCarousel";
+import type { CardTryout } from "@/app/tryouts/_components/TryoutCard";
+import type { Tryout } from "@/app/tryouts/types";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -25,29 +33,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";
+import { api } from "@/trpc/react";
+import { useUser } from "@clerk/nextjs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Search,
-  LoaderIcon,
-  FilterIcon,
-  XCircleIcon,
-  GamepadIcon,
   AlertCircleIcon,
+  FilterIcon,
+  GamepadIcon,
+  LoaderIcon,
+  Search,
   X,
+  XCircleIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { api } from "@/trpc/react";
-import GameCarousel from "@/app/tryouts/_components/GameCarousel";
-import type { GameType } from "@/app/tryouts/_components/GameCarousel";
-import type { CardTryout } from "@/app/tryouts/_components/TryoutCard";
-import type { Tryout } from "@/app/tryouts/types";
-import { formatDateTimeInLocalTimezone } from "@/lib/time-utils";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 // Map database game names to UI game names
 const gameNameMap: Record<string, GameType> = {
@@ -225,7 +225,9 @@ function TryoutsPageContent() {
   // Get unique states for filter
   const availableStates = useMemo(() => {
     if (!tryoutsResponse?.tryouts) return [];
-    const states = tryoutsResponse.tryouts.map((tryout) => tryout.school.state);
+    const states = tryoutsResponse.tryouts
+      .map((tryout) => tryout.school.state)
+      .filter((state): state is string => state !== null);
     return [...new Set(states)].sort();
   }, [tryoutsResponse]);
 

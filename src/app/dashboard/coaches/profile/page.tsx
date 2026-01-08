@@ -1,50 +1,71 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FileUpload } from "@/components/ui/file-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  UserIcon,
-  SchoolIcon,
-  SaveIcon,
-  CheckIcon,
-  XIcon,
-  ExternalLinkIcon,
-  MapPinIcon,
-  GlobeIcon,
-  Loader2,
-  AlertCircleIcon,
-  InfoIcon,
-  EditIcon,
-  MailIcon,
-  PhoneIcon,
-  TrophyIcon,
-  PlusIcon,
-  CalendarIcon,
-  TrashIcon,
-  ImageIcon,
-} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "@/trpc/react";
+import { Textarea } from "@/components/ui/textarea";
+import { GAME_LOGO_MAPPING } from "@/lib/game-logos";
 import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
+import { useUser } from "@clerk/nextjs";
+import {
+  AlertCircleIcon,
+  Award,
+  CalendarIcon,
+  CheckIcon,
+  DollarSign,
+  EditIcon,
+  ExternalLinkIcon,
+  Facebook,
+  Gamepad2,
+  GlobeIcon,
+  GraduationCapIcon,
+  ImageIcon,
+  InfoIcon,
+  Instagram,
+  Loader2,
+  MailIcon,
+  MapPinIcon,
+  MessageCircleIcon,
+  PhoneIcon,
+  PlusIcon,
+  SaveIcon,
+  SchoolIcon,
+  TrashIcon,
+  TrophyIcon,
+  Twitch,
+  Twitter,
+  UserIcon,
+  XIcon,
+  Youtube,
+} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { FileUpload } from "@/components/ui/file-upload";
 
 interface ValidationErrors {
   bio?: string;
   website?: string;
   email?: string;
   phone?: string;
-  logo_url?: string;
   banner_url?: string;
+  discord_handle?: string;
+  in_state_tuition?: string;
+  out_of_state_tuition?: string;
+  minimum_gpa?: string;
+  minimum_sat?: string;
+  minimum_act?: string;
+  scholarships_available?: string;
+  social_links?: string;
+  esports_titles?: string;
 }
 
 interface Achievement {
@@ -81,8 +102,22 @@ export default function CoachProfilePage() {
     website: "",
     email: "",
     phone: "",
-    logo_url: "",
     banner_url: "",
+    discord_handle: "",
+    social_links: {
+      facebook: "",
+      twitter: "",
+      instagram: "",
+      youtube: "",
+      twitch: "",
+    },
+    in_state_tuition: "",
+    out_of_state_tuition: "",
+    minimum_gpa: null as number | null,
+    minimum_sat: null as number | null,
+    minimum_act: null as number | null,
+    scholarships_available: false,
+    esports_titles: [] as string[],
   });
 
   // Achievement form state
@@ -117,6 +152,9 @@ export default function CoachProfilePage() {
     isLoading: boolean;
     refetch: () => void;
   };
+
+  // Get available games from game logos mapping
+  const availableGameNames = Object.keys(GAME_LOGO_MAPPING).sort();
 
   // Mutations
   const updateProfileMutation = api.coachProfile.updateProfile.useMutation({
@@ -263,11 +301,6 @@ export default function CoachProfilePage() {
       errors.phone = "Please enter a valid phone number";
     }
 
-    // Logo URL validation
-    if (schoolFormData.logo_url && !validateUrl(schoolFormData.logo_url)) {
-      errors.logo_url = "Please enter a valid URL for the logo";
-    }
-
     setSchoolValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -286,13 +319,37 @@ export default function CoachProfilePage() {
   // Initialize school form data when school details load
   useEffect(() => {
     if (schoolDetails) {
+      const socialLinks = schoolDetails.social_links as {
+        facebook?: string | null;
+        twitter?: string | null;
+        instagram?: string | null;
+        youtube?: string | null;
+        twitch?: string | null;
+      } | null;
+
       setSchoolFormData({
         bio: schoolDetails.bio ?? "",
         website: schoolDetails.website ?? "",
         email: schoolDetails.email ?? "",
         phone: schoolDetails.phone ?? "",
-        logo_url: schoolDetails.logo_url ?? "",
         banner_url: schoolDetails.banner_url ?? "",
+        discord_handle: schoolDetails.discord_handle ?? "",
+        social_links: {
+          facebook: socialLinks?.facebook ?? "",
+          twitter: socialLinks?.twitter ?? "",
+          instagram: socialLinks?.instagram ?? "",
+          youtube: socialLinks?.youtube ?? "",
+          twitch: socialLinks?.twitch ?? "",
+        },
+        in_state_tuition: schoolDetails.in_state_tuition ?? "",
+        out_of_state_tuition: schoolDetails.out_of_state_tuition ?? "",
+        minimum_gpa: schoolDetails.minimum_gpa
+          ? Number(schoolDetails.minimum_gpa)
+          : null,
+        minimum_sat: schoolDetails.minimum_sat ?? null,
+        minimum_act: schoolDetails.minimum_act ?? null,
+        scholarships_available: schoolDetails.scholarships_available ?? false,
+        esports_titles: schoolDetails.esports_titles ?? [],
       });
     }
   }, [schoolDetails]);
@@ -308,16 +365,52 @@ export default function CoachProfilePage() {
     }
   }, [formData, profile]);
 
-  // Track school form changes (updated to include banner_url)
+  // Track school form changes (updated to include all fields)
   useEffect(() => {
     if (schoolDetails) {
+      const socialLinks = schoolDetails.social_links as {
+        facebook?: string | null;
+        twitter?: string | null;
+        instagram?: string | null;
+        youtube?: string | null;
+        twitch?: string | null;
+      } | null;
+
+      const originalTitles = schoolDetails.esports_titles ?? [];
+      const titlesChanged =
+        schoolFormData.esports_titles.length !== originalTitles.length ||
+        schoolFormData.esports_titles.some(
+          (title) => !originalTitles.includes(title),
+        );
+
       const hasChanges =
         schoolFormData.bio !== (schoolDetails.bio ?? "") ||
         schoolFormData.website !== (schoolDetails.website ?? "") ||
         schoolFormData.email !== (schoolDetails.email ?? "") ||
         schoolFormData.phone !== (schoolDetails.phone ?? "") ||
-        schoolFormData.logo_url !== (schoolDetails.logo_url ?? "") ||
-        schoolFormData.banner_url !== (schoolDetails.banner_url ?? "");
+        schoolFormData.banner_url !== (schoolDetails.banner_url ?? "") ||
+        schoolFormData.discord_handle !==
+          (schoolDetails.discord_handle ?? "") ||
+        schoolFormData.social_links.facebook !==
+          (socialLinks?.facebook ?? "") ||
+        schoolFormData.social_links.twitter !== (socialLinks?.twitter ?? "") ||
+        schoolFormData.social_links.instagram !==
+          (socialLinks?.instagram ?? "") ||
+        schoolFormData.social_links.youtube !== (socialLinks?.youtube ?? "") ||
+        schoolFormData.social_links.twitch !== (socialLinks?.twitch ?? "") ||
+        schoolFormData.in_state_tuition !==
+          (schoolDetails.in_state_tuition ?? "") ||
+        schoolFormData.out_of_state_tuition !==
+          (schoolDetails.out_of_state_tuition ?? "") ||
+        schoolFormData.minimum_gpa !==
+          (schoolDetails.minimum_gpa
+            ? Number(schoolDetails.minimum_gpa)
+            : null) ||
+        schoolFormData.minimum_sat !== (schoolDetails.minimum_sat ?? null) ||
+        schoolFormData.minimum_act !== (schoolDetails.minimum_act ?? null) ||
+        schoolFormData.scholarships_available !==
+          (schoolDetails.scholarships_available ?? false) ||
+        titlesChanged;
       setHasUnsavedSchoolChanges(hasChanges);
     }
   }, [schoolFormData, schoolDetails]);
@@ -348,13 +441,37 @@ export default function CoachProfilePage() {
 
   const handleSchoolCancel = () => {
     if (schoolDetails) {
+      const socialLinks = schoolDetails.social_links as {
+        facebook?: string | null;
+        twitter?: string | null;
+        instagram?: string | null;
+        youtube?: string | null;
+        twitch?: string | null;
+      } | null;
+
       setSchoolFormData({
         bio: schoolDetails.bio ?? "",
         website: schoolDetails.website ?? "",
         email: schoolDetails.email ?? "",
         phone: schoolDetails.phone ?? "",
-        logo_url: schoolDetails.logo_url ?? "",
         banner_url: schoolDetails.banner_url ?? "",
+        discord_handle: schoolDetails.discord_handle ?? "",
+        social_links: {
+          facebook: socialLinks?.facebook ?? "",
+          twitter: socialLinks?.twitter ?? "",
+          instagram: socialLinks?.instagram ?? "",
+          youtube: socialLinks?.youtube ?? "",
+          twitch: socialLinks?.twitch ?? "",
+        },
+        in_state_tuition: schoolDetails.in_state_tuition ?? "",
+        out_of_state_tuition: schoolDetails.out_of_state_tuition ?? "",
+        minimum_gpa: schoolDetails.minimum_gpa
+          ? Number(schoolDetails.minimum_gpa)
+          : null,
+        minimum_sat: schoolDetails.minimum_sat ?? null,
+        minimum_act: schoolDetails.minimum_act ?? null,
+        scholarships_available: schoolDetails.scholarships_available ?? false,
+        esports_titles: schoolDetails.esports_titles ?? [],
       });
     }
     setIsEditingSchool(false);
@@ -1135,33 +1252,477 @@ export default function CoachProfilePage() {
                         </div>
                       )}
                     </div>
-                    <div>
-                      <Label
-                        htmlFor="school_logo"
-                        className="font-rajdhani text-white"
-                      >
-                        Logo URL
-                      </Label>
-                      <Input
-                        id="school_logo"
-                        value={schoolFormData.logo_url}
-                        onChange={(e) =>
-                          handleSchoolFieldChange("logo_url", e.target.value)
+                  </div>
+
+                  <Separator className="my-6 bg-gray-700" />
+
+                  {/* Esports Titles Section */}
+                  <div className="space-y-4">
+                    <h4 className="font-rajdhani flex items-center text-lg font-semibold text-white">
+                      <Gamepad2 className="mr-2 h-4 w-4 text-cyan-400" />
+                      Esports Titles
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-rajdhani text-white">
+                          Games Supported
+                        </Label>
+                        {schoolFormData.esports_titles.length > 0 && (
+                          <span className="text-xs text-cyan-400">
+                            {schoolFormData.esports_titles.length} selected
+                          </span>
+                        )}
+                      </div>
+                      <div className="max-h-[300px] overflow-y-auto rounded-lg border border-gray-700 bg-gray-800/50 p-3">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {availableGameNames.map((gameName) => {
+                            const isChecked =
+                              schoolFormData.esports_titles.includes(gameName);
+                            return (
+                              <div
+                                key={gameName}
+                                className={cn(
+                                  "flex items-center space-x-2 rounded-md border p-2 transition-colors",
+                                  isChecked
+                                    ? "border-cyan-600/50 bg-cyan-900/20"
+                                    : "border-gray-700 bg-gray-800/30",
+                                  isEditingSchool &&
+                                    "cursor-pointer hover:border-cyan-600/30 hover:bg-gray-700/50",
+                                  !isEditingSchool && "opacity-60",
+                                )}
+                                onClick={() => {
+                                  if (!isEditingSchool) return;
+                                  const newTitles = isChecked
+                                    ? schoolFormData.esports_titles.filter(
+                                        (t) => t !== gameName,
+                                      )
+                                    : [
+                                        ...schoolFormData.esports_titles,
+                                        gameName,
+                                      ];
+                                  setSchoolFormData((prev) => ({
+                                    ...prev,
+                                    esports_titles: newTitles,
+                                  }));
+                                }}
+                              >
+                                <Checkbox
+                                  id={`game-${gameName}`}
+                                  checked={isChecked}
+                                  disabled={!isEditingSchool}
+                                  onCheckedChange={(checked) => {
+                                    const newTitles = checked
+                                      ? [
+                                          ...schoolFormData.esports_titles,
+                                          gameName,
+                                        ]
+                                      : schoolFormData.esports_titles.filter(
+                                          (t) => t !== gameName,
+                                        );
+                                    setSchoolFormData((prev) => ({
+                                      ...prev,
+                                      esports_titles: newTitles,
+                                    }));
+                                  }}
+                                  className="border-gray-600 data-[state=checked]:border-cyan-600 data-[state=checked]:bg-cyan-600"
+                                />
+                                {GAME_LOGO_MAPPING[gameName] && (
+                                  <Image
+                                    src={GAME_LOGO_MAPPING[gameName]}
+                                    alt={gameName}
+                                    width={20}
+                                    height={20}
+                                    className="h-5 w-5 flex-shrink-0 brightness-0 invert"
+                                  />
+                                )}
+                                <Label
+                                  htmlFor={`game-${gameName}`}
+                                  className={cn(
+                                    "cursor-pointer truncate text-sm text-gray-300",
+                                    !isEditingSchool && "cursor-default",
+                                  )}
+                                >
+                                  {gameName}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Select the esports titles your school&apos;s program
+                        competes in.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Separator className="my-6 bg-gray-700" />
+
+                  {/* Social Media Links Section */}
+                  <div className="space-y-4">
+                    <h4 className="font-rajdhani flex items-center text-lg font-semibold text-white">
+                      <MessageCircleIcon className="mr-2 h-4 w-4 text-indigo-400" />
+                      Social Media & Discord
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <Label
+                          htmlFor="discord_handle"
+                          className="font-rajdhani flex items-center text-white"
+                        >
+                          <MessageCircleIcon className="mr-1 h-4 w-4 text-indigo-400" />
+                          Discord Handle
+                        </Label>
+                        <Input
+                          id="discord_handle"
+                          value={schoolFormData.discord_handle}
+                          onChange={(e) =>
+                            handleSchoolFieldChange(
+                              "discord_handle",
+                              e.target.value,
+                            )
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="username#0000 or server invite link"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="social_twitter"
+                          className="font-rajdhani flex items-center text-white"
+                        >
+                          <Twitter className="mr-1 h-4 w-4 text-sky-400" />
+                          Twitter/X
+                        </Label>
+                        <Input
+                          id="social_twitter"
+                          value={schoolFormData.social_links.twitter}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              social_links: {
+                                ...prev.social_links,
+                                twitter: e.target.value,
+                              },
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="https://twitter.com/schoolesports"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="social_instagram"
+                          className="font-rajdhani flex items-center text-white"
+                        >
+                          <Instagram className="mr-1 h-4 w-4 text-pink-400" />
+                          Instagram
+                        </Label>
+                        <Input
+                          id="social_instagram"
+                          value={schoolFormData.social_links.instagram}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              social_links: {
+                                ...prev.social_links,
+                                instagram: e.target.value,
+                              },
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="https://instagram.com/schoolesports"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="social_facebook"
+                          className="font-rajdhani flex items-center text-white"
+                        >
+                          <Facebook className="mr-1 h-4 w-4 text-blue-500" />
+                          Facebook
+                        </Label>
+                        <Input
+                          id="social_facebook"
+                          value={schoolFormData.social_links.facebook}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              social_links: {
+                                ...prev.social_links,
+                                facebook: e.target.value,
+                              },
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="https://facebook.com/schoolesports"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="social_youtube"
+                          className="font-rajdhani flex items-center text-white"
+                        >
+                          <Youtube className="mr-1 h-4 w-4 text-red-500" />
+                          YouTube
+                        </Label>
+                        <Input
+                          id="social_youtube"
+                          value={schoolFormData.social_links.youtube}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              social_links: {
+                                ...prev.social_links,
+                                youtube: e.target.value,
+                              },
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="https://youtube.com/@schoolesports"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="social_twitch"
+                          className="font-rajdhani flex items-center text-white"
+                        >
+                          <Twitch className="mr-1 h-4 w-4 text-purple-400" />
+                          Twitch
+                        </Label>
+                        <Input
+                          id="social_twitch"
+                          value={schoolFormData.social_links.twitch}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              social_links: {
+                                ...prev.social_links,
+                                twitch: e.target.value,
+                              },
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="https://twitch.tv/schoolesports"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator className="my-6 bg-gray-700" />
+
+                  {/* Tuition Information Section */}
+                  <div className="space-y-4">
+                    <h4 className="font-rajdhani flex items-center text-lg font-semibold text-white">
+                      <DollarSign className="mr-2 h-4 w-4 text-green-400" />
+                      Tuition Information
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <Label
+                          htmlFor="in_state_tuition"
+                          className="font-rajdhani text-white"
+                        >
+                          In-State Tuition
+                        </Label>
+                        <Input
+                          id="in_state_tuition"
+                          value={schoolFormData.in_state_tuition}
+                          onChange={(e) =>
+                            handleSchoolFieldChange(
+                              "in_state_tuition",
+                              e.target.value,
+                            )
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="$15,000/year or N/A"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="out_of_state_tuition"
+                          className="font-rajdhani text-white"
+                        >
+                          Out-of-State Tuition
+                        </Label>
+                        <Input
+                          id="out_of_state_tuition"
+                          value={schoolFormData.out_of_state_tuition}
+                          onChange={(e) =>
+                            handleSchoolFieldChange(
+                              "out_of_state_tuition",
+                              e.target.value,
+                            )
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="$35,000/year or N/A"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator className="my-6 bg-gray-700" />
+
+                  {/* Academic Requirements Section */}
+                  <div className="space-y-4">
+                    <h4 className="font-rajdhani flex items-center text-lg font-semibold text-white">
+                      <GraduationCapIcon className="mr-2 h-4 w-4 text-blue-400" />
+                      Academic Requirements
+                    </h4>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <div>
+                        <Label
+                          htmlFor="minimum_gpa"
+                          className="font-rajdhani text-white"
+                        >
+                          Minimum GPA
+                        </Label>
+                        <Input
+                          id="minimum_gpa"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="4"
+                          value={schoolFormData.minimum_gpa ?? ""}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              minimum_gpa: e.target.value
+                                ? parseFloat(e.target.value)
+                                : null,
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="2.50"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="minimum_sat"
+                          className="font-rajdhani text-white"
+                        >
+                          Minimum SAT
+                        </Label>
+                        <Input
+                          id="minimum_sat"
+                          type="number"
+                          min="400"
+                          max="1600"
+                          value={schoolFormData.minimum_sat ?? ""}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              minimum_sat: e.target.value
+                                ? parseInt(e.target.value)
+                                : null,
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="1000"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="minimum_act"
+                          className="font-rajdhani text-white"
+                        >
+                          Minimum ACT
+                        </Label>
+                        <Input
+                          id="minimum_act"
+                          type="number"
+                          min="1"
+                          max="36"
+                          value={schoolFormData.minimum_act ?? ""}
+                          onChange={(e) =>
+                            setSchoolFormData((prev) => ({
+                              ...prev,
+                              minimum_act: e.target.value
+                                ? parseInt(e.target.value)
+                                : null,
+                            }))
+                          }
+                          disabled={!isEditingSchool}
+                          placeholder="21"
+                          className={cn(
+                            "mt-1 border-gray-700 bg-gray-800 text-white",
+                            !isEditingSchool && "opacity-60",
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator className="my-6 bg-gray-700" />
+
+                  {/* Scholarships Section */}
+                  <div className="space-y-4">
+                    <h4 className="font-rajdhani flex items-center text-lg font-semibold text-white">
+                      <Award className="mr-2 h-4 w-4 text-yellow-400" />
+                      Scholarship Information
+                    </h4>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="scholarships_available"
+                        checked={schoolFormData.scholarships_available}
+                        onCheckedChange={(checked) =>
+                          setSchoolFormData((prev) => ({
+                            ...prev,
+                            scholarships_available: checked === true,
+                          }))
                         }
                         disabled={!isEditingSchool}
-                        placeholder="https://example.edu/logo.png"
-                        className={cn(
-                          "mt-1 border-gray-700 bg-gray-800 text-white",
-                          !isEditingSchool && "opacity-60",
-                          schoolValidationErrors.logo_url && "border-red-500",
-                        )}
+                        className="border-gray-600 data-[state=checked]:bg-cyan-600"
                       />
-                      {schoolValidationErrors.logo_url && (
-                        <div className="mt-1 flex items-center text-xs text-red-400">
-                          <AlertCircleIcon className="mr-1 h-3 w-3" />
-                          {schoolValidationErrors.logo_url}
-                        </div>
-                      )}
+                      <Label
+                        htmlFor="scholarships_available"
+                        className={cn(
+                          "font-rajdhani text-white",
+                          !isEditingSchool && "opacity-60",
+                        )}
+                      >
+                        Esports scholarships are available at this school
+                      </Label>
                     </div>
                   </div>
                 </div>

@@ -1,20 +1,25 @@
 "use client";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Quote, GraduationCap, Calendar } from "lucide-react";
-import FAQSection from "./_components/FAQSection";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogOverlay,
+  DialogPortal,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SignUpButton, SignInButton, useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { getAvailableGameNames } from "@/lib/game-logos";
 import { api } from "@/trpc/react";
+import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
+import { Calendar, GraduationCap, Quote, Search, User } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import FAQSection from "./_components/FAQSection";
 
 // Helper function to calculate spots remaining
 const getSpotsRemaining = (maxSpots: number, registeredSpots: number) => {
@@ -78,9 +83,18 @@ export default function HomePage() {
   const { user } = useUser();
   const router = useRouter();
   const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<
     "player" | "coach" | null
   >(null);
+
+  // College search state
+  const [collegeSearchQuery, setCollegeSearchQuery] = useState("");
+  const [selectedGames, setSelectedGames] = useState<string[]>([]);
+  const [hasScholarships, setHasScholarships] = useState<boolean | undefined>(
+    undefined,
+  );
+  const [inUS, setInUS] = useState<boolean | undefined>(undefined);
   // Fetch real data from API
   const { data: upcomingTryouts = [] } =
     api.tryouts.getUpcomingForHomepage.useQuery({ limit: 3 });
@@ -157,19 +171,69 @@ export default function HomePage() {
           </p> */}
 
           {/* Key Stats */}
-          <div className="mx-auto mb-12 grid max-w-2xl grid-cols-1 gap-8">
-            {/* <div className="text-center">
-              <div className="text-3xl font-orbitron font-black text-cyan-400 mb-1">$50M+</div>
-              <div className="text-sm font-rajdhani text-gray-300">Available Scholarships</div>
-            </div> */}
-            {/* <div className="text-center">
-              <div className="text-3xl font-orbitron font-black text-purple-400 mb-1">500+</div>
-              <div className="text-sm font-rajdhani text-gray-300">Partner Colleges</div>
+          {/* <div className="mx-auto mb-12 grid max-w-2xl grid-cols-1 gap-8">
+            <div className="text-center">
+              <div className="font-orbitron mb-1 text-3xl font-black text-cyan-400">
+                $50M+
+              </div>
+              <div className="font-rajdhani text-sm text-gray-300">
+                Available Scholarships
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-orbitron font-black text-orange-400 mb-1">10K+</div>
-              <div className="text-sm font-rajdhani text-gray-300">Active Players</div>
-            </div> */}
+              <div className="font-orbitron mb-1 text-3xl font-black text-purple-400">
+                500+
+              </div>
+              <div className="font-rajdhani text-sm text-gray-300">
+                Partner Colleges
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="font-orbitron mb-1 text-3xl font-black text-orange-400">
+                10K+
+              </div>
+              <div className="font-rajdhani text-sm text-gray-300">
+                Active Players
+              </div>
+            </div>
+          </div> */}
+
+          {/* College Search Bar */}
+          <div className="mx-auto mb-12 max-w-3xl">
+            <div className="mb-3 text-center">
+              <p className="font-rajdhani text-sm tracking-[0.2em] text-cyan-300/80 uppercase">
+                Find colleges by games, scholarships, location
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                router.push("/colleges");
+                // setShowSearchModal(true);
+              }}
+              className="group relative flex w-full cursor-text items-center justify-between overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-6 py-4 text-left text-white shadow-lg shadow-cyan-500/10 transition-all duration-500 ease-out hover:border-cyan-400/60 hover:shadow-cyan-400/30 focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:outline-none"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-orange-500/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="flex items-center space-x-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/15 text-cyan-300 transition-all duration-500 group-hover:bg-cyan-500/25 group-hover:text-white">
+                  <Search className="h-5 w-5" />
+                </span>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="font-orbitron text-lg font-semibold">
+                      Search for colleges
+                    </span>
+                    <span
+                      className="blink-caret inline-block h-6 w-[2px] bg-cyan-200/90"
+                      aria-hidden
+                    />
+                  </div>
+                  <span className="font-rajdhani text-sm text-gray-300">
+                    by scholarships, supported games and location
+                  </span>
+                </div>
+              </div>
+            </button>
           </div>
 
           {/* Dual CTA Buttons */}
@@ -191,6 +255,56 @@ export default function HomePage() {
               </Button>
             </Link>
           </div>
+
+          {/* Alternative CTA Buttons */}
+
+          {/* CTA: Get started */}
+          {/* <div className="mx-auto mb-2 max-w-4xl">
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 via-cyan-500/5 to-purple-500/5 p-6 shadow-lg shadow-cyan-500/10 backdrop-blur-sm md:p-8">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-2">
+                  <p className="font-rajdhani text-xs tracking-[0.2em] text-cyan-300/80 uppercase">
+                    Get started today
+                  </p>
+                  <h3 className="font-orbitron text-2xl font-black text-white md:text-3xl">
+                    I am a...
+                  </h3>
+                  <p className="font-rajdhani text-sm text-gray-300">
+                    Pick your track to begin recruiting or discover programs.
+                  </p>
+                </div>
+
+                <div className="grid w-full gap-3 sm:grid-cols-2 md:max-w-md">
+                  <Link href="/recruiting">
+                    <Button
+                      size="lg"
+                      className="group font-orbitron flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-500 px-6 py-4 text-lg font-bold tracking-wide text-black shadow-lg shadow-cyan-400/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-cyan-400/40 focus-visible:ring-2 focus-visible:ring-cyan-300/70"
+                    >
+                      <span className="flex items-center gap-3">
+                        <User className="h-5 w-5" />
+                        Player
+                      </span>
+                      <ArrowRight className="h-4 w-4 opacity-80 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+
+                  <Link href="/recruiting">
+                    <Button
+                      size="lg"
+                      className="group font-orbitron flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 px-6 py-4 text-lg font-bold tracking-wide text-black shadow-lg shadow-orange-400/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-orange-400/40 focus-visible:ring-2 focus-visible:ring-orange-300/70"
+                    >
+                      <span className="flex items-center gap-3">
+                        <GraduationCap className="h-5 w-5" />
+                        Coach
+                      </span>
+                      <ArrowRight className="h-4 w-4 opacity-80 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div> */}
+          {/* End of Alternative CTA Buttons */}
         </div>
       </section>
 
@@ -791,6 +905,315 @@ export default function HomePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* College Search Modal */}
+      <CollegeSearchModal
+        open={showSearchModal}
+        onOpenChange={setShowSearchModal}
+        searchQuery={collegeSearchQuery}
+        onSearchQueryChange={setCollegeSearchQuery}
+        selectedGames={selectedGames}
+        onSelectedGamesChange={setSelectedGames}
+        hasScholarships={hasScholarships}
+        onHasScholarshipsChange={setHasScholarships}
+        inUS={inUS}
+        onInUSChange={setInUS}
+      />
     </div>
+  );
+}
+
+// College Search Modal Component
+function CollegeSearchModal({
+  open,
+  onOpenChange,
+  searchQuery,
+  onSearchQueryChange,
+  selectedGames,
+  onSelectedGamesChange,
+  hasScholarships,
+  onHasScholarshipsChange,
+  inUS,
+  onInUSChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
+  selectedGames: string[];
+  onSelectedGamesChange: (games: string[]) => void;
+  hasScholarships: boolean | undefined;
+  onHasScholarshipsChange: (value: boolean | undefined) => void;
+  inUS: boolean | undefined;
+  onInUSChange: (value: boolean | undefined) => void;
+}) {
+  const router = useRouter();
+
+  // Get available games from hardcoded logo mapping
+  const availableGames = useMemo(() => getAvailableGameNames(), []);
+
+  // Search colleges
+  const { data: searchResults, isLoading } =
+    api.schoolProfile.searchColleges.useQuery(
+      {
+        search: searchQuery || undefined,
+        gameNames: selectedGames.length > 0 ? selectedGames : undefined,
+        hasScholarships: hasScholarships,
+        inUS: inUS,
+        limit: 20,
+        offset: 0,
+      },
+      {
+        enabled: open,
+      },
+    );
+
+  const handleGameToggle = (gameName: string) => {
+    if (selectedGames.includes(gameName)) {
+      onSelectedGamesChange(selectedGames.filter((name) => name !== gameName));
+    } else {
+      onSelectedGamesChange([...selectedGames, gameName]);
+    }
+  };
+
+  const handleCollegeClick = (collegeId: string) => {
+    router.push(`/profiles/school/${collegeId}`);
+    onOpenChange(false);
+  };
+
+  const clearFilters = () => {
+    onSearchQueryChange("");
+    onSelectedGamesChange([]);
+    onHasScholarshipsChange(undefined);
+    onInUSChange(undefined);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal>
+        <DialogOverlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 bg-none opacity-100 backdrop-blur-none" />
+        <DialogContent className="data-[state=open]:animate-in data-[state=open]:zoom-in-90 data-[state=closed]:animate-out data-[state=closed]:zoom-out-90 max-h-[90vh] max-w-4xl overflow-y-auto border border-cyan-400/15 bg-slate-900/5 text-white shadow-2xl backdrop-blur-none transition-all duration-300">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron text-2xl font-bold text-white">
+              SEARCH COLLEGES
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search by college name, location, or state..."
+                value={searchQuery}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
+                className="border-gray-700 bg-gray-800/60 pl-10 text-white placeholder:text-gray-400 focus:border-cyan-400 focus:ring-cyan-400/20"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="space-y-4">
+              <div className="font-orbitron text-lg font-semibold text-white">
+                FILTERS
+              </div>
+
+              {/* Games Filter */}
+              {availableGames.length > 0 && (
+                <div>
+                  <div className="font-rajdhani mb-2 text-sm font-medium text-gray-300">
+                    Games Supported
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {availableGames.map((gameName) => (
+                      <button
+                        key={gameName}
+                        onClick={() => handleGameToggle(gameName)}
+                        className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
+                          selectedGames.includes(gameName)
+                            ? "border-cyan-400 bg-cyan-400/20 text-cyan-400"
+                            : "border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500"
+                        }`}
+                      >
+                        {gameName}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Scholarships Filter */}
+              <div>
+                <div className="font-rajdhani mb-2 text-sm font-medium text-gray-300">
+                  Scholarships
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={hasScholarships === true}
+                      onCheckedChange={(checked) =>
+                        onHasScholarshipsChange(checked ? true : undefined)
+                      }
+                      className="border-gray-600"
+                    />
+                    <span className="font-rajdhani text-sm text-gray-300">
+                      Has Scholarships
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Location Filter */}
+              <div>
+                <div className="font-rajdhani mb-2 text-sm font-medium text-gray-300">
+                  Location
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={inUS === true}
+                      onCheckedChange={(checked) =>
+                        onInUSChange(checked ? true : undefined)
+                      }
+                      className="border-gray-600"
+                    />
+                    <span className="font-rajdhani text-sm text-gray-300">
+                      In United States
+                    </span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={inUS === false}
+                      onCheckedChange={(checked) =>
+                        onInUSChange(checked ? false : undefined)
+                      }
+                      className="border-gray-600"
+                    />
+                    <span className="font-rajdhani text-sm text-gray-300">
+                      Outside United States
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Clear Filters */}
+              {(selectedGames.length > 0 ||
+                hasScholarships !== undefined ||
+                inUS !== undefined ||
+                searchQuery) && (
+                <Button
+                  onClick={clearFilters}
+                  variant="outline"
+                  className="font-rajdhani border-gray-600 text-gray-300 hover:bg-gray-800"
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            {/* Results */}
+            <div className="space-y-4">
+              <div className="font-orbitron text-lg font-semibold text-white">
+                RESULTS
+                {searchResults && (
+                  <span className="font-rajdhani ml-2 text-sm font-normal text-gray-400">
+                    ({searchResults.total} colleges found)
+                  </span>
+                )}
+              </div>
+
+              {isLoading ? (
+                <div className="py-8 text-center">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent"></div>
+                  <p className="font-rajdhani mt-2 text-gray-400">
+                    Searching...
+                  </p>
+                </div>
+              ) : searchResults && searchResults.schools.length > 0 ? (
+                <div className="max-h-96 space-y-2 overflow-y-auto">
+                  {searchResults.schools.map((college) => (
+                    <button
+                      key={college.id}
+                      onClick={() => handleCollegeClick(college.id)}
+                      className="group w-full rounded-lg border border-gray-700 bg-gray-800/60 p-4 text-left transition-all hover:border-cyan-400/50 hover:bg-gray-800/80"
+                    >
+                      <div className="flex items-center space-x-4">
+                        {college.logo_url ? (
+                          <Image
+                            src={college.logo_url}
+                            alt={college.name}
+                            width={48}
+                            height={48}
+                            className="h-12 w-12 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded bg-gradient-to-br from-purple-500 to-blue-600">
+                            <GraduationCap className="h-6 w-6 text-white" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="font-orbitron font-semibold text-white group-hover:text-cyan-400">
+                            {college.name}
+                          </div>
+                          <div className="font-rajdhani text-sm text-gray-400">
+                            {college.type.replace("_", " ")} •{" "}
+                            {college.location}
+                            {college.state && `, ${college.state}`}
+                          </div>
+                          {college.esports_titles &&
+                            college.esports_titles.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {college.esports_titles
+                                  .slice(0, 3)
+                                  .map((title, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="rounded bg-cyan-400/20 px-2 py-0.5 text-xs text-cyan-400"
+                                    >
+                                      {title}
+                                    </span>
+                                  ))}
+                                {college.esports_titles.length > 3 && (
+                                  <span className="rounded bg-gray-700 px-2 py-0.5 text-xs text-gray-400">
+                                    +{college.esports_titles.length - 3} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          {college.scholarships_available && (
+                            <div className="mt-1 text-xs font-semibold text-green-400">
+                              ✓ Scholarships Available
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="font-rajdhani text-gray-400">
+                    No colleges found. Try adjusting your filters.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* View All Link */}
+            <div className="pt-4 text-center">
+              <Button
+                onClick={() => {
+                  router.push("/colleges");
+                  onOpenChange(false);
+                }}
+                className="font-orbitron bg-cyan-400 text-black hover:bg-cyan-500"
+              >
+                VIEW ALL COLLEGES
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }

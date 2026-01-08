@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
 import { isCurrentUserAdmin } from "@/lib/server/admin-utils";
-import { AdminNavigation } from "./_components/AdminNavigation";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { AdminClientLayout } from "./_components/AdminClientLayout";
 
 export default async function AdminLayout({
   children,
@@ -20,10 +20,5 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  return (
-    <div className="h-[calc(100vh-64px)] bg-gray-900">
-      <AdminNavigation />
-      <main className="container mx-auto px-4 py-8">{children}</main>
-    </div>
-  );
+  return <AdminClientLayout>{children}</AdminClientLayout>;
 }

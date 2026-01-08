@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useMemo, use } from "react";
-import { useUser } from "@clerk/nextjs";
-import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -16,31 +13,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { hasPermission } from "@/lib/client/permissions";
+import { getGameLogoPath } from "@/lib/game-logos";
+import { api } from "@/trpc/react";
+import { useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
 import {
-  Mail,
-  MapPin,
-  Phone,
-  Globe,
-  MessageSquareIcon,
+  Award,
+  BookOpen,
+  BuildingIcon,
+  Calendar,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Trophy,
-  Calendar,
   Clock,
+  DollarSign,
   ExternalLink,
-  Users,
-  Share2Icon,
-  SchoolIcon,
+  Facebook,
+  Globe,
   GraduationCapIcon,
-  BuildingIcon,
+  HandshakeIcon,
+  Instagram,
+  Loader2,
+  Mail,
+  MapPin,
+  MessageSquareIcon,
+  Phone,
+  SchoolIcon,
+  Share2Icon,
+  Trophy,
+  Twitch,
+  Twitter,
+  Users,
+  Youtube,
 } from "lucide-react";
-import { hasPermission } from "@/lib/client/permissions";
-import { toast } from "sonner";
-import { api } from "@/trpc/react";
 import Image from "next/image";
-import { Skeleton } from "@/components/ui/skeleton";
+import { use, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 // Animation variants - more subtle for school profiles
 const containerVariants = {
@@ -563,8 +575,36 @@ const formatRelativeTime = (date: Date) => {
 };
 
 export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const unwrappedParams = use(params);
+
+  // Get user type from Clerk metadata
+  const userType = user?.publicMetadata?.userType as
+    | "player"
+    | "coach"
+    | "league"
+    | undefined;
+  const isPlayer = userType === "player";
+  const isCoach = userType === "coach";
+
+  // Claim school dialog state
+  const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false);
+  const [claimMessage, setClaimMessage] = useState("");
+
+  // School association request mutation (for coaches)
+  const submitAssociationRequest =
+    api.coachProfile.submitSchoolAssociationRequest.useMutation({
+      onSuccess: () => {
+        toast.success(
+          "School association request submitted! An admin will review your request.",
+        );
+        setIsClaimDialogOpen(false);
+        setClaimMessage("");
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to submit request");
+      },
+    });
 
   // Handle share profile functionality
   const handleShareProfile = async () => {
@@ -594,7 +634,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
     ? {
         id: schoolData.id,
         name: schoolData.name,
-        location: `${schoolData.location}, ${schoolData.state}`,
+        location: `${schoolData.location}, ${schoolData.state ?? ""}`,
         logo: schoolData.logo_url ?? "/eval/logos/emblem.png", // Fallback logo
         banner: schoolData.banner_url ?? null, // Use banner from API when available
         bio:
@@ -605,7 +645,24 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         phone: schoolData.phone ?? "",
         type: schoolData.type,
         region: schoolData.region,
-        coaches: transformCoachData(schoolData.coaches as CoachData[]),
+        country: schoolData.country,
+        country_iso2: schoolData.country_iso2,
+        esports_titles: schoolData.esports_titles ?? [],
+        social_links: schoolData.social_links as {
+          facebook?: string | null;
+          twitter?: string | null;
+          instagram?: string | null;
+          youtube?: string | null;
+          twitch?: string | null;
+        } | null,
+        discord_handle: schoolData.discord_handle,
+        in_state_tuition: schoolData.in_state_tuition,
+        out_of_state_tuition: schoolData.out_of_state_tuition,
+        minimum_gpa: schoolData.minimum_gpa,
+        minimum_sat: schoolData.minimum_sat,
+        minimum_act: schoolData.minimum_act,
+        scholarships_available: schoolData.scholarships_available,
+        coaches: transformCoachData(schoolData.coaches ?? []),
       }
     : null;
 
@@ -839,6 +896,15 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                       </span>
                     </div>
                   )}
+                  {school.country && (
+                    <div className="flex items-center gap-2 text-cyan-300">
+                      <Globe className="h-4 w-4" />
+                      <span className="font-rajdhani">
+                        {school.country}{" "}
+                        {school.country_iso2 === "US" ? "🇺🇸" : "🌍"}
+                      </span>
+                    </div>
+                  )}
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -892,6 +958,133 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
       </motion.div>
 
       <div className="container mx-auto max-w-6xl space-y-6 px-4 py-6">
+        {/* Unclaimed School Profile Banner - Only show if not a player and school has no coaches */}
+        {school.coaches.length === 0 && !isPlayer && (
+          <motion.div
+            className="relative"
+            variants={itemVariants}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <Card className="border-green-500/30 bg-gradient-to-r from-green-900/40 via-emerald-900/40 to-green-900/40 shadow-lg">
+              <CardContent className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-green-500/20 p-2">
+                    <HandshakeIcon className="h-6 w-6 text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-orbitron text-lg font-semibold text-white">
+                      This School Profile is Unclaimed
+                    </h3>
+                    <p className="font-rajdhani text-sm text-gray-300">
+                      Are you a coach at {school.name}? Claim this profile to
+                      manage tryouts, announcements, and recruit players.
+                    </p>
+                  </div>
+                </div>
+                {/* If signed in as coach, open dialog. Otherwise redirect to onboarding */}
+                {isSignedIn && isCoach ? (
+                  <Dialog
+                    open={isClaimDialogOpen}
+                    onOpenChange={setIsClaimDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700">
+                        <HandshakeIcon className="mr-2 h-4 w-4" />
+                        Claim This Profile
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="border-gray-800 bg-gray-900 text-white">
+                      <DialogHeader>
+                        <DialogTitle className="font-orbitron">
+                          Claim School Profile
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                          Submit a request to be associated with {school.name}.
+                          An admin will review your request.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label
+                            htmlFor="school-name"
+                            className="text-gray-300"
+                          >
+                            School
+                          </Label>
+                          <Input
+                            id="school-name"
+                            value={school.name}
+                            disabled
+                            className="border-gray-700 bg-gray-800 text-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <Label
+                            htmlFor="claim-message"
+                            className="text-gray-300"
+                          >
+                            Message (optional)
+                          </Label>
+                          <Textarea
+                            id="claim-message"
+                            placeholder="Tell us about your role at this school..."
+                            value={claimMessage}
+                            onChange={(e) => setClaimMessage(e.target.value)}
+                            className="border-gray-700 bg-gray-800 text-white placeholder-gray-400"
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsClaimDialogOpen(false)}
+                          className="border-gray-700 text-gray-300"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            submitAssociationRequest.mutate({
+                              school_id: school.id,
+                              request_message: claimMessage || undefined,
+                            });
+                          }}
+                          disabled={submitAssociationRequest.isPending}
+                          className="bg-green-600 text-white hover:bg-green-700"
+                        >
+                          {submitAssociationRequest.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            "Submit Request"
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <Button
+                    asChild
+                    className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700"
+                  >
+                    <a
+                      href={`/onboarding/coach?schoolId=${school.id}&schoolName=${encodeURIComponent(school.name)}`}
+                    >
+                      <HandshakeIcon className="mr-2 h-4 w-4" />
+                      Claim This Profile
+                    </a>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Merged School Information and About Section */}
         <motion.div className="relative" variants={itemVariants}>
           <motion.div
@@ -960,7 +1153,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                       </div>
                       <a
                         href={`tel:${school.phone}`}
-                        className="font-rajdhani text-sm text-gray-300 transition-colors hover:text-white"
+                        className="font-rajdhani text-sm text-cyan-400 transition-colors hover:text-cyan-300"
                       >
                         {school.phone}
                       </a>
@@ -999,6 +1192,227 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                     </span>
                   </motion.div>
                 </div>
+
+                {/* Social Media Links */}
+                {(school.social_links ?? school.discord_handle) && (
+                  <div className="mt-4 border-t border-gray-700/50 pt-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <MessageSquareIcon className="h-4 w-4 text-cyan-400" />
+                      <span className="font-rajdhani text-sm font-medium text-gray-400">
+                        Connect With Us:{" "}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {school.social_links?.facebook && (
+                        <a
+                          href={school.social_links.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-400"
+                        >
+                          <Facebook className="h-4 w-4" />
+                          Facebook
+                        </a>
+                      )}
+                      {school.social_links?.twitter && (
+                        <a
+                          href={school.social_links.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:border-sky-500/50 hover:bg-sky-500/10 hover:text-sky-400"
+                        >
+                          <Twitter className="h-4 w-4" />
+                          Twitter
+                        </a>
+                      )}
+                      {school.social_links?.instagram && (
+                        <a
+                          href={school.social_links.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:border-pink-500/50 hover:bg-pink-500/10 hover:text-pink-400"
+                        >
+                          <Instagram className="h-4 w-4" />
+                          Instagram
+                        </a>
+                      )}
+                      {school.social_links?.youtube && (
+                        <a
+                          href={school.social_links.youtube}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
+                        >
+                          <Youtube className="h-4 w-4" />
+                          YouTube
+                        </a>
+                      )}
+                      {school.social_links?.twitch && (
+                        <a
+                          href={school.social_links.twitch}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:border-purple-500/50 hover:bg-purple-500/10 hover:text-purple-400"
+                        >
+                          <Twitch className="h-4 w-4" />
+                          Twitch
+                        </a>
+                      )}
+                      {school.discord_handle && (
+                        <div className="flex items-center gap-1 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-1.5 text-sm text-gray-300">
+                          <MessageSquareIcon className="h-4 w-4" />
+                          Discord: {school.discord_handle}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tuition Information */}
+                {(school.in_state_tuition ?? school.out_of_state_tuition) && (
+                  <div className="mt-4 border-t border-gray-700/50 pt-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-cyan-400" />
+                      <span className="font-rajdhani text-sm font-medium text-gray-400">
+                        Tuition Information:
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                      {school.in_state_tuition && (
+                        <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-2">
+                          <span className="font-rajdhani text-xs text-gray-400">
+                            In-State:
+                          </span>
+                          <span className="font-rajdhani ml-2 text-sm font-semibold text-cyan-400">
+                            {school.in_state_tuition}
+                          </span>
+                        </div>
+                      )}
+                      {school.out_of_state_tuition && (
+                        <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-2">
+                          <span className="font-rajdhani text-xs text-gray-400">
+                            Out-of-State:
+                          </span>
+                          <span className="font-rajdhani ml-2 text-sm font-semibold text-cyan-400">
+                            {school.out_of_state_tuition}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Academic Requirements */}
+                {(school.minimum_gpa ??
+                  school.minimum_sat ??
+                  school.minimum_act) && (
+                  <div className="mt-4 border-t border-gray-700/50 pt-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-cyan-400" />
+                      <span className="font-rajdhani text-sm font-medium text-gray-400">
+                        Academic Requirements:
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                      {school.minimum_gpa && (
+                        <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-2">
+                          <span className="font-rajdhani text-xs text-gray-400">
+                            Minimum GPA:
+                          </span>
+                          <span className="font-rajdhani ml-2 text-sm font-semibold text-cyan-400">
+                            {school.minimum_gpa.toString()}
+                          </span>
+                        </div>
+                      )}
+                      {school.minimum_sat && (
+                        <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-2">
+                          <span className="font-rajdhani text-xs text-gray-400">
+                            Minimum SAT:
+                          </span>
+                          <span className="font-rajdhani ml-2 text-sm font-semibold text-cyan-400">
+                            {school.minimum_sat}
+                          </span>
+                        </div>
+                      )}
+                      {school.minimum_act && (
+                        <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-2">
+                          <span className="font-rajdhani text-xs text-gray-400">
+                            Minimum ACT:
+                          </span>
+                          <span className="font-rajdhani ml-2 text-sm font-semibold text-cyan-400">
+                            {school.minimum_act}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Esports Titles */}
+                {school.esports_titles && school.esports_titles.length > 0 && (
+                  <div className="mt-4 border-t border-gray-700/50 pt-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-cyan-400" />
+                      <span className="font-rajdhani text-sm font-medium text-gray-400">
+                        Esports Titles:
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {school.esports_titles.map(
+                        (title: string, index: number) => {
+                          const logoPath = getGameLogoPath(title);
+                          return (
+                            <motion.div
+                              key={`${title}-${index}`}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="group relative flex items-center gap-2 rounded-lg border border-gray-700/30 bg-gray-800/30 px-3 py-2 transition-all hover:border-cyan-500/50 hover:bg-cyan-500/10"
+                            >
+                              <div className="rounded-full bg-cyan-400/50 p-2">
+                                {logoPath ? (
+                                  <div className="relative h-6 w-6 flex-shrink-0">
+                                    <Image
+                                      src={logoPath}
+                                      alt={title}
+                                      width={24}
+                                      height={24}
+                                      className="h-full w-full object-contain"
+                                      unoptimized
+                                    />
+                                  </div>
+                                ) : (
+                                  <Trophy className="h-6 w-6 flex-shrink-0 text-black" />
+                                )}
+                              </div>
+                              <span className="font-rajdhani text-sm text-gray-300 group-hover:text-cyan-400">
+                                {title}
+                              </span>
+                            </motion.div>
+                          );
+                        },
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Scholarship Information */}
+                {school.scholarships_available && (
+                  <div className="mt-4 border-t border-gray-700/50 pt-4">
+                    <div className="flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3">
+                      <Award className="h-5 w-5 text-green-400" />
+                      <div>
+                        <span className="font-rajdhani text-sm font-semibold text-green-400">
+                          Scholarships Available
+                        </span>
+                        <p className="font-rajdhani text-xs text-gray-400">
+                          This program offers esports scholarships
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

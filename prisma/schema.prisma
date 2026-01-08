@@ -307,17 +307,33 @@ model PlayerSocialConnection {
 /// Schools (High Schools, Colleges, Universities)
 model School {
   id                      String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                    String?                        @unique
   name                    String
   type                    SchoolType
   location                String
-  state                   String
+  state                   String?
   region                  String?
+  country                  String?                        // Country name for display
+  country_iso2             String?                        @default("US") // ISO 3166-1 alpha-2 code for comparison
   website                 String?
   logo_url                String?
   banner_url              String? // School banner URL
   bio                     String?
   email                   String?
   phone                   String?
+  esports_titles           String[]
+  // Social media links
+  social_links            Json? // { facebook, twitter, instagram, youtube, twitch }
+  discord_handle          String?
+  // Tuition information
+  in_state_tuition        String? // Stored as string to handle "N/A" and currency formatting
+  out_of_state_tuition    String?
+  // Academic requirements
+  minimum_gpa             Decimal?                      @db.Decimal(3, 2)
+  minimum_sat             Int?
+  minimum_act             Int?
+  // Scholarship information
+  scholarships_available   Boolean                       @default(false)
   created_at              DateTime                      @default(now()) @db.Timestamp(6)
   updated_at              DateTime                      @updatedAt
   coaches                 Coach[]
@@ -331,6 +347,8 @@ model School {
   league_created_schools  LeagueSchoolCreationRequest[] @relation("LeagueCreatedSchools")
 
   @@unique([name, type, state])
+  @@index([country_iso2])
+  @@index([slug])
   @@map("schools")
 }
 

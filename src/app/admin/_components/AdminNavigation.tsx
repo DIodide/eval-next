@@ -1,23 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  Shield,
-  MessageSquare,
-  User,
-  Trophy,
-  Users,
-  Settings,
-  Home,
-  ArrowLeft,
   Activity,
+  ArrowLeft,
+  Building,
   ClipboardList,
-  Gamepad2,
   Crown,
   FolderOpen,
+  Gamepad2,
+  Home,
+  MessageSquare,
+  Settings,
+  Shield,
+  Trophy,
+  User,
+  Users,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const adminRoutes = [
   {
@@ -69,6 +70,11 @@ const adminRoutes = [
     href: "/admin/combines",
     label: "Manage Combines",
     icon: Trophy,
+  },
+  {
+    href: "/admin/management?tab=schools",
+    label: "Manage Schools",
+    icon: Building,
   },
   {
     href: "/admin/system-health",
