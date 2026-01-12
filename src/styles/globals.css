@@ -264,6 +264,35 @@
   animation: float 3s ease-in-out infinite;
 }
 
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes caret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  46%,
+  75% {
+    opacity: 0;
+  }
+  76%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink-caret {
+  animation: caret 2s steps(2, start) infinite;
+}
+
 /* Modern Navigation Styling */
 .nav-glass {
   background: rgba(10, 10, 15, 0.9);

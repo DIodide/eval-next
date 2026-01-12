@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
 import { withRetry } from "@/lib/server/db-utils";
+import { adminProcedure, createTRPCRouter } from "@/server/api/trpc";
 import type { Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 // Validation schemas for updates
 const updateLeagueSchema = z.object({
@@ -77,6 +77,53 @@ const addSchoolToLeagueSchema = z.object({
 
 const removeSchoolFromLeagueSchema = z.object({
   league_school_id: z.string().uuid(),
+});
+
+const createSchoolSchema = z.object({
+  name: z.string().min(1).max(300),
+  type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]),
+  location: z.string().min(1).max(200),
+  state: z.string().max(100).optional().nullable(),
+  region: z.string().max(50).optional().nullable(),
+  country: z.string().max(100).optional().nullable(),
+  country_iso2: z.string().length(2).optional().nullable().default("US"),
+  website: z.string().url().optional().nullable().or(z.literal("")),
+  email: z.string().email().optional().nullable().or(z.literal("")),
+  phone: z.string().max(20).optional().nullable(),
+  bio: z.string().max(2000).optional().nullable(),
+  logo_url: z.string().url().optional().nullable().or(z.literal("")),
+  banner_url: z.string().url().optional().nullable().or(z.literal("")),
+  esports_titles: z.array(z.string()).optional().default([]),
+  scholarships_available: z.boolean().optional().default(false),
+  in_state_tuition: z.string().max(50).optional().nullable(),
+  out_of_state_tuition: z.string().max(50).optional().nullable(),
+  minimum_gpa: z.number().min(0).max(4).optional().nullable(),
+  minimum_sat: z.number().int().min(400).max(1600).optional().nullable(),
+  minimum_act: z.number().int().min(1).max(36).optional().nullable(),
+});
+
+const fullUpdateSchoolSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(300).optional(),
+  type: z.enum(["HIGH_SCHOOL", "COLLEGE", "UNIVERSITY"]).optional(),
+  location: z.string().min(1).max(200).optional(),
+  state: z.string().max(100).optional().nullable(),
+  region: z.string().max(50).optional().nullable(),
+  country: z.string().max(100).optional().nullable(),
+  country_iso2: z.string().length(2).optional().nullable(),
+  website: z.string().url().optional().nullable().or(z.literal("")),
+  email: z.string().email().optional().nullable().or(z.literal("")),
+  phone: z.string().max(20).optional().nullable(),
+  bio: z.string().max(2000).optional().nullable(),
+  logo_url: z.string().url().optional().nullable().or(z.literal("")),
+  banner_url: z.string().url().optional().nullable().or(z.literal("")),
+  esports_titles: z.array(z.string()).optional(),
+  scholarships_available: z.boolean().optional(),
+  in_state_tuition: z.string().max(50).optional().nullable(),
+  out_of_state_tuition: z.string().max(50).optional().nullable(),
+  minimum_gpa: z.number().min(0).max(4).optional().nullable(),
+  minimum_sat: z.number().int().min(400).max(1600).optional().nullable(),
+  minimum_act: z.number().int().min(1).max(36).optional().nullable(),
 });
 
 const getLeagueSchoolsSchema = z.object({
@@ -659,6 +706,268 @@ export const adminManagementRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to remove school from league",
+        });
+      }
+    }),
+
+  // Create a new school
+  createSchool: adminProcedure
+    .input(createSchoolSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Generate slug from name
+        const baseSlug = input.name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .trim();
+
+        // Check for existing slug and make unique if needed
+        let slug = baseSlug;
+        let counter = 1;
+        while (true) {
+          const existingSchool = await withRetry(() =>
+            ctx.db.school.findUnique({
+              where: { slug },
+              select: { id: true },
+            }),
+          );
+          if (!existingSchool) break;
+          slug = `${baseSlug}-${counter}`;
+          counter++;
+        }
+
+        // Clean empty strings to null
+        const cleanedData = {
+          name: input.name,
+          type: input.type,
+          location: input.location,
+          slug,
+          state: input.state ?? null,
+          region: input.region ?? null,
+          country: input.country ?? null,
+          country_iso2: input.country_iso2 ?? "US",
+          website: input.website === "" ? null : (input.website ?? null),
+          email: input.email === "" ? null : (input.email ?? null),
+          phone: input.phone ?? null,
+          bio: input.bio ?? null,
+          logo_url: input.logo_url === "" ? null : (input.logo_url ?? null),
+          banner_url:
+            input.banner_url === "" ? null : (input.banner_url ?? null),
+          esports_titles: input.esports_titles ?? [],
+          scholarships_available: input.scholarships_available ?? false,
+          in_state_tuition: input.in_state_tuition ?? null,
+          out_of_state_tuition: input.out_of_state_tuition ?? null,
+          minimum_gpa: input.minimum_gpa ?? null,
+          minimum_sat: input.minimum_sat ?? null,
+          minimum_act: input.minimum_act ?? null,
+        };
+
+        const school = await withRetry(() =>
+          ctx.db.school.create({
+            data: cleanedData,
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              type: true,
+              location: true,
+              state: true,
+              region: true,
+              country: true,
+              country_iso2: true,
+              website: true,
+              email: true,
+              phone: true,
+              bio: true,
+              logo_url: true,
+              banner_url: true,
+              esports_titles: true,
+              scholarships_available: true,
+              in_state_tuition: true,
+              out_of_state_tuition: true,
+              minimum_gpa: true,
+              minimum_sat: true,
+              minimum_act: true,
+              created_at: true,
+            },
+          }),
+        );
+
+        return {
+          success: true,
+          message: `School "${input.name}" has been created successfully`,
+          school,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error creating school:", error);
+
+        // Check for unique constraint violation
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "P2002"
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "A school with this name, type, and state combination already exists",
+          });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create school",
+        });
+      }
+    }),
+
+  // Full update school information (more fields than the basic update)
+  fullUpdateSchool: adminProcedure
+    .input(fullUpdateSchoolSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { id, ...updateData } = input;
+
+        // Clean empty strings to null
+        const cleanedData: Record<string, unknown> = {};
+
+        for (const [key, value] of Object.entries(updateData)) {
+          if (value === "") {
+            cleanedData[key] = null;
+          } else if (value !== undefined) {
+            cleanedData[key] = value;
+          }
+        }
+
+        const updatedSchool = await withRetry(() =>
+          ctx.db.school.update({
+            where: { id },
+            data: cleanedData,
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              type: true,
+              location: true,
+              state: true,
+              region: true,
+              country: true,
+              country_iso2: true,
+              website: true,
+              email: true,
+              phone: true,
+              bio: true,
+              logo_url: true,
+              banner_url: true,
+              esports_titles: true,
+              scholarships_available: true,
+              in_state_tuition: true,
+              out_of_state_tuition: true,
+              minimum_gpa: true,
+              minimum_sat: true,
+              minimum_act: true,
+              updated_at: true,
+            },
+          }),
+        );
+
+        return {
+          success: true,
+          message: `School "${updatedSchool.name}" has been updated successfully`,
+          school: updatedSchool,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error updating school:", error);
+
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "P2025"
+        ) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "School not found",
+          });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update school",
+        });
+      }
+    }),
+
+  // Get a single school by ID with full details
+  getSchoolById: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const school = await withRetry(() =>
+          ctx.db.school.findUnique({
+            where: { id: input.id },
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              type: true,
+              location: true,
+              state: true,
+              region: true,
+              country: true,
+              country_iso2: true,
+              website: true,
+              email: true,
+              phone: true,
+              bio: true,
+              logo_url: true,
+              banner_url: true,
+              esports_titles: true,
+              scholarships_available: true,
+              in_state_tuition: true,
+              out_of_state_tuition: true,
+              minimum_gpa: true,
+              minimum_sat: true,
+              minimum_act: true,
+              created_at: true,
+              updated_at: true,
+              _count: {
+                select: {
+                  players: true,
+                  coaches: true,
+                  teams: true,
+                  tryouts: true,
+                },
+              },
+            },
+          }),
+        );
+
+        if (!school) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "School not found",
+          });
+        }
+
+        return school;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        console.error("Error fetching school:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch school",
         });
       }
     }),
