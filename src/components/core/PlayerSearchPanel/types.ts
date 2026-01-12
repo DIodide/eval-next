@@ -71,7 +71,7 @@ export interface SchoolInfo {
   name: string;
   type: string;
   location: string;
-  state: string;
+  state: string | null;
 }
 
 export interface AcademicInfo {

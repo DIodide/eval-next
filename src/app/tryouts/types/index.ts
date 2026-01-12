@@ -34,7 +34,7 @@ export interface Tryout {
     id: string;
     name: string;
     location: string;
-    state: string;
+    state: string | null;
     type: string;
   };
   organizer: {

@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { api } from "@/trpc/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -21,29 +17,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FileUpload } from "@/components/ui/file-upload";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Trophy,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import { GAME_LOGO_MAPPING } from "@/lib/game-logos";
+import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
+import {
+  AlertTriangle,
   Building,
-  Search,
   Edit3,
-  Save,
-  Loader2,
   ExternalLink,
   FolderOpen,
+  Loader2,
+  Save,
+  Search,
+  Trophy,
   Upload,
-  AlertTriangle,
   UserIcon,
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import Link from "next/link";
-import { FileUpload } from "@/components/ui/file-upload";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const ITEMS_PER_PAGE = 20;
 
+const availableGameNames = Object.keys(GAME_LOGO_MAPPING);
+
 export default function AdminManagementPage() {
-  const [activeTab, setActiveTab] = useState("leagues");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabParam ?? "leagues");
+
+  useEffect(() => {
+    if (tabParam && ["leagues", "schools", "players"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // Search and filter states
   const [leagueSearch, setLeagueSearch] = useState("");
@@ -64,13 +85,49 @@ export default function AdminManagementPage() {
   const [editingSchool, setEditingSchool] = useState<{
     id: string;
     name: string;
+    type: string;
+    location: string;
+    state: string;
+    region: string;
+    country: string;
+    country_iso2: string;
     bio: string;
     website: string;
     email: string;
     phone: string;
     logo_url: string;
     banner_url: string;
+    esports_titles: string[];
+    scholarships_available: boolean;
+    in_state_tuition: string;
+    out_of_state_tuition: string;
+    minimum_gpa: number | null;
+    minimum_sat: number | null;
+    minimum_act: number | null;
   } | null>(null);
+  const [isCreatingSchool, setIsCreatingSchool] = useState(false);
+  const [newSchool, setNewSchool] = useState({
+    name: "",
+    type: "COLLEGE" as "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY",
+    location: "",
+    state: "",
+    region: "",
+    country: "",
+    country_iso2: "US",
+    bio: "",
+    website: "",
+    email: "",
+    phone: "",
+    logo_url: "",
+    banner_url: "",
+    esports_titles: [] as string[],
+    scholarships_available: false,
+    in_state_tuition: "",
+    out_of_state_tuition: "",
+    minimum_gpa: null as number | null,
+    minimum_sat: null as number | null,
+    minimum_act: null as number | null,
+  });
   const [editingPlayer, setEditingPlayer] = useState<{
     id: string;
     first_name: string;
@@ -190,15 +247,57 @@ export default function AdminManagementPage() {
     },
   });
 
-  const updateSchoolMutation = api.adminManagement.updateSchool.useMutation({
+  const updateSchoolMutation = api.adminManagement.fullUpdateSchool.useMutation(
+    {
+      onSuccess: () => {
+        toast({
+          title: "Success",
+          description: "School updated successfully",
+        });
+        void refetchSchools();
+        setIsSchoolModalOpen(false);
+        setEditingSchool(null);
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    },
+  );
+
+  const createSchoolMutation = api.adminManagement.createSchool.useMutation({
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "School updated successfully",
+        description: "School created successfully",
       });
       void refetchSchools();
-      setIsSchoolModalOpen(false);
-      setEditingSchool(null);
+      setIsCreatingSchool(false);
+      setNewSchool({
+        name: "",
+        type: "COLLEGE",
+        location: "",
+        state: "",
+        region: "",
+        country: "",
+        country_iso2: "US",
+        bio: "",
+        website: "",
+        email: "",
+        phone: "",
+        logo_url: "",
+        banner_url: "",
+        esports_titles: [],
+        scholarships_available: false,
+        in_state_tuition: "",
+        out_of_state_tuition: "",
+        minimum_gpa: null,
+        minimum_sat: null,
+        minimum_act: null,
+      });
     },
     onError: (error) => {
       toast({
@@ -287,22 +386,48 @@ export default function AdminManagementPage() {
   const handleEditSchool = (school: {
     id: string;
     name: string;
+    type: string;
+    location: string;
+    state?: string | null;
+    region?: string | null;
+    country?: string | null;
+    country_iso2?: string | null;
     bio?: string | null;
     website?: string | null;
     email?: string | null;
     phone?: string | null;
     logo_url?: string | null;
     banner_url?: string | null;
+    esports_titles?: string[] | null;
+    scholarships_available?: boolean | null;
+    in_state_tuition?: string | null;
+    out_of_state_tuition?: string | null;
+    minimum_gpa?: number | null;
+    minimum_sat?: number | null;
+    minimum_act?: number | null;
   }) => {
     setEditingSchool({
       id: school.id,
       name: school.name,
+      type: school.type,
+      location: school.location,
+      state: school.state ?? "",
+      region: school.region ?? "",
+      country: school.country ?? "",
+      country_iso2: school.country_iso2 ?? "US",
       bio: school.bio ?? "",
       website: school.website ?? "",
       email: school.email ?? "",
       phone: school.phone ?? "",
       logo_url: school.logo_url ?? "",
       banner_url: school.banner_url ?? "",
+      esports_titles: school.esports_titles ?? [],
+      scholarships_available: school.scholarships_available ?? false,
+      in_state_tuition: school.in_state_tuition ?? "",
+      out_of_state_tuition: school.out_of_state_tuition ?? "",
+      minimum_gpa: school.minimum_gpa ?? null,
+      minimum_sat: school.minimum_sat ?? null,
+      minimum_act: school.minimum_act ?? null,
     });
     setIsSchoolModalOpen(true);
   };
@@ -365,12 +490,60 @@ export default function AdminManagementPage() {
 
     void updateSchoolMutation.mutate({
       id: editingSchool.id,
+      name: editingSchool.name,
+      type: editingSchool.type as "HIGH_SCHOOL" | "COLLEGE" | "UNIVERSITY",
+      location: editingSchool.location,
+      state: editingSchool.state || null,
+      region: editingSchool.region || null,
+      country: editingSchool.country || null,
+      country_iso2: editingSchool.country_iso2 || null,
       bio: editingSchool.bio,
       website: editingSchool.website,
       email: editingSchool.email,
       phone: editingSchool.phone,
       logo_url: editingSchool.logo_url,
       banner_url: editingSchool.banner_url,
+      esports_titles: editingSchool.esports_titles,
+      scholarships_available: editingSchool.scholarships_available,
+      in_state_tuition: editingSchool.in_state_tuition || null,
+      out_of_state_tuition: editingSchool.out_of_state_tuition || null,
+      minimum_gpa: editingSchool.minimum_gpa,
+      minimum_sat: editingSchool.minimum_sat,
+      minimum_act: editingSchool.minimum_act,
+    });
+  };
+
+  const handleCreateSchool = () => {
+    if (!newSchool.name || !newSchool.location) {
+      toast({
+        title: "Error",
+        description: "Name and Location are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    void createSchoolMutation.mutate({
+      name: newSchool.name,
+      type: newSchool.type,
+      location: newSchool.location,
+      state: newSchool.state || null,
+      region: newSchool.region || null,
+      country: newSchool.country || null,
+      country_iso2: newSchool.country_iso2 || "US",
+      bio: newSchool.bio || null,
+      website: newSchool.website || null,
+      email: newSchool.email || null,
+      phone: newSchool.phone || null,
+      logo_url: newSchool.logo_url || null,
+      banner_url: newSchool.banner_url || null,
+      esports_titles: newSchool.esports_titles,
+      scholarships_available: newSchool.scholarships_available,
+      in_state_tuition: newSchool.in_state_tuition || null,
+      out_of_state_tuition: newSchool.out_of_state_tuition || null,
+      minimum_gpa: newSchool.minimum_gpa,
+      minimum_sat: newSchool.minimum_sat,
+      minimum_act: newSchool.minimum_act,
     });
   };
 
@@ -728,12 +901,23 @@ export default function AdminManagementPage() {
           <TabsContent value="schools" className="space-y-6">
             <Card className="rounded-lg border-white/10 bg-gray-900/50 shadow-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="font-orbitron text-xl font-bold text-white">
-                  School Management
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Edit school information, bios, contact details, and assets
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="font-orbitron text-xl font-bold text-white">
+                      School Management
+                    </CardTitle>
+                    <CardDescription className="text-gray-400">
+                      Create, edit, and manage school profiles
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => setIsCreatingSchool(true)}
+                    className="font-orbitron bg-gradient-to-r from-green-500 to-green-600 font-bold text-black hover:from-green-600 hover:to-green-700"
+                  >
+                    <Building className="mr-2 h-4 w-4" />
+                    Add New School
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Search */}
@@ -1320,7 +1504,7 @@ export default function AdminManagementPage() {
 
         {/* School Edit Modal */}
         <Dialog open={isSchoolModalOpen} onOpenChange={setIsSchoolModalOpen}>
-          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto border-white/20 bg-gray-900 text-white">
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-white/20 bg-gray-900 text-white">
             <DialogHeader>
               <DialogTitle className="font-orbitron text-xl font-bold text-orange-400">
                 Edit School
@@ -1332,90 +1516,527 @@ export default function AdminManagementPage() {
 
             {editingSchool && (
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="school-bio"
-                    className="font-medium text-white"
-                  >
-                    Bio/Description
-                  </Label>
-                  <Textarea
-                    id="school-bio"
-                    value={editingSchool.bio}
-                    onChange={(e) =>
-                      setEditingSchool({
-                        ...editingSchool,
-                        bio: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    className="border-white/20 bg-gray-800/50 text-white"
-                    placeholder="School description and information..."
-                  />
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Basic Information
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-name"
+                        className="font-medium text-white"
+                      >
+                        School Name
+                      </Label>
+                      <Input
+                        id="edit-school-name"
+                        value={editingSchool.name}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            name: e.target.value,
+                          })
+                        }
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-type"
+                        className="font-medium text-white"
+                      >
+                        School Type
+                      </Label>
+                      <Select
+                        value={editingSchool.type}
+                        onValueChange={(value) =>
+                          setEditingSchool({ ...editingSchool, type: value })
+                        }
+                      >
+                        <SelectTrigger className="border-white/20 bg-gray-800/50 text-white">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent className="border-white/20 bg-gray-800 text-white">
+                          <SelectItem value="HIGH_SCHOOL">
+                            High School
+                          </SelectItem>
+                          <SelectItem value="COLLEGE">
+                            College (2-year)
+                          </SelectItem>
+                          <SelectItem value="UNIVERSITY">
+                            University (4-year)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-location"
+                        className="font-medium text-white"
+                      >
+                        City/Location
+                      </Label>
+                      <Input
+                        id="edit-school-location"
+                        value={editingSchool.location}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            location: e.target.value,
+                          })
+                        }
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-state"
+                        className="font-medium text-white"
+                      >
+                        State
+                      </Label>
+                      <Input
+                        id="edit-school-state"
+                        value={editingSchool.state}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            state: e.target.value,
+                          })
+                        }
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-region"
+                        className="font-medium text-white"
+                      >
+                        Region
+                      </Label>
+                      <Select
+                        value={editingSchool.region}
+                        onValueChange={(value) =>
+                          setEditingSchool({ ...editingSchool, region: value })
+                        }
+                      >
+                        <SelectTrigger className="border-white/20 bg-gray-800/50 text-white">
+                          <SelectValue placeholder="Select region" />
+                        </SelectTrigger>
+                        <SelectContent className="border-white/20 bg-gray-800 text-white">
+                          <SelectItem value="northeast">Northeast</SelectItem>
+                          <SelectItem value="southeast">Southeast</SelectItem>
+                          <SelectItem value="midwest">Midwest</SelectItem>
+                          <SelectItem value="southwest">Southwest</SelectItem>
+                          <SelectItem value="west">West</SelectItem>
+                          <SelectItem value="pacific">Pacific</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-country"
+                        className="font-medium text-white"
+                      >
+                        Country
+                      </Label>
+                      <Input
+                        id="edit-school-country"
+                        value={editingSchool.country}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            country: e.target.value,
+                          })
+                        }
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-country-iso"
+                        className="font-medium text-white"
+                      >
+                        Country Code (ISO2)
+                      </Label>
+                      <Input
+                        id="edit-school-country-iso"
+                        value={editingSchool.country_iso2}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            country_iso2: e.target.value
+                              .toUpperCase()
+                              .slice(0, 2),
+                          })
+                        }
+                        maxLength={2}
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Contact Information
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="school-website"
+                        className="font-medium text-white"
+                      >
+                        Website
+                      </Label>
+                      <Input
+                        id="school-website"
+                        value={editingSchool.website}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            website: e.target.value,
+                          })
+                        }
+                        placeholder="https://..."
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="school-email"
+                        className="font-medium text-white"
+                      >
+                        Email
+                      </Label>
+                      <Input
+                        id="school-email"
+                        value={editingSchool.email}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            email: e.target.value,
+                          })
+                        }
+                        placeholder="contact@school.edu"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="school-phone"
+                        className="font-medium text-white"
+                      >
+                        Phone
+                      </Label>
+                      <Input
+                        id="school-phone"
+                        value={editingSchool.phone}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            phone: e.target.value,
+                          })
+                        }
+                        placeholder="(555) 123-4567"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Description
+                  </h4>
                   <div className="space-y-2">
                     <Label
-                      htmlFor="school-website"
+                      htmlFor="school-bio"
                       className="font-medium text-white"
                     >
-                      Website
+                      Bio/Description
                     </Label>
-                    <Input
-                      id="school-website"
-                      value={editingSchool.website}
+                    <Textarea
+                      id="school-bio"
+                      value={editingSchool.bio}
                       onChange={(e) =>
                         setEditingSchool({
                           ...editingSchool,
-                          website: e.target.value,
+                          bio: e.target.value,
                         })
                       }
-                      placeholder="https://..."
+                      rows={4}
                       className="border-white/20 bg-gray-800/50 text-white"
+                      placeholder="School description and information..."
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="school-email"
-                      className="font-medium text-white"
-                    >
-                      Email
-                    </Label>
-                    <Input
-                      id="school-email"
-                      value={editingSchool.email}
-                      onChange={(e) =>
-                        setEditingSchool({
-                          ...editingSchool,
-                          email: e.target.value,
-                        })
-                      }
-                      placeholder="contact@school.edu"
-                      className="border-white/20 bg-gray-800/50 text-white"
-                    />
+                {/* Academic Requirements */}
+                <div className="space-y-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Academic Requirements
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-gpa"
+                        className="font-medium text-white"
+                      >
+                        Minimum GPA
+                      </Label>
+                      <Input
+                        id="edit-school-gpa"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="4.0"
+                        value={editingSchool.minimum_gpa ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value ? parseFloat(value) : null;
+                          setEditingSchool({
+                            ...editingSchool,
+                            minimum_gpa:
+                              numValue !== null && !isNaN(numValue)
+                                ? numValue
+                                : null,
+                          });
+                        }}
+                        placeholder="2.5"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-sat"
+                        className="font-medium text-white"
+                      >
+                        Minimum SAT
+                      </Label>
+                      <Input
+                        id="edit-school-sat"
+                        type="number"
+                        min="400"
+                        max="1600"
+                        value={editingSchool.minimum_sat ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value ? parseInt(value) : null;
+                          setEditingSchool({
+                            ...editingSchool,
+                            minimum_sat:
+                              numValue !== null && !isNaN(numValue)
+                                ? numValue
+                                : null,
+                          });
+                        }}
+                        placeholder="1000"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-act"
+                        className="font-medium text-white"
+                      >
+                        Minimum ACT
+                      </Label>
+                      <Input
+                        id="edit-school-act"
+                        type="number"
+                        min="1"
+                        max="36"
+                        value={editingSchool.minimum_act ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const numValue = value ? parseInt(value) : null;
+                          setEditingSchool({
+                            ...editingSchool,
+                            minimum_act:
+                              numValue !== null && !isNaN(numValue)
+                                ? numValue
+                                : null,
+                          });
+                        }}
+                        placeholder="20"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tuition & Scholarships */}
+                <div className="space-y-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Tuition & Scholarships
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-in-state"
+                        className="font-medium text-white"
+                      >
+                        In-State Tuition
+                      </Label>
+                      <Input
+                        id="edit-school-in-state"
+                        value={editingSchool.in_state_tuition}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            in_state_tuition: e.target.value,
+                          })
+                        }
+                        placeholder="$12,000/year"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="edit-school-out-state"
+                        className="font-medium text-white"
+                      >
+                        Out-of-State Tuition
+                      </Label>
+                      <Input
+                        id="edit-school-out-state"
+                        value={editingSchool.out_of_state_tuition}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            out_of_state_tuition: e.target.value,
+                          })
+                        }
+                        placeholder="$28,000/year"
+                        className="border-white/20 bg-gray-800/50 text-white"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="school-phone"
-                      className="font-medium text-white"
-                    >
-                      Phone
-                    </Label>
-                    <Input
-                      id="school-phone"
-                      value={editingSchool.phone}
-                      onChange={(e) =>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-school-scholarships"
+                      checked={editingSchool.scholarships_available}
+                      onCheckedChange={(checked) =>
                         setEditingSchool({
                           ...editingSchool,
-                          phone: e.target.value,
+                          scholarships_available: checked === true,
                         })
                       }
-                      placeholder="(555) 123-4567"
-                      className="border-white/20 bg-gray-800/50 text-white"
+                      className="border-white/20 data-[state=checked]:bg-green-500"
                     />
+                    <Label
+                      htmlFor="edit-school-scholarships"
+                      className="font-medium text-white"
+                    >
+                      Esports Scholarships Available
+                    </Label>
+                  </div>
+                </div>
+
+                {/* Esports Titles */}
+                <div className="space-y-4">
+                  <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                    Esports Titles
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium text-white">
+                        Games Supported
+                      </Label>
+                      {editingSchool.esports_titles.length > 0 && (
+                        <span className="text-xs text-orange-400">
+                          {editingSchool.esports_titles.length} selected
+                        </span>
+                      )}
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto rounded-lg border border-white/10 bg-gray-800/30 p-3">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {availableGameNames.map((gameName) => {
+                          const isChecked =
+                            editingSchool.esports_titles.includes(gameName);
+                          return (
+                            <div
+                              key={gameName}
+                              className={cn(
+                                "flex cursor-pointer items-center space-x-2 rounded-md border p-2 transition-colors hover:border-orange-500/30 hover:bg-gray-700/50",
+                                isChecked
+                                  ? "border-orange-500/50 bg-orange-900/20"
+                                  : "border-white/10 bg-gray-800/30",
+                              )}
+                              onClick={() => {
+                                const newTitles = isChecked
+                                  ? editingSchool.esports_titles.filter(
+                                      (t) => t !== gameName,
+                                    )
+                                  : [...editingSchool.esports_titles, gameName];
+                                setEditingSchool({
+                                  ...editingSchool,
+                                  esports_titles: newTitles,
+                                });
+                              }}
+                            >
+                              <Checkbox
+                                id={`edit-game-${gameName}`}
+                                checked={isChecked}
+                                onCheckedChange={(checked) => {
+                                  const newTitles = checked
+                                    ? [
+                                        ...editingSchool.esports_titles,
+                                        gameName,
+                                      ]
+                                    : editingSchool.esports_titles.filter(
+                                        (t) => t !== gameName,
+                                      );
+                                  setEditingSchool({
+                                    ...editingSchool,
+                                    esports_titles: newTitles,
+                                  });
+                                }}
+                                className="border-white/20 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500"
+                              />
+                              {GAME_LOGO_MAPPING[gameName] && (
+                                <Image
+                                  src={GAME_LOGO_MAPPING[gameName]}
+                                  alt={gameName}
+                                  width={20}
+                                  height={20}
+                                  className="h-5 w-5 flex-shrink-0 brightness-0 invert"
+                                />
+                              )}
+                              <Label
+                                htmlFor={`edit-game-${gameName}`}
+                                className="cursor-pointer truncate text-sm text-gray-300"
+                              >
+                                {gameName}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Select the esports titles this school competes in.
+                    </p>
                   </div>
                 </div>
 
@@ -2238,6 +2859,603 @@ export default function AdminManagementPage() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Create School Dialog */}
+        <Dialog open={isCreatingSchool} onOpenChange={setIsCreatingSchool}>
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-white/20 bg-gray-900 text-white">
+            <DialogHeader>
+              <DialogTitle className="font-orbitron text-xl font-bold text-green-400">
+                Add New School
+              </DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Create a new school profile with all relevant information
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Basic Information *
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-name"
+                      className="font-medium text-white"
+                    >
+                      School Name *
+                    </Label>
+                    <Input
+                      id="new-school-name"
+                      value={newSchool.name}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, name: e.target.value })
+                      }
+                      placeholder="University of Example"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-type"
+                      className="font-medium text-white"
+                    >
+                      School Type *
+                    </Label>
+                    <Select
+                      value={newSchool.type}
+                      onValueChange={(value) =>
+                        setNewSchool({
+                          ...newSchool,
+                          type: value as
+                            | "HIGH_SCHOOL"
+                            | "COLLEGE"
+                            | "UNIVERSITY",
+                        })
+                      }
+                    >
+                      <SelectTrigger className="border-white/20 bg-gray-800/50 text-white">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent className="border-white/20 bg-gray-800 text-white">
+                        <SelectItem value="HIGH_SCHOOL">High School</SelectItem>
+                        <SelectItem value="COLLEGE">
+                          College (2-year)
+                        </SelectItem>
+                        <SelectItem value="UNIVERSITY">
+                          University (4-year)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-location"
+                      className="font-medium text-white"
+                    >
+                      City/Location *
+                    </Label>
+                    <Input
+                      id="new-school-location"
+                      value={newSchool.location}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, location: e.target.value })
+                      }
+                      placeholder="Los Angeles"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-state"
+                      className="font-medium text-white"
+                    >
+                      State
+                    </Label>
+                    <Input
+                      id="new-school-state"
+                      value={newSchool.state}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, state: e.target.value })
+                      }
+                      placeholder="California"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-region"
+                      className="font-medium text-white"
+                    >
+                      Region
+                    </Label>
+                    <Select
+                      value={newSchool.region}
+                      onValueChange={(value) =>
+                        setNewSchool({ ...newSchool, region: value })
+                      }
+                    >
+                      <SelectTrigger className="border-white/20 bg-gray-800/50 text-white">
+                        <SelectValue placeholder="Select region" />
+                      </SelectTrigger>
+                      <SelectContent className="border-white/20 bg-gray-800 text-white">
+                        <SelectItem value="northeast">Northeast</SelectItem>
+                        <SelectItem value="southeast">Southeast</SelectItem>
+                        <SelectItem value="midwest">Midwest</SelectItem>
+                        <SelectItem value="southwest">Southwest</SelectItem>
+                        <SelectItem value="west">West</SelectItem>
+                        <SelectItem value="pacific">Pacific</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-country"
+                      className="font-medium text-white"
+                    >
+                      Country
+                    </Label>
+                    <Input
+                      id="new-school-country"
+                      value={newSchool.country}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, country: e.target.value })
+                      }
+                      placeholder="United States"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-country-iso"
+                      className="font-medium text-white"
+                    >
+                      Country Code (ISO2)
+                    </Label>
+                    <Input
+                      id="new-school-country-iso"
+                      value={newSchool.country_iso2}
+                      onChange={(e) =>
+                        setNewSchool({
+                          ...newSchool,
+                          country_iso2: e.target.value
+                            .toUpperCase()
+                            .slice(0, 2),
+                        })
+                      }
+                      placeholder="US"
+                      maxLength={2}
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Contact Information
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-website"
+                      className="font-medium text-white"
+                    >
+                      Website
+                    </Label>
+                    <Input
+                      id="new-school-website"
+                      value={newSchool.website}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, website: e.target.value })
+                      }
+                      placeholder="https://..."
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-email"
+                      className="font-medium text-white"
+                    >
+                      Email
+                    </Label>
+                    <Input
+                      id="new-school-email"
+                      type="email"
+                      value={newSchool.email}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, email: e.target.value })
+                      }
+                      placeholder="esports@school.edu"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-phone"
+                      className="font-medium text-white"
+                    >
+                      Phone
+                    </Label>
+                    <Input
+                      id="new-school-phone"
+                      value={newSchool.phone}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, phone: e.target.value })
+                      }
+                      placeholder="(555) 123-4567"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Description
+                </h4>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="new-school-bio"
+                    className="font-medium text-white"
+                  >
+                    Bio/Description
+                  </Label>
+                  <Textarea
+                    id="new-school-bio"
+                    value={newSchool.bio}
+                    onChange={(e) =>
+                      setNewSchool({ ...newSchool, bio: e.target.value })
+                    }
+                    rows={4}
+                    placeholder="School description and esports program information..."
+                    className="border-white/20 bg-gray-800/50 text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Academic Requirements */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Academic Requirements
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-gpa"
+                      className="font-medium text-white"
+                    >
+                      Minimum GPA
+                    </Label>
+                    <Input
+                      id="new-school-gpa"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="4.0"
+                      value={newSchool.minimum_gpa ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numValue = value ? parseFloat(value) : null;
+                        setNewSchool({
+                          ...newSchool,
+                          minimum_gpa:
+                            numValue !== null && !isNaN(numValue)
+                              ? numValue
+                              : null,
+                        });
+                      }}
+                      placeholder="2.5"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-sat"
+                      className="font-medium text-white"
+                    >
+                      Minimum SAT
+                    </Label>
+                    <Input
+                      id="new-school-sat"
+                      type="number"
+                      min="400"
+                      max="1600"
+                      value={newSchool.minimum_sat ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numValue = value ? parseInt(value) : null;
+                        setNewSchool({
+                          ...newSchool,
+                          minimum_sat:
+                            numValue !== null && !isNaN(numValue)
+                              ? numValue
+                              : null,
+                        });
+                      }}
+                      placeholder="1000"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-act"
+                      className="font-medium text-white"
+                    >
+                      Minimum ACT
+                    </Label>
+                    <Input
+                      id="new-school-act"
+                      type="number"
+                      min="1"
+                      max="36"
+                      value={newSchool.minimum_act ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numValue = value ? parseInt(value) : null;
+                        setNewSchool({
+                          ...newSchool,
+                          minimum_act:
+                            numValue !== null && !isNaN(numValue)
+                              ? numValue
+                              : null,
+                        });
+                      }}
+                      placeholder="20"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tuition & Scholarships */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Tuition & Scholarships
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-in-state"
+                      className="font-medium text-white"
+                    >
+                      In-State Tuition
+                    </Label>
+                    <Input
+                      id="new-school-in-state"
+                      value={newSchool.in_state_tuition}
+                      onChange={(e) =>
+                        setNewSchool({
+                          ...newSchool,
+                          in_state_tuition: e.target.value,
+                        })
+                      }
+                      placeholder="$12,000/year"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-out-state"
+                      className="font-medium text-white"
+                    >
+                      Out-of-State Tuition
+                    </Label>
+                    <Input
+                      id="new-school-out-state"
+                      value={newSchool.out_of_state_tuition}
+                      onChange={(e) =>
+                        setNewSchool({
+                          ...newSchool,
+                          out_of_state_tuition: e.target.value,
+                        })
+                      }
+                      placeholder="$28,000/year"
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="new-school-scholarships"
+                    checked={newSchool.scholarships_available}
+                    onCheckedChange={(checked) =>
+                      setNewSchool({
+                        ...newSchool,
+                        scholarships_available: checked === true,
+                      })
+                    }
+                    className="border-white/20 data-[state=checked]:bg-green-500"
+                  />
+                  <Label
+                    htmlFor="new-school-scholarships"
+                    className="font-medium text-white"
+                  >
+                    Esports Scholarships Available
+                  </Label>
+                </div>
+              </div>
+
+              {/* Esports Titles */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Esports Titles
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium text-white">
+                      Games Supported
+                    </Label>
+                    {newSchool.esports_titles.length > 0 && (
+                      <span className="text-xs text-green-400">
+                        {newSchool.esports_titles.length} selected
+                      </span>
+                    )}
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto rounded-lg border border-white/10 bg-gray-800/30 p-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {availableGameNames.map((gameName) => {
+                        const isChecked =
+                          newSchool.esports_titles.includes(gameName);
+                        return (
+                          <div
+                            key={gameName}
+                            className={cn(
+                              "flex cursor-pointer items-center space-x-2 rounded-md border p-2 transition-colors hover:border-green-500/30 hover:bg-gray-700/50",
+                              isChecked
+                                ? "border-green-500/50 bg-green-900/20"
+                                : "border-white/10 bg-gray-800/30",
+                            )}
+                            onClick={() => {
+                              const newTitles = isChecked
+                                ? newSchool.esports_titles.filter(
+                                    (t) => t !== gameName,
+                                  )
+                                : [...newSchool.esports_titles, gameName];
+                              setNewSchool({
+                                ...newSchool,
+                                esports_titles: newTitles,
+                              });
+                            }}
+                          >
+                            <Checkbox
+                              id={`new-game-${gameName}`}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                const newTitles = checked
+                                  ? [...newSchool.esports_titles, gameName]
+                                  : newSchool.esports_titles.filter(
+                                      (t) => t !== gameName,
+                                    );
+                                setNewSchool({
+                                  ...newSchool,
+                                  esports_titles: newTitles,
+                                });
+                              }}
+                              className="border-white/20 data-[state=checked]:border-green-500 data-[state=checked]:bg-green-500"
+                            />
+                            {GAME_LOGO_MAPPING[gameName] && (
+                              <Image
+                                src={GAME_LOGO_MAPPING[gameName]}
+                                alt={gameName}
+                                width={20}
+                                height={20}
+                                className="h-5 w-5 flex-shrink-0 brightness-0 invert"
+                              />
+                            )}
+                            <Label
+                              htmlFor={`new-game-${gameName}`}
+                              className="cursor-pointer truncate text-sm text-gray-300"
+                            >
+                              {gameName}
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Select the esports titles this school competes in.
+                  </p>
+                </div>
+              </div>
+
+              {/* Asset URLs */}
+              <div className="space-y-4">
+                <h4 className="border-b border-white/10 pb-2 font-semibold text-white">
+                  Asset URLs
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-logo"
+                      className="font-medium text-white"
+                    >
+                      Logo URL
+                    </Label>
+                    <Input
+                      id="new-school-logo"
+                      value={newSchool.logo_url}
+                      onChange={(e) =>
+                        setNewSchool({ ...newSchool, logo_url: e.target.value })
+                      }
+                      placeholder="https://..."
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="new-school-banner"
+                      className="font-medium text-white"
+                    >
+                      Banner URL
+                    </Label>
+                    <Input
+                      id="new-school-banner"
+                      value={newSchool.banner_url}
+                      onChange={(e) =>
+                        setNewSchool({
+                          ...newSchool,
+                          banner_url: e.target.value,
+                        })
+                      }
+                      placeholder="https://..."
+                      className="border-white/20 bg-gray-800/50 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreatingSchool(false)}
+                  className="border-white/20 text-gray-300 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateSchool}
+                  disabled={createSchoolMutation.isPending}
+                  className="bg-gradient-to-r from-green-500 to-green-600 font-bold text-black hover:from-green-600 hover:to-green-700"
+                >
+                  {createSchoolMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Create School
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

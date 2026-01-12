@@ -138,7 +138,7 @@ type PublicProfileData = {
     name: string;
     type: string;
     location: string;
-    state: string;
+    state: string | null;
   } | null;
   main_game: {
     id: string;

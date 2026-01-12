@@ -198,6 +198,12 @@ export default function Navbar() {
             </Link>
           </SignedIn>
           <Link
+            href="/colleges"
+            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
+          >
+            COLLEGES
+          </Link>
+          <Link
             href="/recruiting"
             className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
           >
@@ -327,8 +333,8 @@ export default function Navbar() {
 
         {/* Mobile menu button and user actions */}
         <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Search - Hidden on mobile, visible on md+ */}
-          <div className="relative hidden md:block">
+          {/* Search - Hidden on mobile/tablet, visible on lg+ (same as desktop nav) */}
+          <div className="relative hidden lg:block">
             <input
               ref={searchInputRef}
               type="text"
@@ -351,7 +357,7 @@ export default function Navbar() {
               (isSearchLoading && searchQuery.length >= 2)) && (
               <div
                 ref={searchResultsRef}
-                className="glass-morphism esports-card absolute top-full left-0 z-50 mt-2 w-max max-w-lg min-w-96 rounded-xl border border-white/20 shadow-lg"
+                className="glass-morphism esports-card absolute top-full right-0 z-50 mt-2 w-max max-w-lg min-w-96 rounded-xl border border-white/20 shadow-lg"
                 style={{
                   maxHeight:
                     searchResults && searchResults.results.length === 1
@@ -759,7 +765,7 @@ export default function Navbar() {
               </div>
 
               {/* Tryouts Submenu */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <div className="font-orbitron py-2 text-white">TRYOUTS</div>
                 <div className="space-y-2 pl-4">
                   <Link
@@ -777,9 +783,9 @@ export default function Navbar() {
                     COLLEGE
                   </Link>
                 </div>
-              </div>
+              </div> */}
 
-              <SignedOut>
+              {/* <SignedOut>
                 <Link
                   href="/pricing"
                   className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
@@ -787,9 +793,9 @@ export default function Navbar() {
                 >
                   PRICING
                 </Link>
-              </SignedOut>
+              </SignedOut> */}
 
-              <SignedIn>
+              {/* <SignedIn>
                 <Link
                   href="/pricing"
                   className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
@@ -797,7 +803,7 @@ export default function Navbar() {
                 >
                   PRICING
                 </Link>
-              </SignedIn>
+              </SignedIn> */}
 
               {/* About Us Submenu */}
               <div className="space-y-2">
