@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,8 +24,12 @@ import {
   ClipboardList,
   Crown,
   AlertCircle,
+  Download,
+  School,
+  Loader2,
 } from "lucide-react";
 import { api } from "@/trpc/react";
+import { toast } from "sonner";
 
 const adminTools = [
   {
@@ -80,6 +85,8 @@ const adminTools = [
 ];
 
 export default function AdminDashboard() {
+  const [isDownloadingCSV, setIsDownloadingCSV] = useState(false);
+
   // Fetch pending counts
   const { data: pendingSchoolRequests } =
     api.schoolAssociationRequests.getPendingCount.useQuery();
@@ -88,10 +95,90 @@ export default function AdminDashboard() {
   const { data: pendingLeagueSchoolCreationRequests } =
     api.leagueSchoolCreationRequests.getPendingCount.useQuery();
 
+  // Fetch unclaimed colleges count
+  const { data: unclaimedCollegesData } =
+    api.adminDirectory.getUnclaimedColleges.useQuery({
+      limit: 1,
+      offset: 0,
+    });
+
+  // CSV generation query (only fetch when download is triggered)
+  const csvQuery = api.adminDirectory.getUnclaimedCollegesCSV.useQuery(
+    {
+      baseUrl:
+        typeof window !== "undefined" ? window.location.origin : "https://evalgaming.com",
+    },
+    {
+      enabled: false, // Only fetch manually
+    },
+  );
+
   const totalPending =
     (pendingSchoolRequests ?? 0) +
     (pendingLeagueRequests ?? 0) +
     (pendingLeagueSchoolCreationRequests ?? 0);
+
+  const handleDownloadCSV = async () => {
+    setIsDownloadingCSV(true);
+    try {
+      const result = await csvQuery.refetch();
+      
+      if (!result.data?.data || result.data.data.length === 0) {
+        toast.error("No unclaimed colleges found");
+        return;
+      }
+
+      // Generate CSV content
+      const headers = [
+        "School Name",
+        "School Type",
+        "Location",
+        "State",
+        "Region",
+        "Country",
+        "Website",
+        "Profile URL",
+        "Claim Link",
+      ];
+
+      const rows = result.data.data.map((school) => [
+        `"${school.schoolName.replace(/"/g, '""')}"`,
+        school.schoolType,
+        `"${school.location.replace(/"/g, '""')}"`,
+        school.state,
+        school.region,
+        school.country,
+        school.website,
+        school.profileUrl,
+        school.claimLink,
+      ]);
+
+      const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join(
+        "\n",
+      );
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `unclaimed-colleges-${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded ${result.data.data.length} unclaimed college profiles`);
+    } catch (error) {
+      console.error("Error downloading CSV:", error);
+      toast.error("Failed to download CSV");
+    } finally {
+      setIsDownloadingCSV(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -233,6 +320,57 @@ export default function AdminDashboard() {
               </Button>
             </Link>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Unclaimed Colleges Section */}
+      <Card className="border-green-600/50 bg-gradient-to-r from-green-900/20 to-emerald-900/20">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <School className="h-6 w-6 text-green-400" />
+              <CardTitle className="text-white">
+                Coach Recruitment Tools
+              </CardTitle>
+            </div>
+            {unclaimedCollegesData && (
+              <Badge
+                variant="outline"
+                className="border-green-500 bg-green-500/20 text-green-400"
+              >
+                {unclaimedCollegesData.total} Unclaimed
+              </Badge>
+            )}
+          </div>
+          <CardDescription className="text-gray-300">
+            Download CSV of unclaimed college profiles with claim links for coach outreach
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-green-500/20 bg-green-900/20 p-4">
+            <p className="text-sm text-gray-300">
+              Generate a CSV file containing all college and university profiles without associated coaches.
+              Each row includes the school name, location, profile URL, and a unique claim link that coaches
+              can use to sign up and request association with their school.
+            </p>
+          </div>
+          <Button
+            onClick={handleDownloadCSV}
+            disabled={isDownloadingCSV}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700"
+          >
+            {isDownloadingCSV ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating CSV...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Download Unclaimed Colleges CSV
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
