@@ -1070,7 +1070,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                 ) : (
                   <Button
                     asChild
-                    className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700"
+                    className="font-orbitron shrink-0 cursor-pointer bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700"
                   >
                     <a
                       href={`/onboarding/coach?schoolId=${school.id}&schoolName=${encodeURIComponent(school.name)}`}

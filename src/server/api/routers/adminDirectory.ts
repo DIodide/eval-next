@@ -352,4 +352,139 @@ export const adminDirectoryRouter = createTRPCRouter({
       });
     }
   }),
+
+  // Get unclaimed college profiles (colleges/universities with 0 coaches)
+  getUnclaimedColleges: adminProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        state: z.string().optional(),
+        limit: z.number().min(1).max(1000).default(100),
+        offset: z.number().min(0).default(0),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const { search, state, limit, offset } = input;
+
+        // Build filter conditions for unclaimed colleges/universities
+        const where: Prisma.SchoolWhereInput = {
+          type: {
+            in: ["COLLEGE", "UNIVERSITY"],
+          },
+          coaches: {
+            none: {}, // Schools with no coaches
+          },
+        };
+
+        if (state) where.state = { contains: state, mode: "insensitive" };
+
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: "insensitive" } },
+            { location: { contains: search, mode: "insensitive" } },
+            { state: { contains: search, mode: "insensitive" } },
+          ];
+        }
+
+        const [schools, total] = await Promise.all([
+          withRetry(() =>
+            ctx.db.school.findMany({
+              where,
+              select: {
+                id: true,
+                name: true,
+                type: true,
+                location: true,
+                state: true,
+                region: true,
+                country: true,
+                website: true,
+                logo_url: true,
+                created_at: true,
+              },
+              orderBy: [{ state: "asc" }, { name: "asc" }],
+              skip: offset,
+              take: limit,
+            }),
+          ),
+          withRetry(() => ctx.db.school.count({ where })),
+        ]);
+
+        return {
+          schools,
+          total,
+          hasMore: offset + limit < total,
+        };
+      } catch (error) {
+        console.error("Error fetching unclaimed colleges:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch unclaimed colleges",
+        });
+      }
+    }),
+
+  // Get CSV data for unclaimed college profiles with claim links
+  getUnclaimedCollegesCSV: adminProcedure
+    .input(
+      z.object({
+        baseUrl: z.string().url().default("https://evalgaming.com"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const { baseUrl } = input;
+
+        // Get all unclaimed colleges/universities
+        const schools = await withRetry(() =>
+          ctx.db.school.findMany({
+            where: {
+              type: {
+                in: ["COLLEGE", "UNIVERSITY"],
+              },
+              coaches: {
+                none: {},
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              location: true,
+              state: true,
+              region: true,
+              country: true,
+              website: true,
+            },
+            orderBy: [{ state: "asc" }, { name: "asc" }],
+          }),
+        );
+
+        // Generate CSV data with claim links
+        const csvData = schools.map((school) => ({
+          schoolName: school.name,
+          schoolType: school.type,
+          location: school.location || "",
+          state: school.state || "",
+          region: school.region || "",
+          country: school.country || "USA",
+          website: school.website || "",
+          profileUrl: `${baseUrl}/profiles/school/${school.id}`,
+          claimLink: `${baseUrl}/onboarding/coach?schoolId=${school.id}&schoolName=${encodeURIComponent(school.name)}`,
+        }));
+
+        return {
+          data: csvData,
+          total: schools.length,
+          generatedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error("Error generating unclaimed colleges CSV:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate unclaimed colleges CSV",
+        });
+      }
+    }),
 });
