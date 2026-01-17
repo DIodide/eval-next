@@ -19,6 +19,7 @@ import { adminManagementRouter } from "@/server/api/routers/adminManagement";
 import { publicSearchRouter } from "@/server/api/routers/publicSearch";
 import { gseRouter } from "@/server/api/routers/gse";
 import { paymentsRouter } from "@/server/api/routers/payments";
+import { talentSearchRouter } from "@/server/api/routers/talentSearch";
 
 /**
  * This is the primary router for your server.
@@ -46,6 +47,7 @@ export const appRouter = createTRPCRouter({
   adminManagement: adminManagementRouter,
   gse: gseRouter,
   payments: paymentsRouter,
+  talentSearch: talentSearchRouter,
 });
 
 // export type definition of API
