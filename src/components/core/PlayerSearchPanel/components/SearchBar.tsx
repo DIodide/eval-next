@@ -1,75 +1,86 @@
+"use client";
+
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Loader2, X } from "lucide-react";
-import type { SearchBarProps } from "../types";
-import { UI_CONFIG } from "../utils/constants";
+import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-/**
- * SearchBar component with debounced search input and filter controls
- */
+interface SearchBarProps {
+  value: string;
+  onChange: (value: string) => void;
+  onFilterClick: () => void;
+  isLoading?: boolean;
+  isDebouncing?: boolean;
+  activeFilterCount?: number;
+}
+
 export function SearchBar({
   value,
   onChange,
-  placeholder = UI_CONFIG.SEARCH_PLACEHOLDER,
-  loading = false,
-  onFilterToggle,
-  showFilterButton = true,
-  filterPanelOpen = false,
+  onFilterClick,
+  isLoading = false,
+  isDebouncing = false,
+  activeFilterCount = 0,
 }: SearchBarProps) {
-  const handleClearSearch = () => {
-    onChange("");
-  };
-
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       {/* Search Input */}
       <div className="relative flex-1">
-        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+          {isLoading || isDebouncing ? (
+            <Loader2 className="h-5 w-5 animate-spin text-cyan-400" />
+          ) : (
+            <Search className="h-5 w-5 text-gray-400" />
+          )}
+        </div>
 
         <Input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="border-gray-600 bg-gray-900 pr-10 pl-10 text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-cyan-400"
-          // Never disable the input - let users keep typing while search processes
-          disabled={false}
+          placeholder="Search by name, school, or username..."
+          className={cn(
+            "h-12 rounded-xl border-white/10 bg-white/5 pl-12 pr-12",
+            "text-white placeholder:text-gray-500",
+            "transition-all duration-200",
+            "focus:border-cyan-500/50 focus:bg-white/10 focus:ring-2 focus:ring-cyan-500/20",
+            "hover:border-white/20 hover:bg-white/[0.07]"
+          )}
         />
 
-        {/* Loading spinner or clear button */}
-        {loading ? (
-          <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" />
-        ) : value ? (
+        {/* Clear button */}
+        {value && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleClearSearch}
-            className="absolute top-1/2 right-1 h-6 w-6 -translate-y-1/2 p-0 text-gray-400 hover:text-white"
-            aria-label="Clear search"
+            onClick={() => onChange("")}
+            className="absolute inset-y-0 right-2 my-auto h-8 w-8 cursor-pointer rounded-lg p-0 text-gray-400 hover:bg-white/10 hover:text-white"
           >
-            <X className="h-3 w-3" />
+            <X className="h-4 w-4" />
           </Button>
-        ) : null}
+        )}
       </div>
 
-      {/* Filter Toggle Button */}
-      {showFilterButton && onFilterToggle && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onFilterToggle}
-          className={`border-gray-600 transition-colors ${
-            filterPanelOpen
-              ? "border-cyan-600 bg-cyan-600 text-white hover:bg-cyan-700"
-              : "bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-white"
-          }`}
-          aria-label="Toggle filters"
-          aria-pressed={filterPanelOpen}
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
-      )}
+      {/* Filter Button */}
+      <Button
+        variant="outline"
+        onClick={onFilterClick}
+        className={cn(
+          "h-12 gap-2 rounded-xl border-white/10 bg-white/5 px-4 cursor-pointer",
+          "text-gray-300 transition-all duration-200",
+          "hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:text-white",
+          activeFilterCount > 0 && "border-cyan-500/50 bg-cyan-500/10 text-cyan-400"
+        )}
+      >
+        <SlidersHorizontal className="h-5 w-5" />
+        <span className="hidden sm:inline">Filters</span>
+        {activeFilterCount > 0 && (
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-cyan-500 px-1.5 text-xs font-semibold text-black">
+            {activeFilterCount}
+          </span>
+        )}
+      </Button>
     </div>
   );
 }

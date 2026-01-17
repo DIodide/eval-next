@@ -1,171 +1,227 @@
-import { useState, useMemo } from "react";
-import { useDebounce } from "./useDebounce";
-import { usePlayerQuery } from "./usePlayerQuery";
-import type {
-  PlayerSearchFilters,
-  UsePlayerSearchReturn,
-  PlayerSearchResult,
-} from "../types";
-import { PERFORMANCE_CONFIG, DEFAULT_FILTERS } from "../utils/constants";
+"use client";
+
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import type { PlayerSearchFilters, PlayerSearchResult, PaginationInfo } from "../types";
+import { DEFAULT_FILTERS, CONFIG } from "../utils/constants";
 
 /**
- * Main hook for player search functionality
- * Combines filters, debouncing, and paginated query logic
+ * Simplified player search hook with cleaner state management
  */
-export function usePlayerSearch(
-  initialFilters: PlayerSearchFilters = DEFAULT_FILTERS,
-  pageSize: number = PERFORMANCE_CONFIG.DEFAULT_PAGE_SIZE,
-): UsePlayerSearchReturn {
-  const [filters, setFilters] = useState<PlayerSearchFilters>(initialFilters);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+export function usePlayerSearch(initialFilters: Partial<PlayerSearchFilters> = {}) {
+  // Merge initial filters with defaults
+  const [filters, setFilters] = useState<PlayerSearchFilters>({
+    ...DEFAULT_FILTERS,
+    ...initialFilters,
+  });
+  
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+  const [currentPage, setCurrentPage] = useState(1);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const utils = api.useUtils();
 
-  const debouncedFilters = useDebounce(
-    filters,
-    PERFORMANCE_CONFIG.DEBOUNCE_DELAY,
-  );
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
 
-  // Only trigger search if search term is empty or meets minimum length
-  const shouldSearch =
-    !debouncedFilters.search ||
-    debouncedFilters.search.trim() === "" ||
-    debouncedFilters.search.trim().length >=
-      PERFORMANCE_CONFIG.MIN_SEARCH_LENGTH;
+    // Immediate update for empty search
+    if (filters.search.trim() === "") {
+      setDebouncedSearch("");
+      return;
+    }
 
-  const queryResult = usePlayerQuery(debouncedFilters, currentPage, pageSize, {
-    enabled: shouldSearch,
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, CONFIG.DEBOUNCE_MS);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [filters.search]);
+
+  // Check if we should run the query
+  const shouldQuery = useMemo(() => {
+    const searchTerm = debouncedSearch.trim();
+    return searchTerm === "" || searchTerm.length >= CONFIG.MIN_SEARCH_LENGTH;
+  }, [debouncedSearch]);
+
+  // Build query input
+  const queryInput = useMemo(() => ({
+    search: debouncedSearch || undefined,
+    gameId: filters.gameId || undefined,
+    classYear: filters.classYear.length > 0 ? filters.classYear : undefined,
+    minGpa: filters.minGpa,
+    maxGpa: filters.maxGpa,
+    schoolType: filters.schoolType.length > 0 ? filters.schoolType : undefined,
+    location: filters.location || undefined,
+    role: filters.role || undefined,
+    playStyle: filters.playStyle || undefined,
+    favoritedOnly: filters.favoritedOnly || undefined,
+    sortBy: filters.sortBy,
+    sortOrder: filters.sortOrder,
+    page: currentPage,
+    limit: CONFIG.PAGE_SIZE,
+  }), [debouncedSearch, filters, currentPage]);
+
+  // Main query
+  const query = api.playerSearch.searchPlayersPaginated.useQuery(queryInput, {
+    enabled: shouldQuery,
+    staleTime: CONFIG.STALE_TIME,
+    gcTime: CONFIG.GC_TIME,
+    refetchOnWindowFocus: false,
   });
 
-  // Get players from current page
-  const players = useMemo<PlayerSearchResult[]>(() => {
-    return queryResult.data?.items ?? [];
-  }, [queryResult.data]);
+  // Prefetch next page
+  useEffect(() => {
+    if (query.data?.pagination.hasNextPage) {
+      void utils.playerSearch.searchPlayersPaginated.prefetch({
+        ...queryInput,
+        page: currentPage + 1,
+      });
+    }
+  }, [query.data, currentPage, queryInput, utils]);
 
-  // Check if filters are being applied (when immediate filters don't match debounced ones)
-  const isFiltering = useMemo(() => {
-    return JSON.stringify(filters) !== JSON.stringify(debouncedFilters);
-  }, [filters, debouncedFilters]);
-
-  // Custom setter that handles both object and function updates and resets page
-  const handleSetFilters = (
-    newFilters:
-      | PlayerSearchFilters
-      | ((prev: PlayerSearchFilters) => PlayerSearchFilters),
+  // Filter update handlers
+  const updateFilter = useCallback(<K extends keyof PlayerSearchFilters>(
+    key: K,
+    value: PlayerSearchFilters[K],
   ) => {
-    if (typeof newFilters === "function") {
-      setFilters(newFilters);
-    } else {
-      setFilters(newFilters);
-    }
-    // Reset to page 1 when filters change
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1); // Reset to page 1 when filters change
+  }, []);
+
+  const updateFilters = useCallback((newFilters: Partial<PlayerSearchFilters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
-  };
+  }, []);
 
-  const goToPage = (page: number) => {
+  const resetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    setDebouncedSearch("");
+    setCurrentPage(1);
+  }, []);
+
+  // Pagination handlers
+  const goToPage = useCallback((page: number) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  const goToNextPage = () => {
-    if (queryResult.data?.pagination.hasNextPage) {
-      setCurrentPage((prev) => prev + 1);
+  const nextPage = useCallback(() => {
+    if (query.data?.pagination.hasNextPage) {
+      setCurrentPage((p) => p + 1);
     }
-  };
+  }, [query.data?.pagination.hasNextPage]);
 
-  const goToPreviousPage = () => {
-    if (queryResult.data?.pagination.hasPreviousPage) {
-      setCurrentPage((prev) => prev - 1);
+  const prevPage = useCallback(() => {
+    if (query.data?.pagination.hasPreviousPage) {
+      setCurrentPage((p) => p - 1);
     }
-  };
+  }, [query.data?.pagination.hasPreviousPage]);
+
+  // Check if filters are being typed (search debounce in progress)
+  const isDebouncing = filters.search !== debouncedSearch;
+
+  // Extract data
+  const players: PlayerSearchResult[] = query.data?.items ?? [];
+  const pagination: PaginationInfo | null = query.data?.pagination ?? null;
 
   return {
+    // Data
     players,
+    pagination,
+    
+    // State
     filters,
-    setFilters: handleSetFilters,
     currentPage,
+    isLoading: query.isLoading,
+    isDebouncing,
+    error: query.error,
+    
+    // Filter actions
+    updateFilter,
+    updateFilters,
+    resetFilters,
+    
+    // Pagination actions
     goToPage,
-    goToNextPage,
-    goToPreviousPage,
-    pagination: queryResult.data?.pagination ?? null,
-    isLoading: queryResult.isLoading,
-    isFiltering,
-    error: queryResult.error as Error | null,
+    nextPage,
+    prevPage,
   };
 }
 
 /**
- * Hook for getting available filter options based on current search results
+ * Hook for favorite/unfavorite mutations with optimistic updates
  */
-export function usePlayerSearchOptions(
-  players: PlayerSearchResult[],
-  currentGameId?: string,
-) {
-  const availableRanks = useMemo(() => {
-    if (!currentGameId || !players.length) return [];
+export function usePlayerFavorites() {
+  const utils = api.useUtils();
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
-    const rankSet = new Set<string>();
-    players.forEach((player) => {
-      const gameProfile = player.gameProfiles.find(
-        (p) => p.game.name === currentGameId,
-      );
-      if (gameProfile?.rank) {
-        rankSet.add(gameProfile.rank);
-      }
+  const addPending = (id: string) => {
+    setPendingIds((prev) => new Set(prev).add(id));
+  };
+
+  const removePending = (id: string) => {
+    setPendingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
     });
+  };
 
-    return Array.from(rankSet).sort();
-  }, [players, currentGameId]);
+  const favoriteMutation = api.playerSearch.favoritePlayer.useMutation({
+    onMutate: ({ player_id }) => {
+      addPending(player_id);
+    },
+    onSuccess: () => {
+      void utils.playerSearch.searchPlayersPaginated.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Failed to bookmark player", {
+        description: error.message,
+      });
+    },
+    onSettled: (_, __, { player_id }) => {
+      removePending(player_id);
+    },
+  });
 
-  const availableRoles = useMemo(() => {
-    if (!currentGameId || !players.length) return [];
+  const unfavoriteMutation = api.playerSearch.unfavoritePlayer.useMutation({
+    onMutate: ({ player_id }) => {
+      addPending(player_id);
+    },
+    onSuccess: () => {
+      void utils.playerSearch.searchPlayersPaginated.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Failed to remove bookmark", {
+        description: error.message,
+      });
+    },
+    onSettled: (_, __, { player_id }) => {
+      removePending(player_id);
+    },
+  });
 
-    const roleSet = new Set<string>();
-    players.forEach((player) => {
-      const gameProfile = player.gameProfiles.find(
-        (p) => p.game.name === currentGameId,
-      );
-      if (gameProfile?.role) {
-        roleSet.add(gameProfile.role);
-      }
-    });
+  const toggleFavorite = useCallback((player: PlayerSearchResult) => {
+    if (pendingIds.has(player.id)) return;
 
-    return Array.from(roleSet).sort();
-  }, [players, currentGameId]);
-
-  const availableAgents = useMemo(() => {
-    if (!currentGameId || !players.length) return [];
-
-    const agentSet = new Set<string>();
-    players.forEach((player) => {
-      const gameProfile = player.gameProfiles.find(
-        (p) => p.game.name === currentGameId,
-      );
-      if (gameProfile?.agents) {
-        gameProfile.agents.forEach((agent) => agentSet.add(agent));
-      }
-    });
-
-    return Array.from(agentSet).sort();
-  }, [players, currentGameId]);
-
-  const availablePlayStyles = useMemo(() => {
-    if (!currentGameId || !players.length) return [];
-
-    const styleSet = new Set<string>();
-    players.forEach((player) => {
-      const gameProfile = player.gameProfiles.find(
-        (p) => p.game.name === currentGameId,
-      );
-      if (gameProfile?.play_style) {
-        styleSet.add(gameProfile.play_style);
-      }
-    });
-
-    return Array.from(styleSet).sort();
-  }, [players, currentGameId]);
+    if (player.isFavorited) {
+      unfavoriteMutation.mutate({ player_id: player.id });
+      toast.info("Removed from prospects");
+    } else {
+      favoriteMutation.mutate({ player_id: player.id, tags: ["prospect"] });
+      toast.success("Added to prospects");
+    }
+  }, [pendingIds, favoriteMutation, unfavoriteMutation]);
 
   return {
-    availableRanks,
-    availableRoles,
-    availableAgents,
-    availablePlayStyles,
+    toggleFavorite,
+    isPending: (id: string) => pendingIds.has(id),
+    pendingIds,
   };
 }

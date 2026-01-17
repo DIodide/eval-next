@@ -1,6 +1,6 @@
-// Main component export
-export { PlayerSearchPanel as default } from "./PlayerSearchPanel";
+// Main component exports
 export { PlayerSearchPanel } from "./PlayerSearchPanel";
+export { PlayerSearchPanel as default } from "./PlayerSearchPanel";
 export { PlayerProfilePreview } from "./components/PlayerProfilePreview";
 
 // Type exports
@@ -8,26 +8,15 @@ export type {
   PlayerSearchPanelProps,
   PlayerSearchFilters,
   PlayerSearchResult,
-  PlayerSearchError,
-  PlayerSearchFeature,
+  PaginationInfo,
   SortField,
-  ExportFormat,
+  SchoolType,
+  GameProfile,
+  AcademicInfo,
 } from "./types";
 
 // Hook exports
-export { usePlayerSearch } from "./hooks/usePlayerSearch";
-export { usePlayerFavorites } from "./hooks/usePlayerFavorites";
-export { useDebounce } from "./hooks/useDebounce";
-export { usePlayerQuery } from "./hooks/usePlayerQuery";
+export { usePlayerSearch, usePlayerFavorites } from "./hooks/usePlayerSearch";
 
-// Utility exports
-export { getGameRankOrder, gameSupportsRanks } from "./utils/rankOrdering";
-export {
-  DEFAULT_FILTERS,
-  GAME_ICONS,
-  CLASS_YEARS,
-  PERMISSION_FEATURES,
-  UI_CONFIG,
-  ERROR_MESSAGES,
-  PERFORMANCE_CONFIG,
-} from "./utils/constants";
+// Constants
+export { DEFAULT_FILTERS, CLASS_YEARS, SCHOOL_TYPES, CONFIG } from "./utils/constants";
