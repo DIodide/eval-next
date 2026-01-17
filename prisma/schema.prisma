@@ -40,6 +40,7 @@ model Player {
   favorited_by             CoachFavorite[]
   combine_registrations    CombineRegistration[]
   Conversation             Conversation[]
+  embedding                PlayerEmbedding?
   game_profiles            PlayerGameProfile[]
   league_participations    PlayerLeague[]
   performance_stats        PlayerPerformanceStats[]
@@ -57,6 +58,22 @@ model Player {
   @@index([created_at])
   @@index([location])
   @@map("players")
+}
+
+/// Player embeddings for AI-powered semantic search
+/// Note: The 'embedding' field is a vector(768) type managed via raw SQL
+/// Prisma doesn't natively support pgvector, so we use Unsupported type
+model PlayerEmbedding {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id      String   @unique @db.Uuid
+  embedding      Unsupported("vector(768)")
+  embedding_text String
+  created_at     DateTime @default(now()) @db.Timestamp(6)
+  updated_at     DateTime @default(now()) @db.Timestamp(6)
+  player         Player   @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+  @@index([player_id])
+  @@map("player_embeddings")
 }
 
 /// Coaches table with Clerk integration
