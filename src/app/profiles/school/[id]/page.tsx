@@ -575,7 +575,7 @@ const formatRelativeTime = (date: Date) => {
 };
 
 export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
-  const { user, isSignedIn } = useUser();
+  const { user, isSignedIn, isLoaded: isAuthLoaded } = useUser();
   const unwrappedParams = use(params);
 
   // Get user type from Clerk metadata
@@ -586,6 +586,20 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
     | undefined;
   const isPlayer = userType === "player";
   const isCoach = userType === "coach";
+
+  // Get coach onboarding status (only for coaches) - to check if they already have a school
+  const { data: coachStatus } = api.coachProfile.getOnboardingStatus.useQuery(
+    undefined,
+    {
+      enabled: isAuthLoaded && isSignedIn && isCoach,
+    },
+  );
+
+  // Determine if the coach can claim this school
+  const coachCanClaim = isCoach && coachStatus?.canRequestAssociation === true;
+  const coachHasSchool = isCoach && coachStatus?.hasSchoolAssociation === true;
+  const coachHasPendingRequest =
+    isCoach && coachStatus?.hasPendingRequest === true;
 
   // Claim school dialog state
   const [isClaimDialogOpen, setIsClaimDialogOpen] = useState(false);
@@ -602,7 +616,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
         setClaimMessage("");
       },
       onError: (error) => {
-        toast.error(error.message || "Failed to submit request");
+        toast.error(error.message ?? "Failed to submit request");
       },
     });
 
@@ -958,132 +972,169 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
       </motion.div>
 
       <div className="container mx-auto max-w-6xl space-y-6 px-4 py-6">
-        {/* Unclaimed School Profile Banner - Only show if not a player and school has no coaches */}
-        {school.coaches.length === 0 && !isPlayer && (
-          <motion.div
-            className="relative"
-            variants={itemVariants}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <Card className="border-green-500/30 bg-gradient-to-r from-green-900/40 via-emerald-900/40 to-green-900/40 shadow-lg">
-              <CardContent className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-green-500/20 p-2">
-                    <HandshakeIcon className="h-6 w-6 text-green-400" />
+        {/* Unclaimed School Profile Banner
+            Show if:
+            - School has no coaches (unclaimed), AND
+            - User is NOT signed in as a player, AND
+            - User is NOT a coach who already has a school
+            
+            Hide for:
+            - Players (they don't need to see this)
+            - Coaches who already have a school association
+        */}
+        {school.coaches.length === 0 &&
+          !(isSignedIn && isPlayer) &&
+          !coachHasSchool && (
+            <motion.div
+              className="relative"
+              variants={itemVariants}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <Card className="border-green-500/30 bg-gradient-to-r from-green-900/40 via-emerald-900/40 to-green-900/40 shadow-lg">
+                <CardContent className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-green-500/20 p-2">
+                      <HandshakeIcon className="h-6 w-6 text-green-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-orbitron text-lg font-semibold text-white">
+                        This School Profile is Unclaimed
+                      </h3>
+                      <p className="font-rajdhani text-sm text-gray-300">
+                        {coachHasPendingRequest
+                          ? "You already have a pending school association request. Please wait for admin review."
+                          : `Are you a coach at ${school.name}? Claim this profile to manage tryouts, announcements, and recruit players.`}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-orbitron text-lg font-semibold text-white">
-                      This School Profile is Unclaimed
-                    </h3>
-                    <p className="font-rajdhani text-sm text-gray-300">
-                      Are you a coach at {school.name}? Claim this profile to
-                      manage tryouts, announcements, and recruit players.
-                    </p>
-                  </div>
-                </div>
-                {/* If signed in as coach, open dialog. Otherwise redirect to onboarding */}
-                {isSignedIn && isCoach ? (
-                  <Dialog
-                    open={isClaimDialogOpen}
-                    onOpenChange={setIsClaimDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700">
-                        <HandshakeIcon className="mr-2 h-4 w-4" />
-                        Claim This Profile
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="border-gray-800 bg-gray-900 text-white">
-                      <DialogHeader>
-                        <DialogTitle className="font-orbitron">
-                          Claim School Profile
-                        </DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                          Submit a request to be associated with {school.name}.
-                          An admin will review your request.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label
-                            htmlFor="school-name"
-                            className="text-gray-300"
-                          >
-                            School
-                          </Label>
-                          <Input
-                            id="school-name"
-                            value={school.name}
-                            disabled
-                            className="border-gray-700 bg-gray-800 text-gray-400"
-                          />
-                        </div>
-                        <div>
-                          <Label
-                            htmlFor="claim-message"
-                            className="text-gray-300"
-                          >
-                            Message (optional)
-                          </Label>
-                          <Textarea
-                            id="claim-message"
-                            placeholder="Tell us about your role at this school..."
-                            value={claimMessage}
-                            onChange={(e) => setClaimMessage(e.target.value)}
-                            className="border-gray-700 bg-gray-800 text-white placeholder-gray-400"
-                            rows={3}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsClaimDialogOpen(false)}
-                          className="border-gray-700 text-gray-300"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            submitAssociationRequest.mutate({
-                              school_id: school.id,
-                              request_message: claimMessage || undefined,
-                            });
-                          }}
-                          disabled={submitAssociationRequest.isPending}
-                          className="bg-green-600 text-white hover:bg-green-700"
-                        >
-                          {submitAssociationRequest.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Submitting...
-                            </>
-                          ) : (
-                            "Submit Request"
-                          )}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                ) : (
-                  <Button
-                    asChild
-                    className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700"
-                  >
-                    <a
-                      href={`/onboarding/coach?schoolId=${school.id}&schoolName=${encodeURIComponent(school.name)}`}
+
+                  {/* Different button states based on user status */}
+                  {coachHasPendingRequest ? (
+                    // Coach has a pending request - show disabled button
+                    <Button
+                      disabled
+                      className="font-orbitron shrink-0 bg-gray-600 text-gray-300"
                     >
-                      <HandshakeIcon className="mr-2 h-4 w-4" />
-                      Claim This Profile
-                    </a>
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                      <Loader2 className="mr-2 h-4 w-4" />
+                      Request Pending
+                    </Button>
+                  ) : isSignedIn && coachCanClaim ? (
+                    // Signed in as coach who can claim - show dialog
+                    <Dialog
+                      open={isClaimDialogOpen}
+                      onOpenChange={setIsClaimDialogOpen}
+                    >
+                      <DialogTrigger asChild>
+                        <Button className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700">
+                          <HandshakeIcon className="mr-2 h-4 w-4" />
+                          Claim This Profile
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="border-gray-800 bg-gray-900 text-white">
+                        <DialogHeader>
+                          <DialogTitle className="font-orbitron">
+                            Claim School Profile
+                          </DialogTitle>
+                          <DialogDescription className="text-gray-400">
+                            Submit a request to be associated with {school.name}
+                            . An admin will review your request.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label
+                              htmlFor="school-name"
+                              className="text-gray-300"
+                            >
+                              School
+                            </Label>
+                            <Input
+                              id="school-name"
+                              value={school.name}
+                              disabled
+                              className="border-gray-700 bg-gray-800 text-gray-400"
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              htmlFor="claim-message"
+                              className="text-gray-300"
+                            >
+                              Message (optional)
+                            </Label>
+                            <Textarea
+                              id="claim-message"
+                              placeholder="Tell us about your role at this school..."
+                              value={claimMessage}
+                              onChange={(e) => setClaimMessage(e.target.value)}
+                              className="border-gray-700 bg-gray-800 text-white placeholder-gray-400"
+                              rows={3}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsClaimDialogOpen(false)}
+                            className="border-gray-700 text-gray-300"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              submitAssociationRequest.mutate({
+                                school_id: school.id,
+                                request_message: claimMessage || undefined,
+                              });
+                            }}
+                            disabled={submitAssociationRequest.isPending}
+                            className="bg-green-600 text-white hover:bg-green-700"
+                          >
+                            {submitAssociationRequest.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Submitting...
+                              </>
+                            ) : (
+                              "Submit Request"
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  ) : !isSignedIn ? (
+                    // Not signed in - redirect to coach sign-up, then back to this page
+                    <Button
+                      asChild
+                      className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700"
+                    >
+                      <a
+                        href={`/sign-up/schools?redirect_url=${encodeURIComponent(`/profiles/school/${school.id}`)}`}
+                      >
+                        <HandshakeIcon className="mr-2 h-4 w-4" />
+                        Sign Up as Coach
+                      </a>
+                    </Button>
+                  ) : (
+                    // Signed in but not a coach - redirect to coach sign-up, then back to this page
+                    <Button
+                      asChild
+                      className="font-orbitron shrink-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:from-green-600 hover:to-emerald-700"
+                    >
+                      <a
+                        href={`/sign-up/schools?redirect_url=${encodeURIComponent(`/profiles/school/${school.id}`)}`}
+                      >
+                        <HandshakeIcon className="mr-2 h-4 w-4" />
+                        Become a Coach
+                      </a>
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
         {/* Merged School Information and About Section */}
         <motion.div className="relative" variants={itemVariants}>
