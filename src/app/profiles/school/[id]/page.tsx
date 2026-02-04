@@ -1114,7 +1114,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                         href={`/sign-up/schools?redirect_url=${encodeURIComponent(`/profiles/school/${school.id}`)}`}
                       >
                         <HandshakeIcon className="mr-2 h-4 w-4" />
-                        Sign Up as Coach
+                        Claim This Profile
                       </a>
                     </Button>
                   ) : (
@@ -1127,7 +1127,7 @@ export default function SchoolProfilePage({ params }: SchoolProfilePageProps) {
                         href={`/sign-up/schools?redirect_url=${encodeURIComponent(`/profiles/school/${school.id}`)}`}
                       >
                         <HandshakeIcon className="mr-2 h-4 w-4" />
-                        Become a Coach
+                        Claim This Profile
                       </a>
                     </Button>
                   )}
