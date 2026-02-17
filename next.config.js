@@ -41,16 +41,6 @@ const nextConfig = {
     },
   },
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
-
-  async redirects() {
-    return [
-      {
-        source: "/bootcamp",
-        destination: "https://app.mindsmith.ai/course/cmlpoypi103tkkt04jkbv89js/learn",
-        permanent: false,
-      },
-    ];
-  },
 };
 
 const withMDx = withMDX({
