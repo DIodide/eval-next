@@ -1,20 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
+import { format } from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -23,746 +15,387 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  MessageSquareIcon,
+  MessageCircleIcon,
   SearchIcon,
   PlusIcon,
-  SendIcon,
   FilterIcon,
-  CheckIcon,
-  MoreVerticalIcon,
-  StarIcon,
   LoaderIcon,
+  MailIcon,
+  SendIcon,
+  StarIcon,
+  MoreVerticalIcon,
+  MessageSquareIcon,
+  CheckIcon,
 } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { NewConversationDialog, MessagingPaywall } from "@/components/messaging";
+import type { FilterStatus, MessageItem, CoachConversationDetail, CoachConversation } from "@/components/messaging/types";
+import { formatLastSeen, getInitials, getGameIcon } from "@/components/messaging/utils";
+import {
+  useConversations,
+  useSendMessage,
+  useMarkAsRead,
+  useToggleStar,
+  useMessagingAccess,
+} from "@/hooks/use-messaging";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
-// Types based on tRPC API responses
-interface Player {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string | null;
-  school?: string | null;
-  classYear?: string | null;
-  location?: string | null;
-  gpa?: number | null;
-  mainGame?: string;
-  gameProfiles: Array<{
-    game: string;
-    rank?: string | null;
-    role?: string | null;
-    username: string;
-  }>;
-}
-
-interface Message {
-  id: string;
-  senderId: string;
-  senderType: "COACH" | "PLAYER";
-  content: string;
-  timestamp: Date;
-  isRead: boolean;
-}
-
-interface Conversation {
-  id: string;
-  player: Player;
-  lastMessage: {
-    id: string;
-    content: string;
-    senderType: "COACH" | "PLAYER";
-    timestamp: Date;
-    isRead: boolean;
-  } | null;
-  unreadCount: number;
-  isStarred: boolean;
-  isArchived: boolean;
-  updatedAt: Date;
-}
-
 export default function CoachMessagesPage() {
-  const [selectedConversationId, setSelectedConversationId] = useState<
-    string | null
-  >(null);
-  const [newMessageContent, setNewMessageContent] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "all" | "unread" | "starred" | "archived"
-  >("all");
-  const [newConversationOpen, setNewConversationOpen] = useState(false);
-  const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
-  const [messageTemplate, setMessageTemplate] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterStatus>("all");
+  const [newConvOpen, setNewConvOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // tRPC queries and mutations
-  const { data: conversationsData, isLoading: conversationsLoading } =
-    api.messages.getConversations.useQuery({
-      search: searchQuery,
-      filter: filterStatus,
-      limit: 50,
-    });
+  const accessQuery = useMessagingAccess();
+  const hasAccess = accessQuery.data?.hasAccess ?? false;
 
-  const { data: selectedConversation, isLoading: conversationLoading } =
-    api.messages.getConversation.useQuery(
-      { conversationId: selectedConversationId! },
-      { enabled: !!selectedConversationId },
-    );
+  const listQuery = useConversations("coach", { search, filter });
+  const detailQuery = api.messages.getConversation.useQuery(
+    { conversationId: selectedId! },
+    { enabled: !!selectedId, refetchInterval: 2_000 },
+  );
 
-  const { data: availablePlayers, isLoading: playersLoading } =
-    api.messages.getAvailablePlayers.useQuery({
-      limit: 50,
-    });
+  const sendMutation = useSendMessage("coach", selectedId);
+  const markReadMutation = useMarkAsRead("coach");
+  const starMutation = useToggleStar("coach");
 
-  const sendMessageMutation = api.messages.sendMessage.useMutation({
-    onSuccess: () => {
-      setNewMessageContent("");
-      toast.success("Message sent successfully!");
-    },
-    onError: (error) => {
-      toast.error("Failed to send message: " + error.message);
-    },
-  });
-
-  const sendBulkMessageMutation = api.messages.sendBulkMessage.useMutation({
+  const sendNewMutation = api.messages.sendMessage.useMutation({
     onSuccess: (data) => {
-      toast.success(`Successfully sent ${data.messagesSent} messages`);
-      setSelectedPlayers([]);
-      setMessageTemplate("");
-      setNewConversationOpen(false);
+      setNewConvOpen(false);
+      setSelectedId(data.conversationId);
+      toast.success("Message sent!");
     },
-    onError: (error) => {
-      toast.error("Failed to send messages: " + error.message);
-    },
+    onError: (err) => { toast.error(err.message); },
   });
 
-  const markAsReadMutation = api.messages.markAsRead.useMutation({
-    onSuccess: () => {
-      toast.success("Messages marked as read");
-    },
-  });
+  const conversations = (listQuery.data?.conversations ?? []) as CoachConversation[];
+  const detail = detailQuery.data as CoachConversationDetail | undefined;
+  const messages = (detail?.messages ?? []) as MessageItem[];
 
-  const toggleStarMutation = api.messages.toggleStar.useMutation({
-    onSuccess: () => {
-      toast.success("Conversation starred");
-    },
-  });
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages.length]);
 
-  // Use actual data from tRPC queries
-  const conversations: Conversation[] = conversationsData?.conversations ?? [];
-  const players: Player[] = availablePlayers ?? [];
-
-  const handleSendMessage = () => {
-    if (!newMessageContent.trim() || !selectedConversationId) return;
-
-    sendMessageMutation.mutate({
-      conversationId: selectedConversationId,
-      content: newMessageContent,
-    });
+  const handleSelect = (id: string, unread: number) => {
+    setSelectedId(id);
+    if (unread > 0) markReadMutation.mutate({ conversationId: id });
   };
 
-  const handleStartNewConversation = () => {
-    if (selectedPlayers.length === 0 || !messageTemplate.trim()) return;
-
-    sendBulkMessageMutation.mutate({
-      playerIds: selectedPlayers.map((p) => p.id),
-      content: messageTemplate,
-    });
-  };
-
-  const handleConversationSelect = (conversation: Conversation) => {
-    setSelectedConversationId(conversation.id);
-
-    // Mark unread messages as read
-    if (conversation.unreadCount > 0) {
-      markAsReadMutation.mutate({
-        conversationId: conversation.id,
-      });
-    }
-  };
-
-  const handleToggleStar = (conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleStarMutation.mutate({ conversationId });
-  };
-
-  const getGameIcon = (game: string) => {
-    const icons: Record<string, string> = {
-      VALORANT: "🎯",
-      "Overwatch 2": "⚡",
-      "Rocket League": "🚀",
-      "League of Legends": "⚔️",
-      "Super Smash Bros. Ultimate": "🥊",
-    };
-    return icons[game] ?? "🎮";
-  };
-
-  const formatLastSeen = (date: Date) => {
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60),
+  const handleSend = () => {
+    if (!selectedId || !draft.trim()) return;
+    sendMutation.mutate(
+      { conversationId: selectedId, content: draft },
+      { onError: (err) => { toast.error(err.message); } },
     );
-
-    if (diffInMinutes < 1) return "Just now";
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return format(date, "MMM d");
+    setDraft("");
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="font-orbitron text-3xl font-bold text-white">
-          Messages
-        </h1>
-        <p className="font-rajdhani text-gray-400">
-          Communicate with prospective players
-        </p>
+    <div className="flex h-full flex-col gap-4 p-4 lg:p-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-cyan-500/20 p-2.5">
+          <MessageCircleIcon className="h-6 w-6 text-cyan-400" />
+        </div>
+        <div>
+          <h1 className="font-orbitron text-2xl font-bold text-white">Messages</h1>
+          <p className="font-rajdhani text-sm text-gray-400">
+            Communicate with prospective players
+          </p>
+        </div>
       </div>
 
-      {/* Messages Layout */}
-      <div className="grid h-[700px] gap-6 lg:grid-cols-3">
-        {/* Conversations List */}
-        <Card className="border-gray-800 bg-gray-900">
-          <CardHeader className="pb-4">
+      {/* Main chat layout */}
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden rounded-xl border border-gray-700/50">
+        {/* Sidebar – conversation list */}
+        <div className="flex w-80 flex-shrink-0 flex-col border-r border-gray-700/50 bg-gray-900/60">
+          {/* Sidebar header */}
+          <div className="space-y-3 border-b border-gray-700/50 p-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="font-orbitron text-white">
+              <h2 className="font-orbitron flex items-center gap-2 text-sm font-bold text-white">
+                <MailIcon className="h-4 w-4 text-cyan-400" />
                 Conversations
-              </CardTitle>
-              <Badge
-                variant="outline"
-                className="border-gray-600 text-gray-300"
-              >
+              </h2>
+              <Badge variant="outline" className="border-gray-600/50 text-xs text-gray-400">
                 {conversations.length}
               </Badge>
             </div>
-
-            {/* Search and Filter */}
-            <div className="space-y-3">
-              <div className="relative">
-                <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search conversations..."
-                  className="border-gray-700 bg-gray-800 pl-10 text-white placeholder-gray-400"
-                />
-              </div>
-
-              <div className="flex space-x-2">
-                <Select
-                  value={filterStatus}
-                  onValueChange={(
-                    value: "all" | "unread" | "starred" | "archived",
-                  ) => setFilterStatus(value)}
-                >
-                  <SelectTrigger className="flex-1 border-gray-700 bg-gray-800 text-white">
-                    <FilterIcon className="mr-2 h-4 w-4" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="border-gray-700 bg-gray-800">
-                    <SelectItem
-                      value="all"
-                      className="text-white hover:bg-gray-700"
-                    >
-                      All Messages
-                    </SelectItem>
-                    <SelectItem
-                      value="unread"
-                      className="text-white hover:bg-gray-700"
-                    >
-                      Unread
-                    </SelectItem>
-                    <SelectItem
-                      value="starred"
-                      className="text-white hover:bg-gray-700"
-                    >
-                      Starred
-                    </SelectItem>
-                    <SelectItem
-                      value="archived"
-                      className="text-white hover:bg-gray-700"
-                    >
-                      Archived
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Dialog
-                  open={newConversationOpen}
-                  onOpenChange={setNewConversationOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      className="font-orbitron bg-cyan-600 whitespace-nowrap text-white hover:bg-cyan-700"
-                    >
-                      <PlusIcon className="mr-1 h-4 w-4" />
-                      New Message
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto border-gray-800 bg-gray-900 text-white">
-                    <DialogHeader>
-                      <DialogTitle className="font-orbitron text-xl">
-                        Start New Conversation
-                      </DialogTitle>
-                      <DialogDescription className="text-gray-400">
-                        Select players to message and compose your message
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="space-y-6">
-                      {/* Player Selection */}
-                      <div>
-                        <h3 className="font-orbitron mb-4 text-lg text-cyan-400">
-                          Select Players
-                        </h3>
-                        {playersLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <LoaderIcon className="h-6 w-6 animate-spin text-cyan-400" />
-                          </div>
-                        ) : (
-                          <div className="grid max-h-60 gap-3 overflow-y-auto">
-                            {players.map((player) => (
-                              <div
-                                key={player.id}
-                                className={cn(
-                                  "flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors",
-                                  selectedPlayers.includes(player)
-                                    ? "border-cyan-400 bg-cyan-900/20"
-                                    : "border-gray-700 hover:border-gray-600",
-                                )}
-                                onClick={() => {
-                                  setSelectedPlayers((prev) =>
-                                    prev.includes(player)
-                                      ? prev.filter((p) => p.id !== player.id)
-                                      : [...prev, player],
-                                  );
-                                }}
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage
-                                      src={player.avatar ?? undefined}
-                                    />
-                                    <AvatarFallback className="bg-gray-700 text-white">
-                                      {player.name
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <h4 className="font-orbitron text-sm font-bold text-white">
-                                      {player.name}
-                                    </h4>
-                                    <div className="flex items-center space-x-2 text-xs text-gray-400">
-                                      {player.mainGame && (
-                                        <>
-                                          <span>
-                                            {getGameIcon(player.mainGame)}
-                                          </span>
-                                          <span>{player.mainGame}</span>
-                                        </>
-                                      )}
-                                      {player.school && (
-                                        <>
-                                          <span>•</span>
-                                          <span>{player.school}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                                {selectedPlayers.includes(player) && (
-                                  <CheckIcon className="h-5 w-5 text-cyan-400" />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {selectedPlayers.length > 0 && (
-                          <div className="mt-3">
-                            <p className="mb-2 text-sm text-gray-400">
-                              Selected players ({selectedPlayers.length}):
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedPlayers.map((player) => (
-                                <Badge
-                                  key={player.id}
-                                  variant="outline"
-                                  className="border-cyan-400 text-cyan-400"
-                                >
-                                  {player.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Message Template */}
-                      <div>
-                        <h3 className="font-orbitron mb-4 text-lg text-cyan-400">
-                          Compose Message
-                        </h3>
-                        <Textarea
-                          value={messageTemplate}
-                          onChange={(e) => setMessageTemplate(e.target.value)}
-                          placeholder="Write your message here..."
-                          className="min-h-32 border-gray-700 bg-gray-800 text-white"
-                          rows={6}
-                        />
-                        <p className="mt-2 text-xs text-gray-500">
-                          This message will be sent to all selected players
-                        </p>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex justify-end space-x-3">
-                        <Button
-                          variant="outline"
-                          onClick={() => setNewConversationOpen(false)}
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleStartNewConversation}
-                          disabled={
-                            selectedPlayers.length === 0 ||
-                            !messageTemplate.trim() ||
-                            sendBulkMessageMutation.isPending
-                          }
-                          className="bg-cyan-600 text-white hover:bg-cyan-700"
-                        >
-                          {sendBulkMessageMutation.isPending ? (
-                            <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <SendIcon className="mr-2 h-4 w-4" />
-                          )}
-                          Send Messages ({selectedPlayers.length})
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <div className="relative">
+              <SearchIcon className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-gray-500" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="h-8 border-gray-700 bg-gray-800/60 pl-9 text-sm text-white placeholder-gray-500 focus:border-cyan-500"
+              />
             </div>
-          </CardHeader>
+            <div className="flex gap-2">
+              <Select value={filter} onValueChange={(v) => setFilter(v as FilterStatus)}>
+                <SelectTrigger className="h-8 flex-1 border-gray-700 bg-gray-800/60 text-xs text-white">
+                  <FilterIcon className="mr-1.5 h-3 w-3" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-gray-700 bg-gray-800">
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="unread">Unread</SelectItem>
+                  <SelectItem value="starred">Starred</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                className="h-8 bg-gradient-to-r from-cyan-500 to-blue-600 text-xs text-white"
+                onClick={() => setNewConvOpen(true)}
+              >
+                <PlusIcon className="mr-1 h-3 w-3" />
+                New
+              </Button>
+            </div>
+          </div>
 
-          <CardContent className="p-0">
-            <div className="max-h-[500px] space-y-1 overflow-y-auto">
-              {conversationsLoading ? (
-                <div className="px-4 py-12 text-center">
-                  <LoaderIcon className="mx-auto mb-4 h-8 w-8 animate-spin text-cyan-400" />
-                  <p className="text-sm text-gray-400">
-                    Loading conversations...
-                  </p>
-                </div>
-              ) : conversations.length === 0 ? (
-                <div className="px-4 py-12 text-center">
-                  <MessageSquareIcon className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                  <p className="text-sm text-gray-400">No conversations yet</p>
-                  <p className="mt-2 text-xs text-gray-500">
-                    Start messaging players to see conversations here
-                  </p>
-                </div>
-              ) : (
-                conversations.map((conversation) => (
+          {/* Conversation items */}
+          <div className="flex-1 overflow-y-auto">
+            {listQuery.isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <LoaderIcon className="h-6 w-6 animate-spin text-cyan-400" />
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="px-4 py-12 text-center">
+                <MessageSquareIcon className="mx-auto mb-3 h-10 w-10 text-gray-600" />
+                <p className="font-rajdhani text-sm text-gray-500">No conversations</p>
+              </div>
+            ) : (
+              conversations.map((conv) => {
+                const subtitle = [
+                  conv.player.mainGame
+                    ? getGameIcon(conv.player.mainGame) + " " + conv.player.mainGame
+                    : null,
+                  conv.player.school,
+                ].filter(Boolean).join(" · ");
+
+                return (
                   <div
-                    key={conversation.id}
+                    key={conv.id}
+                    onClick={() => handleSelect(conv.id, conv.unreadCount)}
                     className={cn(
-                      "cursor-pointer border-l-4 p-4 transition-colors",
-                      selectedConversationId === conversation.id
+                      "flex cursor-pointer items-start gap-3 border-l-4 px-4 py-3 transition-colors",
+                      selectedId === conv.id
                         ? "border-l-cyan-400 bg-cyan-900/20"
-                        : "border-l-transparent hover:bg-gray-800/50",
+                        : "border-l-transparent hover:bg-gray-800/40",
                     )}
-                    onClick={() => handleConversationSelect(conversation)}
                   >
-                    <div className="flex items-start space-x-3">
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                            src={conversation.player.avatar ?? undefined}
-                          />
-                          <AvatarFallback className="bg-gray-700 text-white">
-                            {conversation.player.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <h4 className="font-orbitron truncate text-sm font-bold text-white">
-                              {conversation.player.name}
-                            </h4>
-                            {conversation.isStarred && (
-                              <StarIcon
-                                className="h-3 w-3 cursor-pointer fill-current text-yellow-400"
-                                onClick={(e) =>
-                                  handleToggleStar(conversation.id, e)
-                                }
-                              />
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            {conversation.unreadCount > 0 && (
-                              <Badge className="bg-cyan-600 px-1.5 py-0.5 text-xs text-white">
-                                {conversation.unreadCount}
-                              </Badge>
-                            )}
-                            <span className="text-xs text-gray-500">
-                              {conversation.lastMessage &&
-                                formatLastSeen(
-                                  conversation.lastMessage.timestamp,
-                                )}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mb-2 flex items-center space-x-2 text-xs text-gray-400">
-                          {conversation.player.mainGame && (
-                            <>
-                              <span>
-                                {getGameIcon(conversation.player.mainGame)}
-                              </span>
-                              <span>{conversation.player.mainGame}</span>
-                            </>
+                    <div className="relative flex-shrink-0">
+                      <Avatar className="h-10 w-10 border border-gray-700">
+                        <AvatarImage src={conv.player.avatar ?? undefined} />
+                        <AvatarFallback className="bg-gray-700 text-xs text-white">
+                          {getInitials(conv.player.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {conv.unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-bold text-white">
+                          {conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-orbitron truncate text-xs font-bold text-white">
+                          {conv.player.name}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {conv.isStarred && (
+                            <StarIcon
+                              className="h-3 w-3 fill-current text-yellow-400"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                starMutation.mutate({ conversationId: conv.id });
+                              }}
+                            />
                           )}
-                          {conversation.player.school && (
-                            <>
-                              <span>•</span>
-                              <span>{conversation.player.school}</span>
-                            </>
-                          )}
+                          <span className="text-[10px] text-gray-500">
+                            {conv.lastMessage && formatLastSeen(conv.lastMessage.timestamp)}
+                          </span>
                         </div>
-
-                        {conversation.lastMessage && (
-                          <p className="truncate text-sm text-gray-400">
-                            {conversation.lastMessage.senderType === "COACH" &&
-                              "You: "}
-                            {conversation.lastMessage.content}
-                          </p>
-                        )}
                       </div>
+                      {subtitle && (
+                        <p className="truncate text-[11px] text-gray-500">{subtitle}</p>
+                      )}
+                      {conv.lastMessage && (
+                        <p className="truncate text-xs text-gray-400">
+                          {conv.lastMessage.senderType === "COACH" && (
+                            <span className="text-cyan-400">You: </span>
+                          )}
+                          {conv.lastMessage.content}
+                        </p>
+                      )}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                );
+              })
+            )}
+          </div>
+        </div>
 
-        {/* Chat Area */}
-        <div className="lg:col-span-2">
-          <Card className="flex h-full flex-col border-gray-800 bg-gray-900">
-            {selectedConversationId && selectedConversation ? (
-              <>
-                {/* Chat Header */}
-                <CardHeader className="border-b border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                            src={
-                              selectedConversation.player.avatar ?? undefined
-                            }
-                          />
-                          <AvatarFallback className="bg-gray-700 text-white">
-                            {selectedConversation.player.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <div>
-                        <h3 className="font-orbitron font-bold text-white">
-                          {selectedConversation.player.name}
-                        </h3>
-                        <div className="flex items-center space-x-2 text-sm text-gray-400">
-                          {selectedConversation.player.mainGame && (
-                            <>
-                              <span>
-                                {getGameIcon(
-                                  selectedConversation.player.mainGame,
-                                )}
-                              </span>
-                              <span>
-                                {selectedConversation.player.mainGame}
-                              </span>
-                            </>
-                          )}
-                          {selectedConversation.player.school && (
-                            <>
-                              <span>•</span>
-                              <span>{selectedConversation.player.school}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
-                        onClick={() =>
-                          handleToggleStar(
-                            selectedConversation.id,
-                            {} as React.MouseEvent,
-                          )
-                        }
-                      >
-                        <StarIcon
-                          className={cn(
-                            "h-4 w-4",
-                            selectedConversation.isStarred &&
-                              "fill-current text-yellow-400",
-                          )}
-                        />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
-                      >
-                        <MoreVerticalIcon className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                {/* Messages */}
-                <CardContent className="flex-1 overflow-hidden p-4">
-                  <div className="h-full overflow-y-auto">
-                    {conversationLoading ? (
-                      <div className="flex h-full items-center justify-center">
-                        <LoaderIcon className="h-8 w-8 animate-spin text-cyan-400" />
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {(selectedConversation?.messages ?? []).map(
-                          (message: Message) => (
-                            <div
-                              key={message.id}
-                              className={cn(
-                                "flex",
-                                message.senderType === "COACH"
-                                  ? "justify-end"
-                                  : "justify-start",
-                              )}
-                            >
-                              <div
-                                className={cn(
-                                  "max-w-[70%] rounded-lg px-4 py-2",
-                                  message.senderType === "COACH"
-                                    ? "bg-cyan-600 text-white"
-                                    : "bg-gray-800 text-white",
-                                )}
-                              >
-                                <p className="text-sm">{message.content}</p>
-                                <div className="mt-1 flex items-center justify-end space-x-1">
-                                  <span className="text-xs opacity-70">
-                                    {format(message.timestamp, "HH:mm")}
-                                  </span>
-                                  {message.senderType === "COACH" && (
-                                    <CheckIcon className="h-3 w-3 opacity-70" />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ),
+        {/* Chat panel */}
+        <div className="flex min-w-0 flex-1 flex-col bg-gray-900/40">
+          {selectedId && detail ? (
+            <>
+              {/* Chat header */}
+              <div className="flex items-center justify-between border-b border-gray-700/50 px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 border-2 border-cyan-500/30">
+                    <AvatarImage src={detail.player.avatar ?? undefined} />
+                    <AvatarFallback className="bg-gray-700 text-white">
+                      {getInitials(detail.player.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-orbitron text-sm font-bold text-white">
+                      {detail.player.name}
+                    </h3>
+                    {detail.player.school && (
+                      <p className="text-xs text-gray-400">
+                        {detail.player.mainGame && (
+                          <span>{getGameIcon(detail.player.mainGame)} </span>
                         )}
-                        {(selectedConversation?.messages ?? []).length ===
-                          0 && (
-                          <div className="py-8 text-center">
-                            <MessageSquareIcon className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                            <p className="text-sm text-gray-400">
-                              No messages yet
-                            </p>
-                            <p className="mt-2 text-xs text-gray-500">
-                              Start the conversation by sending a message
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                        {detail.player.school}
+                      </p>
                     )}
                   </div>
-                </CardContent>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-gray-400 hover:text-yellow-400"
+                    onClick={() => starMutation.mutate({ conversationId: detail.id })}
+                  >
+                    <StarIcon
+                      className={cn("h-4 w-4", detail.isStarred && "fill-current text-yellow-400")}
+                    />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400">
+                    <MoreVerticalIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-                {/* Message Input */}
-                <div className="border-t border-gray-800 p-4">
-                  <div className="flex space-x-3">
+              {/* Messages area */}
+              <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4">
+                {detailQuery.isLoading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <LoaderIcon className="h-6 w-6 animate-spin text-cyan-400" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-sm text-gray-500">No messages yet. Say hello!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {messages.map((msg) => {
+                      const isSelf = msg.senderType === "COACH";
+                      return (
+                        <div key={msg.id} className={cn("flex", isSelf ? "justify-end" : "justify-start")}>
+                          <div
+                            className={cn(
+                              "max-w-[70%] rounded-2xl px-4 py-2.5 shadow",
+                              isSelf
+                                ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
+                                : "border border-gray-700/40 bg-gray-800 text-white",
+                            )}
+                          >
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                            <div className="mt-1 flex items-center justify-end gap-1">
+                              <span className="text-[10px] opacity-60">
+                                {format(new Date(msg.timestamp), "HH:mm")}
+                              </span>
+                              {isSelf && msg.isRead && (
+                                <CheckIcon className="h-3 w-3 opacity-60" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Input area */}
+              {hasAccess ? (
+                <div className="border-t border-gray-700/50 px-5 py-3">
+                  <div className="flex gap-3">
                     <Textarea
-                      value={newMessageContent}
-                      onChange={(e) => setNewMessageContent(e.target.value)}
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
                       placeholder="Type your message..."
-                      className="resize-none border-gray-700 bg-gray-800 text-white"
-                      rows={2}
+                      className="min-h-[2.5rem] max-h-32 resize-none border-gray-700 bg-gray-800/60 text-sm text-white placeholder-gray-500 focus:border-cyan-500"
+                      rows={1}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
-                          handleSendMessage();
+                          handleSend();
                         }
                       }}
                     />
                     <Button
-                      onClick={handleSendMessage}
-                      disabled={
-                        !newMessageContent.trim() ||
-                        sendMessageMutation.isPending
-                      }
-                      className="self-end bg-cyan-600 text-white hover:bg-cyan-700"
+                      onClick={handleSend}
+                      disabled={!draft.trim() || sendMutation.isPending}
+                      className="self-end bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
                     >
-                      {sendMessageMutation.isPending ? (
+                      {sendMutation.isPending ? (
                         <LoaderIcon className="h-4 w-4 animate-spin" />
                       ) : (
                         <SendIcon className="h-4 w-4" />
                       )}
                     </Button>
                   </div>
-                  <p className="mt-2 text-xs text-gray-500">
-                    Press Enter to send, Shift+Enter for new line
+                  <p className="mt-1 text-[10px] text-gray-600">
+                    Enter to send, Shift+Enter for new line
                   </p>
                 </div>
-              </>
-            ) : (
-              /* Empty Chat State */
-              <div className="flex h-full items-center justify-center">
-                <div className="space-y-4 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-800">
-                    <MessageSquareIcon className="h-8 w-8 text-gray-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-orbitron text-lg font-bold text-white">
-                      Select a Conversation
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-400">
-                      Choose a conversation from the list to start messaging
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => setNewConversationOpen(true)}
-                    className="font-orbitron bg-cyan-600 text-white hover:bg-cyan-700"
-                  >
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Start New Conversation
-                  </Button>
+              ) : (
+                <MessagingPaywall />
+              )}
+            </>
+          ) : (
+            /* Empty state */
+            <div className="flex flex-1 items-center justify-center">
+              <div className="space-y-4 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-700/50 bg-gray-800/50">
+                  <MessageSquareIcon className="h-8 w-8 text-gray-500" />
                 </div>
+                <div>
+                  <h3 className="font-orbitron text-lg font-bold text-white">
+                    Select a Conversation
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Pick a conversation or start a new one
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setNewConvOpen(true)}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                >
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Message a Player
+                </Button>
               </div>
-            )}
-          </Card>
+            </div>
+          )}
         </div>
       </div>
+
+      <NewConversationDialog
+        role="coach"
+        open={newConvOpen}
+        onOpenChange={setNewConvOpen}
+        onSend={(playerId, content) => sendNewMutation.mutate({ playerId, content })}
+        isSending={sendNewMutation.isPending}
+      />
     </div>
   );
 }

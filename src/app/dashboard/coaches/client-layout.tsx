@@ -372,7 +372,7 @@ export function CoachesDashboardClientLayout({
         </div>
 
         {/* Content area */}
-        <div className="flex-1">{children}</div>
+        <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
       </div>
     </div>
   );

@@ -20,10 +20,36 @@ import {
   createTRPCRouter,
   onboardedCoachProcedure,
   playerProcedure,
+  protectedProcedure,
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { hasFeatureAccess, FEATURE_KEYS } from "@/lib/server/entitlements";
+
+async function requireMessagingAccess(clerkUserId: string) {
+  const hasAccess = await hasFeatureAccess(
+    clerkUserId,
+    FEATURE_KEYS.DIRECT_MESSAGING,
+  );
+  if (!hasAccess) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "EVAL+ subscription required for direct messaging",
+    });
+  }
+}
 
 export const messagesRouter = createTRPCRouter({
+  /**
+   * Check if current user has EVAL+ messaging access
+   */
+  checkAccess: protectedProcedure.query(async ({ ctx }) => {
+    const hasAccess = await hasFeatureAccess(
+      ctx.auth.userId!,
+      FEATURE_KEYS.DIRECT_MESSAGING,
+    );
+    return { hasAccess };
+  }),
+
   /**
    * Get conversations for the authenticated coach
    */
@@ -36,14 +62,27 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+      const coachId = ctx.coachId;
 
-      // Get actual conversations from database
       const conversations = await ctx.db.conversation.findMany({
         where: {
           coach_id: coachId,
           ...(input.filter === "starred" && { is_starred: true }),
           ...(input.filter === "archived" && { is_archived: true }),
+          ...(input.filter === "unread" && {
+            messages: {
+              some: { is_read: false, sender_type: "PLAYER" },
+            },
+          }),
+          ...(input.search && {
+            player: {
+              OR: [
+                { first_name: { contains: input.search, mode: "insensitive" as const } },
+                { last_name: { contains: input.search, mode: "insensitive" as const } },
+                { school: { contains: input.search, mode: "insensitive" as const } },
+              ],
+            },
+          }),
         },
         include: {
           player: {
@@ -60,36 +99,20 @@ export const messagesRouter = createTRPCRouter({
             orderBy: { created_at: "desc" },
             take: 1,
           },
+          _count: {
+            select: {
+              messages: {
+                where: { is_read: false, sender_type: "PLAYER" },
+              },
+            },
+          },
         },
         orderBy: { updated_at: "desc" },
         take: input.limit,
       });
 
-      // Filter by search if provided
-      const filteredConversations = input.search
-        ? conversations.filter(
-            (conv) =>
-              `${conv.player.first_name} ${conv.player.last_name}`
-                .toLowerCase()
-                .includes(input.search!.toLowerCase()) ||
-              conv.player.school
-                ?.toLowerCase()
-                .includes(input.search!.toLowerCase()),
-          )
-        : conversations;
-
-      // Filter by unread if specified
-      const finalConversations =
-        input.filter === "unread"
-          ? filteredConversations.filter((conv) =>
-              conv.messages.some(
-                (msg) => !msg.is_read && msg.sender_type === "PLAYER",
-              ),
-            )
-          : filteredConversations;
-
       return {
-        conversations: finalConversations.map((conv) => ({
+        conversations: conversations.map((conv) => ({
           id: conv.id,
           player: {
             id: conv.player.id,
@@ -119,9 +142,7 @@ export const messagesRouter = createTRPCRouter({
                 isRead: conv.messages[0].is_read,
               }
             : null,
-          unreadCount: conv.messages.filter(
-            (msg) => !msg.is_read && msg.sender_type === "PLAYER",
-          ).length,
+          unreadCount: conv._count.messages,
           isStarred: conv.is_starred,
           isArchived: conv.is_archived,
           updatedAt: conv.updated_at,
@@ -241,7 +262,8 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
+      await requireMessagingAccess(ctx.auth.userId!);
+      const coachId = ctx.coachId;
 
       // Either conversationId or playerId must be provided
       if (!input.conversationId && !input.playerId) {
@@ -352,17 +374,74 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Coach ID is available from onboardedCoachProcedure context
+      await requireMessagingAccess(ctx.auth.userId!);
+      const coachId = ctx.coachId;
 
-      return {
-        success: true,
-        messagesSent: input.playerIds.length,
-        results: input.playerIds.map((playerId) => ({
-          playerId,
-          conversationId: `mock-conversation-${playerId}`,
-          messageId: `mock-message-${playerId}`,
-        })),
-      };
+      const players = await ctx.db.player.findMany({
+        where: { id: { in: input.playerIds } },
+        select: { id: true },
+      });
+
+      if (players.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No valid players found",
+        });
+      }
+
+      const validPlayerIds = players.map((p) => p.id);
+
+      return await ctx.db.$transaction(async (tx) => {
+        const results: Array<{
+          playerId: string;
+          conversationId: string;
+          messageId: string;
+        }> = [];
+
+        for (const playerId of validPlayerIds) {
+          let conv = await tx.conversation.findFirst({
+            where: { coach_id: coachId, player_id: playerId },
+            select: { id: true },
+          });
+
+          conv ??= await tx.conversation.create({
+            data: {
+              coach_id: coachId,
+              player_id: playerId,
+              is_starred: false,
+              is_archived: false,
+            },
+            select: { id: true },
+          });
+
+          const msg = await tx.message.create({
+            data: {
+              conversation_id: conv.id,
+              sender_id: coachId,
+              sender_type: "COACH",
+              content: input.content,
+              is_read: false,
+            },
+          });
+
+          await tx.conversation.update({
+            where: { id: conv.id },
+            data: { updated_at: new Date() },
+          });
+
+          results.push({
+            playerId,
+            conversationId: conv.id,
+            messageId: msg.id,
+          });
+        }
+
+        return {
+          success: true,
+          messagesSent: results.length,
+          results,
+        };
+      });
     }),
 
   /**
@@ -375,12 +454,34 @@ export const messagesRouter = createTRPCRouter({
         messageIds: z.array(z.string().uuid()).optional(),
       }),
     )
-    .mutation(async ({ ctx }) => {
-      // Coach ID is available from onboardedCoachProcedure context
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId;
+
+      const conversation = await ctx.db.conversation.findFirst({
+        where: { id: input.conversationId, coach_id: coachId },
+        select: { id: true },
+      });
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      const result = await ctx.db.message.updateMany({
+        where: {
+          conversation_id: input.conversationId,
+          sender_type: "PLAYER",
+          is_read: false,
+          ...(input.messageIds ? { id: { in: input.messageIds } } : {}),
+        },
+        data: { is_read: true },
+      });
 
       return {
         success: true,
-        messagesMarked: 0,
+        messagesMarked: result.count,
       };
     }),
 
@@ -393,12 +494,29 @@ export const messagesRouter = createTRPCRouter({
         conversationId: z.string().uuid(),
       }),
     )
-    .mutation(async ({ ctx }) => {
-      // Coach ID is available from onboardedCoachProcedure context
+    .mutation(async ({ ctx, input }) => {
+      const coachId = ctx.coachId;
+
+      const conversation = await ctx.db.conversation.findFirst({
+        where: { id: input.conversationId, coach_id: coachId },
+        select: { is_starred: true },
+      });
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      const updated = await ctx.db.conversation.update({
+        where: { id: input.conversationId },
+        data: { is_starred: !conversation.is_starred },
+      });
 
       return {
         success: true,
-        isStarred: true,
+        isStarred: updated.is_starred,
       };
     }),
 
@@ -465,14 +583,27 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const playerId = ctx.playerId; // Available from playerProcedure context
+      const playerId = ctx.playerId;
 
-      // Get actual conversations from database
       const conversations = await ctx.db.conversation.findMany({
         where: {
           player_id: playerId,
           ...(input.filter === "starred" && { is_starred: true }),
           ...(input.filter === "archived" && { is_archived: true }),
+          ...(input.filter === "unread" && {
+            messages: {
+              some: { is_read: false, sender_type: "COACH" },
+            },
+          }),
+          ...(input.search && {
+            coach: {
+              OR: [
+                { first_name: { contains: input.search, mode: "insensitive" as const } },
+                { last_name: { contains: input.search, mode: "insensitive" as const } },
+                { school: { contains: input.search, mode: "insensitive" as const } },
+              ],
+            },
+          }),
         },
         include: {
           coach: {
@@ -484,36 +615,20 @@ export const messagesRouter = createTRPCRouter({
             orderBy: { created_at: "desc" },
             take: 1,
           },
+          _count: {
+            select: {
+              messages: {
+                where: { is_read: false, sender_type: "COACH" },
+              },
+            },
+          },
         },
         orderBy: { updated_at: "desc" },
         take: input.limit,
       });
 
-      // Filter by search if provided
-      const filteredConversations = input.search
-        ? conversations.filter(
-            (conv) =>
-              `${conv.coach.first_name} ${conv.coach.last_name}`
-                .toLowerCase()
-                .includes(input.search!.toLowerCase()) ||
-              conv.coach.school
-                ?.toLowerCase()
-                .includes(input.search!.toLowerCase()),
-          )
-        : conversations;
-
-      // Filter by unread if specified
-      const finalConversations =
-        input.filter === "unread"
-          ? filteredConversations.filter((conv) =>
-              conv.messages.some(
-                (msg) => !msg.is_read && msg.sender_type === "COACH",
-              ),
-            )
-          : filteredConversations;
-
       return {
-        conversations: finalConversations.map((conv) => ({
+        conversations: conversations.map((conv) => ({
           id: conv.id,
           coach: {
             id: conv.coach.id,
@@ -533,9 +648,7 @@ export const messagesRouter = createTRPCRouter({
                 isRead: conv.messages[0].is_read,
               }
             : null,
-          unreadCount: conv.messages.filter(
-            (msg) => !msg.is_read && msg.sender_type === "COACH",
-          ).length,
+          unreadCount: conv._count.messages,
           isStarred: conv.is_starred,
           isArchived: conv.is_archived,
           updatedAt: conv.updated_at,
@@ -613,7 +726,8 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const playerId = ctx.playerId; // Available from playerProcedure context
+      await requireMessagingAccess(ctx.auth.userId!);
+      const playerId = ctx.playerId;
 
       // Either conversationId or coachId must be provided
       if (!input.conversationId && !input.coachId) {
@@ -733,12 +847,34 @@ export const messagesRouter = createTRPCRouter({
         messageIds: z.array(z.string().uuid()).optional(),
       }),
     )
-    .mutation(async ({ ctx }) => {
-      // Player ID is available from playerProcedure context
+    .mutation(async ({ ctx, input }) => {
+      const playerId = ctx.playerId;
+
+      const conversation = await ctx.db.conversation.findFirst({
+        where: { id: input.conversationId, player_id: playerId },
+        select: { id: true },
+      });
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      const result = await ctx.db.message.updateMany({
+        where: {
+          conversation_id: input.conversationId,
+          sender_type: "COACH",
+          is_read: false,
+          ...(input.messageIds ? { id: { in: input.messageIds } } : {}),
+        },
+        data: { is_read: true },
+      });
 
       return {
         success: true,
-        messagesMarked: 0,
+        messagesMarked: result.count,
       };
     }),
 
@@ -751,12 +887,29 @@ export const messagesRouter = createTRPCRouter({
         conversationId: z.string().uuid(),
       }),
     )
-    .mutation(async ({ ctx }) => {
-      // Player ID is available from playerProcedure context
+    .mutation(async ({ ctx, input }) => {
+      const playerId = ctx.playerId;
+
+      const conversation = await ctx.db.conversation.findFirst({
+        where: { id: input.conversationId, player_id: playerId },
+        select: { is_starred: true },
+      });
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      const updated = await ctx.db.conversation.update({
+        where: { id: input.conversationId },
+        data: { is_starred: !conversation.is_starred },
+      });
 
       return {
         success: true,
-        isStarred: true,
+        isStarred: updated.is_starred,
       };
     }),
 
