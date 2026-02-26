@@ -25,19 +25,6 @@ import {
 import { TRPCError } from "@trpc/server";
 import { hasFeatureAccess, FEATURE_KEYS } from "@/lib/server/entitlements";
 
-async function requireMessagingAccess(clerkUserId: string) {
-  const hasAccess = await hasFeatureAccess(
-    clerkUserId,
-    FEATURE_KEYS.DIRECT_MESSAGING,
-  );
-  if (!hasAccess) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "EVAL+ subscription required for direct messaging",
-    });
-  }
-}
-
 export const messagesRouter = createTRPCRouter({
   /**
    * Check if current user has EVAL+ messaging access
@@ -262,7 +249,6 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await requireMessagingAccess(ctx.auth.userId!);
       const coachId = ctx.coachId;
 
       // Either conversationId or playerId must be provided
@@ -374,7 +360,6 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await requireMessagingAccess(ctx.auth.userId!);
       const coachId = ctx.coachId;
 
       const players = await ctx.db.player.findMany({
@@ -726,7 +711,6 @@ export const messagesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await requireMessagingAccess(ctx.auth.userId!);
       const playerId = ctx.playerId;
 
       // Either conversationId or coachId must be provided
@@ -744,7 +728,7 @@ export const messagesRouter = createTRPCRouter({
       } | null = null;
 
       if (input.conversationId) {
-        // Use existing conversation
+        // Replying to existing conversation — no EVAL+ required
         conversation = await ctx.db.conversation.findFirst({
           where: {
             id: input.conversationId,
@@ -764,7 +748,6 @@ export const messagesRouter = createTRPCRouter({
           });
         }
       } else if (input.coachId) {
-        // Create new conversation or find existing one
         const coach = await ctx.db.coach.findUnique({
           where: { id: input.coachId },
         });
@@ -789,20 +772,21 @@ export const messagesRouter = createTRPCRouter({
           },
         });
 
-        // Create new conversation if none exists
-        conversation ??= await ctx.db.conversation.create({
-          data: {
-            coach_id: coach.id,
-            player_id: playerId,
-            is_starred: false,
-            is_archived: false,
-          },
-          select: {
-            id: true,
-            coach_id: true,
-            player_id: true,
-          },
-        });
+        if (!conversation) {
+          conversation = await ctx.db.conversation.create({
+            data: {
+              coach_id: coach.id,
+              player_id: playerId,
+              is_starred: false,
+              is_archived: false,
+            },
+            select: {
+              id: true,
+              coach_id: true,
+              player_id: true,
+            },
+          });
+        }
       }
 
       if (!conversation) {

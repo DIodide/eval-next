@@ -28,7 +28,7 @@ import {
   CheckIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NewConversationDialog, MessagingPaywall } from "@/components/messaging";
+import { NewConversationDialog } from "@/components/messaging";
 import type { FilterStatus, MessageItem, CoachConversationDetail, CoachConversation } from "@/components/messaging/types";
 import { formatLastSeen, getInitials, getGameIcon } from "@/components/messaging/utils";
 import {
@@ -36,7 +36,6 @@ import {
   useSendMessage,
   useMarkAsRead,
   useToggleStar,
-  useMessagingAccess,
 } from "@/hooks/use-messaging";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -48,9 +47,6 @@ export default function CoachMessagesPage() {
   const [newConvOpen, setNewConvOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const accessQuery = useMessagingAccess();
-  const hasAccess = accessQuery.data?.hasAccess ?? false;
 
   const listQuery = useConversations("coach", { search, filter });
   const detailQuery = api.messages.getConversation.useQuery(
@@ -325,41 +321,37 @@ export default function CoachMessagesPage() {
               </div>
 
               {/* Input area */}
-              {hasAccess ? (
-                <div className="border-t border-gray-700/50 px-5 py-3">
-                  <div className="flex gap-3">
-                    <Textarea
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      placeholder="Type your message..."
-                      className="min-h-[2.5rem] max-h-32 resize-none border-gray-700 bg-gray-800/60 text-sm text-white placeholder-gray-500 focus:border-cyan-500"
-                      rows={1}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleSend}
-                      disabled={!draft.trim() || sendMutation.isPending}
-                      className="self-end bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
-                    >
-                      {sendMutation.isPending ? (
-                        <LoaderIcon className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <SendIcon className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <p className="mt-1 text-[10px] text-gray-600">
-                    Enter to send, Shift+Enter for new line
-                  </p>
+              <div className="border-t border-gray-700/50 px-5 py-3">
+                <div className="flex gap-3">
+                  <Textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder="Type your message..."
+                    className="min-h-[2.5rem] max-h-32 resize-none border-gray-700 bg-gray-800/60 text-sm text-white placeholder-gray-500 focus:border-cyan-500"
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleSend}
+                    disabled={!draft.trim() || sendMutation.isPending}
+                    className="self-end bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
+                  >
+                    {sendMutation.isPending ? (
+                      <LoaderIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <SendIcon className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
-              ) : (
-                <MessagingPaywall />
-              )}
+                <p className="mt-1 text-[10px] text-gray-600">
+                  Enter to send, Shift+Enter for new line
+                </p>
+              </div>
             </>
           ) : (
             /* Empty state */
