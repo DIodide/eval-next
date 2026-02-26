@@ -9,6 +9,7 @@ export const FEATURE_KEYS = {
   PREMIUM_SEARCH: "premium_search",
   ADVANCED_ANALYTICS: "advanced_analytics",
   UNLIMITED_MESSAGES: "unlimited_messages",
+  DIRECT_MESSAGING: "direct_messaging",
   PRIORITY_SUPPORT: "priority_support",
   CUSTOM_BRANDING: "custom_branding",
   API_ACCESS: "api_access",
