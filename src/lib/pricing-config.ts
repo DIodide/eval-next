@@ -71,7 +71,7 @@ export const PRICING_PLANS = {
         "Basic player profile",
         "View public tryouts",
         "Upload 1 gameplay clip",
-        "Send up to 3 coach messages",
+        "Start up to 3 coach conversations per month",
       ],
       excludedFeatures: [
         "Advanced analytics",

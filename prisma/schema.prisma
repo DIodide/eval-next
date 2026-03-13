@@ -307,21 +307,21 @@ model PlayerSocialConnection {
 /// Schools (High Schools, Colleges, Universities)
 model School {
   id                      String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug                    String?                        @unique
+  slug                    String?                       @unique
   name                    String
   type                    SchoolType
   location                String
   state                   String?
   region                  String?
-  country                  String?                        // Country name for display
-  country_iso2             String?                        @default("US") // ISO 3166-1 alpha-2 code for comparison
+  country                 String? // Country name for display
+  country_iso2            String?                       @default("US") // ISO 3166-1 alpha-2 code for comparison
   website                 String?
   logo_url                String?
   banner_url              String? // School banner URL
   bio                     String?
   email                   String?
   phone                   String?
-  esports_titles           String[]
+  esports_titles          String[]
   // Social media links
   social_links            Json? // { facebook, twitter, instagram, youtube, twitch }
   discord_handle          String?
@@ -333,7 +333,7 @@ model School {
   minimum_sat             Int?
   minimum_act             Int?
   // Scholarship information
-  scholarships_available   Boolean                       @default(false)
+  scholarships_available  Boolean                       @default(false)
   created_at              DateTime                      @default(now()) @db.Timestamp(6)
   updated_at              DateTime                      @updatedAt
   coaches                 Coach[]
@@ -642,20 +642,28 @@ model Match {
 
 /// Conversations between coaches and players
 model Conversation {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  coach_id    String    @db.Uuid
-  player_id   String    @db.Uuid
-  is_starred  Boolean   @default(false)
-  is_archived Boolean   @default(false)
-  created_at  DateTime  @default(now()) @db.Timestamp(6)
-  updated_at  DateTime  @updatedAt
-  coach       Coach     @relation(fields: [coach_id], references: [id], onDelete: Cascade)
-  player      Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
-  messages    Message[]
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  coach_id           String                @db.Uuid
+  player_id          String                @db.Uuid
+  initiated_by       ConversationInitiator @default(COACH)
+  is_starred         Boolean               @default(false)
+  is_archived        Boolean               @default(false)
+  coach_is_starred   Boolean               @default(false)
+  coach_is_archived  Boolean               @default(false)
+  player_is_starred  Boolean               @default(false)
+  player_is_archived Boolean               @default(false)
+  created_at         DateTime              @default(now()) @db.Timestamp(6)
+  updated_at         DateTime              @updatedAt
+  coach              Coach                 @relation(fields: [coach_id], references: [id], onDelete: Cascade)
+  player             Player                @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  messages           Message[]
 
   @@unique([coach_id, player_id])
   @@index([coach_id])
   @@index([player_id])
+  @@index([initiated_by])
+  @@index([coach_is_archived, updated_at])
+  @@index([player_is_archived, updated_at])
   @@index([updated_at])
   @@map("conversations")
 }
@@ -810,6 +818,11 @@ enum MatchStatus {
 }
 
 enum SenderType {
+  COACH
+  PLAYER
+}
+
+enum ConversationInitiator {
   COACH
   PLAYER
 }

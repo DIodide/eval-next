@@ -9,6 +9,7 @@ export const FEATURE_KEYS = {
   PREMIUM_SEARCH: "premium_search",
   ADVANCED_ANALYTICS: "advanced_analytics",
   UNLIMITED_MESSAGES: "unlimited_messages",
+  DIRECT_MESSAGING: "direct_messaging",
   PRIORITY_SUPPORT: "priority_support",
   CUSTOM_BRANDING: "custom_branding",
   API_ACCESS: "api_access",
@@ -18,6 +19,33 @@ export const FEATURE_KEYS = {
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
 
+type EntitlementsDbClient = {
+  stripeCustomer: {
+    findUnique: typeof db.stripeCustomer.findUnique;
+  };
+};
+
+async function findActiveEntitlements(
+  client: EntitlementsDbClient,
+  clerkUserId: string,
+  featureKeys: readonly FeatureKey[],
+) {
+  const customer = await client.stripeCustomer.findUnique({
+    where: { clerk_user_id: clerkUserId },
+    include: {
+      entitlements: {
+        where: {
+          feature_key: { in: [...featureKeys] },
+          is_active: true,
+          OR: [{ expires_at: null }, { expires_at: { gt: new Date() } }],
+        },
+      },
+    },
+  });
+
+  return customer?.entitlements ?? [];
+}
+
 /**
  * Check if a user has access to a specific feature
  */
@@ -25,27 +53,35 @@ export async function hasFeatureAccess(
   clerkUserId: string,
   featureKey: FeatureKey,
 ): Promise<boolean> {
-  const customer = await db.stripeCustomer.findUnique({
-    where: { clerk_user_id: clerkUserId },
-    include: {
-      entitlements: {
-        where: {
-          feature_key: featureKey,
-          is_active: true,
-          OR: [
-            { expires_at: null },
-            { expires_at: { gt: new Date() } },
-          ],
-        },
-      },
-    },
-  });
+  return hasFeatureAccessWithDb(db, clerkUserId, featureKey);
+}
 
-  if (!customer) {
+export async function hasFeatureAccessWithDb(
+  client: EntitlementsDbClient,
+  clerkUserId: string,
+  featureKey: FeatureKey,
+): Promise<boolean> {
+  const entitlements = await findActiveEntitlements(client, clerkUserId, [
+    featureKey,
+  ]);
+  return entitlements.length > 0;
+}
+
+export async function hasAnyFeatureAccessWithDb(
+  client: EntitlementsDbClient,
+  clerkUserId: string,
+  featureKeys: readonly FeatureKey[],
+): Promise<boolean> {
+  if (featureKeys.length === 0) {
     return false;
   }
 
-  return customer.entitlements.length > 0;
+  const entitlements = await findActiveEntitlements(
+    client,
+    clerkUserId,
+    featureKeys,
+  );
+  return entitlements.length > 0;
 }
 
 /**
@@ -58,10 +94,7 @@ export async function getUserEntitlements(clerkUserId: string) {
       entitlements: {
         where: {
           is_active: true,
-          OR: [
-            { expires_at: null },
-            { expires_at: { gt: new Date() } },
-          ],
+          OR: [{ expires_at: null }, { expires_at: { gt: new Date() } }],
         },
         orderBy: {
           created_at: "desc",
@@ -111,7 +144,9 @@ export async function grantEntitlement(
       purchase_id: options?.purchaseId ?? null,
       expires_at: options?.expiresAt ?? null,
       metadata: options?.metadata
-        ? (JSON.parse(JSON.stringify(options.metadata)) as Prisma.InputJsonValue)
+        ? (JSON.parse(
+            JSON.stringify(options.metadata),
+          ) as Prisma.InputJsonValue)
         : undefined,
       is_active: true,
     },
@@ -121,7 +156,9 @@ export async function grantEntitlement(
       purchase_id: options?.purchaseId ?? null,
       expires_at: options?.expiresAt ?? null,
       metadata: options?.metadata
-        ? (JSON.parse(JSON.stringify(options.metadata)) as Prisma.InputJsonValue)
+        ? (JSON.parse(
+            JSON.stringify(options.metadata),
+          ) as Prisma.InputJsonValue)
         : undefined,
       is_active: true,
       updated_at: new Date(),
@@ -159,9 +196,7 @@ export async function revokeEntitlement(
 /**
  * Revoke all entitlements from a subscription
  */
-export async function revokeSubscriptionEntitlements(
-  subscriptionId: string,
-) {
+export async function revokeSubscriptionEntitlements(subscriptionId: string) {
   await db.entitlement.updateMany({
     where: {
       subscription_id: subscriptionId,
@@ -192,4 +227,3 @@ export async function cleanupExpiredEntitlements() {
 
   return result.count;
 }
-

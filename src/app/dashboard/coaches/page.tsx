@@ -270,7 +270,7 @@ export default function CoachesDashboard() {
       href: "/dashboard/coaches/messages",
       color: "from-pink-500 to-pink-600",
       requiresOnboarding: true,
-      comingSoon: true,
+      comingSoon: false,
     },
   ];
 

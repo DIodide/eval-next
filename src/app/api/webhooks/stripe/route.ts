@@ -1,5 +1,10 @@
 import { env } from "@/env";
-import { revokeSubscriptionEntitlements } from "@/lib/server/entitlements";
+import {
+  FEATURE_KEYS,
+  grantEntitlement,
+  revokeSubscriptionEntitlements,
+  type FeatureKey,
+} from "@/lib/server/entitlements";
 import { stripe } from "@/lib/server/stripe";
 import {
   syncPurchaseFromCheckoutSession,
@@ -10,6 +15,18 @@ import { db } from "@/server/db";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import type Stripe from "stripe";
+
+const EVAL_PLUS_PRICE_IDS = [
+  process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID,
+  process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID,
+].filter(Boolean) as string[];
+
+const EVAL_PLUS_FEATURES = [
+  FEATURE_KEYS.DIRECT_MESSAGING,
+  FEATURE_KEYS.UNLIMITED_MESSAGES,
+  FEATURE_KEYS.PREMIUM_SEARCH,
+  FEATURE_KEYS.ADVANCED_ANALYTICS,
+] as const;
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -61,16 +78,28 @@ export async function POST(req: NextRequest) {
 
         if (customer) {
           const priceId = subscription.items.data[0]?.price.id;
-          // Map price IDs to features - customize based on your pricing plans
-          // This is a placeholder - implement your actual feature mapping
-          if (priceId) {
-            // Example: Grant premium features for premium subscription
-            // await grantEntitlement(
-            //   customer.clerk_user_id,
-            //   FEATURE_KEYS.PREMIUM_SEARCH,
-            //   "SUBSCRIPTION",
-            //   { subscriptionId: subscription.id }
-            // );
+          const isActive =
+            subscription.status === "active" ||
+            subscription.status === "trialing";
+
+          if (priceId && isActive && EVAL_PLUS_PRICE_IDS.includes(priceId)) {
+            const dbSub = await db.subscription.findUnique({
+              where: { stripe_subscription_id: subscription.id },
+              select: { id: true },
+            });
+
+            for (const featureKey of EVAL_PLUS_FEATURES) {
+              await grantEntitlement(
+                customer.clerk_user_id,
+                featureKey,
+                "SUBSCRIPTION",
+                { subscriptionId: dbSub?.id },
+              );
+            }
+
+            console.log(
+              `[STRIPE WEBHOOK] Granted EVAL+ features to ${customer.clerk_user_id}`,
+            );
           }
         }
         break;
@@ -105,20 +134,22 @@ export async function POST(req: NextRequest) {
             where: { stripe_payment_intent_id: paymentIntent.id },
           });
 
-          if (purchase) {
-            // Map product types to features - customize based on your products
-            // Example: if product_type is "FEATURE_UNLOCK", grant the feature
-            if (
-              purchase.product_type === "FEATURE_UNLOCK" &&
-              purchase.product_id
-            ) {
-              // await grantEntitlement(
-              //   customer.clerk_user_id,
-              //   purchase.product_id as FeatureKey,
-              //   "PURCHASE",
-              //   { purchaseId: purchase.id }
-              // );
-            }
+          const validFeatureKeys = new Set<string>(Object.values(FEATURE_KEYS));
+          if (
+            purchase &&
+            purchase.product_type === "FEATURE_UNLOCK" &&
+            purchase.product_id &&
+            validFeatureKeys.has(purchase.product_id)
+          ) {
+            await grantEntitlement(
+              customer.clerk_user_id,
+              purchase.product_id as FeatureKey,
+              "PURCHASE",
+              { purchaseId: purchase.id },
+            );
+            console.log(
+              `[STRIPE WEBHOOK] Granted ${purchase.product_id} to ${customer.clerk_user_id} via purchase`,
+            );
           }
         }
         break;
