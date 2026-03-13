@@ -7,6 +7,7 @@ export { ChatHeader } from "./ChatHeader";
 export { EmptyChatState } from "./EmptyChatState";
 export { NewConversationDialog } from "./NewConversationDialog";
 export { MessagingPaywall } from "./MessagingPaywall";
+export { MessagingShell } from "./MessagingShell";
 export type {
   CoachConversation,
   PlayerConversation,

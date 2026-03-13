@@ -25,7 +25,7 @@ export function MessageBubble({ message, role }: MessageBubbleProps) {
             : "border border-gray-600/30 bg-gradient-to-r from-gray-700 to-gray-800 text-white",
         )}
       >
-        <p className="font-rajdhani text-sm leading-relaxed">
+        <p className="font-rajdhani text-sm leading-relaxed whitespace-pre-wrap">
           {message.content}
         </p>
         <div className="mt-1 flex items-center justify-end space-x-1">

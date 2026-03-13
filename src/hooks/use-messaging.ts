@@ -9,15 +9,30 @@ const UNREAD_COUNT_POLL_MS = 10_000;
 
 export function useConversations(
   role: MessagingRole,
-  options: { search?: string; filter?: FilterStatus; limit?: number },
+  options: {
+    search?: string;
+    filter?: FilterStatus;
+    limit?: number;
+    cursor?: string;
+  },
 ) {
   const coachQuery = api.messages.getConversations.useQuery(
-    { search: options.search, filter: options.filter ?? "all", limit: options.limit ?? 50 },
+    {
+      search: options.search,
+      filter: options.filter ?? "all",
+      limit: options.limit ?? 50,
+      cursor: options.cursor,
+    },
     { enabled: role === "coach", refetchInterval: CONVERSATION_LIST_POLL_MS },
   );
 
   const playerQuery = api.messages.getPlayerConversations.useQuery(
-    { search: options.search, filter: options.filter ?? "all", limit: options.limit ?? 50 },
+    {
+      search: options.search,
+      filter: options.filter ?? "all",
+      limit: options.limit ?? 50,
+      cursor: options.cursor,
+    },
     { enabled: role === "player", refetchInterval: CONVERSATION_LIST_POLL_MS },
   );
 
@@ -141,6 +156,7 @@ export function useSendMessage(
         });
       }
       void utils.messages.getPlayerConversations.invalidate();
+      void utils.messages.getPlayerMessagingStatus.invalidate();
     },
   });
 
@@ -160,6 +176,9 @@ export function useMarkAsRead(role: MessagingRole) {
   const playerMutation = api.messages.markPlayerMessagesAsRead.useMutation({
     onSettled: () => {
       void utils.messages.getPlayerConversations.invalidate();
+      if (role === "player") {
+        void utils.messages.getPlayerConversation.invalidate();
+      }
     },
   });
 
@@ -172,12 +191,35 @@ export function useToggleStar(role: MessagingRole) {
   const coachMutation = api.messages.toggleStar.useMutation({
     onSettled: () => {
       void utils.messages.getConversations.invalidate();
+      void utils.messages.getConversation.invalidate();
     },
   });
 
   const playerMutation = api.messages.togglePlayerStar.useMutation({
     onSettled: () => {
       void utils.messages.getPlayerConversations.invalidate();
+      void utils.messages.getPlayerConversation.invalidate();
+    },
+  });
+
+  return role === "coach" ? coachMutation : playerMutation;
+}
+
+export function useToggleArchive(role: MessagingRole) {
+  const utils = api.useUtils();
+
+  const coachMutation = api.messages.toggleArchive.useMutation({
+    onSettled: () => {
+      void utils.messages.getConversations.invalidate();
+      void utils.messages.getConversation.invalidate();
+      void utils.messages.getUnreadCount.invalidate();
+    },
+  });
+
+  const playerMutation = api.messages.togglePlayerArchive.useMutation({
+    onSettled: () => {
+      void utils.messages.getPlayerConversations.invalidate();
+      void utils.messages.getPlayerConversation.invalidate();
     },
   });
 
@@ -192,4 +234,10 @@ export function useUnreadCount() {
 
 export function useMessagingAccess() {
   return api.messages.checkAccess.useQuery();
+}
+
+export function usePlayerMessagingStatus(enabled = true) {
+  return api.messages.getPlayerMessagingStatus.useQuery(undefined, {
+    enabled,
+  });
 }

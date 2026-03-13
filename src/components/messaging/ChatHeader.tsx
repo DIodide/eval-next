@@ -3,7 +3,12 @@
 import { CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { StarIcon, MoreVerticalIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  ArrowLeftIcon,
+  StarIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getInitials } from "./utils";
 import type { ContactInfo } from "./types";
@@ -11,18 +16,34 @@ import type { ContactInfo } from "./types";
 interface ChatHeaderProps {
   contact: ContactInfo;
   isStarred: boolean;
+  isArchived: boolean;
   onToggleStar: () => void;
+  onToggleArchive: () => void;
+  onBack?: () => void;
 }
 
 export function ChatHeader({
   contact,
   isStarred,
+  isArchived,
   onToggleStar,
+  onToggleArchive,
+  onBack,
 }: ChatHeaderProps) {
   return (
     <CardHeader className="border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
+          {onBack ? (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 text-gray-400 hover:text-white lg:hidden"
+              onClick={onBack}
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+            </Button>
+          ) : null}
           <Avatar className="h-12 w-12 border-2 border-cyan-500/30">
             <AvatarImage src={contact.avatar ?? undefined} />
             <AvatarFallback className="font-orbitron bg-gray-700 text-white">
@@ -59,8 +80,13 @@ export function ChatHeader({
             size="sm"
             variant="outline"
             className="border-gray-600/50 bg-gray-700/30 text-gray-300 hover:bg-gray-700/50 hover:text-white"
+            onClick={onToggleArchive}
           >
-            <MoreVerticalIcon className="h-4 w-4" />
+            {isArchived ? (
+              <ArchiveRestoreIcon className="h-4 w-4" />
+            ) : (
+              <ArchiveIcon className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>

@@ -56,7 +56,9 @@ function getContactFromConversation(
       avatar: c.player.avatar,
       school: c.player.school,
       subtitle: [
-        c.player.mainGame ? getGameIcon(c.player.mainGame) + " " + c.player.mainGame : null,
+        c.player.mainGame
+          ? getGameIcon(c.player.mainGame) + " " + c.player.mainGame
+          : null,
         c.player.school,
       ]
         .filter(Boolean)
@@ -88,7 +90,7 @@ export function ConversationList({
   onToggleStar,
 }: ConversationListProps) {
   return (
-    <Card className="border-gray-700/50 bg-gradient-to-br from-gray-800/80 to-gray-900/80 shadow-xl backdrop-blur-sm">
+    <Card className="flex h-full min-h-0 flex-col border-0 bg-gradient-to-br from-gray-800/80 to-gray-900/80 shadow-xl backdrop-blur-sm">
       <CardHeader className="space-y-4 pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="font-orbitron flex items-center gap-2 text-xl text-white">
@@ -124,16 +126,28 @@ export function ConversationList({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="border-gray-700 bg-gray-800">
-                <SelectItem value="all" className="font-rajdhani text-white hover:bg-gray-700">
+                <SelectItem
+                  value="all"
+                  className="font-rajdhani text-white hover:bg-gray-700"
+                >
                   All Messages
                 </SelectItem>
-                <SelectItem value="unread" className="font-rajdhani text-white hover:bg-gray-700">
+                <SelectItem
+                  value="unread"
+                  className="font-rajdhani text-white hover:bg-gray-700"
+                >
                   Unread
                 </SelectItem>
-                <SelectItem value="starred" className="font-rajdhani text-white hover:bg-gray-700">
+                <SelectItem
+                  value="starred"
+                  className="font-rajdhani text-white hover:bg-gray-700"
+                >
                   Starred
                 </SelectItem>
-                <SelectItem value="archived" className="font-rajdhani text-white hover:bg-gray-700">
+                <SelectItem
+                  value="archived"
+                  className="font-rajdhani text-white hover:bg-gray-700"
+                >
                   Archived
                 </SelectItem>
               </SelectContent>
@@ -151,8 +165,8 @@ export function ConversationList({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
-        <div className="max-h-[500px] space-y-1 overflow-y-auto">
+      <CardContent className="min-h-0 flex-1 p-0">
+        <div className="flex h-full min-h-0 flex-col space-y-1 overflow-y-auto">
           {isLoading ? (
             <div className="px-4 py-12 text-center">
               <LoaderIcon className="mx-auto mb-4 h-8 w-8 animate-spin text-cyan-400" />

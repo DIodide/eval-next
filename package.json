@@ -32,6 +32,7 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "start": "concurrently \"next start\" \"ngrok http --url=fluent-peacock-grown.ngrok-free.app 3000\"",
+    "test:messaging": "tsx --test src/tests/messages-router.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

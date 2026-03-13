@@ -1,513 +1,137 @@
-/**
- * =================================================================
- * MESSAGES TRPC ROUTER
- * =================================================================
- *
- * This router handles messaging functionality between coaches and players.
- *
- * Features:
- * - Get conversations for coaches
- * - Send messages between coaches and players
- * - Mark messages as read
- * - Get available players for messaging
- * - Player-specific endpoints for viewing and responding to messages
- *
- * =================================================================
- */
-
 import { z } from "zod";
+
 import {
   createTRPCRouter,
   onboardedCoachProcedure,
   playerProcedure,
   protectedProcedure,
 } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
-import { hasFeatureAccess, FEATURE_KEYS } from "@/lib/server/entitlements";
+import {
+  getAvailableCoachesForMessaging,
+  getAvailablePlayersForMessaging,
+  getCoachConversationDetail,
+  getCoachUnreadCount,
+  getPlayerConversationDetail,
+  getPlayerMessagingQuotaStatus,
+  hasPremiumMessagingAccess,
+  listCoachConversations,
+  listPlayerConversations,
+  markConversationAsRead,
+  sendBulkCoachMessage,
+  sendCoachMessage,
+  sendPlayerMessage,
+  toggleConversationArchive,
+  toggleConversationStar,
+} from "@/server/services/messaging";
+
+const conversationListInput = z.object({
+  search: z.string().optional(),
+  filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
+  limit: z.number().min(1).max(100).default(50),
+  cursor: z.string().uuid().optional(),
+});
+
+const messageInput = z.object({
+  content: z.string().min(1).max(2000).trim(),
+});
+
+const conversationIdInput = z.object({
+  conversationId: z.string().uuid(),
+});
+
+const markReadInput = z.object({
+  conversationId: z.string().uuid(),
+  messageIds: z.array(z.string().uuid()).optional(),
+});
 
 export const messagesRouter = createTRPCRouter({
-  /**
-   * Check if current user has EVAL+ messaging access
-   */
   checkAccess: protectedProcedure.query(async ({ ctx }) => {
-    const hasAccess = await hasFeatureAccess(
-      ctx.auth.userId!,
-      FEATURE_KEYS.DIRECT_MESSAGING,
-    );
+    const hasAccess = await hasPremiumMessagingAccess(ctx.db, ctx.auth.userId);
+
     return { hasAccess };
   }),
 
-  /**
-   * Get conversations for the authenticated coach
-   */
   getConversations: onboardedCoachProcedure
-    .input(
-      z.object({
-        search: z.string().optional(),
-        filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
-        limit: z.number().min(1).max(100).default(50),
-      }),
-    )
+    .input(conversationListInput)
     .query(async ({ ctx, input }) => {
-      const coachId = ctx.coachId;
-
-      const conversations = await ctx.db.conversation.findMany({
-        where: {
-          coach_id: coachId,
-          ...(input.filter === "starred" && { is_starred: true }),
-          ...(input.filter === "archived" && { is_archived: true }),
-          ...(input.filter === "unread" && {
-            messages: {
-              some: { is_read: false, sender_type: "PLAYER" },
-            },
-          }),
-          ...(input.search && {
-            player: {
-              OR: [
-                { first_name: { contains: input.search, mode: "insensitive" as const } },
-                { last_name: { contains: input.search, mode: "insensitive" as const } },
-                { school: { contains: input.search, mode: "insensitive" as const } },
-              ],
-            },
-          }),
-        },
-        include: {
-          player: {
-            include: {
-              main_game: true,
-              game_profiles: {
-                include: {
-                  game: true,
-                },
-              },
-            },
-          },
-          messages: {
-            orderBy: { created_at: "desc" },
-            take: 1,
-          },
-          _count: {
-            select: {
-              messages: {
-                where: { is_read: false, sender_type: "PLAYER" },
-              },
-            },
-          },
-        },
-        orderBy: { updated_at: "desc" },
-        take: input.limit,
-      });
-
-      return {
-        conversations: conversations.map((conv) => ({
-          id: conv.id,
-          player: {
-            id: conv.player.id,
-            name: `${conv.player.first_name} ${conv.player.last_name}`,
-            email: conv.player.email,
-            avatar: conv.player.image_url,
-            school: conv.player.school,
-            classYear: conv.player.class_year,
-            location: conv.player.location,
-            gpa: conv.player.gpa
-              ? parseFloat(conv.player.gpa.toString())
-              : null,
-            mainGame: conv.player.main_game?.name,
-            gameProfiles: conv.player.game_profiles.map((profile) => ({
-              game: profile.game.name,
-              rank: profile.rank,
-              role: profile.role,
-              username: profile.username,
-            })),
-          },
-          lastMessage: conv.messages[0]
-            ? {
-                id: conv.messages[0].id,
-                content: conv.messages[0].content,
-                senderType: conv.messages[0].sender_type,
-                timestamp: conv.messages[0].created_at,
-                isRead: conv.messages[0].is_read,
-              }
-            : null,
-          unreadCount: conv._count.messages,
-          isStarred: conv.is_starred,
-          isArchived: conv.is_archived,
-          updatedAt: conv.updated_at,
-        })),
-        nextCursor: null,
-      };
+      return listCoachConversations(ctx.db, ctx.coachId, input);
     }),
 
-  /**
-   * Get count of unread messages for coach dashboard
-   */
   getUnreadCount: onboardedCoachProcedure.query(async ({ ctx }) => {
-    const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
-
-    try {
-      const count = await ctx.db.message.count({
-        where: {
-          conversation: {
-            coach_id: coachId,
-          },
-          sender_type: "PLAYER",
-          is_read: false,
-        },
-      });
-
-      return count;
-    } catch (error) {
-      console.error("Error fetching unread messages count:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch unread messages count",
-      });
-    }
+    return getCoachUnreadCount(ctx.db, ctx.coachId);
   }),
 
-  /**
-   * Get detailed conversation with message history
-   */
   getConversation: onboardedCoachProcedure
-    .input(z.object({ conversationId: z.string().uuid() }))
+    .input(conversationIdInput)
     .query(async ({ ctx, input }) => {
-      const coachId = ctx.coachId; // Available from onboardedCoachProcedure context
-
-      // Get actual conversation from database
-      const conversation = await ctx.db.conversation.findFirst({
-        where: {
-          id: input.conversationId,
-          coach_id: coachId,
-        },
-        include: {
-          player: {
-            include: {
-              main_game: true,
-              game_profiles: {
-                include: {
-                  game: true,
-                },
-              },
-            },
-          },
-          messages: {
-            orderBy: { created_at: "asc" },
-          },
-        },
-      });
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Conversation not found",
-        });
-      }
-
-      return {
-        id: conversation.id,
-        player: {
-          id: conversation.player.id,
-          name: `${conversation.player.first_name} ${conversation.player.last_name}`,
-          email: conversation.player.email,
-          avatar: conversation.player.image_url,
-          school: conversation.player.school,
-          classYear: conversation.player.class_year,
-          location: conversation.player.location,
-          gpa: conversation.player.gpa
-            ? parseFloat(conversation.player.gpa.toString())
-            : null,
-          mainGame: conversation.player.main_game?.name,
-          gameProfiles: conversation.player.game_profiles.map((profile) => ({
-            game: profile.game.name,
-            rank: profile.rank,
-            role: profile.role,
-            username: profile.username,
-          })),
-        },
-        messages: conversation.messages.map((msg) => ({
-          id: msg.id,
-          senderId: msg.sender_id,
-          senderType: msg.sender_type,
-          content: msg.content,
-          timestamp: msg.created_at,
-          isRead: msg.is_read,
-        })),
-        isStarred: conversation.is_starred,
-        isArchived: conversation.is_archived,
-      };
+      return getCoachConversationDetail(
+        ctx.db,
+        ctx.coachId,
+        input.conversationId,
+      );
     }),
 
-  /**
-   * Send a message to a player
-   */
   sendMessage: onboardedCoachProcedure
     .input(
-      z.object({
+      messageInput.extend({
         conversationId: z.string().uuid().optional(),
         playerId: z.string().uuid().optional(),
-        content: z.string().min(1).max(2000).trim(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const coachId = ctx.coachId;
-
-      // Either conversationId or playerId must be provided
-      if (!input.conversationId && !input.playerId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Either conversationId or playerId must be provided",
-        });
-      }
-
-      let conversation: { id: string } | null = null;
-
-      if (input.conversationId) {
-        // Use existing conversation
-        conversation = await ctx.db.conversation.findFirst({
-          where: {
-            id: input.conversationId,
-            coach_id: coachId,
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        if (!conversation) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Conversation not found",
-          });
-        }
-      } else if (input.playerId) {
-        // Create new conversation or find existing one
-        const player = await ctx.db.player.findUnique({
-          where: { id: input.playerId },
-        });
-
-        if (!player) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Player not found",
-          });
-        }
-
-        // Check if conversation already exists
-        conversation = await ctx.db.conversation.findFirst({
-          where: {
-            coach_id: coachId,
-            player_id: player.id,
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        // Create new conversation if none exists
-        conversation ??= await ctx.db.conversation.create({
-          data: {
-            coach_id: coachId,
-            player_id: player.id,
-            is_starred: false,
-            is_archived: false,
-          },
-          select: {
-            id: true,
-          },
-        });
-      }
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create or find conversation",
-        });
-      }
-
-      // Create the message
-      const message = await ctx.db.message.create({
-        data: {
-          conversation_id: conversation.id,
-          sender_id: coachId,
-          sender_type: "COACH",
-          content: input.content,
-          is_read: false,
-        },
+      return sendCoachMessage(ctx.db, {
+        coachId: ctx.coachId,
+        conversationId: input.conversationId,
+        playerId: input.playerId,
+        content: input.content,
       });
-
-      // Update conversation timestamp
-      await ctx.db.conversation.update({
-        where: { id: conversation.id },
-        data: { updated_at: new Date() },
-      });
-
-      return {
-        id: message.id,
-        conversationId: conversation.id,
-        content: message.content,
-        timestamp: message.created_at,
-      };
     }),
 
-  /**
-   * Send bulk messages to multiple players
-   */
   sendBulkMessage: onboardedCoachProcedure
     .input(
-      z.object({
+      messageInput.extend({
         playerIds: z.array(z.string().uuid()).min(1).max(50),
-        content: z.string().min(1).max(2000).trim(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const coachId = ctx.coachId;
-
-      const players = await ctx.db.player.findMany({
-        where: { id: { in: input.playerIds } },
-        select: { id: true },
-      });
-
-      if (players.length === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "No valid players found",
-        });
-      }
-
-      const validPlayerIds = players.map((p) => p.id);
-
-      return await ctx.db.$transaction(async (tx) => {
-        const results: Array<{
-          playerId: string;
-          conversationId: string;
-          messageId: string;
-        }> = [];
-
-        for (const playerId of validPlayerIds) {
-          let conv = await tx.conversation.findFirst({
-            where: { coach_id: coachId, player_id: playerId },
-            select: { id: true },
-          });
-
-          conv ??= await tx.conversation.create({
-            data: {
-              coach_id: coachId,
-              player_id: playerId,
-              is_starred: false,
-              is_archived: false,
-            },
-            select: { id: true },
-          });
-
-          const msg = await tx.message.create({
-            data: {
-              conversation_id: conv.id,
-              sender_id: coachId,
-              sender_type: "COACH",
-              content: input.content,
-              is_read: false,
-            },
-          });
-
-          await tx.conversation.update({
-            where: { id: conv.id },
-            data: { updated_at: new Date() },
-          });
-
-          results.push({
-            playerId,
-            conversationId: conv.id,
-            messageId: msg.id,
-          });
-        }
-
-        return {
-          success: true,
-          messagesSent: results.length,
-          results,
-        };
+      return sendBulkCoachMessage(ctx.db, {
+        coachId: ctx.coachId,
+        playerIds: input.playerIds,
+        content: input.content,
       });
     }),
 
-  /**
-   * Mark messages as read
-   */
   markAsRead: onboardedCoachProcedure
-    .input(
-      z.object({
-        conversationId: z.string().uuid(),
-        messageIds: z.array(z.string().uuid()).optional(),
-      }),
-    )
+    .input(markReadInput)
     .mutation(async ({ ctx, input }) => {
-      const coachId = ctx.coachId;
-
-      const conversation = await ctx.db.conversation.findFirst({
-        where: { id: input.conversationId, coach_id: coachId },
-        select: { id: true },
+      return markConversationAsRead(ctx.db, {
+        role: "coach",
+        actorId: ctx.coachId,
+        conversationId: input.conversationId,
+        messageIds: input.messageIds,
       });
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Conversation not found",
-        });
-      }
-
-      const result = await ctx.db.message.updateMany({
-        where: {
-          conversation_id: input.conversationId,
-          sender_type: "PLAYER",
-          is_read: false,
-          ...(input.messageIds ? { id: { in: input.messageIds } } : {}),
-        },
-        data: { is_read: true },
-      });
-
-      return {
-        success: true,
-        messagesMarked: result.count,
-      };
     }),
 
-  /**
-   * Star or unstar a conversation
-   */
   toggleStar: onboardedCoachProcedure
-    .input(
-      z.object({
-        conversationId: z.string().uuid(),
-      }),
-    )
+    .input(conversationIdInput)
     .mutation(async ({ ctx, input }) => {
-      const coachId = ctx.coachId;
-
-      const conversation = await ctx.db.conversation.findFirst({
-        where: { id: input.conversationId, coach_id: coachId },
-        select: { is_starred: true },
+      return toggleConversationStar(ctx.db, {
+        role: "coach",
+        actorId: ctx.coachId,
+        conversationId: input.conversationId,
       });
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Conversation not found",
-        });
-      }
-
-      const updated = await ctx.db.conversation.update({
-        where: { id: input.conversationId },
-        data: { is_starred: !conversation.is_starred },
-      });
-
-      return {
-        success: true,
-        isStarred: updated.is_starred,
-      };
     }),
 
-  /**
-   * Get available players for messaging
-   */
+  toggleArchive: onboardedCoachProcedure
+    .input(conversationIdInput)
+    .mutation(async ({ ctx, input }) => {
+      return toggleConversationArchive(ctx.db, {
+        role: "coach",
+        actorId: ctx.coachId,
+        conversationId: input.conversationId,
+      });
+    }),
+
   getAvailablePlayers: onboardedCoachProcedure
     .input(
       z.object({
@@ -516,390 +140,82 @@ export const messagesRouter = createTRPCRouter({
         limit: z.number().min(1).max(100).default(50),
       }),
     )
-    .query(async ({ ctx }) => {
-      // Coach ID is available from onboardedCoachProcedure context
-
-      // Get actual players from database
-      const players = await ctx.db.player.findMany({
-        include: {
-          game_profiles: {
-            include: {
-              game: true,
-            },
-          },
-          main_game: true,
-        },
-        take: 50,
-        orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
-      });
-
-      return players.map((player) => ({
-        id: player.id,
-        name: `${player.first_name} ${player.last_name}`,
-        email: player.email,
-        avatar: player.image_url ?? null,
-        school: player.school ?? null,
-        classYear: player.class_year ?? null,
-        location: player.location ?? null,
-        gpa: player.gpa ? parseFloat(player.gpa.toString()) : null,
-        mainGame: player.main_game?.name ?? undefined,
-        gameProfiles: player.game_profiles.map((profile) => ({
-          game: profile.game.name,
-          rank: profile.rank ?? null,
-          role: profile.role ?? null,
-          username: profile.username,
-        })),
-      }));
+    .query(async ({ ctx, input }) => {
+      return getAvailablePlayersForMessaging(ctx.db, input);
     }),
 
-  // =================================================================
-  // PLAYER-SPECIFIC ENDPOINTS
-  // =================================================================
+  getPlayerMessagingStatus: playerProcedure.query(async ({ ctx }) => {
+    return getPlayerMessagingQuotaStatus(
+      ctx.db,
+      ctx.playerId,
+      ctx.auth.userId!,
+    );
+  }),
 
-  /**
-   * Get conversations for the authenticated player
-   */
   getPlayerConversations: playerProcedure
-    .input(
-      z.object({
-        search: z.string().optional(),
-        filter: z.enum(["all", "unread", "starred", "archived"]).default("all"),
-        limit: z.number().min(1).max(100).default(50),
-      }),
-    )
+    .input(conversationListInput)
     .query(async ({ ctx, input }) => {
-      const playerId = ctx.playerId;
-
-      const conversations = await ctx.db.conversation.findMany({
-        where: {
-          player_id: playerId,
-          ...(input.filter === "starred" && { is_starred: true }),
-          ...(input.filter === "archived" && { is_archived: true }),
-          ...(input.filter === "unread" && {
-            messages: {
-              some: { is_read: false, sender_type: "COACH" },
-            },
-          }),
-          ...(input.search && {
-            coach: {
-              OR: [
-                { first_name: { contains: input.search, mode: "insensitive" as const } },
-                { last_name: { contains: input.search, mode: "insensitive" as const } },
-                { school: { contains: input.search, mode: "insensitive" as const } },
-              ],
-            },
-          }),
-        },
-        include: {
-          coach: {
-            include: {
-              school_ref: true,
-            },
-          },
-          messages: {
-            orderBy: { created_at: "desc" },
-            take: 1,
-          },
-          _count: {
-            select: {
-              messages: {
-                where: { is_read: false, sender_type: "COACH" },
-              },
-            },
-          },
-        },
-        orderBy: { updated_at: "desc" },
-        take: input.limit,
-      });
-
-      return {
-        conversations: conversations.map((conv) => ({
-          id: conv.id,
-          coach: {
-            id: conv.coach.id,
-            name: `${conv.coach.first_name} ${conv.coach.last_name}`,
-            email: conv.coach.email,
-            avatar: conv.coach.image_url,
-            school: conv.coach.school,
-            schoolId: conv.coach.school_ref?.id,
-            schoolName: conv.coach.school_ref?.name,
-          },
-          lastMessage: conv.messages[0]
-            ? {
-                id: conv.messages[0].id,
-                content: conv.messages[0].content,
-                senderType: conv.messages[0].sender_type,
-                timestamp: conv.messages[0].created_at,
-                isRead: conv.messages[0].is_read,
-              }
-            : null,
-          unreadCount: conv._count.messages,
-          isStarred: conv.is_starred,
-          isArchived: conv.is_archived,
-          updatedAt: conv.updated_at,
-        })),
-        nextCursor: null,
-      };
+      return listPlayerConversations(ctx.db, ctx.playerId, input);
     }),
 
-  /**
-   * Get detailed conversation with message history for player
-   */
   getPlayerConversation: playerProcedure
-    .input(z.object({ conversationId: z.string().uuid() }))
+    .input(conversationIdInput)
     .query(async ({ ctx, input }) => {
-      const playerId = ctx.playerId; // Available from playerProcedure context
-
-      // Get actual conversation from database
-      const conversation = await ctx.db.conversation.findFirst({
-        where: {
-          id: input.conversationId,
-          player_id: playerId,
-        },
-        include: {
-          coach: {
-            include: {
-              school_ref: true,
-            },
-          },
-          messages: {
-            orderBy: { created_at: "asc" },
-          },
-        },
-      });
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Conversation not found",
-        });
-      }
-
-      return {
-        id: conversation.id,
-        coach: {
-          id: conversation.coach.id,
-          name: `${conversation.coach.first_name} ${conversation.coach.last_name}`,
-          email: conversation.coach.email,
-          avatar: conversation.coach.image_url,
-          school: conversation.coach.school,
-          schoolId: conversation.coach.school_ref?.id,
-          schoolName: conversation.coach.school_ref?.name,
-        },
-        messages: conversation.messages.map((msg) => ({
-          id: msg.id,
-          senderId: msg.sender_id,
-          senderType: msg.sender_type,
-          content: msg.content,
-          timestamp: msg.created_at,
-          isRead: msg.is_read,
-        })),
-        isStarred: conversation.is_starred,
-        isArchived: conversation.is_archived,
-      };
+      return getPlayerConversationDetail(
+        ctx.db,
+        ctx.playerId,
+        input.conversationId,
+      );
     }),
 
-  /**
-   * Send a message from player to coach
-   */
   sendPlayerMessage: playerProcedure
     .input(
-      z.object({
+      messageInput.extend({
         conversationId: z.string().uuid().optional(),
         coachId: z.string().uuid().optional(),
-        content: z.string().min(1).max(2000).trim(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const playerId = ctx.playerId;
-
-      // Either conversationId or coachId must be provided
-      if (!input.conversationId && !input.coachId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Either conversationId or coachId must be provided",
-        });
-      }
-
-      let conversation: {
-        id: string;
-        coach_id: string;
-        player_id: string;
-      } | null = null;
-
-      if (input.conversationId) {
-        // Replying to existing conversation — no EVAL+ required
-        conversation = await ctx.db.conversation.findFirst({
-          where: {
-            id: input.conversationId,
-            player_id: playerId,
-          },
-          select: {
-            id: true,
-            coach_id: true,
-            player_id: true,
-          },
-        });
-
-        if (!conversation) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Conversation not found",
-          });
-        }
-      } else if (input.coachId) {
-        const coach = await ctx.db.coach.findUnique({
-          where: { id: input.coachId },
-        });
-
-        if (!coach) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Coach not found",
-          });
-        }
-
-        // Check if conversation already exists
-        conversation = await ctx.db.conversation.findFirst({
-          where: {
-            coach_id: coach.id,
-            player_id: playerId,
-          },
-          select: {
-            id: true,
-            coach_id: true,
-            player_id: true,
-          },
-        });
-
-        if (!conversation) {
-          conversation = await ctx.db.conversation.create({
-            data: {
-              coach_id: coach.id,
-              player_id: playerId,
-              is_starred: false,
-              is_archived: false,
-            },
-            select: {
-              id: true,
-              coach_id: true,
-              player_id: true,
-            },
-          });
-        }
-      }
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create or find conversation",
-        });
-      }
-
-      // Create the message
-      const message = await ctx.db.message.create({
-        data: {
-          conversation_id: conversation.id,
-          sender_id: playerId,
-          sender_type: "PLAYER",
-          content: input.content,
-          is_read: false,
-        },
+      return sendPlayerMessage(ctx.db, {
+        playerId: ctx.playerId,
+        clerkUserId: ctx.auth.userId!,
+        conversationId: input.conversationId,
+        coachId: input.coachId,
+        content: input.content,
       });
-
-      // Update conversation timestamp
-      await ctx.db.conversation.update({
-        where: { id: conversation.id },
-        data: { updated_at: new Date() },
-      });
-
-      return {
-        id: message.id,
-        conversationId: conversation.id,
-        content: message.content,
-        timestamp: message.created_at,
-      };
     }),
 
-  /**
-   * Mark messages as read for player
-   */
   markPlayerMessagesAsRead: playerProcedure
-    .input(
-      z.object({
-        conversationId: z.string().uuid(),
-        messageIds: z.array(z.string().uuid()).optional(),
-      }),
-    )
+    .input(markReadInput)
     .mutation(async ({ ctx, input }) => {
-      const playerId = ctx.playerId;
-
-      const conversation = await ctx.db.conversation.findFirst({
-        where: { id: input.conversationId, player_id: playerId },
-        select: { id: true },
+      return markConversationAsRead(ctx.db, {
+        role: "player",
+        actorId: ctx.playerId,
+        conversationId: input.conversationId,
+        messageIds: input.messageIds,
       });
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Conversation not found",
-        });
-      }
-
-      const result = await ctx.db.message.updateMany({
-        where: {
-          conversation_id: input.conversationId,
-          sender_type: "COACH",
-          is_read: false,
-          ...(input.messageIds ? { id: { in: input.messageIds } } : {}),
-        },
-        data: { is_read: true },
-      });
-
-      return {
-        success: true,
-        messagesMarked: result.count,
-      };
     }),
 
-  /**
-   * Star or unstar a conversation for player
-   */
   togglePlayerStar: playerProcedure
-    .input(
-      z.object({
-        conversationId: z.string().uuid(),
-      }),
-    )
+    .input(conversationIdInput)
     .mutation(async ({ ctx, input }) => {
-      const playerId = ctx.playerId;
-
-      const conversation = await ctx.db.conversation.findFirst({
-        where: { id: input.conversationId, player_id: playerId },
-        select: { is_starred: true },
+      return toggleConversationStar(ctx.db, {
+        role: "player",
+        actorId: ctx.playerId,
+        conversationId: input.conversationId,
       });
-
-      if (!conversation) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Conversation not found",
-        });
-      }
-
-      const updated = await ctx.db.conversation.update({
-        where: { id: input.conversationId },
-        data: { is_starred: !conversation.is_starred },
-      });
-
-      return {
-        success: true,
-        isStarred: updated.is_starred,
-      };
     }),
 
-  /**
-   * Get available coaches for messaging (player endpoint)
-   */
+  togglePlayerArchive: playerProcedure
+    .input(conversationIdInput)
+    .mutation(async ({ ctx, input }) => {
+      return toggleConversationArchive(ctx.db, {
+        role: "player",
+        actorId: ctx.playerId,
+        conversationId: input.conversationId,
+      });
+    }),
+
   getAvailableCoaches: playerProcedure
     .input(
       z.object({
@@ -907,26 +223,7 @@ export const messagesRouter = createTRPCRouter({
         limit: z.number().min(1).max(100).default(50),
       }),
     )
-    .query(async ({ ctx }) => {
-      // Player ID is available from playerProcedure context
-
-      // Get actual coaches from database
-      const coaches = await ctx.db.coach.findMany({
-        include: {
-          school_ref: true,
-        },
-        take: 50,
-        orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
-      });
-
-      return coaches.map((coach) => ({
-        id: coach.id,
-        name: `${coach.first_name} ${coach.last_name}`,
-        email: coach.email,
-        avatar: coach.image_url ?? null,
-        school: coach.school ?? null,
-        schoolName: coach.school_ref?.name ?? null,
-        username: coach.username,
-      }));
+    .query(async ({ ctx, input }) => {
+      return getAvailableCoachesForMessaging(ctx.db, input);
     }),
 });

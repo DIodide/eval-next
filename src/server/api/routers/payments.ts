@@ -252,6 +252,7 @@ export const paymentsRouter = createTRPCRouter({
         featureKey: z.enum([
           FEATURE_KEYS.PREMIUM_SEARCH,
           FEATURE_KEYS.ADVANCED_ANALYTICS,
+          FEATURE_KEYS.DIRECT_MESSAGING,
           FEATURE_KEYS.UNLIMITED_MESSAGES,
           FEATURE_KEYS.PRIORITY_SUPPORT,
           FEATURE_KEYS.CUSTOM_BRANDING,
