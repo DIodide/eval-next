@@ -241,12 +241,12 @@ export default function CoachesDashboard() {
 
   const quickActions = [
     {
-      title: "Search Players",
-      description: "Find and scout talented players",
-      href: "/dashboard/coaches/player-search",
-      color: "from-blue-500 to-blue-600",
+      title: "Find Talent",
+      description: "AI-powered player discovery",
+      href: "/dashboard/coaches/find-talent",
+      color: "from-cyan-500 to-purple-600",
       requiresOnboarding: true,
-      comingSoon: true,
+      comingSoon: false,
     },
     {
       title: "Create Tryout",

@@ -28,6 +28,9 @@ export const env = createEnv({
     // GSE External Database
     GSE_DATABASE_URL: z.string().url().optional(),
 
+    // Google Gemini AI (for talent search embeddings and analysis)
+    GOOGLE_GEMINI_API_KEY: z.string().optional(),
+
     // Discord webhook URLs (optional)
     DISCORD_WEBHOOK_GENERAL: z.string().optional(),
     DISCORD_WEBHOOK_ADMIN: z.string().optional(),
@@ -76,6 +79,8 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     GSE_DATABASE_URL: process.env.GSE_DATABASE_URL,
+    // Google Gemini AI
+    GOOGLE_GEMINI_API_KEY: process.env.GOOGLE_GEMINI_API_KEY,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
     DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,
