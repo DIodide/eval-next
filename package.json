@@ -21,6 +21,8 @@
     "clerk:reset": "./scripts/clerk-users-reset.sh",
     "clerk:reset:force": "./scripts/clerk-users-reset.sh --force",
     "db:seed:profiles": "tsx prisma/seed-game-profiles.ts",
+    "seed:bootcamp": "tsx prisma/seed-bootcamp.ts",
+    "upload:bootcamp-videos": "tsx scripts/upload-bootcamp-videos.ts",
     "db:reset:full": "npm run db:reset:confirm && npm run db:seed",
     "dev": "concurrently \"next dev --turbo\" \"ngrok http --url=fluent-peacock-grown.ngrok-free.app 3000\"",
     "dev:next": "next dev --turbo",

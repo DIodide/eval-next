@@ -20,6 +20,7 @@ import {
   ZapIcon,
   LinkIcon,
   ExternalLinkIcon,
+  GraduationCapIcon,
 } from "lucide-react";
 
 export default function PlayerDashboardClientLayout({
@@ -73,6 +74,11 @@ export default function PlayerDashboardClientLayout({
       title: "My Highlights",
       href: "/dashboard/player/highlights",
       icon: PlayIcon,
+    },
+    {
+      title: "Bootcamp",
+      href: "/dashboard/player/bootcamp",
+      icon: GraduationCapIcon,
     },
     {
       title: "Messages",
