@@ -33,6 +33,9 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      "@typescript-eslint/prefer-optional-chain": "warn",
+      "@typescript-eslint/prefer-nullish-coalescing": "warn",
+      "@typescript-eslint/await-thenable": "warn",
     },
   },
   {

@@ -28,6 +28,12 @@ export const env = createEnv({
     // GSE External Database
     GSE_DATABASE_URL: z.string().url().optional(),
 
+    // Resend Email (optional — required for email bridge features)
+    RESEND_API_KEY: z.string().optional(),
+    RESEND_FROM_RECRUITING: z.string().optional(), // Coach intro emails
+    RESEND_FROM_MESSAGES: z.string().optional(),   // Player message notifications
+    RESEND_FROM_REMINDERS: z.string().optional(),  // Reminder/follow-up emails
+
     // Discord webhook URLs (optional)
     DISCORD_WEBHOOK_GENERAL: z.string().optional(),
     DISCORD_WEBHOOK_ADMIN: z.string().optional(),
@@ -76,6 +82,11 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     GSE_DATABASE_URL: process.env.GSE_DATABASE_URL,
+    // Resend Email
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_RECRUITING: process.env.RESEND_FROM_RECRUITING,
+    RESEND_FROM_MESSAGES: process.env.RESEND_FROM_MESSAGES,
+    RESEND_FROM_REMINDERS: process.env.RESEND_FROM_REMINDERS,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
     DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,

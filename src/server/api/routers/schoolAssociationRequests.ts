@@ -1,16 +1,16 @@
 // src/server/api/routers/schoolAssociationRequests.ts
 // Admin router for managing coach school association requests
 
-import { z } from "zod";
-import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
-import { clerkClient } from "@clerk/nextjs/server";
-import { type Prisma } from "@prisma/client";
 import {
+  logAdminAction,
   logSchoolAssociationApproved,
   logSchoolAssociationRejected,
-  logAdminAction,
 } from "@/lib/discord-logger";
+import { adminProcedure, createTRPCRouter } from "@/server/api/trpc";
+import { clerkClient } from "@clerk/nextjs/server";
+import { type Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 // Input validation schemas
 const approveRequestSchema = z.object({
@@ -279,20 +279,23 @@ export const schoolAssociationRequestsRouter = createTRPCRouter({
         });
 
         // Update Clerk publicMetadata to mark coach as onboarded
-        try {
-          const client = await clerkClient();
-          await client.users.updateUser(request.coach.clerk_id, {
-            publicMetadata: {
-              onboarded: true,
-              userType: "coach",
-              schoolId: result.schoolId,
-              schoolName: result.schoolName,
-            },
-          });
-        } catch (clerkError) {
-          console.error("Failed to update Clerk metadata:", clerkError);
-          // Don't throw error here as the database transaction was successful
-          // The coach can still function, they just might need to refresh
+        // Skip for preprovisioned coaches (no clerk_id yet)
+        if (request.coach.clerk_id) {
+          try {
+            const client = await clerkClient();
+            await client.users.updateUser(request.coach.clerk_id, {
+              publicMetadata: {
+                onboarded: true,
+                userType: "coach",
+                schoolId: result.schoolId,
+                schoolName: result.schoolName,
+              },
+            });
+          } catch (clerkError) {
+            console.error("Failed to update Clerk metadata:", clerkError);
+            // Don't throw error here as the database transaction was successful
+            // The coach can still function, they just might need to refresh
+          }
         }
 
         // Log the approval to Discord

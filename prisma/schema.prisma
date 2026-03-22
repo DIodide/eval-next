@@ -61,28 +61,34 @@ model Player {
 
 /// Coaches table with Clerk integration
 model Coach {
-  id                 String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clerk_id           String                     @unique
-  email              String                     @unique
-  first_name         String
-  last_name          String
-  username           String                     @unique
-  image_url          String?
-  external_accounts  Json?
-  school             String
-  school_id          String?                    @db.Uuid
-  created_at         DateTime                   @default(now()) @db.Timestamp(6)
-  updated_at         DateTime                   @updatedAt
-  favorites          CoachFavorite[]
-  school_ref         School?                    @relation(fields: [school_id], references: [id])
-  combines_created   Combine[]
-  Conversation       Conversation[]
-  school_requests    SchoolAssociationRequest[]
-  teams              Team[]
-  tryouts_created    Tryout[]
-  achievements       CoachAchievement[]
-  SchoolAnnouncement SchoolAnnouncement[]
+  id                     String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_id               String?                    @unique
+  email                  String                     @unique
+  first_name             String
+  last_name              String
+  username               String?                    @unique
+  image_url              String?
+  external_accounts      Json?
+  school                 String
+  school_id              String?                    @db.Uuid
+  status                 CoachStatus                @default(ACTIVE)
+  source                 CoachSource                @default(SIGNUP)
+  title                  String?
+  forwarded_emails_count Int                        @default(0)
+  intro_email_sent       Boolean                    @default(false)
+  created_at             DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                   @updatedAt
+  favorites              CoachFavorite[]
+  school_ref             School?                    @relation(fields: [school_id], references: [id])
+  combines_created       Combine[]
+  Conversation           Conversation[]
+  school_requests        SchoolAssociationRequest[]
+  teams                  Team[]
+  tryouts_created        Tryout[]
+  achievements           CoachAchievement[]
+  SchoolAnnouncement     SchoolAnnouncement[]
 
+  @@index([status])
   @@map("coaches")
 }
 
@@ -825,6 +831,18 @@ enum SenderType {
 enum ConversationInitiator {
   COACH
   PLAYER
+}
+
+enum CoachStatus {
+  SCRAPED
+  INVITED
+  ACTIVE
+}
+
+enum CoachSource {
+  SCRAPED
+  MANUAL
+  SIGNUP
 }
 
 enum SchoolAnnouncementType {
