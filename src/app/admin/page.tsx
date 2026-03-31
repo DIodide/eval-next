@@ -23,6 +23,7 @@ import {
   ClipboardList,
   Crown,
   AlertCircle,
+  Mail,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 
@@ -77,6 +78,14 @@ const adminTools = [
     href: "/admin/system-health",
     color: "text-cyan-500",
   },
+  {
+    title: "Preprovisioned Coaches",
+    description:
+      "Manage scraped coach accounts, send intro emails, and monitor engagement",
+    icon: UserCheck,
+    href: "/admin/management?tab=coaches",
+    color: "text-teal-500",
+  },
 ];
 
 export default function AdminDashboard() {
@@ -87,11 +96,14 @@ export default function AdminDashboard() {
     api.leagueAssociationRequests.getPendingCount.useQuery();
   const { data: pendingLeagueSchoolCreationRequests } =
     api.leagueSchoolCreationRequests.getPendingCount.useQuery();
+  const { data: pendingCoachIntros } =
+    api.adminCoaches.getPendingIntroCount.useQuery();
 
   const totalPending =
     (pendingSchoolRequests ?? 0) +
     (pendingLeagueRequests ?? 0) +
-    (pendingLeagueSchoolCreationRequests ?? 0);
+    (pendingLeagueSchoolCreationRequests ?? 0) +
+    (pendingCoachIntros ?? 0);
 
   return (
     <div className="space-y-8">
@@ -126,7 +138,7 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <Link href="/admin/school-requests">
                 <Button
                   variant="outline"
@@ -170,6 +182,27 @@ export default function AdminDashboard() {
                           {pendingLeagueRequests}
                         </Badge>
                       )}
+                  </div>
+                </Button>
+              </Link>
+              <Link href="/admin/management?tab=coaches">
+                <Button
+                  variant="outline"
+                  className="w-full border-yellow-600/50 hover:bg-yellow-600/10"
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Coach Intro Emails</span>
+                    </div>
+                    {(pendingCoachIntros ?? 0) > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="border-yellow-500 bg-yellow-500/20 text-yellow-400"
+                      >
+                        {pendingCoachIntros}
+                      </Badge>
+                    )}
                   </div>
                 </Button>
               </Link>
