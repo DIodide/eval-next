@@ -60,16 +60,16 @@ export default function PlayerDashboardClientLayout({
           : []),
       ],
     },
-    {
-      title: "My Tryouts",
-      href: "/dashboard/player/tryouts",
-      icon: TrophyIcon,
-    },
-    {
-      title: "My Combines",
-      href: "/dashboard/player/combines",
-      icon: ZapIcon,
-    },
+    // {
+    //   title: "My Tryouts",
+    //   href: "/dashboard/player/tryouts",
+    //   icon: TrophyIcon,
+    // },
+    // {
+    //   title: "My Combines",
+    //   href: "/dashboard/player/combines",
+    //   icon: ZapIcon,
+    // },
     {
       title: "My Highlights",
       href: "/dashboard/player/highlights",
@@ -103,7 +103,7 @@ export default function PlayerDashboardClientLayout({
   // Show loading state while checking user
   if (!isLoaded) {
     return (
-      <div className="flex max-h-[calc(100vh-80px)] bg-[#0f0f1a]">
+      <div className="flex h-[calc(100vh-80px)] bg-[#0f0f1a]">
         {/* Sidebar Skeleton */}
         <div className="w-64 border-r border-gray-800 bg-[#1a1a2e]">
           <div className="flex h-full flex-col">
@@ -287,7 +287,7 @@ export default function PlayerDashboardClientLayout({
   }
 
   return (
-    <div className="flex max-h-[calc(100vh-80px)] bg-[#0f0f1a]">
+    <div className="flex h-[calc(100vh-80px)] bg-[#0f0f1a]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div

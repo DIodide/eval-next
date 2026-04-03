@@ -45,7 +45,9 @@ import {
   Trophy,
   Upload,
   UserIcon,
+  Users,
 } from "lucide-react";
+import { CoachesTab } from "./_components/CoachesTab";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -61,7 +63,7 @@ export default function AdminManagementPage() {
   const [activeTab, setActiveTab] = useState(tabParam ?? "leagues");
 
   useEffect(() => {
-    if (tabParam && ["leagues", "schools", "players"].includes(tabParam)) {
+    if (tabParam && ["leagues", "schools", "players", "coaches"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
@@ -721,6 +723,13 @@ export default function AdminManagementPage() {
               <UserIcon className="mr-2 h-4 w-4" />
               PLAYERS
             </TabsTrigger>
+            <TabsTrigger
+              value="coaches"
+              className="font-orbitron rounded-md px-6 py-2 font-bold text-gray-300 transition-all duration-300 hover:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-400 data-[state=active]:to-teal-500 data-[state=active]:text-black data-[state=active]:shadow-lg"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              COACHES
+            </TabsTrigger>
           </TabsList>
 
           {/* Leagues Tab */}
@@ -1244,6 +1253,11 @@ export default function AdminManagementPage() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Coaches Tab */}
+          <TabsContent value="coaches" className="space-y-6">
+            <CoachesTab />
           </TabsContent>
         </Tabs>
 

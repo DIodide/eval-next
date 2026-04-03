@@ -1,7 +1,8 @@
-import { TRPCError } from "@trpc/server";
 import { type Prisma, type PrismaClient } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { addMonths, startOfMonth } from "date-fns";
 
+import { sendPlayerMessageEmail } from "@/lib/server/email-bridge";
 import {
   FEATURE_KEYS,
   hasAnyFeatureAccessWithDb,
@@ -894,10 +895,31 @@ export async function sendPlayerMessage(
 
         let createdConversation = false;
 
+        // Track coach info for post-transaction email bridge
+        let coachForEmail: {
+          id: string;
+          clerk_id: string | null;
+          email: string;
+          first_name: string;
+          last_name: string;
+          school: string;
+          forwarded_emails_count: number;
+        } | null = null;
+
         if (!conversation && args.coachId) {
           const coach = await tx.coach.findUnique({
             where: { id: args.coachId },
-            select: { id: true, school_id: true },
+            select: {
+              id: true,
+              school_id: true,
+              clerk_id: true,
+              email: true,
+              first_name: true,
+              last_name: true,
+              school: true,
+              // NOTE: forwarded_emails_count available after prisma generate
+              ...({ forwarded_emails_count: true } as Record<string, boolean>),
+            },
           });
 
           if (!coach?.school_id) {
@@ -906,6 +928,30 @@ export async function sendPlayerMessage(
               message: "Coach not found",
             });
           }
+
+          // If preprovisioned coach, enforce max 1 unreplied message from this player
+          if (!coach.clerk_id) {
+            const existingUnreplied = await tx.message.findFirst({
+              where: {
+                conversation: {
+                  coach_id: coach.id,
+                  player_id: args.playerId,
+                },
+                sender_type: "PLAYER",
+                is_read: false,
+              },
+            });
+
+            if (existingUnreplied) {
+              throw new TRPCError({
+                code: "FORBIDDEN",
+                message:
+                  "This coach hasn't joined EVAL yet. You can send another message once they respond.",
+              });
+            }
+          }
+
+          coachForEmail = coach as unknown as typeof coachForEmail;
 
           conversation = await tx.conversation.findFirst({
             where: {
@@ -965,6 +1011,7 @@ export async function sendPlayerMessage(
           content: message.content,
           timestamp: message.created_at,
           createdConversation,
+          coachForEmail,
         };
       });
 
@@ -976,7 +1023,65 @@ export async function sendPlayerMessage(
         });
       }
 
-      return result;
+      // Email bridge: if coach is a preprovisioned coach (no clerk_id), send email notification
+      const emailCoach = result.coachForEmail as {
+        id: string;
+        clerk_id: string | null;
+        email: string;
+        first_name: string;
+        last_name: string;
+        school: string;
+        forwarded_emails_count: number;
+      } | null;
+      if (emailCoach && !emailCoach.clerk_id && emailCoach.forwarded_emails_count < 3) {
+        const coach = emailCoach;
+        const player = await db.player.findUnique({
+          where: { id: args.playerId },
+          select: {
+            first_name: true,
+            last_name: true,
+            gpa: true,
+            main_game: { select: { name: true } },
+            game_profiles: {
+              take: 1,
+              select: { rank: true },
+              orderBy: { updated_at: "desc" },
+            },
+          },
+        });
+
+        if (player) {
+          const playerName = `${player.first_name} ${player.last_name}`.trim();
+          const sent = await sendPlayerMessageEmail({
+            coachEmail: coach.email,
+            coachName: `${coach.first_name} ${coach.last_name}`.trim(),
+            playerName: playerName || "A player",
+            playerGame: player.main_game?.name,
+            playerRank: player.game_profiles[0]?.rank,
+            playerGpa: player.gpa?.toString(),
+            messagePreview: args.content,
+            forwardedEmailsCount: coach.forwarded_emails_count ?? 0,
+          });
+
+          // Increment forwarded_emails_count if email was sent
+          if (sent) {
+            await db.coach.update({
+              where: { id: coach.id },
+              data: {
+                ...({ forwarded_emails_count: { increment: 1 } } as Record<string, unknown>),
+              },
+            });
+          }
+        }
+      }
+
+      return {
+        id: result.id,
+        conversationId: result.conversationId,
+        content: result.content,
+        timestamp: result.timestamp,
+        createdConversation: result.createdConversation,
+      };
     },
   );
 }
@@ -1272,13 +1377,19 @@ export async function getAvailableCoachesForMessaging(
     orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
   });
 
-  return coaches.map((coach) => ({
-    id: coach.id,
-    name: `${coach.first_name} ${coach.last_name}`,
-    email: coach.email,
-    avatar: coach.image_url ?? null,
-    school: coach.school ?? null,
-    schoolName: coach.school_ref?.name ?? null,
-    username: coach.username,
-  }));
+  return coaches.map((coach) => {
+    // NOTE: title and isPreprovisioned available after prisma generate for new fields
+    const coachAny = coach as Record<string, unknown>;
+    return {
+      id: coach.id,
+      name: `${coach.first_name} ${coach.last_name}`,
+      email: coach.email,
+      avatar: coach.image_url ?? null,
+      school: coach.school ?? null,
+      schoolName: coach.school_ref?.name ?? null,
+      username: coach.username,
+      title: (coachAny.title as string) ?? null,
+      isPreprovisioned: !coach.clerk_id,
+    };
+  });
 }
