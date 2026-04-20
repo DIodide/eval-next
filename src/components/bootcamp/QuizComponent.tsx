@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, RotateCcw, Trophy } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check, X, RotateCcw } from "lucide-react";
 
 interface QuizQuestion {
   question: string;
@@ -45,7 +44,7 @@ export function QuizComponent({
   const allAnswered = selectedAnswers.every((a) => a !== null);
 
   const handleSelect = (questionIndex: number, optionIndex: number) => {
-    if (result) return; // Don't allow changes after submission
+    if (result) return;
     setSelectedAnswers((prev) => {
       const next = [...prev];
       next[questionIndex] = optionIndex;
@@ -57,7 +56,9 @@ export function QuizComponent({
     if (!allAnswered) return;
     setIsSubmitting(true);
     try {
-      const quizResult = await onSubmit(selectedAnswers.filter((a): a is number => a !== null));
+      const quizResult = await onSubmit(
+        selectedAnswers.filter((a): a is number => a !== null),
+      );
       setResult(quizResult);
     } finally {
       setIsSubmitting(false);
@@ -71,136 +72,160 @@ export function QuizComponent({
 
   if (alreadyPassed && !result) {
     return (
-      <Card className="border-green-500/30 bg-green-500/5">
-        <CardContent className="flex items-center gap-3 p-6">
-          <CheckCircle2 className="h-6 w-6 text-green-400" />
-          <div>
-            <p className="font-semibold text-green-400">Quiz Passed</p>
-            <p className="text-sm text-gray-400">
-              Score: {previousScore}/{questions.length}
-              {previousAttempts ? ` (${previousAttempts} attempt${previousAttempts > 1 ? "s" : ""})` : ""}
-            </p>
+      <div className="border border-white/[0.08] p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-5 w-5 items-center justify-center border border-white/20 bg-white text-black">
+            <Check className="h-3 w-3" strokeWidth={2.5} />
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <div className="font-rajdhani text-sm font-semibold text-white/60">
+              Quiz Passed
+            </div>
+            <div className="font-mono text-[10px] text-white/25">
+              {previousScore}/{questions.length} correct
+              {previousAttempts
+                ? ` / ${previousAttempts} attempt${previousAttempts > 1 ? "s" : ""}`
+                : ""}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-white/10 bg-white/5">
-      <CardHeader>
-        <CardTitle className="font-rajdhani text-xl">{title}</CardTitle>
-        <p className="text-sm text-gray-400">
-          Answer all questions correctly to pass ({passingScore}/{questions.length} required)
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <h3 className="font-mono text-[10px] uppercase tracking-wider text-white/25">
+          Quiz
+        </h3>
+        <div className="mt-1 font-rajdhani text-lg font-semibold text-white">
+          {title}
+        </div>
+        <p className="mt-1 font-mono text-[11px] text-white/25">
+          All {questions.length} answers must be correct to pass
         </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
+      </div>
+
+      {/* Questions */}
+      <div className="space-y-8">
         {questions.map((q, qi) => (
-          <div key={qi} className="space-y-3">
-            <p className="font-medium text-white">
-              {qi + 1}. {q.question}
-            </p>
-            <div className="space-y-2">
+          <div key={qi}>
+            <div className="mb-3 text-[14px] font-medium text-white/70">
+              <span className="mr-2 font-mono text-[11px] text-white/25">
+                {String(qi + 1).padStart(2, "0")}
+              </span>
+              {q.question}
+            </div>
+            <div className="space-y-1">
               {q.options.map((option, oi) => {
                 const isSelected = selectedAnswers[qi] === oi;
                 const showResult = result !== null;
                 const isCorrect = showResult && result.correctAnswers[qi] === oi;
-                const isWrong =
-                  showResult && isSelected && result.correctAnswers[qi] !== oi;
-
-                let borderClass = "border-white/10 hover:border-white/30";
-                if (isSelected && !showResult) {
-                  borderClass = "border-blue-500/50 bg-blue-500/10";
-                } else if (isCorrect) {
-                  borderClass = "border-green-500/50 bg-green-500/10";
-                } else if (isWrong) {
-                  borderClass = "border-red-500/50 bg-red-500/10";
-                }
+                const isWrong = showResult && isSelected && !isCorrect;
 
                 return (
                   <button
                     key={oi}
                     onClick={() => handleSelect(qi, oi)}
                     disabled={!!result}
-                    className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all ${borderClass} ${
-                      result ? "cursor-default" : "cursor-pointer"
-                    }`}
+                    className={cn(
+                      "flex w-full items-center gap-3 border px-4 py-3 text-left text-[13px] transition-all",
+                      result
+                        ? "cursor-default"
+                        : "cursor-pointer hover:border-white/15 hover:bg-white/[0.02]",
+                      isCorrect
+                        ? "border-white/20 bg-white/[0.05] text-white"
+                        : isWrong
+                          ? "border-red-500/30 bg-red-500/[0.05] text-red-400/80"
+                          : isSelected && !showResult
+                            ? "border-white/20 bg-white/[0.04] text-white"
+                            : "border-white/[0.06] text-white/45",
+                    )}
                   >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/20 text-xs">
-                      {String.fromCharCode(65 + oi)}
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center border font-mono text-[9px]",
+                        isCorrect
+                          ? "border-white/30 bg-white text-black"
+                          : isWrong
+                            ? "border-red-500/40 text-red-400"
+                            : isSelected && !showResult
+                              ? "border-white/30 text-white"
+                              : "border-white/10 text-white/25",
+                      )}
+                    >
+                      {isCorrect ? (
+                        <Check className="h-2.5 w-2.5" strokeWidth={3} />
+                      ) : isWrong ? (
+                        <X className="h-2.5 w-2.5" strokeWidth={3} />
+                      ) : (
+                        String.fromCharCode(65 + oi)
+                      )}
                     </span>
-                    <span className="text-sm text-gray-200">{option}</span>
-                    {isCorrect && (
-                      <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-green-400" />
-                    )}
-                    {isWrong && (
-                      <XCircle className="ml-auto h-4 w-4 shrink-0 text-red-400" />
-                    )}
+                    <span>{option}</span>
                   </button>
                 );
               })}
             </div>
           </div>
         ))}
+      </div>
 
-        {/* Result display */}
-        {result && (
-          <div
-            className={`rounded-lg border p-4 ${
-              result.passed
-                ? "border-green-500/30 bg-green-500/10"
-                : "border-red-500/30 bg-red-500/10"
-            }`}
-          >
-            {result.passed ? (
-              <div className="flex items-center gap-3">
-                <Trophy className="h-6 w-6 text-green-400" />
-                <div>
-                  <p className="font-semibold text-green-400">
-                    Quiz Passed!
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    {result.score}/{result.total} correct
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <XCircle className="h-6 w-6 text-red-400" />
-                <div>
-                  <p className="font-semibold text-red-400">Not quite!</p>
-                  <p className="text-sm text-gray-400">
-                    {result.score}/{result.total} correct — you need {result.total}/{result.total}. Review the correct answers and try again.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Action buttons */}
-        <div className="flex gap-3">
-          {!result && (
-            <Button
-              onClick={handleSubmit}
-              disabled={!allAnswered || isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Answers"}
-            </Button>
+      {/* Result */}
+      {result && (
+        <div
+          className={cn(
+            "mt-8 border p-5",
+            result.passed
+              ? "border-white/[0.08]"
+              : "border-red-500/20 bg-red-500/[0.03]",
           )}
-          {result && !result.passed && (
-            <Button
-              onClick={handleRetry}
-              variant="outline"
-              className="border-white/20"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Try Again
-            </Button>
+        >
+          {result.passed ? (
+            <div>
+              <div className="font-rajdhani text-sm font-semibold text-white">
+                Quiz Passed
+              </div>
+              <div className="mt-1 font-mono text-[11px] text-white/30">
+                {result.score}/{result.total} correct
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="font-rajdhani text-sm font-semibold text-red-400/80">
+                Not quite
+              </div>
+              <div className="mt-1 font-mono text-[11px] text-white/30">
+                {result.score}/{result.total} correct — all {result.total} required
+              </div>
+            </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Actions */}
+      <div className="mt-6 flex gap-3">
+        {!result && (
+          <button
+            onClick={handleSubmit}
+            disabled={!allAnswered || isSubmitting}
+            className="border border-white/20 bg-white px-5 py-2.5 font-rajdhani text-xs font-semibold uppercase tracking-wider text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            {isSubmitting ? "Checking..." : "Submit"}
+          </button>
+        )}
+        {result && !result.passed && (
+          <button
+            onClick={handleRetry}
+            className="flex items-center gap-2 border border-white/10 px-4 py-2.5 font-rajdhani text-xs font-semibold uppercase tracking-wider text-white/50 transition-colors hover:text-white"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Try Again
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

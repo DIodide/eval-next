@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, PenLine } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 interface ReflectionFormProps {
   onSubmit: (text: string) => Promise<void>;
@@ -35,66 +33,72 @@ export function ReflectionForm({
 
   if (alreadySubmitted) {
     return (
-      <Card className="border-green-500/30 bg-green-500/5">
-        <CardContent className="p-6">
-          <div className="mb-3 flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-400" />
-            <p className="font-semibold text-green-400">Reflection Submitted</p>
+      <div className="border border-white/[0.08] p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-5 w-5 items-center justify-center border border-white/20 bg-white text-black">
+            <Check className="h-3 w-3" strokeWidth={2.5} />
           </div>
-          {existingText && (
-            <p className="text-sm text-gray-300 italic">
-              &quot;{existingText.slice(0, 200)}
-              {existingText.length > 200 ? "..." : ""}&quot;
-            </p>
-          )}
-        </CardContent>
-      </Card>
+          <div>
+            <div className="font-rajdhani text-sm font-semibold text-white/60">
+              Reflection Submitted
+            </div>
+          </div>
+        </div>
+        {existingText && (
+          <p className="mt-3 border-l-2 border-white/[0.06] pl-4 text-[13px] italic text-white/25">
+            {existingText.slice(0, 200)}
+            {existingText.length > 200 ? "..." : ""}
+          </p>
+        )}
+      </div>
     );
   }
 
   return (
-    <Card className="border-white/10 bg-white/5">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-rajdhani text-xl">
-          <PenLine className="h-5 w-5 text-blue-400" />
-          Written Reflection (Required)
-        </CardTitle>
-        <p className="text-sm text-gray-400">
-          In 3-5 sentences, explain: Who are you doing this for? What standard
-          are you holding yourself to? Why is this important to you beyond
-          esports?
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Your answer should be personal, specific, and honest. This will serve as your foundation throughout the rest of the Bootcamp..."
-          className="min-h-[150px] border-white/10 bg-white/5 text-white placeholder:text-gray-500"
-          maxLength={5000}
-        />
-        <div className="flex items-center justify-between">
-          <p
-            className={`text-sm ${
-              charCount < 100
-                ? "text-gray-500"
-                : charCount > 5000
-                  ? "text-red-400"
-                  : "text-green-400"
-            }`}
-          >
-            {charCount}/5000 characters{" "}
-            {charCount < 100 && `(${100 - charCount} more needed)`}
-          </p>
-          <Button
-            onClick={handleSubmit}
-            disabled={!isValid || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {isSubmitting ? "Submitting..." : "Submit Reflection"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div>
+      <h3 className="font-mono text-[10px] uppercase tracking-wider text-white/25">
+        Written Reflection
+      </h3>
+      <div className="mt-1 font-rajdhani text-lg font-semibold text-white">
+        Write Your Why
+      </div>
+      <p className="mt-2 text-[13px] leading-relaxed text-white/35">
+        In 3-5 sentences: Who are you doing this for? What standard are you
+        holding yourself to? Why is this important to you beyond esports?
+      </p>
+
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Your answer should be personal, specific, and honest..."
+        className="mt-4 min-h-[160px] w-full border border-white/[0.08] bg-transparent px-4 py-3 text-[14px] leading-relaxed text-white/70 placeholder:text-white/15 focus:border-white/20 focus:outline-none"
+        maxLength={5000}
+      />
+
+      <div className="mt-3 flex items-center justify-between">
+        <span
+          className={cn(
+            "font-mono text-[10px]",
+            charCount < 100
+              ? "text-white/20"
+              : charCount > 5000
+                ? "text-red-400/60"
+                : "text-white/30",
+          )}
+        >
+          {charCount}
+          {charCount < 100 && (
+            <span className="text-white/15"> / min 100</span>
+          )}
+        </span>
+        <button
+          onClick={handleSubmit}
+          disabled={!isValid || isSubmitting}
+          className="border border-white/20 bg-white px-5 py-2 font-rajdhani text-xs font-semibold uppercase tracking-wider text-black transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Reflection"}
+        </button>
+      </div>
+    </div>
   );
 }

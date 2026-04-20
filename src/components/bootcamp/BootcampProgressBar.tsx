@@ -15,16 +15,18 @@ export function BootcampProgressBar({
 }: BootcampProgressBarProps) {
   return (
     <div className={`space-y-2 ${className}`}>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-400">
-          {completedLessons}/{totalLessons} lessons completed
+      <div className="flex items-baseline justify-between">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-gray-400">
+          {completedLessons}/{totalLessons} steps
         </span>
-        <span className="font-semibold text-white">{Math.round(percentage)}%</span>
+        <span className="font-mono text-[11px] font-semibold text-blue-400">
+          {Math.round(percentage)}%
+        </span>
       </div>
       <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
-          style={{ width: `${Math.max(percentage, 2)}%` }}
+          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-700"
+          style={{ width: `${Math.max(percentage, 0)}%` }}
         />
       </div>
     </div>

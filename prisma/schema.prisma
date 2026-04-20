@@ -905,6 +905,11 @@ model Lesson {
   title               String
   description         String?
   video_url           String?
+  video_hls_url       String?
+  transcript_vtt_url  String?
+  poster_url          String?
+  duration_seconds    Int?
+  chapters            Json?
   content_markdown    String
   common_questions    Json?
   order_index         Int
@@ -968,6 +973,8 @@ model UserLessonProgress {
   last_quiz_answers      Json?
   reflection_text        String?
   reflection_submitted_at DateTime? @db.Timestamp(6)
+  step_data              Json?
+  last_position_seconds  Int?
   completed_at           DateTime? @db.Timestamp(6)
   created_at             DateTime  @default(now()) @db.Timestamp(6)
   updated_at             DateTime  @updatedAt

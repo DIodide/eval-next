@@ -1,10 +1,48 @@
 import { PrismaClient } from "@prisma/client";
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL ?? process.env.DATABASE_URL,
+    },
+  },
+});
 
-// Placeholder video URL - replace with real Supabase URLs after running upload script
-// Using a sample video for testing
-const PLACEHOLDER_VIDEO = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+// Cloudinary-hosted bootcamp media. Derived URLs (sp_hd HLS and fixed folder
+// paths) stay stable even when the MP4 is re-uploaded, so we can rely on the
+// canonical form rather than the version-pinned secure_url.
+const CLOUD_NAME = "dg4uuzj9z";
+const BOOTCAMP_FOLDER = "recruit-bootcamp";
+const cloudinaryAsset = (key: string) => ({
+  videoUrl: `https://res.cloudinary.com/${CLOUD_NAME}/video/upload/${BOOTCAMP_FOLDER}/videos/${key}.mp4`,
+  hlsUrl: `https://res.cloudinary.com/${CLOUD_NAME}/video/upload/sp_hd/${BOOTCAMP_FOLDER}/videos/${key}.m3u8`,
+  transcriptVttUrl: `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/${BOOTCAMP_FOLDER}/captions/${key}.vtt`,
+  posterUrl: `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${BOOTCAMP_FOLDER}/posters/${key}.jpg`,
+});
+
+const MEDIA = {
+  whatswhy: { ...cloudinaryAsset("whatswhy"), durationSeconds: 20 },
+  "step-1": { ...cloudinaryAsset("step-1"), durationSeconds: 176 },
+  "step-2-p1-college-list": {
+    ...cloudinaryAsset("step-2-p1-college-list"),
+    durationSeconds: 111,
+  },
+  "step-2-p2-coach-fit": {
+    ...cloudinaryAsset("step-2-p2-coach-fit"),
+    durationSeconds: 63,
+  },
+  "step-2-p3-eval-search": {
+    ...cloudinaryAsset("step-2-p3-eval-search"),
+    durationSeconds: 36,
+  },
+  "step-3": { ...cloudinaryAsset("step-3"), durationSeconds: 346 },
+  "step-4": { ...cloudinaryAsset("step-4"), durationSeconds: 105 },
+  "step-5": { ...cloudinaryAsset("step-5"), durationSeconds: 47 },
+} as const;
+
+type MediaKey = keyof typeof MEDIA;
 
 const BOOTCAMP = {
   slug: "recruit-bootcamp",
@@ -25,7 +63,7 @@ interface LessonData {
   slug: string;
   title: string;
   description: string;
-  video_url: string | null;
+  media_key: MediaKey | null;
   content_markdown: string;
   common_questions: { question: string; answer: string }[] | null;
   order_index: number;
@@ -59,7 +97,7 @@ const MODULES: ModuleData[] = [
         slug: "welcome-and-why-eval-exists",
         title: "Welcome & Why EVAL Exists",
         description: "Introduction to the EVAL Bootcamp and your five key outcomes.",
-        video_url: PLACEHOLDER_VIDEO,
+        media_key: "whatswhy",
         content_markdown: `# Welcome & Why EVAL Exists
 
 Through these five lessons, you will learn how to access college esports scholarship opportunities nationwide.
@@ -177,7 +215,7 @@ Let's get started.`,
         title: 'Define Your "Why"',
         description:
           "Discover your deeper motivation and build the foundation everything else rests on.",
-        video_url: PLACEHOLDER_VIDEO,
+        media_key: "step-1",
         content_markdown: `# Define Your "Why"
 
 Through this lesson, you will define the internal standard that drives you — before competition, rankings, or scholarships.
@@ -307,7 +345,7 @@ This is the foundation everything else builds on.`,
         title: "Part 1 — Building Your College List",
         description:
           "Learn how to build a balanced college list with safety, target, and reach schools.",
-        video_url: PLACEHOLDER_VIDEO,
+        media_key: "step-2-p1-college-list",
         content_markdown: `# Part 1 — Building Your College List
 
 Regardless of whether you commit through esports, building a strong college list is required.
@@ -410,7 +448,7 @@ You are choosing where you will live for the next several years. Choose intentio
         title: "Part 2 — Choosing the Right Esports Program",
         description:
           "Learn how to evaluate esports programs based on fit, coaching philosophy, and team culture.",
-        video_url: null,
+        media_key: "step-2-p2-coach-fit",
         content_markdown: `# Part 2 — Choosing the Right Esports Program
 
 Choosing an esports program is no different than choosing a college major.
@@ -469,7 +507,7 @@ For each program you are considering, answer:
         title: "Part 3 — Using the EVAL College Search Engine",
         description:
           "Learn how to use the EVAL platform to discover, compare, and refine your college list.",
-        video_url: null,
+        media_key: "step-2-p3-eval-search",
         content_markdown: `# Part 3 — Using the EVAL College Search Engine
 
 The EVAL College Search Engine is the first feature you will see on the EVAL platform.
@@ -587,7 +625,7 @@ Use the search engine strategically — not casually.`,
         title: "Part 1 — Framing Yourself in Your College Application",
         description:
           "Learn how to present esports in your college application effectively.",
-        video_url: PLACEHOLDER_VIDEO,
+        media_key: "step-3",
         content_markdown: `# Part 1 — Framing Yourself in Your College Application
 
 When colleges read your application, they are not just evaluating your rank.
@@ -723,7 +761,7 @@ You are one student-athlete.`,
         title: "Part 2 — What Colleges and Coaches Actually Look For",
         description:
           "Understand the four areas coaches and admissions officers evaluate.",
-        video_url: null,
+        media_key: null,
         content_markdown: `# Part 2 — What Colleges and Coaches Actually Look For
 
 Now let's talk about what colleges actually care about.
@@ -865,7 +903,7 @@ Your job is to show you belong in both.`,
         title: "Part 3 — Turning This Into Your EVAL Profile",
         description:
           "Build your EVAL profile — the esports Common App that coaches see first.",
-        video_url: null,
+        media_key: null,
         content_markdown: `# Part 3 — Turning This Into Your EVAL Profile
 
 Now we turn everything you've built into something real:
@@ -1054,7 +1092,7 @@ Next: turning gameplay into a highlight reel.`,
         title: "Building a College-Level Highlight Reel",
         description:
           "Create a concise, effective highlight reel that shows coaches how you play.",
-        video_url: PLACEHOLDER_VIDEO,
+        media_key: "step-4",
         content_markdown: `# Building a College-Level Highlight Reel
 
 Most coaches do not have time to watch full matches.
@@ -1200,7 +1238,7 @@ Next, you will learn how to share your reel properly and make sure it gets seen.
         title: "Write Your College Outreach Email",
         description:
           "Craft your first impression with a college coach — clear, confident, and honest.",
-        video_url: PLACEHOLDER_VIDEO,
+        media_key: "step-5",
         content_markdown: `# Write Your College Outreach Email
 
 In this step, you'll learn how to write a clear, professional email to college esports programs that introduces who you are and why you're a strong fit.
@@ -1375,6 +1413,14 @@ async function main() {
     console.log(`  Module ${moduleData.order_index}: ${mod.title}`);
 
     for (const lessonData of moduleData.lessons) {
+      const media = lessonData.media_key ? MEDIA[lessonData.media_key] : null;
+      const mediaFields = {
+        video_url: media?.videoUrl ?? null,
+        video_hls_url: media?.hlsUrl ?? null,
+        transcript_vtt_url: media?.transcriptVttUrl ?? null,
+        poster_url: media?.posterUrl ?? null,
+        duration_seconds: media?.durationSeconds ?? null,
+      };
       const lesson = await prisma.lesson.upsert({
         where: {
           module_id_slug: {
@@ -1385,7 +1431,7 @@ async function main() {
         update: {
           title: lessonData.title,
           description: lessonData.description,
-          video_url: lessonData.video_url,
+          ...mediaFields,
           content_markdown: lessonData.content_markdown,
           common_questions: lessonData.common_questions ?? undefined,
           order_index: lessonData.order_index,
@@ -1396,7 +1442,7 @@ async function main() {
           slug: lessonData.slug,
           title: lessonData.title,
           description: lessonData.description,
-          video_url: lessonData.video_url,
+          ...mediaFields,
           content_markdown: lessonData.content_markdown,
           common_questions: lessonData.common_questions ?? undefined,
           order_index: lessonData.order_index,
@@ -1411,18 +1457,18 @@ async function main() {
           where: { lesson_id: lesson.id },
           update: {
             title: lessonData.quiz.title,
-            passing_score: lessonData.quiz.questions.length, // 100% required
+            passing_score: Math.ceil(lessonData.quiz.questions.length * 0.75), // 75% required
             questions: JSON.parse(JSON.stringify(lessonData.quiz.questions)),
           },
           create: {
             lesson_id: lesson.id,
             title: lessonData.quiz.title,
-            passing_score: lessonData.quiz.questions.length, // 100% required
+            passing_score: Math.ceil(lessonData.quiz.questions.length * 0.75), // 75% required
             questions: JSON.parse(JSON.stringify(lessonData.quiz.questions)),
           },
         });
         console.log(
-          `      Quiz: ${quiz.title} (${lessonData.quiz.questions.length} questions, pass: ${lessonData.quiz.questions.length}/${lessonData.quiz.questions.length})`,
+          `      Quiz: ${quiz.title} (${lessonData.quiz.questions.length} questions, pass: ${quiz.passing_score}/${lessonData.quiz.questions.length})`,
         );
       }
     }

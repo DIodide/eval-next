@@ -2,28 +2,71 @@
 
 import { api } from "@/trpc/react";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { BootcampProgressBar } from "@/components/bootcamp/BootcampProgressBar";
+import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
-  Lock,
-  Play,
   ArrowRight,
-  BookOpen,
+  Lock,
+  GraduationCap,
+  Play,
   Target,
+  BookOpen,
+  Users,
   Trophy,
   Mail,
-  Users,
-  GraduationCap,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+const STEP_LABELS: Record<number, string> = {
+  0: "Your Why",
+  1: "Define Your Why",
+  2: "Build Your College List",
+  3: "Your Application & Profile",
+  4: "Highlight Reel",
+  5: "Message Coaches",
+};
 
 const STEP_ICONS = [Play, Target, BookOpen, Users, Trophy, Mail];
 
 export default function BootcampDashboardPage() {
-  const { data, isLoading } = api.bootcamp.getBootcampProgress.useQuery({
+  const { data: bootcamp, isLoading } = api.bootcamp.getBootcamp.useQuery({
+    slug: "recruit-bootcamp",
+  });
+
+  const { data: progressData } = api.bootcamp.getBootcampProgress.useQuery({
     bootcampSlug: "recruit-bootcamp",
   });
+
+  const modules = progressData?.modules ?? bootcamp?.modules ?? [];
+
+  const isModuleUnlocked = (index: number): boolean => {
+    if (index === 0) return true;
+    if (!progressData) return false;
+    for (let i = 0; i < index; i++) {
+      const mod = progressData.modules[i];
+      if (!mod) return false;
+      if (!mod.lessons.every((l) => l.progress?.completed)) return false;
+    }
+    return true;
+  };
+
+  const isModuleComplete = (index: number): boolean => {
+    if (!progressData) return false;
+    const mod = progressData.modules[index];
+    if (!mod) return false;
+    return mod.lessons.every((l) => l.progress?.completed);
+  };
+
+  const getModuleLink = (mod: (typeof modules)[number], index: number) => {
+    if (!isModuleUnlocked(index)) return "#";
+    if (progressData) {
+      const pm = progressData.modules.find((m) => m.slug === mod.slug);
+      const firstIncomplete = pm?.lessons.find((l) => !l.progress?.completed);
+      if (firstIncomplete)
+        return `/dashboard/player/bootcamp/${mod.slug}/${firstIncomplete.slug}`;
+    }
+    return `/dashboard/player/bootcamp/${mod.slug}/${mod.lessons[0]?.slug ?? ""}`;
+  };
 
   if (isLoading) {
     return (
@@ -33,190 +76,180 @@ export default function BootcampDashboardPage() {
     );
   }
 
-  if (!data) {
+  if (!bootcamp) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-400">Bootcamp not available.</p>
+        <p className="font-rajdhani text-sm text-gray-400">
+          Bootcamp not found
+        </p>
       </div>
     );
   }
 
-  const { bootcamp, overallProgress, modules } = data;
-
-  // Determine which modules/lessons are unlocked
-  const isModuleUnlocked = (moduleIndex: number): boolean => {
-    if (moduleIndex === 0) return true;
-    // Check all prior modules are complete
-    for (let i = 0; i < moduleIndex; i++) {
-      const mod = modules[i];
-      if (!mod) return false;
-      const allComplete = mod.lessons.every((l) => l.progress?.completed);
-      if (!allComplete) return false;
-    }
-    return true;
-  };
-
-  const isModuleComplete = (mod: (typeof modules)[number]): boolean => {
-    return mod.lessons.every((l) => l.progress?.completed);
-  };
-
-  // Find the first incomplete lesson to link "Continue"
-  const getModuleLink = (
-    mod: (typeof modules)[number],
-  ): string => {
-    const firstIncomplete = mod.lessons.find((l) => !l.progress?.completed);
-    const targetLesson = firstIncomplete ?? mod.lessons[0];
-    if (!targetLesson) return "#";
-    return `/dashboard/player/bootcamp/${mod.slug}/${targetLesson.slug}`;
-  };
-
-  const completionPct = overallProgress?.completionPercentage ?? 0;
-  const totalLessons = modules.reduce((s, m) => s + m.lessons.length, 0);
-  const completedLessons = modules.reduce(
-    (s, m) => s + m.lessons.filter((l) => l.progress?.completed).length,
-    0,
-  );
+  const completionPct =
+    progressData?.overallProgress?.completionPercentage ?? 0;
+  const isBootcampComplete = completionPct >= 100;
+  const completedSteps = modules.filter((_, i) => isModuleComplete(i)).length;
 
   return (
-    <div className="space-y-8 p-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-3">
-            <GraduationCap className="h-6 w-6 text-blue-400" />
+    <div className="p-6">
+      {/* Header row */}
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
+            <GraduationCap className="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 className="font-orbitron text-2xl font-bold text-white">
-              {bootcamp.title}
+              Recruit Bootcamp
             </h1>
-            <p className="text-sm text-gray-400">{bootcamp.description}</p>
+            <p className="mt-1 max-w-lg font-rajdhani text-sm text-gray-400">
+              {bootcamp.description}
+            </p>
           </div>
         </div>
 
-        {/* Overall Progress */}
-        <div className="mt-6">
-          <BootcampProgressBar
-            percentage={completionPct}
-            completedLessons={completedLessons}
-            totalLessons={totalLessons}
-          />
-        </div>
-
-        {completionPct === 100 && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
-            <Trophy className="h-5 w-5 text-yellow-400" />
-            <span className="font-semibold text-yellow-400">
-              Bootcamp Complete — EVAL Verified Badge Earned!
-            </span>
+        {/* Progress widget */}
+        <div className="flex shrink-0 items-center gap-6 rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4">
+          <div className="text-right">
+            <div className="font-orbitron text-2xl font-bold text-blue-400">
+              {Math.round(completionPct)}%
+            </div>
+            <div className="font-rajdhani text-xs text-gray-500">
+              {completedSteps}/{modules.length} steps
+            </div>
           </div>
-        )}
+          <div className="w-32">
+            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-700"
+                style={{ width: `${completionPct}%` }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Steps */}
-      <div className="space-y-4">
+      {/* Certificate CTA */}
+      {isBootcampComplete && (
+        <Link
+          href="/dashboard/player/bootcamp/complete"
+          className="mb-6 flex items-center gap-3 rounded-xl border border-yellow-500/20 bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 px-5 py-3 transition-colors hover:border-yellow-500/30"
+        >
+          <Trophy className="h-5 w-5 text-yellow-400" />
+          <span className="font-rajdhani text-sm font-bold text-yellow-300">
+            View Your Certificate
+          </span>
+          <ArrowRight className="ml-auto h-4 w-4 text-yellow-400/50" />
+        </Link>
+      )}
+
+      {/* Steps list */}
+      <div className="space-y-3">
         {modules.map((mod, index) => {
-          const IconComponent = STEP_ICONS[index] ?? BookOpen;
           const unlocked = isModuleUnlocked(index);
-          const complete = isModuleComplete(mod);
-          const lessonCount = mod.lessons.length;
-          const completedInModule = mod.lessons.filter(
-            (l) => l.progress?.completed,
-          ).length;
+          const complete = isModuleComplete(index);
+          const href = getModuleLink(mod, index);
+          const stepLabel = STEP_LABELS[mod.order_index] ?? mod.title;
+          const StepIcon = STEP_ICONS[index] ?? BookOpen;
 
           return (
             <Link
               key={mod.id}
-              href={unlocked ? getModuleLink(mod) : "#"}
-              className={!unlocked ? "pointer-events-none" : ""}
+              href={href}
+              className={cn(
+                "group flex items-center gap-4 rounded-xl border px-5 py-4 transition-all duration-200",
+                complete
+                  ? "border-green-500/20 bg-green-500/[0.03] hover:border-green-400/30"
+                  : unlocked
+                    ? "border-white/10 bg-white/[0.03] hover:border-blue-500/30 hover:bg-gradient-to-r hover:from-blue-600/10 hover:to-purple-600/10"
+                    : "pointer-events-none border-white/5 bg-white/[0.01] opacity-50",
+              )}
             >
-              <Card
-                className={`group border transition-all ${
+              {/* Icon */}
+              <div
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
                   complete
-                    ? "border-green-500/30 bg-green-500/5"
+                    ? "bg-green-500/15"
                     : unlocked
-                      ? "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]"
-                      : "border-white/5 bg-white/[0.02] opacity-60"
-                }`}
+                      ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20"
+                      : "bg-white/5",
+                )}
               >
-                <CardContent className="flex items-center gap-4 p-5">
-                  {/* Icon */}
-                  <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
+                {complete ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                ) : unlocked ? (
+                  <StepIcon className="h-5 w-5 text-blue-400" />
+                ) : (
+                  <Lock className="h-4 w-4 text-gray-600" />
+                )}
+              </div>
+
+              {/* Text */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "font-rajdhani text-xs font-medium uppercase tracking-wide",
                       complete
-                        ? "bg-green-500/20"
+                        ? "text-green-400/60"
                         : unlocked
-                          ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20"
-                          : "bg-white/5"
-                    }`}
+                          ? "text-gray-500"
+                          : "text-gray-600",
+                    )}
                   >
-                    {complete ? (
-                      <CheckCircle2 className="h-6 w-6 text-green-400" />
-                    ) : unlocked ? (
-                      <IconComponent className="h-6 w-6 text-blue-400" />
-                    ) : (
-                      <Lock className="h-5 w-5 text-gray-600" />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium uppercase text-gray-500">
-                        Step {mod.order_index}
-                      </span>
-                      {mod.is_free && (
-                        <Badge
-                          variant="outline"
-                          className="border-green-500/50 text-xs text-green-400"
-                        >
-                          Free
-                        </Badge>
-                      )}
-                      {complete && (
-                        <Badge
-                          variant="outline"
-                          className="border-green-500/50 text-xs text-green-400"
-                        >
-                          Complete
-                        </Badge>
-                      )}
-                    </div>
-                    <h3 className="font-rajdhani text-lg font-semibold text-white">
-                      {mod.title}
-                    </h3>
-
-                    {/* Per-module progress */}
-                    {unlocked && !complete && lessonCount > 1 && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className="h-full rounded-full bg-blue-500"
-                            style={{
-                              width: `${(completedInModule / lessonCount) * 100}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {completedInModule}/{lessonCount}
-                        </span>
-                      </div>
-                    )}
-
-                    {unlocked && lessonCount === 1 && !complete && (
-                      <p className="mt-1 text-xs text-gray-500">1 lesson</p>
-                    )}
-                  </div>
-
-                  {/* Arrow */}
-                  {unlocked && (
-                    <ArrowRight className="h-5 w-5 shrink-0 text-gray-500 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+                    Step {index + 1}
+                  </span>
+                  {complete && (
+                    <Badge className="border-green-400/30 bg-green-500/10 px-1.5 py-0 text-[10px] text-green-400">
+                      Done
+                    </Badge>
                   )}
-                </CardContent>
-              </Card>
+                  {unlocked && !complete && (
+                    <Badge
+                      variant="outline"
+                      className="border-blue-400/30 px-1.5 py-0 text-[10px] text-blue-400"
+                    >
+                      Current
+                    </Badge>
+                  )}
+                </div>
+                <h2
+                  className={cn(
+                    "font-rajdhani text-sm font-semibold",
+                    complete
+                      ? "text-gray-300"
+                      : unlocked
+                        ? "text-white"
+                        : "text-gray-500",
+                  )}
+                >
+                  {stepLabel}
+                </h2>
+              </div>
+
+              {/* Arrow */}
+              {unlocked && (
+                <ArrowRight
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-all duration-200 group-hover:translate-x-1",
+                    complete
+                      ? "text-green-400/30 group-hover:text-green-400"
+                      : "text-gray-600 group-hover:text-blue-400",
+                  )}
+                />
+              )}
             </Link>
           );
         })}
       </div>
+
+      {/* Motivational footer */}
+      <p className="mt-6 text-center font-rajdhani text-xs text-gray-600">
+        Complete the bootcamp to earn a certificate and get priority for your
+        preferred cohort.
+      </p>
     </div>
   );
 }

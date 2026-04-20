@@ -3,9 +3,33 @@ import { TRPCError } from "@trpc/server";
 import {
   createTRPCRouter,
   publicProcedure,
-  playerProcedure,
+  protectedProcedure,
 } from "@/server/api/trpc";
 import type { PrismaClient } from "@prisma/client";
+
+// ─── Helper: Resolve player ID from clerk auth ──────────────────────────────
+
+async function resolvePlayerId(
+  db: PrismaClient,
+  userId: string | null,
+): Promise<string> {
+  if (!userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+  }
+  const player = await db.player.findUnique({
+    where: { clerk_id: userId },
+    select: { id: true },
+  });
+  if (!player) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "No player profile found. Please complete your player profile setup first.",
+    });
+  }
+  return player.id;
+}
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -13,6 +37,71 @@ interface QuizQuestion {
   question: string;
   options: string[];
   correct_index: number;
+}
+
+// ─── Helper: Check if step interactive data is complete ──────────────────────
+
+function isStepDataComplete(
+  moduleOrderIndex: number,
+  stepData: Record<string, unknown>,
+): boolean {
+  switch (moduleOrderIndex) {
+    case 0: {
+      // Step 0: Why Esports checkboxes + Your Why text
+      const whyEsports = stepData.why_esports as string[] | undefined;
+      const yourWhy = stepData.your_why as string | undefined;
+      return (
+        Array.isArray(whyEsports) &&
+        whyEsports.length > 0 &&
+        typeof yourWhy === "string" &&
+        yourWhy.trim().length > 0
+      );
+    }
+    case 1: {
+      // Step 1: Define Your Why - uses existing quiz/reflection flow, not step_data
+      // This is handled by the legacy isLessonComplete() check instead
+      return false;
+    }
+    case 2: {
+      // Step 2: College list - Game, GPA, college rankings (5 schools), recruiting factors
+      const collegeRankings = stepData.college_rankings as string[] | undefined;
+      return (
+        Array.isArray(collegeRankings) &&
+        collegeRankings.length >= 5
+      );
+    }
+    case 3: {
+      // Step 3: Profile / Coach Perspective Workshop
+      const coachPerspective = stepData.coach_perspective as Record<string, string> | undefined;
+      if (!coachPerspective) return false;
+      return (
+        typeof coachPerspective.biggest_strength === "string" && coachPerspective.biggest_strength.trim().length > 0 &&
+        typeof coachPerspective.biggest_growth_area === "string" && coachPerspective.biggest_growth_area.trim().length > 0 &&
+        typeof coachPerspective.role_on_team === "string" && coachPerspective.role_on_team.trim().length > 0 &&
+        typeof coachPerspective.example_leadership === "string" && coachPerspective.example_leadership.trim().length > 0 &&
+        typeof coachPerspective.example_resilience === "string" && coachPerspective.example_resilience.trim().length > 0
+      );
+    }
+    case 4: {
+      // Step 4: Highlight reel - either watched examples or uploaded clips
+      const reelAction = stepData.reel_action_completed as boolean | undefined;
+      return reelAction === true;
+    }
+    case 5: {
+      // Step 5: Email writing
+      const emailDraft = stepData.email_draft as Record<string, string> | undefined;
+      if (!emailDraft) return false;
+      return (
+        typeof emailDraft.who_you_are === "string" && emailDraft.who_you_are.trim().length > 0 &&
+        typeof emailDraft.what_you_play === "string" && emailDraft.what_you_play.trim().length > 0 &&
+        typeof emailDraft.your_experience === "string" && emailDraft.your_experience.trim().length > 0 &&
+        typeof emailDraft.academics_character === "string" && emailDraft.academics_character.trim().length > 0 &&
+        typeof emailDraft.why_reaching_out === "string" && emailDraft.why_reaching_out.trim().length > 0
+      );
+    }
+    default:
+      return false;
+  }
 }
 
 // ─── Helper: Check if a lesson is complete ───────────────────────────────────
@@ -294,9 +383,10 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get player's full progress for a bootcamp
    */
-  getBootcampProgress: playerProcedure
+  getBootcampProgress: protectedProcedure
     .input(z.object({ bootcampSlug: z.string() }))
     .query(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const bootcamp = await ctx.db.bootcamp.findUnique({
         where: { slug: input.bootcampSlug, is_published: true },
         include: {
@@ -335,14 +425,14 @@ export const bootcampRouter = createTRPCRouter({
         ctx.db.userBootcampProgress.findUnique({
           where: {
             player_id_bootcamp_id: {
-              player_id: ctx.playerId,
+              player_id: playerId,
               bootcamp_id: bootcamp.id,
             },
           },
         }),
         ctx.db.userLessonProgress.findMany({
           where: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: { in: allLessonIds },
           },
         }),
@@ -466,6 +556,13 @@ export const bootcampRouter = createTRPCRouter({
         title: lesson.title,
         description: lesson.description,
         videoUrl: lesson.video_url,
+        videoHlsUrl: lesson.video_hls_url,
+        transcriptVttUrl: lesson.transcript_vtt_url,
+        posterUrl: lesson.poster_url,
+        durationSeconds: lesson.duration_seconds,
+        chapters: lesson.chapters as
+          | { start: number; end: number; title: string }[]
+          | null,
         contentMarkdown: lesson.content_markdown,
         commonQuestions: lesson.common_questions as
           | { question: string; answer: string }[]
@@ -486,12 +583,13 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Mark a video as watched
    */
-  markVideoWatched: playerProcedure
+  markVideoWatched: protectedProcedure
     .input(z.object({ lessonId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const { allowed, reason } = await canAccessLesson(
         ctx.db,
-        ctx.playerId,
+        playerId,
         input.lessonId,
       );
 
@@ -517,13 +615,13 @@ export const bootcampRouter = createTRPCRouter({
       await ctx.db.userLessonProgress.upsert({
         where: {
           player_id_lesson_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: input.lessonId,
           },
         },
         update: { video_watched: true },
         create: {
-          player_id: ctx.playerId,
+          player_id: playerId,
           lesson_id: input.lessonId,
           video_watched: true,
         },
@@ -533,13 +631,13 @@ export const bootcampRouter = createTRPCRouter({
       await ctx.db.userBootcampProgress.upsert({
         where: {
           player_id_bootcamp_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             bootcamp_id: lesson.module.bootcamp_id,
           },
         },
         update: {},
         create: {
-          player_id: ctx.playerId,
+          player_id: playerId,
           bootcamp_id: lesson.module.bootcamp_id,
         },
       });
@@ -550,7 +648,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Submit quiz answers — grades server-side, 100% required to pass
    */
-  submitQuiz: playerProcedure
+  submitQuiz: protectedProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -558,9 +656,10 @@ export const bootcampRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const { allowed, reason } = await canAccessLesson(
         ctx.db,
-        ctx.playerId,
+        playerId,
         input.lessonId,
       );
 
@@ -575,7 +674,7 @@ export const bootcampRouter = createTRPCRouter({
       const currentProgress = await ctx.db.userLessonProgress.findUnique({
         where: {
           player_id_lesson_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: input.lessonId,
           },
         },
@@ -632,7 +731,7 @@ export const bootcampRouter = createTRPCRouter({
       await ctx.db.userLessonProgress.update({
         where: {
           player_id_lesson_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: input.lessonId,
           },
         },
@@ -648,7 +747,7 @@ export const bootcampRouter = createTRPCRouter({
       // Recalculate bootcamp progress
       const progressResult = await recalculateBootcampProgress(
         ctx.db,
-        ctx.playerId,
+        playerId,
         lesson.module.bootcamp_id,
       );
 
@@ -665,7 +764,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Submit written reflection (Step 1)
    */
-  submitReflection: playerProcedure
+  submitReflection: protectedProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -673,9 +772,10 @@ export const bootcampRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const { allowed, reason } = await canAccessLesson(
         ctx.db,
-        ctx.playerId,
+        playerId,
         input.lessonId,
       );
 
@@ -708,7 +808,7 @@ export const bootcampRouter = createTRPCRouter({
       const currentProgress = await ctx.db.userLessonProgress.findUnique({
         where: {
           player_id_lesson_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: input.lessonId,
           },
         },
@@ -726,7 +826,7 @@ export const bootcampRouter = createTRPCRouter({
       await ctx.db.userLessonProgress.update({
         where: {
           player_id_lesson_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: input.lessonId,
           },
         },
@@ -742,7 +842,7 @@ export const bootcampRouter = createTRPCRouter({
       // Recalculate bootcamp progress
       const progressResult = await recalculateBootcampProgress(
         ctx.db,
-        ctx.playerId,
+        playerId,
         lesson.module.bootcamp_id,
       );
 
@@ -756,9 +856,10 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get lightweight progress summary (for sidebar badge, dashboard)
    */
-  getProgressSummary: playerProcedure
+  getProgressSummary: protectedProcedure
     .input(z.object({ bootcampSlug: z.string() }))
     .query(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const bootcamp = await ctx.db.bootcamp.findUnique({
         where: { slug: input.bootcampSlug },
         select: { id: true },
@@ -778,13 +879,13 @@ export const bootcampRouter = createTRPCRouter({
         ctx.db.userBootcampProgress.findUnique({
           where: {
             player_id_bootcamp_id: {
-              player_id: ctx.playerId,
+              player_id: playerId,
               bootcamp_id: bootcamp.id,
             },
           },
         }),
         ctx.db.playerBadge.findMany({
-          where: { player_id: ctx.playerId },
+          where: { player_id: playerId },
           select: { badge_type: true, earned_at: true },
         }),
       ]);
@@ -800,7 +901,7 @@ export const bootcampRouter = createTRPCRouter({
 
       const completedProgress = await ctx.db.userLessonProgress.findMany({
         where: {
-          player_id: ctx.playerId,
+          player_id: playerId,
           lesson_id: { in: allLessons.map((l) => l.id) },
           completed_at: { not: null },
         },
@@ -821,13 +922,14 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get lesson progress for a specific lesson (used by lesson page)
    */
-  getLessonProgress: playerProcedure
+  getLessonProgress: protectedProcedure
     .input(z.object({ lessonId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const progress = await ctx.db.userLessonProgress.findUnique({
         where: {
           player_id_lesson_id: {
-            player_id: ctx.playerId,
+            player_id: playerId,
             lesson_id: input.lessonId,
           },
         },
@@ -844,7 +946,170 @@ export const bootcampRouter = createTRPCRouter({
         quizAttempts: progress.quiz_attempts,
         reflectionText: progress.reflection_text,
         reflectionSubmitted: !!progress.reflection_submitted_at,
+        stepData: progress.step_data as Record<string, unknown> | null,
+        lastPositionSeconds: progress.last_position_seconds,
         completed: !!progress.completed_at,
       };
+    }),
+
+  /**
+   * Persist the player's last playback position so the video can resume on
+   * next visit. Throttle client-side — this runs on pause/beforeunload and
+   * roughly every 5s during playback.
+   */
+  saveLastPosition: protectedProcedure
+    .input(
+      z.object({
+        lessonId: z.string().uuid(),
+        positionSeconds: z.number().int().min(0).max(86400),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
+      await ctx.db.userLessonProgress.upsert({
+        where: {
+          player_id_lesson_id: {
+            player_id: playerId,
+            lesson_id: input.lessonId,
+          },
+        },
+        update: { last_position_seconds: input.positionSeconds },
+        create: {
+          player_id: playerId,
+          lesson_id: input.lessonId,
+          last_position_seconds: input.positionSeconds,
+        },
+      });
+      return { ok: true as const };
+    }),
+
+  /**
+   * Save interactive step data (why_esports, your_why, college rankings, etc.)
+   * and mark the step/lesson as complete when all required fields are filled.
+   */
+  saveStepData: protectedProcedure
+    .input(
+      z.object({
+        lessonId: z.string().uuid(),
+        stepData: z.record(z.unknown()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
+
+      const lesson = await ctx.db.lesson.findUnique({
+        where: { id: input.lessonId },
+        include: { module: { select: { bootcamp_id: true, order_index: true } } },
+      });
+
+      if (!lesson) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Lesson not found" });
+      }
+
+      // Get or create progress
+      const existing = await ctx.db.userLessonProgress.findUnique({
+        where: {
+          player_id_lesson_id: { player_id: playerId, lesson_id: input.lessonId },
+        },
+      });
+
+      const existingData = (existing?.step_data ?? {}) as Record<string, unknown>;
+      const mergedStepData = {
+        ...existingData,
+        ...input.stepData,
+      };
+
+      // Determine if this step should be marked complete based on its module
+      const stepComplete = isStepDataComplete(lesson.module.order_index, mergedStepData);
+
+      // Cast to satisfy Prisma's Json type
+      const jsonStepData = mergedStepData as unknown as Record<string, string | number | boolean | null>;
+
+      await ctx.db.userLessonProgress.upsert({
+        where: {
+          player_id_lesson_id: { player_id: playerId, lesson_id: input.lessonId },
+        },
+        update: {
+          step_data: jsonStepData,
+          video_watched: true,
+          quiz_passed: stepComplete,
+          completed_at: stepComplete ? new Date() : existing?.completed_at ?? null,
+        },
+        create: {
+          player_id: playerId,
+          lesson_id: input.lessonId,
+          step_data: jsonStepData,
+          video_watched: true,
+          quiz_passed: stepComplete,
+          completed_at: stepComplete ? new Date() : null,
+        },
+      });
+
+      // Initialize bootcamp progress if needed
+      await ctx.db.userBootcampProgress.upsert({
+        where: {
+          player_id_bootcamp_id: {
+            player_id: playerId,
+            bootcamp_id: lesson.module.bootcamp_id,
+          },
+        },
+        update: {},
+        create: {
+          player_id: playerId,
+          bootcamp_id: lesson.module.bootcamp_id,
+        },
+      });
+
+      const progressResult = await recalculateBootcampProgress(
+        ctx.db,
+        playerId,
+        lesson.module.bootcamp_id,
+      );
+
+      return {
+        success: true,
+        stepComplete,
+        stepData: mergedStepData,
+        bootcampComplete: progressResult?.isComplete ?? false,
+        completionPercentage: progressResult?.completionPercentage ?? 0,
+      };
+    }),
+
+  /**
+   * Search colleges on the platform (for Step 2 college ranking)
+   */
+  searchColleges: protectedProcedure
+    .input(
+      z.object({
+        query: z.string().optional(),
+        limit: z.number().int().min(1).max(50).default(20),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = {
+        type: { in: ["COLLEGE", "UNIVERSITY"] },
+      };
+
+      if (input.query && input.query.trim().length > 0) {
+        where.name = { contains: input.query.trim(), mode: "insensitive" };
+      }
+
+      const schools = await ctx.db.school.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          state: true,
+          type: true,
+          logo_url: true,
+          scholarships_available: true,
+          esports_titles: true,
+        },
+        orderBy: { name: "asc" },
+        take: input.limit,
+      });
+
+      return schools;
     }),
 });

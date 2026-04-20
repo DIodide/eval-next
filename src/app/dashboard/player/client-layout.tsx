@@ -21,7 +21,11 @@ import {
   LinkIcon,
   ExternalLinkIcon,
   GraduationCapIcon,
+  CheckCircle2Icon,
+  LockIcon,
+  CircleIcon,
 } from "lucide-react";
+import { api } from "@/trpc/react";
 
 export default function PlayerDashboardClientLayout({
   children,
@@ -31,6 +35,48 @@ export default function PlayerDashboardClientLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { user, isLoaded } = useUser();
+
+  const isOnBootcamp = pathname.startsWith("/dashboard/player/bootcamp");
+  const { data: bootcampProgress } =
+    api.bootcamp.getBootcampProgress.useQuery(
+      { bootcampSlug: "recruit-bootcamp" },
+      { enabled: isOnBootcamp && isLoaded },
+    );
+
+  const STEP_LABELS: Record<number, string> = {
+    0: "Your Why",
+    1: "Define Your Why",
+    2: "Build College List",
+    3: "Esport Application",
+    4: "Highlight Reel",
+    5: "Message Coaches",
+  };
+
+  const bootcampSubItems = (bootcampProgress?.modules ?? []).map(
+    (mod, index) => {
+      const complete = mod.lessons.every((l) => l.progress?.completed);
+      const unlocked =
+        index === 0 ||
+        bootcampProgress!.modules
+          .slice(0, index)
+          .every((m) => m.lessons.every((l) => l.progress?.completed));
+      const firstLesson =
+        mod.lessons.find((l) => !l.progress?.completed) ?? mod.lessons[0];
+      return {
+        title: STEP_LABELS[mod.order_index] ?? mod.title,
+        href: unlocked && firstLesson
+          ? `/dashboard/player/bootcamp/${mod.slug}/${firstLesson.slug}`
+          : "#",
+        icon: complete
+          ? CheckCircle2Icon
+          : unlocked
+            ? CircleIcon
+            : LockIcon,
+        complete,
+        unlocked,
+      };
+    },
+  );
 
   // Generate sidebar items dynamically to include username-dependent links
   const sidebarItems = [
@@ -79,6 +125,7 @@ export default function PlayerDashboardClientLayout({
       title: "Bootcamp",
       href: "/dashboard/player/bootcamp",
       icon: GraduationCapIcon,
+      subItems: bootcampSubItems,
     },
     {
       title: "Messages",
@@ -336,11 +383,13 @@ export default function PlayerDashboardClientLayout({
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 const hasSubItems = item.subItems && item.subItems.length > 0;
-                const isProfileSection =
-                  item.href === "/dashboard/player/profile";
+                const isExpandableSection =
+                  item.href === "/dashboard/player/profile" ||
+                  item.href === "/dashboard/player/bootcamp";
                 const hasActiveSubItem =
                   hasSubItems &&
-                  item.subItems.some((subItem) => pathname === subItem.href);
+                  (item.subItems.some((subItem) => pathname === subItem.href) ||
+                    (item.href === "/dashboard/player/bootcamp" && isOnBootcamp));
 
                 return (
                   <li key={item.href}>
@@ -383,30 +432,42 @@ export default function PlayerDashboardClientLayout({
                     </Link>
 
                     {/* Sub-items with improved styling */}
-                    {hasSubItems && (isProfileSection || hasActiveSubItem) && (
+                    {hasSubItems && (isExpandableSection || hasActiveSubItem) && (
                       <ul className="mt-2 ml-6 space-y-1 border-l border-gray-700/50 pl-4">
                         {item.subItems.map((subItem) => {
                           const SubIcon = subItem.icon;
-                          const isSubActive = pathname === subItem.href;
+                          const isSubActive = pathname.includes(
+                            subItem.href.split("/").slice(0, -1).join("/"),
+                          ) && pathname === subItem.href;
+                          const isLocked = "unlocked" in subItem && !subItem.unlocked;
+                          const isStepComplete = "complete" in subItem && subItem.complete;
 
                           return (
                             <li key={subItem.href}>
                               <Link
-                                href={subItem.href}
+                                href={isLocked ? "#" : subItem.href}
                                 className={cn(
                                   "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                                  isSubActive
-                                    ? "border border-blue-500/20 bg-gradient-to-r from-blue-500/15 to-purple-500/15 text-blue-400"
-                                    : "text-gray-400 hover:bg-gray-800/30 hover:text-white",
+                                  isLocked
+                                    ? "pointer-events-none opacity-40"
+                                    : isSubActive
+                                      ? "border border-blue-500/20 bg-gradient-to-r from-blue-500/15 to-purple-500/15 text-blue-400"
+                                      : isStepComplete
+                                        ? "text-green-400/70 hover:bg-gray-800/30 hover:text-green-300"
+                                        : "text-gray-400 hover:bg-gray-800/30 hover:text-white",
                                 )}
                                 onClick={() => setSidebarOpen(false)}
                               >
                                 <div
                                   className={cn(
                                     "rounded p-1 transition-all duration-200",
-                                    isSubActive
-                                      ? "text-blue-400"
-                                      : "text-gray-500 group-hover:text-gray-300",
+                                    isLocked
+                                      ? "text-gray-600"
+                                      : isStepComplete
+                                        ? "text-green-400"
+                                        : isSubActive
+                                          ? "text-blue-400"
+                                          : "text-gray-500 group-hover:text-gray-300",
                                   )}
                                 >
                                   <SubIcon className="h-3 w-3" />
