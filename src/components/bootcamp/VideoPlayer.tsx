@@ -75,7 +75,10 @@ export const VideoPlayer = forwardRef<
       const p = playerRef.current;
       if (!p) return;
       p.currentTime = Math.max(0, seconds);
-      void p.play().catch(() => {});
+      void p.play().catch(() => {
+        // Browsers reject play() when autoplay/interaction gates aren't met;
+        // a manual seek doesn't need to retry.
+      });
     },
     getCurrentTime() {
       return playerRef.current?.currentTime ?? 0;
