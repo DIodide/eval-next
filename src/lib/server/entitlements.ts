@@ -15,6 +15,7 @@ export const FEATURE_KEYS = {
   API_ACCESS: "api_access",
   BULK_OPERATIONS: "bulk_operations",
   EXPORT_DATA: "export_data",
+  BOOTCAMP_ACCESS: "bootcamp_access",
 } as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];

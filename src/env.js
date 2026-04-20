@@ -34,6 +34,14 @@ export const env = createEnv({
     RESEND_FROM_MESSAGES: z.string().optional(),   // Player message notifications
     RESEND_FROM_REMINDERS: z.string().optional(),  // Reminder/follow-up emails
 
+    // Cloudinary (bootcamp video/caption/poster hosting)
+    // Server-side only — contains API secret. Optional at build time so the
+    // main app can boot without it; only the upload CLI script requires it.
+    CLOUDINARY_URL: z
+      .string()
+      .regex(/^cloudinary:\/\/.+:.+@.+$/)
+      .optional(),
+
     // Discord webhook URLs (optional)
     DISCORD_WEBHOOK_GENERAL: z.string().optional(),
     DISCORD_WEBHOOK_ADMIN: z.string().optional(),
@@ -82,6 +90,8 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     GSE_DATABASE_URL: process.env.GSE_DATABASE_URL,
+    // Cloudinary
+    CLOUDINARY_URL: process.env.CLOUDINARY_URL,
     // Resend Email
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_RECRUITING: process.env.RESEND_FROM_RECRUITING,

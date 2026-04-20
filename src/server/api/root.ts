@@ -20,6 +20,7 @@ import { adminCoachesRouter } from "@/server/api/routers/adminCoaches";
 import { publicSearchRouter } from "@/server/api/routers/publicSearch";
 import { gseRouter } from "@/server/api/routers/gse";
 import { paymentsRouter } from "@/server/api/routers/payments";
+import { bootcampRouter } from "@/server/api/routers/bootcamp";
 
 /**
  * This is the primary router for your server.
@@ -48,6 +49,7 @@ export const appRouter = createTRPCRouter({
   adminCoaches: adminCoachesRouter,
   gse: gseRouter,
   payments: paymentsRouter,
+  bootcamp: bootcampRouter,
 });
 
 // export type definition of API
