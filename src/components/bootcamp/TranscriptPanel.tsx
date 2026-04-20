@@ -113,13 +113,18 @@ export function TranscriptPanel({
   }, [cues, currentTime]);
 
   useEffect(() => {
-    if (activeIndex < 0 || !activeCueElRef.current) return;
+    const list = listRef.current;
+    const el = activeCueElRef.current;
+    if (activeIndex < 0 || !el || !list) return;
     const recentlyScrolled = Date.now() - userScrolledAtRef.current < 3000;
     if (recentlyScrolled) return;
-    activeCueElRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+    // Scroll only the list container, never the window. scrollIntoView would
+    // walk up the ancestor chain and scroll the document too.
+    const listRect = list.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const elTopInList = elRect.top - listRect.top + list.scrollTop;
+    const target = elTopInList - list.clientHeight / 2 + el.clientHeight / 2;
+    list.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
   }, [activeIndex]);
 
   const handleUserScroll = () => {
