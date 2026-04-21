@@ -272,21 +272,3 @@ tsx scripts/import-preprovisioned-coaches.ts scripts/templates/test-coaches.csv
 3. Reminder: distinction bw on platform or no
 4. Track metrics:
    Background tasks
-
-The organisation of coach accounts
-
-Send introl email on admin click
-manage for preporov coaches
-
-Schools and orgs
-
-- send emails
-- haed esports
-
-dshhboard for coach management(send coach intro, add manually, edit)
-
-school list for players()
-crystal ball(suggest)
-
-ask claude some more details
-reminders for coaches and players
