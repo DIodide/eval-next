@@ -74,19 +74,19 @@ export default function DashboardPage() {
 
   const quickActions = [
     {
+      title: "Check Messages",
+      description: "Stay connected",
+      href: "/dashboard/player/messages",
+      icon: MessageCircleIcon,
+      color: "from-pink-500 to-pink-600",
+    },
+    {
       title: "Complete Profile",
       description: "Boost your visibility",
       href: "/dashboard/player/profile",
       icon: UserIcon,
       color: "from-blue-500 to-blue-600",
       progress: profileCompletion,
-    },
-    {
-      title: "Browse Tryouts",
-      description: "Find opportunities",
-      href: "/dashboard/player/tryouts",
-      icon: TargetIcon,
-      color: "from-green-500 to-green-600",
     },
     {
       title: "Join Combines",
@@ -96,11 +96,12 @@ export default function DashboardPage() {
       color: "from-purple-500 to-purple-600",
     },
     {
-      title: "Check Messages",
-      description: "Stay connected",
-      href: "/dashboard/player/messages",
-      icon: MessageCircleIcon,
-      color: "from-pink-500 to-pink-600",
+      title: "Browse Tryouts",
+      description: "Coming soon",
+      href: "#",
+      icon: TargetIcon,
+      color: "from-green-500 to-green-600",
+      disabled: true,
     },
   ];
 
@@ -173,27 +174,31 @@ export default function DashboardPage() {
 
       {/* Enhanced Stats Grid */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-        {/* Active Tryouts */}
-        <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-600/5 p-6 shadow-xl transition-all duration-300 hover:border-blue-400/40">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="rounded-xl bg-blue-500/20 p-3">
-              <TargetIcon className="h-6 w-6 text-blue-400" />
+        {/* Messages */}
+        <Link href="/dashboard/player/messages">
+          <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-600/5 p-6 shadow-xl transition-all duration-300 hover:border-purple-400/40 cursor-pointer">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-xl bg-purple-500/20 p-3">
+                <MessageCircleIcon className="h-6 w-6 text-purple-400" />
+              </div>
+              <Badge
+                variant="outline"
+                className="border-purple-400/50 text-purple-400"
+              >
+                Active
+              </Badge>
             </div>
-            <Badge
-              variant="outline"
-              className="border-blue-400/50 text-blue-400"
-            >
-              Active
-            </Badge>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-rajdhani text-lg font-semibold text-white">
-              Tryouts
-            </h3>
-            <p className="font-orbitron text-3xl font-bold text-blue-400">-</p>
-            <p className="text-sm text-gray-400">Coming soon</p>
-          </div>
-        </Card>
+            <div className="space-y-2">
+              <h3 className="font-rajdhani text-lg font-semibold text-white">
+                Messages
+              </h3>
+              <p className="font-orbitron text-3xl font-bold text-purple-400">
+                0
+              </p>
+              <p className="text-sm text-gray-400">New messages</p>
+            </div>
+          </Card>
+        </Link>
 
         {/* Profile Views */}
         <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-600/5 p-6 shadow-xl transition-all duration-300 hover:border-green-400/40">
@@ -212,21 +217,25 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Messages */}
-        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-600/5 p-6 shadow-xl transition-all duration-300 hover:border-purple-400/40">
+        {/* Tryouts */}
+        <Card className="border-gray-700/20 bg-gradient-to-br from-gray-500/5 to-gray-600/5 p-6 opacity-50 shadow-xl">
           <div className="mb-4 flex items-center justify-between">
-            <div className="rounded-xl bg-purple-500/20 p-3">
-              <MessageCircleIcon className="h-6 w-6 text-purple-400" />
+            <div className="rounded-xl bg-gray-500/20 p-3">
+              <TargetIcon className="h-6 w-6 text-gray-400" />
             </div>
+            <Badge
+              variant="outline"
+              className="border-gray-500/50 text-gray-400"
+            >
+              Coming Soon
+            </Badge>
           </div>
           <div className="space-y-2">
-            <h3 className="font-rajdhani text-lg font-semibold text-white">
-              Messages
+            <h3 className="font-rajdhani text-lg font-semibold text-gray-300">
+              Tryouts
             </h3>
-            <p className="font-orbitron text-3xl font-bold text-purple-400">
-              -
-            </p>
-            <p className="text-sm text-gray-400">Coming soon</p>
+            <p className="font-orbitron text-3xl font-bold text-gray-500">-</p>
+            <p className="text-sm text-gray-500">Coming soon</p>
           </div>
         </Card>
       </div>
@@ -276,10 +285,15 @@ export default function DashboardPage() {
             if (index === 3)
               roundedClasses += " lg:rounded-r-lg lg:rounded-l-none"; // right side only
 
+            const Wrapper = action.disabled ? "div" : Link;
+            const wrapperProps = action.disabled
+              ? {}
+              : { href: action.href };
+
             return (
-              <Link key={index} href={action.href}>
+              <Wrapper key={index} {...(wrapperProps as any)}>
                 <Card
-                  className={`quick-actions group h-full cursor-pointer border-gray-700/50 bg-[#1a1a2e]/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-gray-600/70 hover:shadow-xl ${roundedClasses}`}
+                  className={`quick-actions group h-full border-gray-700/50 bg-[#1a1a2e]/80 p-4 shadow-lg backdrop-blur-sm transition-all duration-300 ${roundedClasses} ${action.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-gray-600/70 hover:shadow-xl"}`}
                 >
                   <div className="mb-3 flex items-center gap-2">
                     {/* <action.icon className="h-5 w-5 text-white" /> */}
@@ -322,7 +336,7 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </Card>
-              </Link>
+              </Wrapper>
             );
           })}
         </div>

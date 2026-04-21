@@ -16,15 +16,27 @@ import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import type Stripe from "stripe";
 
-const EVAL_PLUS_PRICE_IDS = [
+// Coach subscription price IDs (Gold & Platinum)
+const COACH_PLUS_PRICE_IDS = [
   process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID,
   process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID,
 ].filter(Boolean) as string[];
 
-const EVAL_PLUS_FEATURES = [
+const COACH_PLUS_FEATURES = [
   FEATURE_KEYS.DIRECT_MESSAGING,
   FEATURE_KEYS.UNLIMITED_MESSAGES,
   FEATURE_KEYS.PREMIUM_SEARCH,
+  FEATURE_KEYS.ADVANCED_ANALYTICS,
+] as const;
+
+// Player subscription price IDs (EVAL+)
+const PLAYER_PLUS_PRICE_IDS = [
+  process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID,
+].filter(Boolean) as string[];
+
+const PLAYER_PLUS_FEATURES = [
+  FEATURE_KEYS.UNLIMITED_MESSAGES,
+  FEATURE_KEYS.DIRECT_MESSAGING,
   FEATURE_KEYS.ADVANCED_ANALYTICS,
 ] as const;
 
@@ -82,23 +94,47 @@ export async function POST(req: NextRequest) {
             subscription.status === "active" ||
             subscription.status === "trialing";
 
-          if (priceId && isActive && EVAL_PLUS_PRICE_IDS.includes(priceId)) {
-            const dbSub = await db.subscription.findUnique({
-              where: { stripe_subscription_id: subscription.id },
-              select: { id: true },
-            });
+          const dbSub = await db.subscription.findUnique({
+            where: { stripe_subscription_id: subscription.id },
+            select: { id: true },
+          });
 
-            for (const featureKey of EVAL_PLUS_FEATURES) {
-              await grantEntitlement(
-                customer.clerk_user_id,
-                featureKey,
-                "SUBSCRIPTION",
-                { subscriptionId: dbSub?.id },
+          if (priceId && isActive) {
+            // Coach plans (Gold / Platinum)
+            if (COACH_PLUS_PRICE_IDS.includes(priceId)) {
+              for (const featureKey of COACH_PLUS_FEATURES) {
+                await grantEntitlement(
+                  customer.clerk_user_id,
+                  featureKey,
+                  "SUBSCRIPTION",
+                  { subscriptionId: dbSub?.id },
+                );
+              }
+              console.log(
+                `[STRIPE WEBHOOK] Granted coach EVAL+ features to ${customer.clerk_user_id}`,
               );
             }
 
+            // Player plan (EVAL+)
+            if (PLAYER_PLUS_PRICE_IDS.includes(priceId)) {
+              for (const featureKey of PLAYER_PLUS_FEATURES) {
+                await grantEntitlement(
+                  customer.clerk_user_id,
+                  featureKey,
+                  "SUBSCRIPTION",
+                  { subscriptionId: dbSub?.id },
+                );
+              }
+              console.log(
+                `[STRIPE WEBHOOK] Granted player EVAL+ features to ${customer.clerk_user_id}`,
+              );
+            }
+          } else if (!isActive && dbSub) {
+            // Covers past_due / unpaid — Stripe may never send subscription.deleted
+            // depending on dashboard settings, so revoke here too.
+            await revokeSubscriptionEntitlements(dbSub.id);
             console.log(
-              `[STRIPE WEBHOOK] Granted EVAL+ features to ${customer.clerk_user_id}`,
+              `[STRIPE WEBHOOK] Revoked entitlements for inactive subscription ${dbSub.id} (status: ${subscription.status})`,
             );
           }
         }

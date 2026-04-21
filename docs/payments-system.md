@@ -45,6 +45,7 @@ This document describes the comprehensive payments layer implemented for the EVA
 ## Database Schema
 
 ### StripeCustomer
+
 Maps Clerk users to Stripe customers.
 
 - `clerk_user_id`: Unique Clerk user identifier
@@ -52,6 +53,7 @@ Maps Clerk users to Stripe customers.
 - `email`: Customer email address
 
 ### Subscription
+
 Tracks subscription status and billing periods.
 
 - `stripe_subscription_id`: Stripe subscription ID
@@ -62,6 +64,7 @@ Tracks subscription status and billing periods.
 - `trial_start/end`: Trial period dates (if applicable)
 
 ### Purchase
+
 Tracks one-time purchases.
 
 - `stripe_payment_intent_id`: Stripe payment intent ID
@@ -74,6 +77,7 @@ Tracks one-time purchases.
 - `metadata`: Additional product-specific data (JSON)
 
 ### Entitlement
+
 Manages feature access and permissions.
 
 - `feature_key`: Feature identifier (e.g., "premium_search")
@@ -117,6 +121,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ### Subscription Flow
 
 1. **User initiates subscription**
+
    ```typescript
    const { url } = await trpc.payments.createSubscriptionCheckout.mutate({
      priceId: "price_xxx",
@@ -136,6 +141,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ### One-Time Purchase Flow
 
 1. **User initiates purchase**
+
    ```typescript
    const { url } = await trpc.payments.createPurchaseCheckout.mutate({
      priceId: "price_xxx",
@@ -161,12 +167,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ### Checking Feature Access
 
 **Server-side (in tRPC procedures):**
+
 ```typescript
 import { hasFeatureAccess, FEATURE_KEYS } from "@/lib/server/entitlements";
 
 const hasAccess = await hasFeatureAccess(
   ctx.auth.userId,
-  FEATURE_KEYS.PREMIUM_SEARCH
+  FEATURE_KEYS.PREMIUM_SEARCH,
 );
 
 if (!hasAccess) {
@@ -178,6 +185,7 @@ if (!hasAccess) {
 ```
 
 **Client-side (via tRPC):**
+
 ```typescript
 const { hasAccess } = await trpc.payments.checkFeatureAccess.query({
   featureKey: "premium_search",
@@ -187,6 +195,7 @@ const { hasAccess } = await trpc.payments.checkFeatureAccess.query({
 ### Available Features
 
 Predefined feature keys in `FEATURE_KEYS`:
+
 - `PREMIUM_SEARCH`: Advanced search capabilities
 - `ADVANCED_ANALYTICS`: Analytics dashboard access
 - `UNLIMITED_MESSAGES`: Unlimited messaging
@@ -207,9 +216,11 @@ Predefined feature keys in `FEATURE_KEYS`:
 ### tRPC Endpoints
 
 #### `payments.getCustomer`
+
 Get current customer information including subscriptions, purchases, and entitlements.
 
 **Response:**
+
 ```typescript
 {
   id: string;
@@ -240,9 +251,11 @@ Get current customer information including subscriptions, purchases, and entitle
 ```
 
 #### `payments.createSubscriptionCheckout`
+
 Create a Stripe checkout session for a subscription.
 
 **Input:**
+
 ```typescript
 {
   priceId: string; // Stripe price ID
@@ -253,6 +266,7 @@ Create a Stripe checkout session for a subscription.
 ```
 
 **Response:**
+
 ```typescript
 {
   url: string; // Checkout session URL
@@ -261,9 +275,11 @@ Create a Stripe checkout session for a subscription.
 ```
 
 #### `payments.createPurchaseCheckout`
+
 Create a Stripe checkout session for a one-time purchase.
 
 **Input:**
+
 ```typescript
 {
   priceId: string;
@@ -275,6 +291,7 @@ Create a Stripe checkout session for a one-time purchase.
 ```
 
 **Response:**
+
 ```typescript
 {
   url: string;
@@ -283,9 +300,11 @@ Create a Stripe checkout session for a one-time purchase.
 ```
 
 #### `payments.createPortalSession`
+
 Create a Stripe customer portal session for managing subscriptions.
 
 **Input:**
+
 ```typescript
 {
   returnUrl: string;
@@ -293,6 +312,7 @@ Create a Stripe customer portal session for managing subscriptions.
 ```
 
 **Response:**
+
 ```typescript
 {
   url: string; // Portal session URL
@@ -300,9 +320,11 @@ Create a Stripe customer portal session for managing subscriptions.
 ```
 
 #### `payments.checkFeatureAccess`
+
 Check if user has access to a specific feature.
 
 **Input:**
+
 ```typescript
 {
   featureKey: FeatureKey;
@@ -310,6 +332,7 @@ Check if user has access to a specific feature.
 ```
 
 **Response:**
+
 ```typescript
 {
   hasAccess: boolean;
@@ -318,9 +341,11 @@ Check if user has access to a specific feature.
 ```
 
 #### `payments.getEntitlements`
+
 Get all active entitlements for the current user.
 
 **Response:**
+
 ```typescript
 Array<{
   id: string;
@@ -329,7 +354,7 @@ Array<{
   expiresAt: Date | null;
   metadata: Record<string, unknown> | null;
   createdAt: Date;
-}>
+}>;
 ```
 
 ## Clerk Integration
@@ -363,7 +388,7 @@ if (priceId === "price_premium_monthly") {
     customer.clerk_user_id,
     FEATURE_KEYS.PREMIUM_SEARCH,
     "SUBSCRIPTION",
-    { subscriptionId: subscription.id }
+    { subscriptionId: subscription.id },
   );
 }
 
@@ -373,7 +398,7 @@ if (purchase.product_type === "FEATURE_UNLOCK") {
     customer.clerk_user_id,
     purchase.product_id as FeatureKey,
     "PURCHASE",
-    { purchaseId: purchase.id }
+    { purchaseId: purchase.id },
   );
 }
 ```
@@ -407,15 +432,10 @@ For admin/manual entitlement granting:
 import { grantEntitlement, revokeEntitlement } from "@/lib/server/entitlements";
 
 // Grant entitlement
-await grantEntitlement(
-  clerkUserId,
-  FEATURE_KEYS.PREMIUM_SEARCH,
-  "MANUAL",
-  {
-    expiresAt: new Date("2025-12-31"), // Optional expiration
-    metadata: { grantedBy: "admin", reason: "promotion" },
-  }
-);
+await grantEntitlement(clerkUserId, FEATURE_KEYS.PREMIUM_SEARCH, "MANUAL", {
+  expiresAt: new Date("2025-12-31"), // Optional expiration
+  metadata: { grantedBy: "admin", reason: "promotion" },
+});
 
 // Revoke entitlement
 await revokeEntitlement(clerkUserId, FEATURE_KEYS.PREMIUM_SEARCH);
@@ -437,6 +457,7 @@ console.log(`Cleaned up ${count} expired entitlements`);
 ### Monitoring
 
 Key metrics to monitor:
+
 - Subscription conversion rates
 - Failed payment rates
 - Entitlement usage
@@ -456,6 +477,7 @@ Check Stripe Dashboard and application logs for issues.
 ### Test Mode
 
 Use Stripe test mode keys for development:
+
 - Test publishable key: `pk_test_...`
 - Test secret key: `sk_test_...`
 - Test webhook secret: `whsec_test_...`
@@ -463,6 +485,7 @@ Use Stripe test mode keys for development:
 ### Test Cards
 
 Use Stripe test cards:
+
 - Success: `4242 4242 4242 4242`
 - Decline: `4000 0000 0000 0002`
 - 3D Secure: `4000 0025 0000 3155`
@@ -470,6 +493,7 @@ Use Stripe test cards:
 ### Testing Webhooks Locally
 
 Use Stripe CLI:
+
 ```bash
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
@@ -500,6 +524,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ## Future Enhancements
 
 Potential improvements:
+
 - Usage-based billing
 - Team/organization subscriptions
 - Promotional codes and discounts
@@ -508,3 +533,42 @@ Potential improvements:
 - Dunning management for failed payments
 - Analytics dashboard for payment metrics
 
+# Players
+
+## Free
+
+## Plus
+
+Unlimited messaging and bootcamp ()
+
+# Coaches
+
+- Usage-based billing
+- Team/organization subscriptions
+- Promotional codes and discounts
+- Subscription upgrades/downgrades
+- Proration handling
+- Dunning management for failed payments
+- Analytics dashboard for payment metrics
+
+# Players
+
+## Free
+
+## Plus
+
+Unlimited messaging and bootcamp ()
+
+# Coaches
+
+wwhat does a user get
+
+- unlimited vs some number of messages? how many free messages? quota renews how?
+
+prefill page for contact sakes from pricing
+
+player: eval vs eval + vs some tier?
+
+coach: free vs eval gold vs eval premium
+
+leagues: what do they get currently?

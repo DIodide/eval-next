@@ -69,6 +69,7 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string(),
     NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID: z.string(),
     NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID: z.string(),
+    NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID: z.string(),
   },
 
   /**
@@ -124,6 +125,8 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID,
     NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID:
       process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID,
+    NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID:
+      process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

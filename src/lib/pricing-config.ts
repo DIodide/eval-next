@@ -28,7 +28,8 @@ export const PRICING_PLANS = {
     GOLD: {
       id: "gold",
       name: "EVAL Gold",
-      price: 0, // Update with actual price
+      price: 0,
+      oldPrice: undefined as number | undefined,
       priceId: process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID ?? "", // Set in .env
       interval: "year",
       badge: "POPULAR",
@@ -44,7 +45,8 @@ export const PRICING_PLANS = {
     PLATINUM: {
       id: "platinum",
       name: "EVAL Platinum",
-      price: 0, // Update with actual price
+      price: 0,
+      oldPrice: undefined as number | undefined,
       priceId: process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID ?? "", // Set in .env
       interval: "year",
       badge: "PREMIUM",
@@ -74,12 +76,38 @@ export const PRICING_PLANS = {
         "Start up to 3 coach conversations per month",
       ],
       excludedFeatures: [
-        "Advanced analytics",
+        "Unlimited coach messaging",
+        "Profile view tracking",
         "Priority visibility to coaches",
+        "Unlimited highlight uploads",
+        "Advanced analytics",
       ],
+    },
+    EVAL_PLUS: {
+      id: "eval_plus",
+      name: "EVAL+",
+      price: 5,
+      oldPrice: 10 as number | undefined,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID ?? "", // Set in .env
+      interval: "year",
+      badge: "RECOMMENDED",
+      features: [
+        "Everything in Free",
+        "Unlimited coach messaging",
+        "Profile view tracking",
+        "Priority visibility to coaches",
+        "Unlimited highlight uploads",
+        "Advanced analytics",
+      ],
+      excludedFeatures: [],
     },
   },
 } as const;
 
-export type PricingPlanId =
+export type CoachPlanId =
   (typeof PRICING_PLANS.COACHES)[keyof typeof PRICING_PLANS.COACHES]["id"];
+
+export type PlayerPlanId =
+  (typeof PRICING_PLANS.PLAYERS)[keyof typeof PRICING_PLANS.PLAYERS]["id"];
+
+export type PricingPlanId = CoachPlanId | PlayerPlanId;

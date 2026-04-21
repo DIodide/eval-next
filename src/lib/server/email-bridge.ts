@@ -1,5 +1,5 @@
-import { CoachIntroEmail } from "@/emails/coach-intro";
-import { PlayerMessageEmail } from "@/emails/player-message";
+import { CoachIntroEmail } from "@/emails/coaches/coach-intro";
+import { PlayerMessageEmail } from "@/emails/coaches/player-message";
 import { getMessagesFromEmail, getRecruitingFromEmail, getResendClient, isEmailConfigured } from "@/lib/email";
 import { render } from "@react-email/components";
 
