@@ -249,14 +249,14 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu> */}
-          {/* <SignedOut>
+          <SignedOut>
             <Link
               href="/pricing"
               className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
             >
               PRICING
             </Link>
-          </SignedOut> */}
+          </SignedOut>
           <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
               ABOUT US <ChevronDown className="ml-1 h-4 w-4" />

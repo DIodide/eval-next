@@ -72,7 +72,9 @@ function SearchParamsHandler({
           ? "EVAL Gold"
           : plan === "platinum"
             ? "EVAL Platinum"
-            : "Premium";
+            : plan === "eval_plus"
+              ? "EVAL+"
+              : "Premium";
       setPaymentStatusDialog({
         open: true,
         type: "success",
@@ -246,6 +248,51 @@ function PricingPageContent() {
     }
   };
 
+  const handlePlayerSubscribe = async () => {
+    if (!user) {
+      setShowSignUpModal(true);
+      return;
+    }
+
+    const plan = PRICING_PLANS.PLAYERS.EVAL_PLUS;
+
+    if (!plan.priceId) {
+      setPaymentStatusDialog({
+        open: true,
+        type: "failed",
+        message:
+          "Pricing not configured. Please contact support to set up this plan.",
+      });
+      return;
+    }
+
+    setLoadingCheckout("eval_plus");
+
+    try {
+      const baseUrl = window.location.origin;
+      const result = await createSubscriptionCheckout.mutateAsync({
+        priceId: plan.priceId,
+        successUrl: `${baseUrl}/pricing?success=true&plan=eval_plus`,
+        cancelUrl: `${baseUrl}/pricing?canceled=true`,
+        metadata: {
+          plan_id: "eval_plus",
+          plan_name: plan.name,
+        },
+      });
+
+      if (result.updated && result.url) {
+        window.location.href = result.url;
+        return;
+      }
+
+      if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+    }
+  };
+
   const handleManageSubscription = async () => {
     if (!user) return;
 
@@ -271,12 +318,16 @@ function PricingPageContent() {
 
     const goldPriceId = PRICING_PLANS.COACHES.GOLD.priceId;
     const platinumPriceId = PRICING_PLANS.COACHES.PLATINUM.priceId;
+    const playerPlusPriceId = PRICING_PLANS.PLAYERS.EVAL_PLUS.priceId;
 
     if (currentSubscription.stripePriceId === goldPriceId) {
       return "gold";
     }
     if (currentSubscription.stripePriceId === platinumPriceId) {
       return "platinum";
+    }
+    if (currentSubscription.stripePriceId === playerPlusPriceId) {
+      return "eval_plus";
     }
     return null;
   };
@@ -402,7 +453,7 @@ function PricingPageContent() {
 
             {/* Players Pricing */}
             <TabsContent value="players" className="mt-8">
-              <div className="mx-auto grid max-w-md grid-cols-1 gap-8 md:grid-cols-1">
+              <div className="mx-auto grid max-w-3xl grid-cols-1 gap-8 md:grid-cols-2">
                 {/* Free Tier */}
                 <Card className="glass-morphism transform border-white/20 transition-all duration-300 hover:scale-105 hover:border-cyan-400/30 hover:shadow-xl hover:shadow-cyan-400/10">
                   <CardHeader className="pb-4">
@@ -444,19 +495,37 @@ function PricingPageContent() {
                       <li className="flex items-start">
                         <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
                         <span className="text-gray-300">
-                          Send up to 3 coach messages
+                          Start up to 3 coach conversations per month
                         </span>
                       </li>
                       <li className="flex items-start">
                         <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
                         <span className="text-gray-500">
-                          Advanced analytics
+                          Unlimited coach messaging
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Profile view tracking
                         </span>
                       </li>
                       <li className="flex items-start">
                         <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
                         <span className="text-gray-500">
                           Priority visibility to coaches
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Unlimited highlight uploads
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Advanced analytics
                         </span>
                       </li>
                     </ul>
@@ -468,6 +537,101 @@ function PricingPageContent() {
                     >
                       GET STARTED
                     </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* EVAL+ Tier */}
+                <Card className="glass-morphism relative transform border-cyan-400/50 shadow-lg shadow-cyan-400/10 transition-all duration-300 hover:scale-105 hover:border-cyan-400">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 transform">
+                    <Badge className="font-orbitron bg-gradient-to-r from-cyan-400 to-cyan-500 px-4 py-1 text-black">
+                      RECOMMENDED
+                    </Badge>
+                  </div>
+                  <CardHeader className="pt-6 pb-4">
+                    <CardTitle className="font-orbitron text-2xl text-white">
+                      EVAL+
+                    </CardTitle>
+                    <CardDescription className="font-rajdhani text-gray-400">
+                      Stand out to recruiters
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="mb-4">
+                      {PRICING_PLANS.PLAYERS.EVAL_PLUS.oldPrice !== undefined && (
+                        <p className="font-orbitron mb-1 text-2xl text-gray-500 line-through decoration-red-500">
+                          ${PRICING_PLANS.PLAYERS.EVAL_PLUS.oldPrice}
+                        </p>
+                      )}
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.PLAYERS.EVAL_PLUS.price}
+                      </p>
+                      <p className="font-rajdhani text-gray-400">per year</p>
+                    </div>
+                    <ul className="font-rajdhani space-y-3">
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Everything in Free
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Unlimited coach messaging
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Profile view tracking
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Priority visibility to coaches
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Unlimited highlight uploads
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Advanced analytics
+                        </span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    {currentPlan === "eval_plus" ? (
+                      <Button
+                        onClick={handleManageSubscription}
+                        variant="outline"
+                        className="font-orbitron w-full border-cyan-400/50 text-cyan-400 transition-all duration-300 hover:bg-cyan-400/10"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        MANAGE SUBSCRIPTION
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handlePlayerSubscribe}
+                        disabled={loadingCheckout !== null}
+                        className="font-orbitron w-full transform bg-gradient-to-r from-cyan-400 to-cyan-500 text-black transition-all duration-300 hover:scale-105 hover:from-cyan-500 hover:to-cyan-600 disabled:opacity-50"
+                      >
+                        {loadingCheckout === "eval_plus" ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            PROCESSING...
+                          </>
+                        ) : (
+                          "UPGRADE TO EVAL+"
+                        )}
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </div>
@@ -488,8 +652,8 @@ function PricingPageContent() {
                   </CardHeader>
                   <CardContent className="pb-4">
                     <div className="mb-4">
-                      <p className="font-orbitron mb-2 text-4xl text-white line-through decoration-red-500">
-                        $0
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.COACHES.FREE.price}
                       </p>
                       <p className="font-rajdhani text-gray-400">Free pilot</p>
                     </div>
@@ -552,8 +716,13 @@ function PricingPageContent() {
                   </CardHeader>
                   <CardContent className="pb-4">
                     <div className="mb-4">
-                      <p className="font-orbitron mb-2 text-4xl text-white line-through decoration-red-500">
-                        $0
+                      {PRICING_PLANS.COACHES.GOLD.oldPrice !== undefined && (
+                        <p className="font-orbitron mb-1 text-2xl text-gray-500 line-through decoration-red-500">
+                          ${PRICING_PLANS.COACHES.GOLD.oldPrice}
+                        </p>
+                      )}
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.COACHES.GOLD.price}
                       </p>
                       <p className="font-rajdhani text-gray-400">per year</p>
                     </div>
@@ -658,8 +827,13 @@ function PricingPageContent() {
                   </CardHeader>
                   <CardContent className="pb-4">
                     <div className="mb-4">
-                      <p className="font-orbitron mb-2 text-4xl text-white line-through decoration-red-500">
-                        $0
+                      {PRICING_PLANS.COACHES.PLATINUM.oldPrice !== undefined && (
+                        <p className="font-orbitron mb-1 text-2xl text-gray-500 line-through decoration-red-500">
+                          ${PRICING_PLANS.COACHES.PLATINUM.oldPrice}
+                        </p>
+                      )}
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.COACHES.PLATINUM.price}
                       </p>
                       <p className="font-rajdhani text-gray-400">per year</p>
                     </div>
@@ -1207,7 +1381,11 @@ function PricingPageContent() {
                 <Button
                   onClick={() => {
                     setPaymentStatusDialog({ open: false, type: null });
-                    router.push("/dashboard/coaches");
+                    router.push(
+                      userType === "player"
+                        ? "/dashboard/player"
+                        : "/dashboard/coaches",
+                    );
                   }}
                   className="font-orbitron w-full bg-gradient-to-r from-green-500 to-green-600 text-white transition-all hover:from-green-600 hover:to-green-700 sm:w-auto"
                 >
