@@ -7,33 +7,29 @@ import {
   Hr,
   Html,
   Img,
-  Link,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
 
-interface CoachIntroEmailProps {
+interface ProfileClaimedEmailProps {
   coachName: string;
   schoolName: string;
-  claimUrl: string;
-  learnMoreUrl: string;
+  dashboardUrl: string;
 }
 
-export function CoachIntroEmail({
+export function ProfileClaimedEmail({
   coachName,
   schoolName,
-  claimUrl,
-  learnMoreUrl="https://evalgaming.com/about",
-}: CoachIntroEmailProps) {
+  dashboardUrl,
+}: ProfileClaimedEmailProps) {
   const displayName = coachName.trim() || "Coach";
 
   return (
     <Html>
       <Head />
       <Preview>
-        Student players are already exploring your esports program on EVAL
-        Gaming
+        Welcome to EVAL Gaming — your coach profile is ready
       </Preview>
       <Body style={main}>
         <Container style={container}>
@@ -45,45 +41,44 @@ export function CoachIntroEmail({
             style={logo}
           />
 
-          <Heading style={heading}>Hi {displayName},</Heading>
+          <Heading style={heading}>
+            Welcome aboard, Coach {displayName}!
+          </Heading>
 
           <Text style={paragraph}>
-            Student players are already exploring E-sportsprograms like{" "}
-            <strong>{schoolName}&apos;s</strong> on EVAL Gaming — so we&apos;ve
-            added your esports program to ensure they can find and connect with
-            it.
+            You&apos;ve successfully claimed your coach profile for{" "}
+            <strong>{schoolName}</strong> on EVAL Gaming. You now have full
+            access to manage your program&apos;s presence and connect with
+            prospective recruits.
           </Text>
 
-          <Text style={paragraph}>
-            {/* EVAL Gaming is the platform connecting high school esports athletes
-            with college programs. Coaches who claim their profile can message
-            recruits, post tryouts, and manage their program&apos;s presence in
-            one place. */}
+          <Text style={paragraph}>Here&apos;s what you can do next:</Text>
 
-            Players are actively browsing programs like yours and may want to
-            reach out. Claim your coach profile to manage your program&apos;s
-            presence and connect with prospective recruits directly.
+          <Text style={listItem}>
+            <strong>Complete your profile</strong> — add program details, roster
+            info, and tryout dates
+          </Text>
+          <Text style={listItem}>
+            <strong>View player messages</strong> — check any messages from
+            interested players
+          </Text>
+          <Text style={listItem}>
+            <strong>Browse recruits</strong> — search for players that match your
+            program&apos;s needs
           </Text>
 
           <Section style={buttonContainer}>
-            <Button style={button} href={claimUrl}>
-              Claim Your Coach Profile
+            <Button style={button} href={dashboardUrl}>
+              Go to Your Dashboard
             </Button>
           </Section>
-
-          <Text style={learnMoreText}>
-            Not sure what EVAL Gaming is?{" "}
-            <Link href={learnMoreUrl} style={learnMoreLink}>
-              Learn more about how it works
-            </Link>
-          </Text>
 
           <Hr style={hr} />
 
           <Text style={footerText}>
-            EVAL Gaming helps talented esports athletes get recruited by college
-            programs. If you believe this was sent in error, you can ignore this
-            email.
+            You&apos;re receiving this because you claimed your coach profile on
+            EVAL Gaming. If you believe this was sent in error, please contact
+            support.
           </Text>
         </Container>
       </Body>
@@ -91,14 +86,13 @@ export function CoachIntroEmail({
   );
 }
 
-CoachIntroEmail.PreviewProps = {
+ProfileClaimedEmail.PreviewProps = {
   coachName: "Alex Thompson",
   schoolName: "Princeton University",
-  claimUrl: "https://evalgaming.com/sign-up/schools",
-  learnMoreUrl: "https://evalgaming.com/about",
-} satisfies CoachIntroEmailProps;
+  dashboardUrl: "https://evalgaming.com/dashboard/coaches",
+} satisfies ProfileClaimedEmailProps;
 
-export default CoachIntroEmail;
+export default ProfileClaimedEmail;
 
 const main = {
   backgroundColor: "#f6f9fc",
@@ -133,6 +127,14 @@ const paragraph = {
   margin: "0 0 16px",
 };
 
+const listItem = {
+  fontSize: "15px",
+  lineHeight: "24px",
+  color: "#4a4a4a",
+  margin: "0 0 8px",
+  paddingLeft: "8px",
+};
+
 const buttonContainer = {
   textAlign: "center" as const,
   margin: "24px 0",
@@ -148,18 +150,6 @@ const button = {
   textAlign: "center" as const,
   padding: "12px 24px",
   display: "inline-block" as const,
-};
-
-const learnMoreText = {
-  fontSize: "14px",
-  color: "#666",
-  textAlign: "center" as const,
-  margin: "0 0 24px",
-};
-
-const learnMoreLink = {
-  color: "#7c3aed",
-  textDecoration: "underline",
 };
 
 const hr = {
