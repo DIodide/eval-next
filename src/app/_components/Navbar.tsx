@@ -23,7 +23,7 @@ import {
 } from "@clerk/nextjs";
 import {
   ChevronDown,
-  DollarSign,
+  CreditCard,
   GraduationCap,
   Menu,
   Search,
@@ -510,9 +510,9 @@ export default function Navbar() {
                     href="/dashboard"
                   />
                   <UserButton.Link
-                    label="Pricing"
-                    labelIcon={<DollarSign className="h-4 w-4" />}
-                    href="/pricing"
+                    label="Billing"
+                    labelIcon={<CreditCard className="h-4 w-4" />}
+                    href="/dashboard/billing"
                   />
                   <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>
@@ -545,9 +545,9 @@ export default function Navbar() {
                     href="/dashboard"
                   />
                   <UserButton.Link
-                    label="Pricing"
-                    labelIcon={<DollarSign className="h-4 w-4" />}
-                    href="/pricing"
+                    label="Billing"
+                    labelIcon={<CreditCard className="h-4 w-4" />}
+                    href="/dashboard/billing"
                   />
                   <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>

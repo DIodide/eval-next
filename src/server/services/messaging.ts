@@ -4,9 +4,11 @@ import { addMonths, startOfMonth } from "date-fns";
 
 import { sendPlayerMessageEmail } from "@/lib/server/email-bridge";
 import {
+  PLAYER_FREE_CONV_STARTS_PER_MONTH,
+  PLAYER_FREE_MESSAGES_PER_CONV,
   FEATURE_KEYS,
-  hasAnyFeatureAccessWithDb,
-} from "@/lib/server/entitlements";
+} from "@/lib/pricing-config";
+import { hasFeatureAccess } from "@/lib/server/plan-access";
 import {
   observeMessagingEvent,
   recordMessagingEvent,
@@ -138,12 +140,6 @@ export interface PlayerConversationDetail {
   initiatedBy: "COACH" | "PLAYER";
 }
 
-export const PLAYER_FREE_CONVERSATION_STARTS_PER_MONTH = 3;
-
-const PREMIUM_MESSAGING_FEATURES = [
-  FEATURE_KEYS.DIRECT_MESSAGING,
-  FEATURE_KEYS.UNLIMITED_MESSAGES,
-] as const;
 
 function normalizeSearch(search?: string) {
   const trimmed = search?.trim();
@@ -211,10 +207,11 @@ function withPagination<T extends { id: string }>(items: T[], limit: number) {
 }
 
 export async function hasPremiumMessagingAccess(
-  db: MessagingQuotaDbClient,
+  _db: MessagingQuotaDbClient,
   clerkUserId: string,
 ) {
-  return hasAnyFeatureAccessWithDb(db, clerkUserId, PREMIUM_MESSAGING_FEATURES);
+  // Plan access reads stripeCustomer — not transaction-sensitive, uses global db.
+  return hasFeatureAccess(clerkUserId, FEATURE_KEYS.MESSAGING_UNLIMITED);
 }
 
 export async function getPlayerMessagingQuotaStatus(
@@ -242,7 +239,7 @@ export async function getPlayerMessagingQuotaStatus(
     ? null
     : Math.max(
         0,
-        PLAYER_FREE_CONVERSATION_STARTS_PER_MONTH -
+        PLAYER_FREE_CONV_STARTS_PER_MONTH -
           monthlyConversationStartsUsed,
       );
 
@@ -250,7 +247,7 @@ export async function getPlayerMessagingQuotaStatus(
     hasUnlimitedAccess,
     monthlyConversationStartLimit: hasUnlimitedAccess
       ? null
-      : PLAYER_FREE_CONVERSATION_STARTS_PER_MONTH,
+      : PLAYER_FREE_CONV_STARTS_PER_MONTH,
     monthlyConversationStartsUsed,
     monthlyConversationStartsRemaining,
     canStartConversation:
@@ -880,6 +877,11 @@ export async function sendPlayerMessage(
       },
     },
     async () => {
+      const hasUnlimitedAccess = await hasPremiumMessagingAccess(
+        db,
+        args.clerkUserId,
+      );
+
       const result = await db.$transaction(async (tx) => {
         let conversation = args.conversationId
           ? await tx.conversation.findFirst({
@@ -995,6 +997,21 @@ export async function sendPlayerMessage(
             code: "NOT_FOUND",
             message: "Conversation not found",
           });
+        }
+
+        if (!createdConversation && !hasUnlimitedAccess) {
+          const playerMsgCount = await tx.message.count({
+            where: {
+              conversation_id: conversation.id,
+              sender_type: "PLAYER",
+            },
+          });
+          if (playerMsgCount >= PLAYER_FREE_MESSAGES_PER_CONV) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: `Free tier allows up to ${PLAYER_FREE_MESSAGES_PER_CONV} messages per conversation. Upgrade to EVAL+ to continue.`,
+            });
+          }
         }
 
         const message = await createMessageInConversation(tx, {

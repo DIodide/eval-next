@@ -97,11 +97,6 @@ export async function getCustomerRecord(clerkUserId: string) {
           created_at: "desc",
         },
       },
-      entitlements: {
-        where: {
-          is_active: true,
-        },
-      },
     },
   });
 }

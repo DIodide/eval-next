@@ -3,7 +3,6 @@ import test from "node:test";
 
 import { TRPCError } from "@trpc/server";
 
-import { FEATURE_KEYS } from "@/lib/server/entitlements";
 import {
   subscribeToMessagingEvents,
   type MessagingEventRecord,
@@ -262,15 +261,10 @@ void test("contact search, pagination, entitlement access, and observability use
       stripe_customer_id: "cus_contract",
       email: player.email,
     });
-    harness.seedEntitlement({
+    harness.seedSubscription({
       stripe_customer_id: customer.id,
-      feature_key: FEATURE_KEYS.DIRECT_MESSAGING,
-      granted_by_type: "MANUAL",
-      subscription_id: null,
-      purchase_id: null,
-      expires_at: null,
-      is_active: true,
-      metadata: null,
+      plan_id: "player_eval_plus",
+      status: "ACTIVE",
     });
 
     const playerCaller = createCaller(harness.db, {

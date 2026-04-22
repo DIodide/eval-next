@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { SendIcon, LoaderIcon } from "lucide-react";
 
 interface MessageInputProps {
   onSend: (content: string) => void;
   isPending: boolean;
+  messageLimitReached?: boolean;
 }
 
-export function MessageInput({ onSend, isPending }: MessageInputProps) {
+export function MessageInput({ onSend, isPending, messageLimitReached }: MessageInputProps) {
   const [content, setContent] = useState("");
 
   const handleSend = () => {
@@ -19,8 +21,21 @@ export function MessageInput({ onSend, isPending }: MessageInputProps) {
     setContent("");
   };
 
+  if (messageLimitReached) {
+    return (
+      <div className="border-t border-gray-700/50 bg-linear-to-r from-gray-800/30 to-gray-900/30 p-4">
+        <UpgradePrompt
+          variant="banner"
+          title="Message limit reached"
+          description={`Free tier allows up to 3 messages per conversation. Upgrade to EVAL+ to continue.`}
+          ctaText="Upgrade to EVAL+"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="border-t border-gray-700/50 bg-gradient-to-r from-gray-800/30 to-gray-900/30 p-4">
+    <div className="border-t border-gray-700/50 bg-linear-to-r from-gray-800/30 to-gray-900/30 p-4">
       <div className="flex space-x-3">
         <Textarea
           value={content}

@@ -1,9 +1,8 @@
 import {
   FEATURE_KEYS,
-  getUserEntitlements,
   hasFeatureAccess,
-  type FeatureKey,
-} from "@/lib/server/entitlements";
+  getActivePlan,
+} from "@/lib/server/plan-access";
 import {
   getCustomerRecord,
   getOrCreateStripeCustomer,
@@ -58,11 +57,6 @@ export const paymentsRouter = createTRPCRouter({
         currency: purchase.currency,
         status: purchase.status,
         createdAt: purchase.created_at,
-      })),
-      entitlements: customer.entitlements.map((ent) => ({
-        featureKey: ent.feature_key,
-        expiresAt: ent.expires_at,
-        metadata: ent.metadata,
       })),
     };
   }),
@@ -249,17 +243,9 @@ export const paymentsRouter = createTRPCRouter({
   checkFeatureAccess: protectedProcedure
     .input(
       z.object({
-        featureKey: z.enum([
-          FEATURE_KEYS.PREMIUM_SEARCH,
-          FEATURE_KEYS.ADVANCED_ANALYTICS,
-          FEATURE_KEYS.DIRECT_MESSAGING,
-          FEATURE_KEYS.UNLIMITED_MESSAGES,
-          FEATURE_KEYS.PRIORITY_SUPPORT,
-          FEATURE_KEYS.CUSTOM_BRANDING,
-          FEATURE_KEYS.API_ACCESS,
-          FEATURE_KEYS.BULK_OPERATIONS,
-          FEATURE_KEYS.EXPORT_DATA,
-        ]),
+        featureKey: z.enum(
+          Object.values(FEATURE_KEYS) as [string, ...string[]],
+        ),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -272,7 +258,7 @@ export const paymentsRouter = createTRPCRouter({
 
       const hasAccess = await hasFeatureAccess(
         ctx.auth.userId,
-        input.featureKey as FeatureKey,
+        input.featureKey as import("@/lib/pricing-config").FeatureKey,
       );
 
       return {
@@ -282,25 +268,16 @@ export const paymentsRouter = createTRPCRouter({
     }),
 
   /**
-   * Get all active entitlements for the current user
+   * Get the active plan ID for the current user
    */
-  getEntitlements: protectedProcedure.query(async ({ ctx }) => {
+  getActivePlan: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.auth.userId) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User not authenticated",
       });
     }
-
-    const entitlements = await getUserEntitlements(ctx.auth.userId);
-
-    return entitlements.map((ent) => ({
-      id: ent.id,
-      featureKey: ent.feature_key,
-      grantedByType: ent.granted_by_type,
-      expiresAt: ent.expires_at,
-      metadata: ent.metadata,
-      createdAt: ent.created_at,
-    }));
+    const plan = await getActivePlan(ctx.auth.userId);
+    return { plan };
   }),
 });

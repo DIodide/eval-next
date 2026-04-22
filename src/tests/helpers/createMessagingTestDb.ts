@@ -74,18 +74,11 @@ type StripeCustomerRecord = {
   email: string;
 };
 
-type EntitlementRecord = {
+type SubscriptionRecord = {
   id: string;
   stripe_customer_id: string;
-  feature_key: string;
-  granted_by_type: "MANUAL" | "PURCHASE" | "SUBSCRIPTION";
-  subscription_id: string | null;
-  purchase_id: string | null;
-  expires_at: Date | null;
-  is_active: boolean;
-  metadata: Record<string, unknown> | null;
-  created_at: Date;
-  updated_at: Date;
+  plan_id: string | null;
+  status: string;
 };
 
 type PlayerGameProfileRecord = {
@@ -152,7 +145,7 @@ export function createMessagingTestDb() {
   const conversations: ConversationRecord[] = [];
   const messages: MessageRecord[] = [];
   const stripeCustomers: StripeCustomerRecord[] = [];
-  const entitlements: EntitlementRecord[] = [];
+  const subscriptions: SubscriptionRecord[] = [];
   const playerGameProfiles: PlayerGameProfileRecord[] = [];
 
   let idCounter = 1;
@@ -202,45 +195,15 @@ export function createMessagingTestDb() {
     messages: getConversationMessages(conversation.id),
   });
 
-  const filterEntitlements = (
+  const filterSubscriptions = (
     customerId: string,
-    where?: {
-      feature_key?: string | { in: string[] };
-      is_active?: boolean;
-      OR?: Array<{ expires_at: null } | { expires_at: { gt: Date } }>;
-    },
+    where?: { status?: { in?: string[] } },
   ) => {
-    return entitlements.filter((entitlement) => {
-      if (entitlement.stripe_customer_id !== customerId) return false;
-      if (typeof where?.feature_key === "string") {
-        if (entitlement.feature_key !== where.feature_key) return false;
-      } else if (where?.feature_key?.in) {
-        if (!where.feature_key.in.includes(entitlement.feature_key))
-          return false;
-      }
-
-      if (
-        typeof where?.is_active === "boolean" &&
-        entitlement.is_active !== where.is_active
-      ) {
+    return subscriptions.filter((sub) => {
+      if (sub.stripe_customer_id !== customerId) return false;
+      if (where?.status?.in && !where.status.in.includes(sub.status)) {
         return false;
       }
-
-      if (where?.OR?.length) {
-        return where.OR.some((clause) => {
-          if ("expires_at" in clause && clause.expires_at === null) {
-            return entitlement.expires_at === null;
-          }
-          if ("expires_at" in clause && clause.expires_at?.gt) {
-            return (
-              entitlement.expires_at !== null &&
-              entitlement.expires_at > clause.expires_at.gt
-            );
-          }
-          return false;
-        });
-      }
-
       return true;
     });
   };
@@ -672,9 +635,9 @@ export function createMessagingTestDb() {
 
         return {
           ...customer,
-          entitlements: filterEntitlements(
+          subscriptions: filterSubscriptions(
             customer.id,
-            include?.entitlements?.where,
+            include?.subscriptions?.where,
           ),
         };
       },
@@ -693,7 +656,7 @@ export function createMessagingTestDb() {
       coaches,
       schools,
       stripeCustomers,
-      entitlements,
+      subscriptions,
       games,
       playerGameProfiles,
     },
@@ -775,17 +738,15 @@ export function createMessagingTestDb() {
       stripeCustomers.push(customer);
       return customer;
     },
-    seedEntitlement(
-      data: Omit<EntitlementRecord, "id" | "created_at" | "updated_at">,
-    ) {
-      const entitlement: EntitlementRecord = {
-        id: nextId("entitlement"),
-        created_at: new Date(),
-        updated_at: new Date(),
-        ...data,
+    seedSubscription(data: { stripe_customer_id: string; plan_id: string; status?: string }) {
+      const subscription: SubscriptionRecord = {
+        id: nextId("subscription"),
+        stripe_customer_id: data.stripe_customer_id,
+        plan_id: data.plan_id,
+        status: data.status ?? "ACTIVE",
       };
-      entitlements.push(entitlement);
-      return entitlement;
+      subscriptions.push(subscription);
+      return subscription;
     },
   };
 }

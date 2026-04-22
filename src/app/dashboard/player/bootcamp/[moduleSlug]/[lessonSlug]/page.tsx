@@ -103,7 +103,7 @@ export default function LessonPage() {
   const { data: progress, refetch: refetchProgress } =
     api.bootcamp.getLessonProgress.useQuery(
       { lessonId: lesson?.id ?? "" },
-      { enabled: !!lesson?.id },
+      { enabled: !!lesson?.id, retry: (_, err) => err.data?.code !== "FORBIDDEN" },
     );
 
   const { data: bootcampProgress, refetch: refetchBootcamp } =
@@ -200,6 +200,7 @@ export default function LessonPage() {
       </div>
     );
   }
+
 
   const moduleIndex = lesson.module.orderIndex;
   const nextLesson = findNextLesson();

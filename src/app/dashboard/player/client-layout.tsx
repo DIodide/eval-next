@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { redirect } from "next/navigation";
+// useRouter instead of redirect — calling redirect() in a client component render body
+// throws mid-render and corrupts React's hook count when async server layouts are present.
+import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,10 @@ export default function PlayerDashboardClientLayout({
   const { data: bootcampProgress } =
     api.bootcamp.getBootcampProgress.useQuery(
       { bootcampSlug: "recruit-bootcamp" },
-      { enabled: isOnBootcamp && isLoaded },
+      {
+        enabled: isOnBootcamp && isLoaded,
+        retry: (_, err) => err.data?.code !== "FORBIDDEN",
+      },
     );
 
   const STEP_LABELS: Record<number, string> = {
@@ -52,30 +56,29 @@ export default function PlayerDashboardClientLayout({
     5: "Message Coaches",
   };
 
-  const bootcampSubItems = (bootcampProgress?.modules ?? []).map(
-    (mod, index) => {
-      const complete = mod.lessons.every((l) => l.progress?.completed);
-      const unlocked =
-        index === 0 ||
-        bootcampProgress!.modules
-          .slice(0, index)
-          .every((m) => m.lessons.every((l) => l.progress?.completed));
-      const firstLesson =
-        mod.lessons.find((l) => !l.progress?.completed) ?? mod.lessons[0];
-      return {
-        title: STEP_LABELS[mod.order_index] ?? mod.title,
-        href: unlocked && firstLesson
-          ? `/dashboard/player/bootcamp/${mod.slug}/${firstLesson.slug}`
-          : "#",
-        icon: complete
-          ? CheckCircle2Icon
-          : unlocked
-            ? CircleIcon
-            : LockIcon,
-        complete,
-        unlocked,
-      };
-    },
+  const bootcampSubItems = useMemo(
+    () =>
+      (bootcampProgress?.modules ?? []).map((mod, index) => {
+        const complete = mod.lessons.every((l) => l.progress?.completed);
+        const unlocked =
+          index === 0 ||
+          bootcampProgress!.modules
+            .slice(0, index)
+            .every((m) => m.lessons.every((l) => l.progress?.completed));
+        const firstLesson =
+          mod.lessons.find((l) => !l.progress?.completed) ?? mod.lessons[0];
+        return {
+          title: STEP_LABELS[mod.order_index] ?? mod.title,
+          href:
+            unlocked && firstLesson
+              ? `/dashboard/player/bootcamp/${mod.slug}/${firstLesson.slug}`
+              : "#",
+          icon: complete ? CheckCircle2Icon : unlocked ? CircleIcon : LockIcon,
+          complete,
+          unlocked,
+        };
+      }),
+    [bootcampProgress],
   );
 
   // Generate sidebar items dynamically to include username-dependent links
@@ -139,13 +142,15 @@ export default function PlayerDashboardClientLayout({
     // },
   ];
 
-  // Check if user is a player
-  if (isLoaded && user) {
-    const userType = user.unsafeMetadata?.userType;
-    if (userType !== "player") {
-      redirect("/dashboard");
+  const router = useRouter();
+  useEffect(() => {
+    if (isLoaded && user) {
+      const userType = user.unsafeMetadata?.userType;
+      if (userType !== "player") {
+        router.replace("/dashboard");
+      }
     }
-  }
+  }, [isLoaded, user, router]);
 
   // Show loading state while checking user
   if (!isLoaded) {
@@ -434,7 +439,7 @@ export default function PlayerDashboardClientLayout({
                     {/* Sub-items with improved styling */}
                     {hasSubItems && (isExpandableSection || hasActiveSubItem) && (
                       <ul className="mt-2 ml-6 space-y-1 border-l border-gray-700/50 pl-4">
-                        {item.subItems.map((subItem) => {
+                        {item.subItems.map((subItem, subIdx) => {
                           const SubIcon = subItem.icon;
                           const isSubActive = pathname.includes(
                             subItem.href.split("/").slice(0, -1).join("/"),
@@ -443,7 +448,7 @@ export default function PlayerDashboardClientLayout({
                           const isStepComplete = "complete" in subItem && subItem.complete;
 
                           return (
-                            <li key={subItem.href}>
+                            <li key={subIdx}>
                               <Link
                                 href={isLocked ? "#" : subItem.href}
                                 className={cn(
