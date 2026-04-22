@@ -33,9 +33,11 @@ export default function BootcampDashboardPage() {
     slug: "recruit-bootcamp",
   });
 
-  const { data: progressData } = api.bootcamp.getBootcampProgress.useQuery({
-    bootcampSlug: "recruit-bootcamp",
-  });
+  const { data: progressData } =
+    api.bootcamp.getBootcampProgress.useQuery(
+      { bootcampSlug: "recruit-bootcamp" },
+      { retry: (_, err) => err.data?.code !== "FORBIDDEN" },
+    );
 
   const modules = progressData?.modules ?? bootcamp?.modules ?? [];
 

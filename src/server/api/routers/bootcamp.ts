@@ -4,8 +4,14 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
+  requireFeature,
 } from "@/server/api/trpc";
 import type { PrismaClient } from "@prisma/client";
+import { FEATURE_KEYS } from "@/lib/server/plan-access";
+
+const bootcampProcedure = protectedProcedure.use(
+  requireFeature(FEATURE_KEYS.BOOTCAMP_ACCESS),
+);
 
 // ─── Helper: Resolve player ID from clerk auth ──────────────────────────────
 
@@ -383,7 +389,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get player's full progress for a bootcamp
    */
-  getBootcampProgress: protectedProcedure
+  getBootcampProgress: bootcampProcedure
     .input(z.object({ bootcampSlug: z.string() }))
     .query(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -583,7 +589,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Mark a video as watched
    */
-  markVideoWatched: protectedProcedure
+  markVideoWatched: bootcampProcedure
     .input(z.object({ lessonId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -648,7 +654,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Submit quiz answers — grades server-side, 100% required to pass
    */
-  submitQuiz: protectedProcedure
+  submitQuiz: bootcampProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -764,7 +770,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Submit written reflection (Step 1)
    */
-  submitReflection: protectedProcedure
+  submitReflection: bootcampProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -856,7 +862,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get lightweight progress summary (for sidebar badge, dashboard)
    */
-  getProgressSummary: protectedProcedure
+  getProgressSummary: bootcampProcedure
     .input(z.object({ bootcampSlug: z.string() }))
     .query(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -922,7 +928,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get lesson progress for a specific lesson (used by lesson page)
    */
-  getLessonProgress: protectedProcedure
+  getLessonProgress: bootcampProcedure
     .input(z.object({ lessonId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -957,7 +963,7 @@ export const bootcampRouter = createTRPCRouter({
    * next visit. Throttle client-side — this runs on pause/beforeunload and
    * roughly every 5s during playback.
    */
-  saveLastPosition: protectedProcedure
+  saveLastPosition: bootcampProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -987,7 +993,7 @@ export const bootcampRouter = createTRPCRouter({
    * Save interactive step data (why_esports, your_why, college rankings, etc.)
    * and mark the step/lesson as complete when all required fields are filled.
    */
-  saveStepData: protectedProcedure
+  saveStepData: bootcampProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -1078,7 +1084,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Search colleges on the platform (for Step 2 college ranking)
    */
-  searchColleges: protectedProcedure
+  searchColleges: bootcampProcedure
     .input(
       z.object({
         query: z.string().optional(),
