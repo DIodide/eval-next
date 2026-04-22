@@ -1016,7 +1016,6 @@ model StripeCustomer {
   updated_at         DateTime       @updatedAt
   subscriptions      Subscription[]
   purchases          Purchase[]
-  entitlements       Entitlement[]
 
   @@index([clerk_user_id])
   @@index([stripe_customer_id])
@@ -1029,6 +1028,7 @@ model Subscription {
   stripe_customer_id     String             @db.Uuid
   stripe_subscription_id String             @unique
   stripe_price_id        String
+  plan_id                String? // e.g. "player_eval_plus", "coach_gold" — set by webhook
   status                 SubscriptionStatus
   current_period_start   DateTime           @db.Timestamp(6)
   current_period_end     DateTime           @db.Timestamp(6)
@@ -1040,7 +1040,6 @@ model Subscription {
   created_at             DateTime           @default(now()) @db.Timestamp(6)
   updated_at             DateTime           @updatedAt
   customer               StripeCustomer     @relation(fields: [stripe_customer_id], references: [id], onDelete: Cascade)
-  entitlements           Entitlement[]      @relation("SubscriptionEntitlements")
 
   @@index([stripe_customer_id])
   @@index([stripe_subscription_id])
@@ -1064,7 +1063,6 @@ model Purchase {
   created_at                 DateTime            @default(now()) @db.Timestamp(6)
   updated_at                 DateTime            @updatedAt
   customer                   StripeCustomer      @relation(fields: [stripe_customer_id], references: [id], onDelete: Cascade)
-  entitlements               Entitlement[]       @relation("PurchaseEntitlements")
 
   @@index([stripe_customer_id])
   @@index([stripe_payment_intent_id])
@@ -1073,30 +1071,6 @@ model Purchase {
   @@map("purchases")
 }
 
-/// Feature entitlements and access control
-model Entitlement {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stripe_customer_id String            @db.Uuid
-  feature_key        String // e.g., "premium_search", "advanced_analytics"
-  granted_by_type    EntitlementSource
-  subscription_id    String?           @db.Uuid // Reference to subscription if granted by subscription
-  purchase_id        String?           @db.Uuid // Reference to purchase if granted by purchase
-  expires_at         DateTime?         @db.Timestamp(6) // null = permanent
-  is_active          Boolean           @default(true)
-  metadata           Json? // Additional feature-specific data
-  created_at         DateTime          @default(now()) @db.Timestamp(6)
-  updated_at         DateTime          @updatedAt
-  customer           StripeCustomer    @relation(fields: [stripe_customer_id], references: [id], onDelete: Cascade)
-  subscription       Subscription?     @relation("SubscriptionEntitlements", fields: [subscription_id], references: [id], onDelete: SetNull)
-  purchase           Purchase?         @relation("PurchaseEntitlements", fields: [purchase_id], references: [id], onDelete: SetNull)
-
-  @@unique([stripe_customer_id, feature_key], name: "stripe_customer_id_feature_key")
-  @@index([stripe_customer_id])
-  @@index([feature_key])
-  @@index([is_active])
-  @@index([expires_at])
-  @@map("entitlements")
-}
 
 enum SubscriptionStatus {
   ACTIVE
@@ -1124,8 +1098,3 @@ enum PurchaseProductType {
   CUSTOM
 }
 
-enum EntitlementSource {
-  SUBSCRIPTION
-  PURCHASE
-  MANUAL
-}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the comprehensive payments layer implemented for the EVAL platform. The system supports subscriptions, one-time purchases, and feature-based entitlements, all integrated with Stripe and Clerk authentication.
+The payments layer integrates Stripe subscriptions and one-time purchases with the EVAL platform. Feature access is derived at runtime from the active subscription plan — there is no separate entitlements table.
 
 ## Architecture
 
@@ -16,31 +16,36 @@ This document describes the comprehensive payments layer implemented for the EVA
 2. **Subscription Management** (`src/lib/server/stripe-subscriptions.ts`)
    - Subscription checkout session creation
    - Customer portal session management
-   - Subscription status synchronization
+   - `syncSubscriptionFromStripe(sub, { planId? })` — upserts subscription row, sets `plan_id`
 
 3. **Purchase Management** (`src/lib/server/stripe-purchases.ts`)
    - One-time purchase checkout sessions
-   - Payment intent synchronization
-   - Purchase status tracking
+   - `syncPurchaseFromPaymentIntent` — records completed purchases
 
-4. **Entitlements System** (`src/lib/server/entitlements.ts`)
-   - Feature access control
-   - Entitlement granting/revoking
-   - Feature gating utilities
+4. **Plan-Based Access** (`src/lib/server/plan-access.ts`)
+   - `getActivePlan(clerkUserId)` — reads `plan_id` from the active subscription row
+   - `hasFeatureAccess(clerkUserId, featureKey)` — checks plan → feature mapping
+   - `requireFeature(featureKey)` — tRPC middleware for procedure-level gating
 
-5. **Clerk Integration** (`src/lib/server/clerk-stripe-sync.ts`)
+5. **Pricing Config** (`src/lib/pricing-config.ts`)
+   - `FEATURE_KEYS` — all feature keys (complete, even if not yet mapped to a plan)
+   - `PLAN_FEATURES` — maps each plan ID to its granted features
+   - `getPlanIdForPriceId(priceId)` — used by the webhook to set `plan_id` on sync
+   - Quota constants: `PLAYER_FREE_CONV_STARTS_PER_MONTH = 3`, `PLAYER_FREE_MESSAGES_PER_CONV = 3`
+
+6. **Clerk Integration** (`src/lib/server/clerk-stripe-sync.ts`)
    - Syncs Stripe customer IDs to Clerk user metadata
-   - Enables Clerk's built-in Stripe integration features
 
-6. **tRPC Payment Router** (`src/server/api/routers/payments.ts`)
-   - API endpoints for payment operations
-   - Feature access checking
-   - Customer information retrieval
+7. **tRPC Payment Router** (`src/server/api/routers/payments.ts`)
+   - `getCustomer` — subscription and purchase records
+   - `getActivePlan` — current plan ID for the authenticated user
+   - `checkFeatureAccess` — boolean access check for a given feature key
+   - `createSubscriptionCheckout`, `createPurchaseCheckout`, `createPortalSession`
 
-7. **Webhook Handler** (`src/app/api/webhooks/stripe/route.ts`)
-   - Processes Stripe webhook events
-   - Synchronizes payment data
-   - Manages entitlements based on payments
+8. **Webhook Handler** (`src/app/api/webhooks/stripe/route.ts`)
+   - `customer.subscription.created/updated` → `syncSubscriptionFromStripe(sub, { planId })`
+   - `customer.subscription.deleted` → `syncSubscriptionFromStripe(sub)` (status → CANCELED)
+   - `payment_intent.succeeded` → `syncPurchaseFromPaymentIntent`
 
 ## Database Schema
 
@@ -48,527 +53,158 @@ This document describes the comprehensive payments layer implemented for the EVA
 
 Maps Clerk users to Stripe customers.
 
-- `clerk_user_id`: Unique Clerk user identifier
-- `stripe_customer_id`: Stripe customer ID
-- `email`: Customer email address
+```prisma
+model StripeCustomer {
+  id                  String         @id @default(uuid())
+  clerk_user_id       String         @unique
+  stripe_customer_id  String         @unique
+  email               String
+  subscriptions       Subscription[]
+  purchases           Purchase[]
+}
+```
 
 ### Subscription
 
-Tracks subscription status and billing periods.
+Active subscription row. `plan_id` is the source of truth for feature access.
 
-- `stripe_subscription_id`: Stripe subscription ID
-- `stripe_price_id`: Stripe price ID for the subscription
-- `status`: Subscription status (ACTIVE, CANCELED, TRIALING, etc.)
-- `current_period_start/end`: Billing period dates
-- `cancel_at_period_end`: Whether subscription will cancel at period end
-- `trial_start/end`: Trial period dates (if applicable)
+```prisma
+model Subscription {
+  id                        String             @id @default(uuid())
+  stripe_customer_id        String
+  stripe_subscription_id    String             @unique
+  stripe_price_id           String
+  plan_id                   String?            // e.g. "player_eval_plus", "coach_gold"
+  status                    SubscriptionStatus
+  current_period_start      DateTime
+  current_period_end        DateTime
+  cancel_at_period_end      Boolean            @default(false)
+  trial_end                 DateTime?
+  created_at                DateTime           @default(now())
+  updated_at                DateTime           @updatedAt
+  stripe_customer           StripeCustomer     @relation(fields: [stripe_customer_id], references: [id])
+}
+```
 
 ### Purchase
 
-Tracks one-time purchases.
+Records completed one-time purchases. Used for accounting and (in future) feature overrides.
 
-- `stripe_payment_intent_id`: Stripe payment intent ID
-- `stripe_checkout_session_id`: Stripe checkout session ID (optional)
-- `product_type`: Type of product (CREDITS, ITEM, FEATURE_UNLOCK, CUSTOM)
-- `product_id`: Optional reference to product/item
-- `amount`: Purchase amount in cents
-- `currency`: Currency code (default: "usd")
-- `status`: Purchase status (PENDING, SUCCEEDED, FAILED, etc.)
-- `metadata`: Additional product-specific data (JSON)
-
-### Entitlement
-
-Manages feature access and permissions.
-
-- `feature_key`: Feature identifier (e.g., "premium_search")
-- `granted_by_type`: Source of entitlement (SUBSCRIPTION, PURCHASE, MANUAL)
-- `subscription_id`: Reference to subscription (if granted by subscription)
-- `purchase_id`: Reference to purchase (if granted by purchase)
-- `expires_at`: Expiration date (null = permanent)
-- `is_active`: Whether entitlement is currently active
-- `metadata`: Additional feature-specific data (JSON)
-
-## Environment Variables
-
-### Required
-
-```env
-# Stripe API Keys
-STRIPE_SECRET_KEY=sk_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
-
-# Stripe Webhook Secret (for webhook verification)
-STRIPE_WEBHOOK_SECRET=whsec_...
+```prisma
+model Purchase {
+  id                   String         @id @default(uuid())
+  stripe_customer_id   String
+  stripe_payment_intent_id String     @unique
+  stripe_price_id      String?
+  product_type         String
+  product_id           String?
+  amount               Int
+  currency             String
+  status               PurchaseStatus
+  metadata             Json?
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @updatedAt
+  stripe_customer      StripeCustomer @relation(fields: [stripe_customer_id], references: [id])
+}
 ```
 
-### Setting Up Webhooks
+## Plan IDs
 
-1. In Stripe Dashboard, go to Developers → Webhooks
-2. Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
-3. Select events to listen to:
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `payment_intent.succeeded`
-   - `payment_intent.payment_failed`
-   - `checkout.session.completed`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
-4. Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET`
+Plan IDs are namespaced by user type so player and coach plans are always unambiguous.
 
-## Payment Flows
+| Plan ID | User type | Features |
+|---------|-----------|----------|
+| `player_free` | Player | (none — free tier) |
+| `player_eval_plus` | Player | `messaging_unlimited`, `bootcamp_access` |
+| `coach_free` | Coach | (none — free tier) |
+| `coach_gold` | Coach | `bootcamp_access` |
+| `coach_platinum` | Coach | `bootcamp_access` |
 
-### Subscription Flow
+The mapping lives in `PLAN_FEATURES` in `src/lib/pricing-config.ts`. No other file needs to change when a plan gains or loses a feature.
 
-1. **User initiates subscription**
+## Feature Keys
 
-   ```typescript
-   const { url } = await trpc.payments.createSubscriptionCheckout.mutate({
-     priceId: "price_xxx",
-     successUrl: "https://app.com/success",
-     cancelUrl: "https://app.com/cancel",
-   });
-   ```
+All feature keys are defined in `FEATURE_KEYS` in `src/lib/pricing-config.ts`. Keys that are not yet mapped to any plan are still defined here for future use.
 
-2. **User completes checkout** → Stripe redirects to success URL
+| Key | Status | Notes |
+|-----|--------|-------|
+| `messaging_unlimited` | Active | Removes conv-start and per-message limits for players |
+| `bootcamp_access` | Active | Gates all bootcamp progress/submission procedures |
+| `premium_search` | Defined | Future use |
+| `advanced_analytics` | Defined | Future use |
+| `priority_support` | Defined | Future use |
+| `custom_branding` | Defined | Future use |
+| `api_access` | Defined | Future use |
+| `bulk_operations` | Defined | Future use |
+| `export_data` | Defined | Future use |
 
-3. **Webhook processes subscription**
-   - `checkout.session.completed` → Creates subscription record
-   - `customer.subscription.created` → Syncs subscription, grants entitlements
+## How Feature Access Works
 
-4. **User accesses features** → Entitlements checked via `hasFeatureAccess()`
+1. User takes an action (sends a message, loads bootcamp progress, etc.)
+2. The tRPC procedure checks access via `requireFeature(featureKey)` middleware, or the service layer calls `hasFeatureAccess(clerkUserId, featureKey)` directly.
+3. `hasFeatureAccess` calls `getActivePlan` → looks up `StripeCustomer → Subscription` where `status IN (ACTIVE, TRIALING)` → reads `plan_id`.
+4. The plan ID is matched against `PLAN_FEATURES[planId]` to see if the feature is included.
+5. No active subscription (or canceled) → no gated features.
 
-### One-Time Purchase Flow
+## Messaging Quotas
 
-1. **User initiates purchase**
+Free-tier players (no active `player_eval_plus` subscription) are subject to:
 
-   ```typescript
-   const { url } = await trpc.payments.createPurchaseCheckout.mutate({
-     priceId: "price_xxx",
-     quantity: 1,
-     successUrl: "https://app.com/success",
-     cancelUrl: "https://app.com/cancel",
-     metadata: {
-       product_type: "FEATURE_UNLOCK",
-       product_id: "premium_search",
-     },
-   });
-   ```
+- **3 new conversation starts per calendar month** (enforced in `sendPlayerMessage` service)
+- **3 player messages per conversation** (enforced inside the database transaction when sending)
 
-2. **User completes checkout** → Stripe processes payment
+Both limits are defined as constants in `pricing-config.ts` so they can be updated in one place.
 
-3. **Webhook processes purchase**
-   - `payment_intent.succeeded` → Creates purchase record, grants entitlements
+EVAL+ subscribers bypass both limits entirely.
 
-4. **User accesses feature** → Entitlement checked and granted
+## Webhook Flow
 
-## Feature Gating
+When Stripe fires a subscription event:
 
-### Checking Feature Access
+```
+customer.subscription.created / updated
+  → getPlanIdForPriceId(priceId)   // maps price → plan_id
+  → syncSubscriptionFromStripe(sub, { planId })  // upserts row with plan_id + status
 
-**Server-side (in tRPC procedures):**
+customer.subscription.deleted
+  → syncSubscriptionFromStripe(sub)  // sets status = CANCELED
+```
 
-```typescript
-import { hasFeatureAccess, FEATURE_KEYS } from "@/lib/server/entitlements";
+Because the plan is stored on the `Subscription` row, no separate entitlement grant/revoke logic is needed. `getActivePlan` reads the plan directly.
 
-const hasAccess = await hasFeatureAccess(
-  ctx.auth.userId,
-  FEATURE_KEYS.PREMIUM_SEARCH,
-);
+## Future: One-Time Purchase Feature Overrides
 
-if (!hasAccess) {
-  throw new TRPCError({
-    code: "FORBIDDEN",
-    message: "Premium search requires a subscription",
+When one-time purchases need to unlock features (e.g. a lifetime access purchase), add a `UserFeatureOverride` table:
+
+```prisma
+model UserFeatureOverride {
+  id                String    @id @default(uuid())
+  clerk_user_id     String
+  feature_key       String
+  source_purchase_id String?  // FK to Purchase
+  expires_at        DateTime?
+  created_at        DateTime  @default(now())
+}
+```
+
+Then extend `hasFeatureAccess` in `plan-access.ts` to check this table after the plan lookup:
+
+```ts
+export async function hasFeatureAccess(clerkUserId, featureKey, client = db) {
+  // 1. Check plan
+  const plan = await getActivePlan(clerkUserId, client);
+  if (plan && PLAN_FEATURES[plan]?.includes(featureKey)) return true;
+
+  // 2. Check one-time purchase overrides
+  const override = await client.userFeatureOverride.findFirst({
+    where: {
+      clerk_user_id: clerkUserId,
+      feature_key: featureKey,
+      OR: [{ expires_at: null }, { expires_at: { gt: new Date() } }],
+    },
   });
+  return override !== null;
 }
 ```
 
-**Client-side (via tRPC):**
-
-```typescript
-const { hasAccess } = await trpc.payments.checkFeatureAccess.query({
-  featureKey: "premium_search",
-});
-```
-
-### Available Features
-
-Predefined feature keys in `FEATURE_KEYS`:
-
-- `PREMIUM_SEARCH`: Advanced search capabilities
-- `ADVANCED_ANALYTICS`: Analytics dashboard access
-- `UNLIMITED_MESSAGES`: Unlimited messaging
-- `PRIORITY_SUPPORT`: Priority customer support
-- `CUSTOM_BRANDING`: Custom branding options
-- `API_ACCESS`: API access
-- `BULK_OPERATIONS`: Bulk operation capabilities
-- `EXPORT_DATA`: Data export functionality
-
-### Adding New Features
-
-1. Add feature key to `FEATURE_KEYS` in `src/lib/server/entitlements.ts`
-2. Update the tRPC input schema in `payments.ts` to include the new feature
-3. Implement feature gating in relevant procedures/components
-
-## API Reference
-
-### tRPC Endpoints
-
-#### `payments.getCustomer`
-
-Get current customer information including subscriptions, purchases, and entitlements.
-
-**Response:**
-
-```typescript
-{
-  id: string;
-  email: string;
-  subscriptions: Array<{
-    id: string;
-    status: SubscriptionStatus;
-    currentPeriodStart: Date;
-    currentPeriodEnd: Date;
-    cancelAtPeriodEnd: boolean;
-    trialEnd: Date | null;
-  }>;
-  purchases: Array<{
-    id: string;
-    productType: PurchaseProductType;
-    productId: string | null;
-    amount: number;
-    currency: string;
-    status: PurchaseStatus;
-    createdAt: Date;
-  }>;
-  entitlements: Array<{
-    featureKey: string;
-    expiresAt: Date | null;
-    metadata: Record<string, unknown> | null;
-  }>;
-}
-```
-
-#### `payments.createSubscriptionCheckout`
-
-Create a Stripe checkout session for a subscription.
-
-**Input:**
-
-```typescript
-{
-  priceId: string; // Stripe price ID
-  successUrl: string; // URL to redirect after success
-  cancelUrl: string; // URL to redirect after cancel
-  metadata?: Record<string, string>; // Optional metadata
-}
-```
-
-**Response:**
-
-```typescript
-{
-  url: string; // Checkout session URL
-  sessionId: string;
-}
-```
-
-#### `payments.createPurchaseCheckout`
-
-Create a Stripe checkout session for a one-time purchase.
-
-**Input:**
-
-```typescript
-{
-  priceId: string;
-  quantity: number;
-  successUrl: string;
-  cancelUrl: string;
-  metadata?: Record<string, string>;
-}
-```
-
-**Response:**
-
-```typescript
-{
-  url: string;
-  sessionId: string;
-}
-```
-
-#### `payments.createPortalSession`
-
-Create a Stripe customer portal session for managing subscriptions.
-
-**Input:**
-
-```typescript
-{
-  returnUrl: string;
-}
-```
-
-**Response:**
-
-```typescript
-{
-  url: string; // Portal session URL
-}
-```
-
-#### `payments.checkFeatureAccess`
-
-Check if user has access to a specific feature.
-
-**Input:**
-
-```typescript
-{
-  featureKey: FeatureKey;
-}
-```
-
-**Response:**
-
-```typescript
-{
-  hasAccess: boolean;
-  featureKey: string;
-}
-```
-
-#### `payments.getEntitlements`
-
-Get all active entitlements for the current user.
-
-**Response:**
-
-```typescript
-Array<{
-  id: string;
-  featureKey: string;
-  grantedByType: EntitlementSource;
-  expiresAt: Date | null;
-  metadata: Record<string, unknown> | null;
-  createdAt: Date;
-}>;
-```
-
-## Clerk Integration
-
-The system integrates with Clerk in two ways:
-
-1. **Customer Identity**: Uses Clerk user IDs to link Stripe customers
-2. **Metadata Sync**: Stores Stripe customer ID in Clerk user metadata for built-in integration features
-
-When a Stripe customer is created, the customer ID is automatically synced to the Clerk user's `publicMetadata.stripeCustomerId`.
-
-## Webhook Events
-
-### Handled Events
-
-- `customer.subscription.created` / `updated`: Syncs subscription, grants entitlements
-- `customer.subscription.deleted`: Syncs cancellation, revokes entitlements
-- `payment_intent.succeeded`: Creates purchase record, grants purchase-based entitlements
-- `payment_intent.payment_failed`: Updates purchase status
-- `checkout.session.completed`: Handles both subscription and purchase checkouts
-- `invoice.payment_succeeded` / `payment_failed`: Updates subscription status
-
-### Customizing Entitlement Mapping
-
-In `src/app/api/webhooks/stripe/route.ts`, customize the entitlement mapping:
-
-```typescript
-// Map subscription price IDs to features
-if (priceId === "price_premium_monthly") {
-  await grantEntitlement(
-    customer.clerk_user_id,
-    FEATURE_KEYS.PREMIUM_SEARCH,
-    "SUBSCRIPTION",
-    { subscriptionId: subscription.id },
-  );
-}
-
-// Map purchase product types to features
-if (purchase.product_type === "FEATURE_UNLOCK") {
-  await grantEntitlement(
-    customer.clerk_user_id,
-    purchase.product_id as FeatureKey,
-    "PURCHASE",
-    { purchaseId: purchase.id },
-  );
-}
-```
-
-## Extending the System
-
-### Adding New Pricing Plans
-
-1. Create products and prices in Stripe Dashboard
-2. Update entitlement mapping in webhook handler
-3. Add UI for new plans (if needed)
-
-### Adding New Product Types
-
-1. Add to `PurchaseProductType` enum in Prisma schema
-2. Update webhook handler to handle new product type
-3. Implement product-specific logic
-
-### Adding New Features
-
-1. Add feature key to `FEATURE_KEYS` enum
-2. Update tRPC input schema
-3. Implement feature gating in relevant code
-4. Update documentation
-
-### Manual Entitlement Management
-
-For admin/manual entitlement granting:
-
-```typescript
-import { grantEntitlement, revokeEntitlement } from "@/lib/server/entitlements";
-
-// Grant entitlement
-await grantEntitlement(clerkUserId, FEATURE_KEYS.PREMIUM_SEARCH, "MANUAL", {
-  expiresAt: new Date("2025-12-31"), // Optional expiration
-  metadata: { grantedBy: "admin", reason: "promotion" },
-});
-
-// Revoke entitlement
-await revokeEntitlement(clerkUserId, FEATURE_KEYS.PREMIUM_SEARCH);
-```
-
-## Maintenance
-
-### Cleaning Up Expired Entitlements
-
-Run periodically (e.g., via cron job):
-
-```typescript
-import { cleanupExpiredEntitlements } from "@/lib/server/entitlements";
-
-const count = await cleanupExpiredEntitlements();
-console.log(`Cleaned up ${count} expired entitlements`);
-```
-
-### Monitoring
-
-Key metrics to monitor:
-
-- Subscription conversion rates
-- Failed payment rates
-- Entitlement usage
-- Webhook processing errors
-
-Check Stripe Dashboard and application logs for issues.
-
-## Security Considerations
-
-1. **Webhook Verification**: All webhooks are verified using Stripe's signature
-2. **Authentication**: All payment endpoints require authentication via Clerk
-3. **Authorization**: Feature access is checked server-side
-4. **Data Privacy**: Customer data is stored securely and only accessible to authenticated users
-
-## Testing
-
-### Test Mode
-
-Use Stripe test mode keys for development:
-
-- Test publishable key: `pk_test_...`
-- Test secret key: `sk_test_...`
-- Test webhook secret: `whsec_test_...`
-
-### Test Cards
-
-Use Stripe test cards:
-
-- Success: `4242 4242 4242 4242`
-- Decline: `4000 0000 0000 0002`
-- 3D Secure: `4000 0025 0000 3155`
-
-### Testing Webhooks Locally
-
-Use Stripe CLI:
-
-```bash
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Webhook not receiving events**
-   - Verify webhook URL is correct
-   - Check webhook secret matches
-   - Ensure endpoint is publicly accessible
-
-2. **Entitlements not granted**
-   - Check webhook handler logs
-   - Verify entitlement mapping logic
-   - Check database for created records
-
-3. **Customer not found errors**
-   - Ensure customer is created before checkout
-   - Check Clerk user ID matches
-
-4. **Feature access denied**
-   - Verify entitlement exists and is active
-   - Check expiration dates
-   - Review entitlement source (subscription/purchase)
-
-## Future Enhancements
-
-Potential improvements:
-
-- Usage-based billing
-- Team/organization subscriptions
-- Promotional codes and discounts
-- Subscription upgrades/downgrades
-- Proration handling
-- Dunning management for failed payments
-- Analytics dashboard for payment metrics
-
-# Players
-
-## Free
-
-## Plus
-
-Unlimited messaging and bootcamp ()
-
-# Coaches
-
-- Usage-based billing
-- Team/organization subscriptions
-- Promotional codes and discounts
-- Subscription upgrades/downgrades
-- Proration handling
-- Dunning management for failed payments
-- Analytics dashboard for payment metrics
-
-# Players
-
-## Free
-
-## Plus
-
-Unlimited messaging and bootcamp ()
-
-# Coaches
-
-wwhat does a user get
-
-- unlimited vs some number of messages? how many free messages? quota renews how?
-
-prefill page for contact sakes from pricing
-
-player: eval vs eval + vs some tier?
-
-coach: free vs eval gold vs eval premium
-
-leagues: what do they get currently?
+Purchase records (`Purchase` model) are already created by the webhook — the override table just needs to be populated from them when a qualifying purchase is processed.

@@ -111,3 +111,54 @@ export type PlayerPlanId =
   (typeof PRICING_PLANS.PLAYERS)[keyof typeof PRICING_PLANS.PLAYERS]["id"];
 
 export type PricingPlanId = CoachPlanId | PlayerPlanId;
+
+// ---------------------------------------------------------------------------
+// Feature keys — all defined here even if not yet mapped to a plan.
+// Currently active: MESSAGING_UNLIMITED, BOOTCAMP_ACCESS.
+// ---------------------------------------------------------------------------
+export const FEATURE_KEYS = {
+  MESSAGING_UNLIMITED: "messaging_unlimited",
+  BOOTCAMP_ACCESS: "bootcamp_access",
+  PREMIUM_SEARCH: "premium_search",
+  ADVANCED_ANALYTICS: "advanced_analytics",
+  PRIORITY_SUPPORT: "priority_support",
+  CUSTOM_BRANDING: "custom_branding",
+  API_ACCESS: "api_access",
+  BULK_OPERATIONS: "bulk_operations",
+  EXPORT_DATA: "export_data",
+} as const;
+
+export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
+
+// Plan IDs namespaced by user type — these are stored in Subscription.plan_id.
+export type PlanId =
+  | "player_free"
+  | "player_eval_plus"
+  | "coach_free"
+  | "coach_gold"
+  | "coach_platinum";
+
+// Map each plan to the features it grants.
+// Add a feature key to a plan here — no other file needs to change.
+export const PLAN_FEATURES: Record<PlanId, readonly FeatureKey[]> = {
+  player_free: [],
+  player_eval_plus: [FEATURE_KEYS.MESSAGING_UNLIMITED, FEATURE_KEYS.BOOTCAMP_ACCESS],
+  coach_free: [],
+  coach_gold: [FEATURE_KEYS.BOOTCAMP_ACCESS],
+  coach_platinum: [FEATURE_KEYS.BOOTCAMP_ACCESS],
+};
+
+// Used by the webhook sync layer to set Subscription.plan_id from a Stripe price ID.
+export function getPlanIdForPriceId(priceId: string): PlanId | null {
+  const map: Record<string, PlanId> = {};
+  if (process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID)
+    map[process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID] = "coach_gold";
+  if (process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID)
+    map[process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID] = "coach_platinum";
+  if (process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID)
+    map[process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID] = "player_eval_plus";
+  return map[priceId] ?? null;
+}
+
+export const PLAYER_FREE_CONV_STARTS_PER_MONTH = 3;
+export const PLAYER_FREE_MESSAGES_PER_CONV = 3;
