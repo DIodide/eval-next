@@ -4,14 +4,33 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-  requireFeature,
 } from "@/server/api/trpc";
 import type { PrismaClient } from "@prisma/client";
-import { FEATURE_KEYS } from "@/lib/server/plan-access";
+import { FEATURE_KEYS, hasFeatureAccess } from "@/lib/server/plan-access";
 
-const bootcampProcedure = protectedProcedure.use(
-  requireFeature(FEATURE_KEYS.BOOTCAMP_ACCESS),
-);
+// Checks feature access only for modules beyond the first (order_index > 0).
+// Module 0 is always free — call this before any write or gated read.
+async function assertBootcampAccess(
+  db: PrismaClient,
+  userId: string,
+  lessonId: string,
+) {
+  const lesson = await db.lesson.findUnique({
+    where: { id: lessonId },
+    select: { module: { select: { order_index: true } } },
+  });
+  if (!lesson) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Lesson not found" });
+  }
+  if (lesson.module.order_index === 0) return; // first module is always free
+  const ok = await hasFeatureAccess(userId, FEATURE_KEYS.BOOTCAMP_ACCESS);
+  if (!ok) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `Requires plan feature: ${FEATURE_KEYS.BOOTCAMP_ACCESS}`,
+    });
+  }
+}
 
 // ─── Helper: Resolve player ID from clerk auth ──────────────────────────────
 
@@ -389,7 +408,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get player's full progress for a bootcamp
    */
-  getBootcampProgress: bootcampProcedure
+  getBootcampProgress: protectedProcedure
     .input(z.object({ bootcampSlug: z.string() }))
     .query(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -589,9 +608,10 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Mark a video as watched
    */
-  markVideoWatched: bootcampProcedure
+  markVideoWatched: protectedProcedure
     .input(z.object({ lessonId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      await assertBootcampAccess(ctx.db, ctx.auth.userId, input.lessonId);
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const { allowed, reason } = await canAccessLesson(
         ctx.db,
@@ -654,7 +674,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Submit quiz answers — grades server-side, 100% required to pass
    */
-  submitQuiz: bootcampProcedure
+  submitQuiz: protectedProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -662,6 +682,7 @@ export const bootcampRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      await assertBootcampAccess(ctx.db, ctx.auth.userId, input.lessonId);
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const { allowed, reason } = await canAccessLesson(
         ctx.db,
@@ -770,7 +791,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Submit written reflection (Step 1)
    */
-  submitReflection: bootcampProcedure
+  submitReflection: protectedProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -778,6 +799,7 @@ export const bootcampRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      await assertBootcampAccess(ctx.db, ctx.auth.userId, input.lessonId);
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       const { allowed, reason } = await canAccessLesson(
         ctx.db,
@@ -862,7 +884,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get lightweight progress summary (for sidebar badge, dashboard)
    */
-  getProgressSummary: bootcampProcedure
+  getProgressSummary: protectedProcedure
     .input(z.object({ bootcampSlug: z.string() }))
     .query(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -928,7 +950,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Get lesson progress for a specific lesson (used by lesson page)
    */
-  getLessonProgress: bootcampProcedure
+  getLessonProgress: protectedProcedure
     .input(z.object({ lessonId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
@@ -963,7 +985,7 @@ export const bootcampRouter = createTRPCRouter({
    * next visit. Throttle client-side — this runs on pause/beforeunload and
    * roughly every 5s during playback.
    */
-  saveLastPosition: bootcampProcedure
+  saveLastPosition: protectedProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -971,6 +993,7 @@ export const bootcampRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      await assertBootcampAccess(ctx.db, ctx.auth.userId, input.lessonId);
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
       await ctx.db.userLessonProgress.upsert({
         where: {
@@ -993,7 +1016,7 @@ export const bootcampRouter = createTRPCRouter({
    * Save interactive step data (why_esports, your_why, college rankings, etc.)
    * and mark the step/lesson as complete when all required fields are filled.
    */
-  saveStepData: bootcampProcedure
+  saveStepData: protectedProcedure
     .input(
       z.object({
         lessonId: z.string().uuid(),
@@ -1001,6 +1024,7 @@ export const bootcampRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      await assertBootcampAccess(ctx.db, ctx.auth.userId, input.lessonId);
       const playerId = await resolvePlayerId(ctx.db, ctx.auth.userId);
 
       const lesson = await ctx.db.lesson.findUnique({
@@ -1084,7 +1108,7 @@ export const bootcampRouter = createTRPCRouter({
   /**
    * Search colleges on the platform (for Step 2 college ranking)
    */
-  searchColleges: bootcampProcedure
+  searchColleges: protectedProcedure
     .input(
       z.object({
         query: z.string().optional(),
@@ -1118,4 +1142,43 @@ export const bootcampRouter = createTRPCRouter({
 
       return schools;
     }),
+
+  /**
+   * Fetch the very first lesson of the first module for the homepage teaser.
+   * Public, no auth required. Returns only what the video player needs.
+   */
+  getHomepageTeaser: publicProcedure.query(async ({ ctx }) => {
+    const lesson = await ctx.db.lesson.findFirst({
+      where: {
+        order_index: 0,
+        is_published: true,
+        module: {
+          order_index: 0,
+          is_published: true,
+          bootcamp: { slug: "recruit-bootcamp", is_published: true },
+        },
+      },
+      select: {
+        title: true,
+        slug: true,
+        video_url: true,
+        video_hls_url: true,
+        poster_url: true,
+        duration_seconds: true,
+        module: { select: { slug: true } },
+      },
+    });
+
+    if (!lesson) return null;
+
+    return {
+      title: lesson.title,
+      slug: lesson.slug,
+      moduleSlug: lesson.module.slug,
+      videoUrl: lesson.video_url,
+      videoHlsUrl: lesson.video_hls_url,
+      posterUrl: lesson.poster_url,
+      durationSeconds: lesson.duration_seconds,
+    };
+  }),
 });
