@@ -347,6 +347,9 @@ export default function HomePage() {
                       <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
                         Showcase skills in EVAL Combines
                       </p>
+                      <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
+                        Master recruiting with the EVAL+ Bootcamp
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -370,6 +373,13 @@ export default function HomePage() {
                       </p>
                       <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
                         Get recruiting consulting
+                      </p>
+                      <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
+                        Message recruits directly, unlimited
+                      </p>
+                      <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
+                        Publish your school&apos;s esports profile to the
+                        college search
                       </p>
                     </div>
                   </div>
