@@ -19,7 +19,43 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import FAQSection from "./_components/FAQSection";
+
+const BootcampTeaserSection = dynamic(
+  () =>
+    import("./_components/BootcampTeaserSection").then(
+      (m) => m.BootcampTeaserSection,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="border border-blue-500/20 bg-black/95 bg-gradient-to-r from-cyan-600/10 via-blue-600/10 to-purple-600/10 py-20">
+        <div className="container mx-auto px-6">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 text-center">
+              <div className="mx-auto mb-4 h-6 w-40 animate-pulse rounded bg-gray-800" />
+              <div className="mx-auto mb-4 h-12 w-96 animate-pulse rounded bg-gray-800" />
+              <div className="mx-auto h-6 w-80 animate-pulse rounded bg-gray-800" />
+            </div>
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+              <div className="aspect-video w-full animate-pulse rounded-2xl bg-gray-800" />
+              <div className="space-y-4">
+                <div className="h-6 w-32 animate-pulse rounded bg-gray-800" />
+                <div className="h-10 w-64 animate-pulse rounded bg-gray-800" />
+                <div className="space-y-3">
+                  <div className="h-5 w-full animate-pulse rounded bg-gray-800" />
+                  <div className="h-5 w-5/6 animate-pulse rounded bg-gray-800" />
+                  <div className="h-5 w-4/6 animate-pulse rounded bg-gray-800" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    ),
+  },
+);
 
 const testimonials = [
   {
@@ -365,6 +401,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Step 1 Bootcamp Teaser Section */}
+      <BootcampTeaserSection />
 
       {/* Partners Section */}
       <section className="border border-blue-500/20 bg-black/95 bg-gradient-to-r from-blue-700/10 via-purple-700/10 to-pink-700/10 py-16">
