@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import FAQSection from "./_components/FAQSection";
+import { BootcampPromoStrip } from "./_components/BootcampPromoStrip";
 
 const BootcampTeaserSection = dynamic(
   () =>
@@ -130,6 +131,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      <BootcampPromoStrip />
       {/* Hero Section */}
       <section className="relative flex min-h-screen items-center justify-center text-center text-white">
         <div className="absolute inset-0 z-10 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5" />

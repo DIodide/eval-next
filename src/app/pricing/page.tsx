@@ -48,6 +48,8 @@ import { toast } from "sonner";
 
 function SearchParamsHandler({
   setPaymentStatusDialog,
+  setFromBootcamp,
+  setActiveTab,
 }: {
   setPaymentStatusDialog: React.Dispatch<
     React.SetStateAction<{
@@ -57,6 +59,10 @@ function SearchParamsHandler({
       message?: string;
     }>
   >;
+  setFromBootcamp: React.Dispatch<React.SetStateAction<boolean>>;
+  setActiveTab: React.Dispatch<
+    React.SetStateAction<"players" | "coaches" | "leagues">
+  >;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -65,6 +71,12 @@ function SearchParamsHandler({
     const success = searchParams.get("success");
     const canceled = searchParams.get("canceled");
     const plan = searchParams.get("plan");
+    const from = searchParams.get("from");
+
+    if (from === "bootcamp") {
+      setFromBootcamp(true);
+      setActiveTab("players");
+    }
 
     if (success === "true") {
       const planName =
@@ -114,6 +126,7 @@ function PricingPageContent() {
   const [activeTab, setActiveTab] = useState<"players" | "coaches" | "leagues">(
     "players",
   );
+  const [fromBootcamp, setFromBootcamp] = useState(false);
   const [paymentStatusDialog, setPaymentStatusDialog] = useState<{
     open: boolean;
     type: "success" | "failed" | "canceled" | null;
@@ -349,7 +362,11 @@ function PricingPageContent() {
     <div className="relative min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30">
       {/* Search params handler wrapped in Suspense */}
       <Suspense fallback={null}>
-        <SearchParamsHandler setPaymentStatusDialog={setPaymentStatusDialog} />
+        <SearchParamsHandler
+          setPaymentStatusDialog={setPaymentStatusDialog}
+          setFromBootcamp={setFromBootcamp}
+          setActiveTab={setActiveTab}
+        />
       </Suspense>
 
       {/* Enhanced Background with Floating Elements */}
@@ -420,6 +437,38 @@ function PricingPageContent() {
             </Button>
           </div>
         </div>
+
+        {/* Bootcamp-aware contextual banner */}
+        {fromBootcamp && (
+          <div className="mx-auto mb-8 max-w-4xl">
+            <div className="relative overflow-hidden rounded-2xl border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 via-purple-500/10 to-orange-500/15 p-6 shadow-lg shadow-cyan-400/10">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.08]"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(115deg, transparent 0 22px, rgba(34,211,238,0.95) 22px 24px, transparent 24px 46px, rgba(167,139,250,0.95) 46px 48px)",
+                }}
+              />
+              <div className="relative flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-orbitron mb-1 text-[10px] font-bold tracking-[0.3em] text-cyan-300/90">
+                    EVAL+ BOOTCAMP · UNLOCK FULL ACCESS
+                  </p>
+                  <h2 className="font-orbitron text-xl font-black text-white md:text-2xl">
+                    The recruiting playbook is included in{" "}
+                    <span className="text-cyan-300">EVAL+</span>
+                  </h2>
+                  <p className="font-rajdhani mt-1 max-w-xl text-sm text-gray-300">
+                    Step-by-step modules to build your college list, contact
+                    coaches, and convert tryouts into offers.
+                  </p>
+                </div>
+                <ArrowRight className="hidden h-6 w-6 animate-pulse text-cyan-300 md:block" />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Pricing Tabs */}
         <div className="glass-morphism rounded-2xl border-white/20 p-6 md:p-8">
@@ -501,6 +550,15 @@ function PricingPageContent() {
                       <li className="flex items-start">
                         <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
                         <span className="text-gray-500">
+                          Full EVAL+ Bootcamp{" "}
+                          <span className="text-gray-600">
+                            (preview module only)
+                          </span>
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
                           Unlimited coach messaging
                         </span>
                       </li>
@@ -541,11 +599,22 @@ function PricingPageContent() {
                 </Card>
 
                 {/* EVAL+ Tier */}
-                <Card className="glass-morphism relative transform border-cyan-400/50 shadow-lg shadow-cyan-400/10 transition-all duration-300 hover:scale-105 hover:border-cyan-400">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 transform">
+                <Card
+                  className={`glass-morphism relative transform border-cyan-400/50 shadow-lg shadow-cyan-400/10 transition-all duration-300 hover:scale-105 hover:border-cyan-400 ${
+                    fromBootcamp
+                      ? "ring-2 ring-cyan-400/70 ring-offset-4 ring-offset-black/40"
+                      : ""
+                  }`}
+                >
+                  <div className="absolute -top-3 left-1/2 flex -translate-x-1/2 transform items-center gap-2">
                     <Badge className="font-orbitron bg-gradient-to-r from-cyan-400 to-cyan-500 px-4 py-1 text-black">
                       RECOMMENDED
                     </Badge>
+                    {fromBootcamp && (
+                      <Badge className="font-orbitron bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-1 text-black">
+                        BOOTCAMP
+                      </Badge>
+                    )}
                   </div>
                   <CardHeader className="pt-6 pb-4">
                     <CardTitle className="font-orbitron text-2xl text-white">
@@ -572,6 +641,15 @@ function PricingPageContent() {
                         <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
                         <span className="text-gray-300">
                           Everything in Free
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="font-semibold text-white">
+                          Full EVAL+ Bootcamp access
+                          <span className="font-rajdhani ml-1 text-xs font-normal text-cyan-300/80">
+                            (all modules)
+                          </span>
                         </span>
                       </li>
                       <li className="flex items-start">
