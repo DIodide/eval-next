@@ -420,22 +420,71 @@ export default function HomePage() {
       {/* Partners Section */}
       <section className="border border-blue-500/20 bg-black/95 bg-gradient-to-r from-blue-700/10 via-purple-700/10 to-pink-700/10 py-16">
         <div className="container mx-auto px-6">
-          <h2 className="font-orbitron mb-8 text-center text-2xl tracking-wide text-white">
+          <h2 className="font-orbitron mb-2 text-center text-2xl tracking-wide text-white">
             TRUSTED BY
           </h2>
-          <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
-            <Image
-              src="/partners/gse/GSE_LOGO.png"
-              alt="Garden State Esports"
-              width={150}
-              height={60}
-            />
-            <Image
-              src="/partners/keller/keller.png"
-              alt="Keller Center"
-              width={150}
-              height={60}
-            />
+          <p className="font-rajdhani mb-10 text-center text-sm tracking-[0.25em] text-cyan-300/70 uppercase">
+            Programs and partners on EVAL
+          </p>
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-6 md:gap-8">
+            {[
+              {
+                src: "/partners/colleges/army.svg",
+                alt: "Army West Point",
+                label: "West Point",
+              },
+              {
+                src: "/partners/colleges/syracuse.svg",
+                alt: "Syracuse Orange",
+                label: "Syracuse",
+              },
+              {
+                src: "/partners/colleges/boise-state.svg",
+                alt: "Boise State Broncos",
+                label: "Boise State",
+              },
+              {
+                src: "/partners/colleges/maryville.svg",
+                alt: "Maryville Saints",
+                label: "Maryville",
+              },
+              {
+                src: "/partners/gse/GSE_LOGO.png",
+                alt: "Garden State Esports",
+                label: "Garden State Esports",
+              },
+              {
+                src: "/partners/keller/keller.png",
+                alt: "Keller Center",
+                label: "Keller Center",
+              },
+            ].map((partner) => (
+              <div
+                key={partner.alt}
+                className="group flex flex-col items-center"
+              >
+                <div className="relative">
+                  {/* Rainbow ring on hover */}
+                  <div
+                    aria-hidden
+                    className="absolute -inset-0.5 rounded-full bg-[conic-gradient(from_0deg,#22d3ee,#a78bfa,#fb923c,#22d3ee)] opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-80"
+                  />
+                  <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/95 shadow-lg shadow-black/40 ring-1 ring-inset ring-black/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-105 group-hover:border-cyan-300/60 md:h-28 md:w-28">
+                    <Image
+                      src={partner.src}
+                      alt={partner.alt}
+                      width={96}
+                      height={96}
+                      unoptimized
+                      className="h-16 w-16 object-contain md:h-20 md:w-20"
+                    />
+                  </div>
+                </div>
+                <span className="font-rajdhani mt-3 text-xs font-medium tracking-wider text-gray-400 uppercase transition-colors duration-300 group-hover:text-white">
+                  {partner.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
