@@ -26,11 +26,6 @@ const faqs = [
       "EVAL currently supports VALORANT, Rocket League, Overwatch 2, and Super Smash Bros. Ultimate, with more games being added regularly.",
   },
   {
-    question: "How do I get invited to EVAL Combines?",
-    answer:
-      "EVAL Combines are free to enter for all high school players, no invitation necessary. Maintain high rankings, demonstrate exceptional gameplay, and build community recognition to earn invitations to our EVAL Invitationals!",
-  },
-  {
     question: "Can college students use EVAL?",
     answer:
       "Yes! Although EVAL is specifically designed for high school students looking to pursue esports at the collegiate levels, college students are welcome to use EVAL to showcase their skills and use our advanced analytics to improve their game.",
