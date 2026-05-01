@@ -84,131 +84,14 @@ interface ModuleData {
 }
 
 const MODULES: ModuleData[] = [
-  // ========== STEP 0 ==========
-  {
-    slug: "step-0-welcome",
-    title: "Welcome & Why EVAL Exists",
-    description:
-      "Learn why EVAL was created, what this bootcamp will teach you, and the five outcomes you will walk away with.",
-    order_index: 0,
-    is_free: true,
-    lessons: [
-      {
-        slug: "welcome-and-why-eval-exists",
-        title: "Welcome & Why EVAL Exists",
-        description: "Introduction to the EVAL Bootcamp and your five key outcomes.",
-        media_key: "whatswhy",
-        content_markdown: `# Welcome & Why EVAL Exists
-
-Through these five lessons, you will learn how to access college esports scholarship opportunities nationwide.
-
-By the end of this program, you should walk away with five tangible outcomes:
-
-1. A clear and realistic college list
-2. A verified recruiting esports profile
-3. A college-level esports highlight reel
-4. An understanding of how gaming can strengthen your college application
-5. The ability to begin outreach and connect with coaches
-
-These steps are based on our first bootcamp, which included top esports players across the country who now have college opportunities.
-
-But before:
-
-- College offers
-- College visits
-- Becoming a top prospect nationally
-
-You need clarity on why you are doing this.
-
-Recruiting takes time and consistent effort. Progress is not always visible. If you do not understand your "why," you will not stay disciplined long enough for this process to work.
-
-That is why one of your first actions in this program is to reflect on your personal motivation — not what sounds impressive, but what genuinely drives you.
-
-In Step 1, we will break down what it truly takes to get recruited.
-
-Let's get started.`,
-        common_questions: [
-          {
-            question: "Do I need to be a top-ranked player to benefit from this bootcamp?",
-            answer:
-              "No. This bootcamp is designed for players at all competitive levels. Coaches value character, consistency, and coachability alongside skill.",
-          },
-          {
-            question: "How long does the bootcamp take to complete?",
-            answer:
-              "You can work through the bootcamp at your own pace. Most players complete it in 1-2 weeks.",
-          },
-          {
-            question: "What games does this apply to?",
-            answer:
-              "The recruiting principles apply to all college esports titles. The specific advice works across Valorant, Rocket League, Overwatch, Smash, and more.",
-          },
-        ],
-        order_index: 0,
-        requires_reflection: false,
-        quiz: {
-          title: "Step 0 Quiz",
-          questions: [
-            {
-              question: "What is the main goal of the EVAL Bootcamp?",
-              options: [
-                "To help players go professional immediately",
-                "To teach players how to access college esports scholarship opportunities",
-                "To improve in-game mechanics only",
-                "To rank players nationally",
-              ],
-              correct_index: 1,
-            },
-            {
-              question:
-                "How many tangible outcomes should you walk away with by the end of the program?",
-              options: ["3", "4", "5", "6"],
-              correct_index: 2,
-            },
-            {
-              question: "Which of the following is NOT listed as one of the five outcomes?",
-              options: [
-                "A clear college list",
-                "A verified recruiting esports profile",
-                "A professional esports contract",
-                "A college-level highlight reel",
-              ],
-              correct_index: 2,
-            },
-            {
-              question: 'Why is understanding your "why" important in recruiting?',
-              options: [
-                "It helps you negotiate scholarships",
-                "It increases your gaming skill",
-                "It keeps you consistent through a long process",
-                "It guarantees college offers",
-              ],
-              correct_index: 2,
-            },
-            {
-              question: "What happens in Step 1?",
-              options: [
-                "You create your highlight reel",
-                "You contact college coaches",
-                "You learn what it takes to get recruited",
-                "You commit to a college",
-              ],
-              correct_index: 2,
-            },
-          ],
-        },
-      },
-    ],
-  },
-
   // ========== STEP 1 ==========
   {
     slug: "step-1-define-your-why",
     title: 'Define Your "Why"',
     description:
       "Define the internal standard that drives you — before competition, rankings, or scholarships.",
-    order_index: 1,
-    is_free: false,
+    order_index: 0,
+    is_free: true,
     lessons: [
       {
         slug: "define-your-why",
@@ -337,7 +220,7 @@ This is the foundation everything else builds on.`,
     title: "Build Your College List",
     description:
       "Build a strategic college list, choose the right esports program, and learn to use the EVAL College Search Engine.",
-    order_index: 2,
+    order_index: 1,
     is_free: false,
     lessons: [
       {
@@ -617,7 +500,7 @@ Use the search engine strategically — not casually.`,
     title: "Your Application & Profile",
     description:
       "Frame yourself in your college application, understand what coaches look for, and build your EVAL profile.",
-    order_index: 3,
+    order_index: 2,
     is_free: false,
     lessons: [
       {
@@ -1084,7 +967,7 @@ Next: turning gameplay into a highlight reel.`,
     title: "Building a College-Level Highlight Reel",
     description:
       "Learn how to create a 2-3 minute highlight reel that helps coaches evaluate you quickly.",
-    order_index: 4,
+    order_index: 3,
     is_free: false,
     lessons: [
       {
@@ -1230,7 +1113,7 @@ Next, you will learn how to share your reel properly and make sure it gets seen.
     title: "Write Your College Outreach Email",
     description:
       "Learn how to write a clear, professional email to college esports programs that opens doors.",
-    order_index: 5,
+    order_index: 4,
     is_free: false,
     lessons: [
       {
@@ -1372,6 +1255,18 @@ Best,
 
 async function main() {
   console.log("Seeding bootcamp data...\n");
+
+  // 0. Drop the legacy "Welcome & Why EVAL Exists" promo module so the
+  // unique [bootcamp_id, order_index] constraint stays satisfied when
+  // shifting Define Your Why down to order_index 0.
+  const deletedLegacy = await prisma.bootcampModule.deleteMany({
+    where: { slug: "step-0-welcome" },
+  });
+  if (deletedLegacy.count > 0) {
+    console.log(
+      `Removed ${deletedLegacy.count} legacy welcome module(s) (cascades to lessons/quizzes/progress).`,
+    );
+  }
 
   // 1. Upsert the bootcamp
   const bootcamp = await prisma.bootcamp.upsert({

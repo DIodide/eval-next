@@ -72,22 +72,11 @@ function isStepDataComplete(
 ): boolean {
   switch (moduleOrderIndex) {
     case 0: {
-      // Step 0: Why Esports checkboxes + Your Why text
-      const whyEsports = stepData.why_esports as string[] | undefined;
-      const yourWhy = stepData.your_why as string | undefined;
-      return (
-        Array.isArray(whyEsports) &&
-        whyEsports.length > 0 &&
-        typeof yourWhy === "string" &&
-        yourWhy.trim().length > 0
-      );
-    }
-    case 1: {
       // Step 1: Define Your Why - uses existing quiz/reflection flow, not step_data
       // This is handled by the legacy isLessonComplete() check instead
       return false;
     }
-    case 2: {
+    case 1: {
       // Step 2: College list - Game, GPA, college rankings (5 schools), recruiting factors
       const collegeRankings = stepData.college_rankings as string[] | undefined;
       return (
@@ -95,7 +84,7 @@ function isStepDataComplete(
         collegeRankings.length >= 5
       );
     }
-    case 3: {
+    case 2: {
       // Step 3: Profile / Coach Perspective Workshop
       const coachPerspective = stepData.coach_perspective as Record<string, string> | undefined;
       if (!coachPerspective) return false;
@@ -107,12 +96,12 @@ function isStepDataComplete(
         typeof coachPerspective.example_resilience === "string" && coachPerspective.example_resilience.trim().length > 0
       );
     }
-    case 4: {
+    case 3: {
       // Step 4: Highlight reel - either watched examples or uploaded clips
       const reelAction = stepData.reel_action_completed as boolean | undefined;
       return reelAction === true;
     }
-    case 5: {
+    case 4: {
       // Step 5: Email writing
       const emailDraft = stepData.email_draft as Record<string, string> | undefined;
       if (!emailDraft) return false;
@@ -1181,4 +1170,85 @@ export const bootcampRouter = createTRPCRouter({
       durationSeconds: lesson.duration_seconds,
     };
   }),
+
+  /**
+   * Public read of a lesson within the first (free) module so guests can
+   * preview Step 1 without signing in. Only resolves when module.order_index === 0.
+   * Returns full content including quiz answers — this is intentional for the
+   * client-side teaser experience; access stops at the next module.
+   */
+  getPublicStepOneLesson: publicProcedure
+    .input(
+      z.object({
+        moduleSlug: z.string(),
+        lessonSlug: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const lesson = await ctx.db.lesson.findFirst({
+        where: {
+          slug: input.lessonSlug,
+          is_published: true,
+          module: {
+            slug: input.moduleSlug,
+            order_index: 0,
+            is_published: true,
+            bootcamp: { slug: "recruit-bootcamp", is_published: true },
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          video_url: true,
+          video_hls_url: true,
+          transcript_vtt_url: true,
+          poster_url: true,
+          duration_seconds: true,
+          content_markdown: true,
+          common_questions: true,
+          requires_reflection: true,
+          quiz: {
+            select: {
+              title: true,
+              passing_score: true,
+              questions: true,
+            },
+          },
+          module: {
+            select: {
+              slug: true,
+              title: true,
+              description: true,
+              order_index: true,
+            },
+          },
+        },
+      });
+
+      if (!lesson) return null;
+
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        slug: lesson.slug,
+        description: lesson.description,
+        videoUrl: lesson.video_url,
+        videoHlsUrl: lesson.video_hls_url,
+        transcriptVttUrl: lesson.transcript_vtt_url,
+        posterUrl: lesson.poster_url,
+        durationSeconds: lesson.duration_seconds,
+        contentMarkdown: lesson.content_markdown,
+        commonQuestions: lesson.common_questions,
+        requiresReflection: lesson.requires_reflection,
+        quiz: lesson.quiz,
+        module: {
+          slug: lesson.module.slug,
+          title: lesson.module.title,
+          description: lesson.module.description,
+          orderIndex: lesson.module.order_index,
+        },
+      };
+    }),
 });

@@ -16,12 +16,11 @@ import { useState } from "react";
 
 // Descriptive step labels matching the wireframe sidebar
 const STEP_LABELS: Record<number, string> = {
-  0: "Your Why",
-  1: "Define Your Why",
-  2: "Build College List",
-  3: "Esport Application",
-  4: "Highlight Reel",
-  5: "Message Coaches",
+  0: "Define Your Why",
+  1: "Build College List",
+  2: "Esport Application",
+  3: "Highlight Reel",
+  4: "Message Coaches",
 };
 
 export function BootcampSidebar() {

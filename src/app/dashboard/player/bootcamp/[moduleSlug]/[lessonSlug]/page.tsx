@@ -11,7 +11,6 @@ import {
 import { TranscriptPanel } from "@/components/bootcamp/TranscriptPanel";
 import { QuizComponent } from "@/components/bootcamp/QuizComponent";
 import { ReflectionForm } from "@/components/bootcamp/ReflectionForm";
-import { StepZeroWhyEsports } from "@/components/bootcamp/steps/StepZeroWhyEsports";
 import { StepOneCollegeList } from "@/components/bootcamp/steps/StepOneCollegeList";
 import { StepTwoProfile } from "@/components/bootcamp/steps/StepTwoProfile";
 import { StepThreeHighlightReel } from "@/components/bootcamp/steps/StepThreeHighlightReel";
@@ -20,30 +19,19 @@ import { ArrowRight, Check, Trophy, Award, Play } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 // Step titles for sidebar-style descriptive names
 const STEP_LABELS: Record<number, string> = {
-  0: "Welcome & Your Why",
-  1: "Define Your Why",
-  2: "Build Your College List",
-  3: "Your Application & Profile",
-  4: "Highlight Reel",
-  5: "Message Coaches",
+  0: "Define Your Why",
+  1: "Build Your College List",
+  2: "Your Application & Profile",
+  3: "Highlight Reel",
+  4: "Message Coaches",
 };
 
 // Step descriptions/takeaways
 const STEP_DESCRIPTIONS: Record<number, { description: string; takeaways: string[] }> = {
   0: {
-    description:
-      "Before we start building your recruiting toolkit, you need clarity on why you're doing this. Recruiting takes time and consistent effort. If you don't understand your 'why,' you won't stay disciplined long enough for this process to work.",
-    takeaways: [
-      "Clarity on your personal motivation",
-      "Understanding of the 5 bootcamp outcomes",
-      "Your 'why' statement saved to your profile",
-    ],
-  },
-  1: {
     description:
       "Reflect deeply on what drives you in esports recruiting. This is the foundation that will keep you motivated throughout the entire process.",
     takeaways: [
@@ -52,7 +40,7 @@ const STEP_DESCRIPTIONS: Record<number, { description: string; takeaways: string
       "Foundation for your recruiting journey",
     ],
   },
-  2: {
+  1: {
     description:
       "Build a clear, realistic college list by searching EVAL's college database. Rank at least 5 schools and identify what factors matter most to you in recruiting.",
     takeaways: [
@@ -61,7 +49,7 @@ const STEP_DESCRIPTIONS: Record<number, { description: string; takeaways: string
       "Knowledge of available esports scholarships",
     ],
   },
-  3: {
+  2: {
     description:
       "Frame your gaming experience in terms coaches understand. Complete the Coach Perspective Workshop and build your EVAL profile to stand out to recruiters.",
     takeaways: [
@@ -70,7 +58,7 @@ const STEP_DESCRIPTIONS: Record<number, { description: string; takeaways: string
       "Application-appropriate language for esports",
     ],
   },
-  4: {
+  3: {
     description:
       "Watch highlight reel examples from your cohort or create your own. A strong highlight reel is one of the most powerful tools in esports recruiting.",
     takeaways: [
@@ -79,7 +67,7 @@ const STEP_DESCRIPTIONS: Record<number, { description: string; takeaways: string
       "Clips uploaded to your profile",
     ],
   },
-  5: {
+  4: {
     description:
       "Learn to write compelling outreach emails to college coaches. Practice crafting your personal email with the 5 key sections every coach email needs.",
     takeaways: [
@@ -212,8 +200,8 @@ export default function LessonPage() {
     bootcampProgress?.overallProgress?.completionPercentage ?? 0;
 
   // Determine if this step uses new interactive format (step_data based)
-  // Module 1 uses legacy quiz/reflection flow; modules 0, 2-5 use interactive steps
-  const isInteractiveStep = moduleIndex !== 1;
+  // Module 0 (Define Your Why) uses legacy quiz/reflection flow; modules 1-4 use interactive steps
+  const isInteractiveStep = moduleIndex !== 0;
 
   return (
     <div className="min-h-screen">
@@ -246,7 +234,7 @@ export default function LessonPage() {
           </Link>
           <span>/</span>
           <span>
-            Step {moduleIndex}:{" "}
+            Step {moduleIndex + 1}:{" "}
             {STEP_LABELS[moduleIndex] ?? lesson.module.title}
           </span>
           {isComplete && (
@@ -385,29 +373,7 @@ export default function LessonPage() {
           <div className="lg:col-span-2">
             {isInteractiveStep ? (
               <div>
-                {moduleIndex === 0 && (
-                  <StepZeroWhyEsports
-                    initialSelections={
-                      (stepData.why_esports as string[]) ?? []
-                    }
-                    initialWhyText={(stepData.your_why as string) ?? ""}
-                    isSaving={saveStepData.isPending}
-                    onSaveWhyEsports={async (selections) => {
-                      await saveStepData.mutateAsync({
-                        lessonId: lesson.id,
-                        stepData: { why_esports: selections },
-                      });
-                    }}
-                    onSaveYourWhy={async (text) => {
-                      await saveStepData.mutateAsync({
-                        lessonId: lesson.id,
-                        stepData: { your_why: text },
-                      });
-                    }}
-                  />
-                )}
-
-                {moduleIndex === 2 && (
+                {moduleIndex === 1 && (
                   <StepOneCollegeList
                     initialData={stepData as {
                       game_played?: string;
@@ -425,7 +391,7 @@ export default function LessonPage() {
                   />
                 )}
 
-                {moduleIndex === 3 && (
+                {moduleIndex === 2 && (
                   <StepTwoProfile
                     initialData={stepData as {
                       coach_perspective?: Record<string, string>;
@@ -441,7 +407,7 @@ export default function LessonPage() {
                   />
                 )}
 
-                {moduleIndex === 4 && (
+                {moduleIndex === 3 && (
                   <StepThreeHighlightReel
                     initialData={stepData as {
                       reel_action_completed?: boolean;
@@ -457,7 +423,7 @@ export default function LessonPage() {
                   />
                 )}
 
-                {moduleIndex === 5 && (
+                {moduleIndex === 4 && (
                   <StepFourEmailWriting
                     initialData={stepData as {
                       email_draft?: Record<string, string>;
