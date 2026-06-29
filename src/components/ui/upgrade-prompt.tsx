@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Lock, Zap } from "lucide-react";
+import { isBillingEnabled } from "@/lib/billing-config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { FeatureKey } from "@/lib/pricing-config";
@@ -27,6 +28,10 @@ export function UpgradePrompt({
   variant = "inline",
 }: UpgradePromptProps) {
   const { openUpgradeModal } = useUpgradeModal();
+
+  if (!isBillingEnabled()) {
+    return null;
+  }
 
   const handleUpgrade = () => {
     if (featureKey) {

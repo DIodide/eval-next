@@ -1133,16 +1133,16 @@ export const bootcampRouter = createTRPCRouter({
     }),
 
   /**
-   * Fetch the very first lesson of the first module for the homepage teaser.
-   * Public, no auth required. Returns only what the video player needs.
+   * Step 1 lesson for the homepage teaser only — pinned by slug so legacy
+   * Step 0 / welcome content never wins via order_index drift.
    */
   getHomepageTeaser: publicProcedure.query(async ({ ctx }) => {
     const lesson = await ctx.db.lesson.findFirst({
       where: {
-        order_index: 0,
+        slug: "define-your-why",
         is_published: true,
         module: {
-          order_index: 0,
+          slug: "step-1-define-your-why",
           is_published: true,
           bootcamp: { slug: "recruit-bootcamp", is_published: true },
         },

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { isBillingEnabled } from "@/lib/billing-config";
 import type { FeatureKey } from "@/lib/pricing-config";
 import { UpgradeModal } from "./upgrade-modal";
 
@@ -33,6 +34,7 @@ export function UpgradeModalProvider({
   });
 
   const openUpgradeModal = useCallback((context: UpgradeModalContext) => {
+    if (!isBillingEnabled()) return;
     setState({ open: true, context });
   }, []);
 
@@ -48,13 +50,15 @@ export function UpgradeModalProvider({
   return (
     <UpgradeModalContext.Provider value={value}>
       {children}
-      <UpgradeModal
-        open={state.open}
-        context={state.context}
-        onOpenChange={(open) => {
-          if (!open) closeUpgradeModal();
-        }}
-      />
+      {isBillingEnabled() && (
+        <UpgradeModal
+          open={state.open}
+          context={state.context}
+          onOpenChange={(open) => {
+            if (!open) closeUpgradeModal();
+          }}
+        />
+      )}
     </UpgradeModalContext.Provider>
   );
 }

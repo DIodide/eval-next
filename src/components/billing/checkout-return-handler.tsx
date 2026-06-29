@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { isBillingEnabled } from "@/lib/billing-config";
 import { api } from "@/trpc/react";
 import {
   PaymentStatusDialog,
@@ -29,6 +30,8 @@ function CheckoutReturnHandlerInner() {
     | undefined;
 
   useEffect(() => {
+    if (!isBillingEnabled()) return;
+
     const checkout = searchParams.get("checkout");
     const plan = searchParams.get("plan");
     const success = searchParams.get("success");
@@ -77,6 +80,10 @@ function CheckoutReturnHandlerInner() {
     router.replace(nextPath, { scroll: false });
   }, [searchParams, pathname, router, utils]);
 
+  if (!isBillingEnabled()) {
+    return null;
+  }
+
   const isPricingPage = pathname === "/pricing";
 
   return (
@@ -98,6 +105,10 @@ function CheckoutReturnHandlerInner() {
 }
 
 export function CheckoutReturnHandler() {
+  if (!isBillingEnabled()) {
+    return null;
+  }
+
   return (
     <Suspense fallback={null}>
       <CheckoutReturnHandlerInner />

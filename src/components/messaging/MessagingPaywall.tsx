@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LockIcon, CrownIcon } from "lucide-react";
+import { isBillingEnabled } from "@/lib/billing-config";
 import {
   FEATURE_KEYS,
   type FeatureKey,
@@ -27,6 +28,10 @@ export function MessagingPaywall({
   featureKey = FEATURE_KEYS.MESSAGING_UNLIMITED,
 }: MessagingPaywallProps) {
   const { openUpgradeModal } = useUpgradeModal();
+
+  if (!isBillingEnabled()) {
+    return null;
+  }
 
   return (
     <div className="flex h-full items-center justify-center p-4 sm:p-8">

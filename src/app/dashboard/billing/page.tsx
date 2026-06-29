@@ -1,10 +1,15 @@
 import { auth } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { isBillingEnabled } from "@/lib/billing-config";
 import { getCustomerRecord } from "@/lib/server/stripe";
 import { createCustomerPortalSession } from "@/lib/server/stripe-subscriptions";
 
 export default async function BillingRedirectPage() {
+  if (!isBillingEnabled()) {
+    redirect("/dashboard");
+  }
+
   const { userId } = await auth();
 
   if (!userId) {

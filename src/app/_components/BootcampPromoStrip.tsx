@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Sparkles } from "lucide-react";
+import { isBillingEnabled } from "@/lib/billing-config";
 import { FEATURE_KEYS } from "@/lib/pricing-config";
 import { useUpgradeModal } from "@/components/billing/upgrade-modal-provider";
 
@@ -14,6 +15,10 @@ const TICKER_ITEMS = [
 
 export function BootcampPromoStrip() {
   const { openUpgradeModal } = useUpgradeModal();
+
+  if (!isBillingEnabled()) {
+    return null;
+  }
 
   const openBootcampUpgrade = () => {
     openUpgradeModal({

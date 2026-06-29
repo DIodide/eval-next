@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { isBillingEnabled } from "@/lib/billing-config";
 import { api } from "@/trpc/react";
 import type { PricingPlanId } from "@/lib/pricing-config";
 
@@ -40,6 +41,11 @@ export function useSubscriptionCheckout() {
       returnPath,
       onError,
     }: StartCheckoutOptions) => {
+      if (!isBillingEnabled()) {
+        onError?.("Billing is not enabled yet.");
+        return;
+      }
+
       if (!priceId) {
         onError?.(
           "Pricing not configured. Please contact support to set up this plan.",

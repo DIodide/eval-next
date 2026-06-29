@@ -1,3 +1,4 @@
+import { isBillingEnabled } from "@/lib/billing-config";
 import { db } from "@/server/db";
 import {
   FEATURE_KEYS,
@@ -52,6 +53,8 @@ export async function hasFeatureAccess(
   featureKey: FeatureKey,
   client?: PlanAccessDbClient,
 ): Promise<boolean> {
+  if (!isBillingEnabled()) return true;
+
   const plan = await getActivePlan(clerkUserId, client);
   if (!plan) return false;
   return (PLAN_FEATURES[plan] ?? ([] as readonly FeatureKey[])).includes(featureKey);

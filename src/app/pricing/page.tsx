@@ -46,6 +46,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { isBillingEnabled } from "@/lib/billing-config";
 
 function SearchParamsHandler({
   setFromBootcamp,
@@ -73,6 +74,16 @@ function SearchParamsHandler({
 function PricingPageContent() {
   const { user } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isBillingEnabled()) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  if (!isBillingEnabled()) {
+    return null;
+  }
 
   // Get user type from Clerk metadata to determine default tab
   const userType = user?.publicMetadata?.userType as
