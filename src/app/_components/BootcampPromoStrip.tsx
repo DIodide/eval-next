@@ -1,5 +1,9 @@
-import Link from "next/link";
+"use client";
+
 import { ArrowRight, Sparkles } from "lucide-react";
+import { isBillingEnabled } from "@/lib/billing-config";
+import { FEATURE_KEYS } from "@/lib/pricing-config";
+import { useUpgradeModal } from "@/components/billing/upgrade-modal-provider";
 
 const TICKER_ITEMS = [
   "Build your college list",
@@ -10,11 +14,27 @@ const TICKER_ITEMS = [
 ];
 
 export function BootcampPromoStrip() {
+  const { openUpgradeModal } = useUpgradeModal();
+
+  if (!isBillingEnabled()) {
+    return null;
+  }
+
+  const openBootcampUpgrade = () => {
+    openUpgradeModal({
+      featureKey: FEATURE_KEYS.BOOTCAMP_ACCESS,
+      title: "Unlock EVAL+ Bootcamp",
+      description:
+        "Get full access to all 5 bootcamp steps and track your recruiting progress.",
+    });
+  };
+
   return (
-    <Link
-      href="/pricing?from=bootcamp"
+    <button
+      type="button"
+      onClick={openBootcampUpgrade}
       aria-label="Explore EVAL+ Bootcamp pricing"
-      className="group relative block overflow-hidden border-b border-cyan-400/20 bg-[#070416]"
+      className="group relative block w-full overflow-hidden border-b border-cyan-400/20 bg-[#070416] text-left"
     >
       {/* Diagonal animated chevron rail */}
       <div
@@ -107,11 +127,11 @@ export function BootcampPromoStrip() {
               aria-hidden
               className="absolute inset-0 -translate-x-full bg-gradient-to-r from-cyan-400/0 via-cyan-400/30 to-cyan-400/0 transition-transform duration-700 group-hover:translate-x-full"
             />
-            <span className="relative">SEE PRICING</span>
+            <span className="relative">UNLOCK BOOTCAMP</span>
             <ArrowRight className="relative h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
           </span>
         </div>
       </div>
-    </Link>
+    </button>
   );
 }

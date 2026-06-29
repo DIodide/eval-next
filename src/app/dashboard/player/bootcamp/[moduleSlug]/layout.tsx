@@ -41,6 +41,7 @@ export default async function BootcampModuleLayout({
           title="Bootcamp Access Required"
           description="The EVAL Recruiting Bootcamp is available to EVAL+ subscribers. Upgrade to unlock all modules and track your progress."
           ctaText="Unlock Bootcamp"
+          featureKey={FEATURE_KEYS.BOOTCAMP_ACCESS}
         />
       </div>
     );

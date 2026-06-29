@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
+import { FEATURE_KEYS } from "@/lib/pricing-config";
 import { SendIcon, LoaderIcon } from "lucide-react";
 
 interface MessageInputProps {
@@ -29,6 +30,7 @@ export function MessageInput({ onSend, isPending, messageLimitReached }: Message
           title="Message limit reached"
           description={`Free tier allows up to 3 messages per conversation. Upgrade to EVAL+ to continue.`}
           ctaText="Upgrade to EVAL+"
+          featureKey={FEATURE_KEYS.MESSAGING_UNLIMITED}
         />
       </div>
     );

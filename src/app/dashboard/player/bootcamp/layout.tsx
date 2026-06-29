@@ -27,6 +27,7 @@ export default async function BootcampLayout({
             title="Bootcamp Access Required"
             description="Upgrade to EVAL+ to track progress and complete steps."
             ctaText="Unlock Bootcamp"
+            featureKey={FEATURE_KEYS.BOOTCAMP_ACCESS}
           />
         </div>
       )}

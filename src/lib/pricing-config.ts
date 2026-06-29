@@ -162,3 +162,46 @@ export function getPlanIdForPriceId(priceId: string): PlanId | null {
 
 export const PLAYER_FREE_CONV_STARTS_PER_MONTH = 3;
 export const PLAYER_FREE_MESSAGES_PER_CONV = 3;
+
+export type UpgradeUserType = "player" | "coach";
+
+export type UpgradePlan =
+  | (typeof PRICING_PLANS.PLAYERS)[keyof typeof PRICING_PLANS.PLAYERS]
+  | (typeof PRICING_PLANS.COACHES)[keyof typeof PRICING_PLANS.COACHES];
+
+export const FEATURE_UPGRADE_OPTIONS: Partial<
+  Record<
+    FeatureKey,
+    Partial<Record<UpgradeUserType, UpgradePlan>>
+  >
+> = {
+  [FEATURE_KEYS.MESSAGING_UNLIMITED]: {
+    player: PRICING_PLANS.PLAYERS.EVAL_PLUS,
+  },
+  [FEATURE_KEYS.BOOTCAMP_ACCESS]: {
+    player: PRICING_PLANS.PLAYERS.EVAL_PLUS,
+    coach: PRICING_PLANS.COACHES.GOLD,
+  },
+};
+
+export function getUpgradePlanForFeature(
+  featureKey: FeatureKey,
+  userType: UpgradeUserType,
+): UpgradePlan | null {
+  const options = FEATURE_UPGRADE_OPTIONS[featureKey];
+  if (!options) return null;
+  return options[userType] ?? options.player ?? options.coach ?? null;
+}
+
+export function getPlanDisplayName(planId: PricingPlanId): string {
+  switch (planId) {
+    case "gold":
+      return "EVAL Gold";
+    case "platinum":
+      return "EVAL Platinum";
+    case "eval_plus":
+      return "EVAL+";
+    default:
+      return "Premium";
+  }
+}

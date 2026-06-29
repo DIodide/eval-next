@@ -34,6 +34,10 @@ export const env = createEnv({
     RESEND_FROM_MESSAGES: z.string().optional(),   // Player message notifications
     RESEND_FROM_REMINDERS: z.string().optional(),  // Reminder/follow-up emails
 
+    // Trigger.dev background tasks
+    TRIGGER_SECRET_KEY: z.string().optional(),
+    TRIGGER_PROJECT_ID: z.string().optional(),
+
     // Cloudinary (bootcamp video/caption/poster hosting)
     // Server-side only — contains API secret. Optional at build time so the
     // main app can boot without it; only the upload CLI script requires it.
@@ -70,6 +74,11 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID: z.string(),
     NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID: z.string(),
     NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID: z.string(),
+    NEXT_PUBLIC_BILLING_ENABLED: z
+      .enum(["true", "false"])
+      .optional()
+      .default("false"),
+    NEXT_PUBLIC_SHOP_URL: z.string().url().optional(),
   },
 
   /**
@@ -98,6 +107,8 @@ export const env = createEnv({
     RESEND_FROM_RECRUITING: process.env.RESEND_FROM_RECRUITING,
     RESEND_FROM_MESSAGES: process.env.RESEND_FROM_MESSAGES,
     RESEND_FROM_REMINDERS: process.env.RESEND_FROM_REMINDERS,
+    TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
+    TRIGGER_PROJECT_ID: process.env.TRIGGER_PROJECT_ID,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
     DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,
@@ -127,6 +138,8 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID,
     NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID:
       process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID,
+    NEXT_PUBLIC_BILLING_ENABLED: process.env.NEXT_PUBLIC_BILLING_ENABLED,
+    NEXT_PUBLIC_SHOP_URL: process.env.NEXT_PUBLIC_SHOP_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
