@@ -221,7 +221,6 @@ src/
 │   ├── dashboard/         # User dashboards (player/coach)
 │   ├── profiles/          # Public profile pages
 │   ├── rankings/          # League rankings and statistics
-│   ├── tryouts/           # Tryout browsing and registration
 │   └── _components/       # Shared page components
 ├── components/            # Reusable UI components
 ├── hooks/                 # Custom React hooks
