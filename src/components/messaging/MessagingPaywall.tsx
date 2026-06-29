@@ -3,7 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LockIcon, CrownIcon } from "lucide-react";
-import Link from "next/link";
+import {
+  FEATURE_KEYS,
+  type FeatureKey,
+} from "@/lib/pricing-config";
+import { useUpgradeModal } from "@/components/billing/upgrade-modal-provider";
 
 interface MessagingPaywallProps {
   title?: string;
@@ -11,6 +15,7 @@ interface MessagingPaywallProps {
   priceLabel?: string;
   ctaLabel?: string;
   compact?: boolean;
+  featureKey?: FeatureKey;
 }
 
 export function MessagingPaywall({
@@ -19,7 +24,10 @@ export function MessagingPaywall({
   priceLabel = "$5/month",
   ctaLabel = "Unlock EVAL+",
   compact = false,
+  featureKey = FEATURE_KEYS.MESSAGING_UNLIMITED,
 }: MessagingPaywallProps) {
+  const { openUpgradeModal } = useUpgradeModal();
+
   return (
     <div className="flex h-full items-center justify-center p-4 sm:p-8">
       <Card
@@ -58,10 +66,12 @@ export function MessagingPaywall({
           <span className="font-orbitron text-lg font-bold">{priceLabel}</span>
         </div>
         <Button
-          asChild
+          onClick={() =>
+            openUpgradeModal({ featureKey, title, description })
+          }
           className="font-orbitron w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black shadow-lg hover:from-yellow-600 hover:to-amber-700"
         >
-          <Link href="/pricing">{ctaLabel}</Link>
+          {ctaLabel}
         </Button>
       </Card>
     </div>

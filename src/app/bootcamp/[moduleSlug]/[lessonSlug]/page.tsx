@@ -10,6 +10,8 @@ import {
 } from "@/components/bootcamp/VideoPlayer";
 import { QuizComponent } from "@/components/bootcamp/QuizComponent";
 import { useUser, SignUpButton } from "@clerk/nextjs";
+import { useUpgradeModal } from "@/components/billing/upgrade-modal-provider";
+import { FEATURE_KEYS } from "@/lib/pricing-config";
 import {
   ArrowRight,
   ChevronDown,
@@ -112,7 +114,17 @@ function renderMarkdownLite(markdown: string) {
 export default function PublicBootcampLessonPage() {
   const params = useParams<{ moduleSlug: string; lessonSlug: string }>();
   const { isSignedIn } = useUser();
+  const { openUpgradeModal } = useUpgradeModal();
   const playerRef = useRef<BootcampVideoPlayerHandle>(null);
+
+  const openBootcampUpgrade = () => {
+    openUpgradeModal({
+      featureKey: FEATURE_KEYS.BOOTCAMP_ACCESS,
+      title: "Unlock EVAL+ Bootcamp",
+      description:
+        "Get full access to all 5 bootcamp steps and track your recruiting progress.",
+    });
+  };
 
   const { data: lesson, isLoading } =
     api.bootcamp.getPublicStepOneLesson.useQuery({
@@ -152,12 +164,13 @@ export default function PublicBootcampLessonPage() {
           Only the first step of the EVAL+ Bootcamp is available without an
           account. Sign up free to continue.
         </p>
-        <Link
-          href="/pricing?from=bootcamp"
+        <button
+          type="button"
+          onClick={openBootcampUpgrade}
           className="font-orbitron mt-2 inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-400/10 px-5 py-2 text-xs font-bold tracking-[0.2em] text-cyan-200 hover:bg-cyan-400/20"
         >
-          See pricing <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+          Unlock bootcamp <ArrowRight className="h-3.5 w-3.5" />
+        </button>
       </div>
     );
   }
@@ -186,12 +199,13 @@ export default function PublicBootcampLessonPage() {
               FREE PREVIEW · STEP {stepNumber}
             </span>
           </div>
-          <Link
-            href="/pricing?from=bootcamp"
+          <button
+            type="button"
+            onClick={openBootcampUpgrade}
             className="font-rajdhani text-xs text-white/60 transition-colors hover:text-white"
           >
             Unlock all 5 steps →
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -468,12 +482,13 @@ export default function PublicBootcampLessonPage() {
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               )}
-              <Link
-                href="/pricing?from=bootcamp"
+              <button
+                type="button"
+                onClick={openBootcampUpgrade}
                 className="font-orbitron inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.25em] text-cyan-200/80 uppercase hover:text-white"
               >
-                <Lock className="h-3 w-3" /> See EVAL+ pricing
-              </Link>
+                <Lock className="h-3 w-3" /> Unlock EVAL+ bootcamp
+              </button>
             </div>
           </div>
         </section>
