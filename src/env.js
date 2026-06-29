@@ -34,6 +34,10 @@ export const env = createEnv({
     RESEND_FROM_MESSAGES: z.string().optional(),   // Player message notifications
     RESEND_FROM_REMINDERS: z.string().optional(),  // Reminder/follow-up emails
 
+    // Trigger.dev background tasks
+    TRIGGER_SECRET_KEY: z.string().optional(),
+    TRIGGER_PROJECT_ID: z.string().optional(),
+
     // Cloudinary (bootcamp video/caption/poster hosting)
     // Server-side only — contains API secret. Optional at build time so the
     // main app can boot without it; only the upload CLI script requires it.
@@ -98,6 +102,8 @@ export const env = createEnv({
     RESEND_FROM_RECRUITING: process.env.RESEND_FROM_RECRUITING,
     RESEND_FROM_MESSAGES: process.env.RESEND_FROM_MESSAGES,
     RESEND_FROM_REMINDERS: process.env.RESEND_FROM_REMINDERS,
+    TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
+    TRIGGER_PROJECT_ID: process.env.TRIGGER_PROJECT_ID,
     // Discord webhook URLs
     DISCORD_WEBHOOK_GENERAL: process.env.DISCORD_WEBHOOK_GENERAL,
     DISCORD_WEBHOOK_ADMIN: process.env.DISCORD_WEBHOOK_ADMIN,

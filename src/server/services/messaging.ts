@@ -2,7 +2,7 @@ import { type Prisma, type PrismaClient } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { addMonths, startOfMonth } from "date-fns";
 
-import { sendPlayerMessageEmail } from "@/lib/server/email-bridge";
+import { triggerPlayerMessageWorkflow } from "@/lib/server/background-tasks";
 import {
   PLAYER_FREE_CONV_STARTS_PER_MONTH,
   PLAYER_FREE_MESSAGES_PER_CONV,
@@ -1040,56 +1040,18 @@ export async function sendPlayerMessage(
         });
       }
 
-      // Email bridge: if coach is a preprovisioned coach (no clerk_id), send email notification
       const emailCoach = result.coachForEmail as {
         id: string;
         clerk_id: string | null;
-        email: string;
-        first_name: string;
-        last_name: string;
-        school: string;
-        forwarded_emails_count: number;
       } | null;
-      if (emailCoach && !emailCoach.clerk_id && emailCoach.forwarded_emails_count < 3) {
-        const coach = emailCoach;
-        const player = await db.player.findUnique({
-          where: { id: args.playerId },
-          select: {
-            first_name: true,
-            last_name: true,
-            gpa: true,
-            main_game: { select: { name: true } },
-            game_profiles: {
-              take: 1,
-              select: { rank: true },
-              orderBy: { updated_at: "desc" },
-            },
-          },
+
+      if (emailCoach) {
+        await triggerPlayerMessageWorkflow({
+          conversationId: result.conversationId,
+          messageId: result.id,
+          playerId: args.playerId,
+          coachId: emailCoach.id,
         });
-
-        if (player) {
-          const playerName = `${player.first_name} ${player.last_name}`.trim();
-          const sent = await sendPlayerMessageEmail({
-            coachEmail: coach.email,
-            coachName: `${coach.first_name} ${coach.last_name}`.trim(),
-            playerName: playerName || "A player",
-            playerGame: player.main_game?.name,
-            playerRank: player.game_profiles[0]?.rank,
-            playerGpa: player.gpa?.toString(),
-            messagePreview: args.content,
-            forwardedEmailsCount: coach.forwarded_emails_count ?? 0,
-          });
-
-          // Increment forwarded_emails_count if email was sent
-          if (sent) {
-            await db.coach.update({
-              where: { id: coach.id },
-              data: {
-                ...({ forwarded_emails_count: { increment: 1 } } as Record<string, unknown>),
-              },
-            });
-          }
-        }
       }
 
       return {

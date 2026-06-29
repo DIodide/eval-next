@@ -36,7 +36,9 @@
     "preview": "next build && next start",
     "start": "concurrently \"next start\" \"ngrok http --url=fluent-peacock-grown.ngrok-free.app 3000\"",
     "test:messaging": "tsx --test src/tests/messages-router.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "trigger:dev": "trigger dev",
+    "trigger:deploy": "trigger deploy"
   },
   "dependencies": {
     "@clerk/backend": "^2.4.0",
@@ -82,6 +84,7 @@
     "@t3-oss/env-nextjs": "^0.12.0",
     "@tanstack/react-query": "^5.69.0",
     "@tanstack/react-table": "^8.21.3",
+    "@trigger.dev/sdk": "^4.4.6",
     "@trpc/client": "^11.8.0",
     "@trpc/react-query": "^11.8.0",
     "@trpc/server": "^11.8.0",
@@ -148,6 +151,7 @@
     "prisma": "^6.5.0",
     "supabase": "^2.78.1",
     "tailwindcss": "^4.1.8",
+    "trigger.dev": "^4.4.6",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.1",
     "tw-animate-css": "^1.3.3",
