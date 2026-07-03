@@ -1,32 +1,14 @@
 import { env } from "@/env";
-import {
-  FEATURE_KEYS,
-  grantEntitlement,
-  revokeSubscriptionEntitlements,
-  type FeatureKey,
-} from "@/lib/server/entitlements";
+import { getPlanIdForPriceId } from "@/lib/pricing-config";
 import { stripe } from "@/lib/server/stripe";
 import {
   syncPurchaseFromCheckoutSession,
   syncPurchaseFromPaymentIntent,
 } from "@/lib/server/stripe-purchases";
 import { syncSubscriptionFromStripe } from "@/lib/server/stripe-subscriptions";
-import { db } from "@/server/db";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import type Stripe from "stripe";
-
-const EVAL_PLUS_PRICE_IDS = [
-  process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID,
-  process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID,
-].filter(Boolean) as string[];
-
-const EVAL_PLUS_FEATURES = [
-  FEATURE_KEYS.DIRECT_MESSAGING,
-  FEATURE_KEYS.UNLIMITED_MESSAGES,
-  FEATURE_KEYS.PREMIUM_SEARCH,
-  FEATURE_KEYS.ADVANCED_ANALYTICS,
-] as const;
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -67,91 +49,28 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object;
-        await syncSubscriptionFromStripe(subscription);
-
-        // Grant entitlements based on subscription
-        // This is where you'd map subscription price IDs to feature entitlements
-        // Example: if subscription has price_id "price_premium", grant premium features
-        const customer = await db.stripeCustomer.findUnique({
-          where: { stripe_customer_id: subscription.customer as string },
-        });
-
-        if (customer) {
-          const priceId = subscription.items.data[0]?.price.id;
-          const isActive =
-            subscription.status === "active" ||
-            subscription.status === "trialing";
-
-          if (priceId && isActive && EVAL_PLUS_PRICE_IDS.includes(priceId)) {
-            const dbSub = await db.subscription.findUnique({
-              where: { stripe_subscription_id: subscription.id },
-              select: { id: true },
-            });
-
-            for (const featureKey of EVAL_PLUS_FEATURES) {
-              await grantEntitlement(
-                customer.clerk_user_id,
-                featureKey,
-                "SUBSCRIPTION",
-                { subscriptionId: dbSub?.id },
-              );
-            }
-
-            console.log(
-              `[STRIPE WEBHOOK] Granted EVAL+ features to ${customer.clerk_user_id}`,
-            );
-          }
-        }
+        const planId = getPlanIdForPriceId(
+          subscription.items.data[0]?.price.id ?? "",
+        );
+        await syncSubscriptionFromStripe(subscription, { planId });
+        console.log(
+          `[STRIPE WEBHOOK] Synced subscription ${subscription.id} → plan_id: ${planId ?? "null"}`,
+        );
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
         await syncSubscriptionFromStripe(subscription);
-
-        // Revoke entitlements when subscription is canceled
-        const dbSubscription = await db.subscription.findUnique({
-          where: { stripe_subscription_id: subscription.id },
-        });
-
-        if (dbSubscription) {
-          await revokeSubscriptionEntitlements(dbSubscription.id);
-        }
+        console.log(
+          `[STRIPE WEBHOOK] Subscription deleted: ${subscription.id}`,
+        );
         break;
       }
 
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object;
         await syncPurchaseFromPaymentIntent(paymentIntent);
-
-        // Grant entitlements for one-time purchases
-        const customer = await db.stripeCustomer.findUnique({
-          where: { stripe_customer_id: paymentIntent.customer as string },
-        });
-
-        if (customer) {
-          const purchase = await db.purchase.findUnique({
-            where: { stripe_payment_intent_id: paymentIntent.id },
-          });
-
-          const validFeatureKeys = new Set<string>(Object.values(FEATURE_KEYS));
-          if (
-            purchase &&
-            purchase.product_type === "FEATURE_UNLOCK" &&
-            purchase.product_id &&
-            validFeatureKeys.has(purchase.product_id)
-          ) {
-            await grantEntitlement(
-              customer.clerk_user_id,
-              purchase.product_id as FeatureKey,
-              "PURCHASE",
-              { purchaseId: purchase.id },
-            );
-            console.log(
-              `[STRIPE WEBHOOK] Granted ${purchase.product_id} to ${customer.clerk_user_id} via purchase`,
-            );
-          }
-        }
         break;
       }
 
@@ -170,7 +89,10 @@ export async function POST(req: NextRequest) {
           const subscription = await stripe.subscriptions.retrieve(
             session.subscription as string,
           );
-          await syncSubscriptionFromStripe(subscription);
+          const planId = getPlanIdForPriceId(
+            subscription.items.data[0]?.price.id ?? "",
+          );
+          await syncSubscriptionFromStripe(subscription, { planId });
         }
         break;
       }

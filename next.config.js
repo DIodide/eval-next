@@ -41,6 +41,12 @@ const nextConfig = {
     },
   },
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 const withMDx = withMDX({

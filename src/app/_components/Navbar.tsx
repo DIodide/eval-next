@@ -23,7 +23,7 @@ import {
 } from "@clerk/nextjs";
 import {
   ChevronDown,
-  DollarSign,
+  CreditCard,
   GraduationCap,
   Menu,
   Search,
@@ -36,6 +36,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { getShopUrl, isBillingEnabled } from "@/lib/billing-config";
 
 type SearchResult = {
   id: string;
@@ -187,7 +188,7 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation — shared links for all; Dashboard is signed-in only */}
         <div className="hidden items-center space-x-8 lg:flex">
           <SignedIn>
             <Link
@@ -201,7 +202,7 @@ export default function Navbar() {
             href="/colleges"
             className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
           >
-            COLLEGES
+            COLLEGE
           </Link>
           <Link
             href="/recruiting"
@@ -209,57 +210,9 @@ export default function Navbar() {
           >
             RECRUITING
           </Link>
-          <Link
-            href="/news"
-            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
-          >
-            NEWS
-          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
-              RANKINGS <ChevronDown className="ml-1 h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="glass-morphism border-white/20">
-              <Link href="/rankings/leagues">
-                <DropdownMenuItem className="font-inter dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
-                  LEAGUES
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/rankings/combines">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
-                  COMBINES
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
-              TRYOUTS <ChevronDown className="ml-1 h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="glass-morphism border-white/20">
-              <Link href="/tryouts/combines">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
-                  EVAL COMBINES
-                </DropdownMenuItem>
-              </Link>
-              <Link href="/tryouts/college">
-                <DropdownMenuItem className="dropdown-rainbow-shadow heading-section cursor-pointer text-xs text-white hover:bg-white/10 focus:bg-white/10">
-                  COLLEGE
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
-          {/* <SignedOut>
-            <Link
-              href="/pricing"
-              className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
-            >
-              PRICING
-            </Link>
-          </SignedOut> */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-gray-200">
-              ABOUT US <ChevronDown className="ml-1 h-4 w-4" />
+              ABOUT <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="glass-morphism border-white/20">
               <Link href="/about/partners">
@@ -284,6 +237,15 @@ export default function Navbar() {
               </Link>
             </DropdownMenuContent>
           </DropdownMenu>
+          <a
+            href={getShopUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-link heading-section text-xs text-white transition-colors hover:text-gray-200"
+          >
+            SHOP
+          </a>
+
           {isAdmin && !isCheckingAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger className="nav-link-dropdown heading-section relative flex cursor-context-menu items-center text-xs tracking-wide text-white transition-colors hover:text-red-400">
@@ -509,11 +471,13 @@ export default function Navbar() {
                     labelIcon={<User className="h-4 w-4" />}
                     href="/dashboard"
                   />
-                  <UserButton.Link
-                    label="Pricing"
-                    labelIcon={<DollarSign className="h-4 w-4" />}
-                    href="/pricing"
-                  />
+                  {isBillingEnabled() && (
+                    <UserButton.Link
+                      label="Billing"
+                      labelIcon={<CreditCard className="h-4 w-4" />}
+                      href="/dashboard/billing"
+                    />
+                  )}
                   <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>
               </UserButton>
@@ -544,11 +508,13 @@ export default function Navbar() {
                     labelIcon={<User className="h-4 w-4" />}
                     href="/dashboard"
                   />
-                  <UserButton.Link
-                    label="Pricing"
-                    labelIcon={<DollarSign className="h-4 w-4" />}
-                    href="/pricing"
-                  />
+                  {isBillingEnabled() && (
+                    <UserButton.Link
+                      label="Billing"
+                      labelIcon={<CreditCard className="h-4 w-4" />}
+                      href="/dashboard/billing"
+                    />
+                  )}
                   <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>
               </UserButton>
@@ -715,7 +681,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Navigation Links */}
+            {/* Mobile Navigation Links — shared links for all; Dashboard is signed-in only */}
             <div className="space-y-3">
               <SignedIn>
                 <Link
@@ -728,6 +694,14 @@ export default function Navbar() {
               </SignedIn>
 
               <Link
+                href="/colleges"
+                className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                COLLEGE
+              </Link>
+
+              <Link
                 href="/recruiting"
                 className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -735,79 +709,8 @@ export default function Navbar() {
                 RECRUITING
               </Link>
 
-              <Link
-                href="/news"
-                className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                NEWS
-              </Link>
-
-              {/* Rankings Submenu */}
               <div className="space-y-2">
-                <div className="font-orbitron py-2 text-white">RANKINGS</div>
-                <div className="space-y-2 pl-4">
-                  <Link
-                    href="/rankings/leagues"
-                    className="font-orbitron block py-1 text-gray-300 transition-colors hover:text-cyan-400"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    LEAGUES
-                  </Link>
-                  <Link
-                    href="/rankings/combines"
-                    className="font-orbitron block py-1 text-gray-300 transition-colors hover:text-cyan-400"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    COMBINES
-                  </Link>
-                </div>
-              </div>
-
-              {/* Tryouts Submenu */}
-              {/* <div className="space-y-2">
-                <div className="font-orbitron py-2 text-white">TRYOUTS</div>
-                <div className="space-y-2 pl-4">
-                  <Link
-                    href="/tryouts/combines"
-                    className="font-orbitron block py-1 text-gray-300 transition-colors hover:text-cyan-400"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    EVAL COMBINES
-                  </Link>
-                  <Link
-                    href="/tryouts/college"
-                    className="font-orbitron block py-1 text-gray-300 transition-colors hover:text-cyan-400"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    COLLEGE
-                  </Link>
-                </div>
-              </div> */}
-
-              {/* <SignedOut>
-                <Link
-                  href="/pricing"
-                  className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  PRICING
-                </Link>
-              </SignedOut> */}
-
-              {/* <SignedIn>
-                <Link
-                  href="/pricing"
-                  className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  PRICING
-                </Link>
-              </SignedIn> */}
-
-              {/* About Us Submenu */}
-              <div className="space-y-2">
-                <div className="font-orbitron py-2 text-white">ABOUT US</div>
+                <div className="font-orbitron py-2 text-white">ABOUT</div>
                 <div className="space-y-2 pl-4">
                   <Link
                     href="/about/partners"
@@ -839,6 +742,16 @@ export default function Navbar() {
                   </Link>
                 </div>
               </div>
+
+              <a
+                href={getShopUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-orbitron block py-2 text-white transition-colors hover:text-cyan-400"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                SHOP
+              </a>
 
               {/* Admin Menu for mobile */}
               {isAdmin && !isCheckingAdmin && (

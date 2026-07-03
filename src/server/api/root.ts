@@ -16,9 +16,11 @@ import { rocketLeagueStatsRouter } from "@/server/api/routers/rocketLeagueStats"
 import { smashStatsRouter } from "@/server/api/routers/smashStats";
 import { adminDirectoryRouter } from "@/server/api/routers/adminDirectory";
 import { adminManagementRouter } from "@/server/api/routers/adminManagement";
+import { adminCoachesRouter } from "@/server/api/routers/adminCoaches";
 import { publicSearchRouter } from "@/server/api/routers/publicSearch";
 import { gseRouter } from "@/server/api/routers/gse";
 import { paymentsRouter } from "@/server/api/routers/payments";
+import { bootcampRouter } from "@/server/api/routers/bootcamp";
 
 /**
  * This is the primary router for your server.
@@ -44,8 +46,10 @@ export const appRouter = createTRPCRouter({
   smashStats: smashStatsRouter,
   adminDirectory: adminDirectoryRouter,
   adminManagement: adminManagementRouter,
+  adminCoaches: adminCoachesRouter,
   gse: gseRouter,
   payments: paymentsRouter,
+  bootcamp: bootcampRouter,
 });
 
 // export type definition of API

@@ -114,7 +114,7 @@ export function CoachesDashboardClientLayout({
       href: "/dashboard/coaches/player-search",
       icon: SearchIcon,
       requiresOnboarding: true,
-      enabled: false,
+      enabled: true,
     },
     {
       title: "My Prospects",

@@ -246,7 +246,7 @@ export default function CoachesDashboard() {
       href: "/dashboard/coaches/player-search",
       color: "from-blue-500 to-blue-600",
       requiresOnboarding: true,
-      comingSoon: true,
+      comingSoon: false,
     },
     {
       title: "Create Tryout",

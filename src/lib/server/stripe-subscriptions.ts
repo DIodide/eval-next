@@ -29,6 +29,7 @@ export function mapStripeSubscriptionStatus(
  */
 export async function syncSubscriptionFromStripe(
   stripeSubscription: Stripe.Subscription,
+  options?: { planId?: string | null },
 ) {
   const customer = await db.stripeCustomer.findUnique({
     where: { stripe_customer_id: stripeSubscription.customer as string },
@@ -50,6 +51,7 @@ export async function syncSubscriptionFromStripe(
   const subscriptionData = {
     stripe_subscription_id: stripeSubscription.id,
     stripe_price_id: stripeSubscription.items.data[0]?.price.id ?? "",
+    ...(options?.planId !== undefined ? { plan_id: options.planId } : {}),
     status: mapStripeSubscriptionStatus(stripeSubscription.status),
     current_period_start: currentPeriodStart
       ? new Date(currentPeriodStart * 1000)

@@ -13,6 +13,8 @@ import { PostHogProvider } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { dark, neobrutalism } from "@clerk/themes";
 import { staticPageMetadata } from "@/lib/server/metadata";
+import { UpgradeModalProvider } from "@/components/billing/upgrade-modal-provider";
+import { CheckoutReturnHandler } from "@/components/billing/checkout-return-handler";
 
 export const metadata: Metadata = {
   ...staticPageMetadata.home,
@@ -59,11 +61,14 @@ export default function RootLayout({
         >
           <PostHogProvider>
             <TRPCReactProvider>
-              <BackgroundManager />
-              <Navbar />
-              <main className="flex-grow">{children}</main>
-              <ConditionalFooter />
-              <Toaster richColors position="bottom-left" />
+              <UpgradeModalProvider>
+                <BackgroundManager />
+                <Navbar />
+                <main className="flex-grow">{children}</main>
+                <ConditionalFooter />
+                <CheckoutReturnHandler />
+                <Toaster richColors position="bottom-left" />
+              </UpgradeModalProvider>
             </TRPCReactProvider>
           </PostHogProvider>
         </ClerkProvider>

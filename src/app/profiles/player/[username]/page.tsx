@@ -455,6 +455,29 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
                   {player.first_name} {player.last_name}
+                  {/* Verification Badges */}
+                  {player.badges?.some((b: { badge_type: string }) => b.badge_type === "EVAL_VERIFIED") && (
+                    <span
+                      className="ml-3 inline-flex items-center gap-1 rounded-full border border-yellow-500/40 bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-400"
+                      title="EVAL Verified — Completed the EVAL Bootcamp"
+                    >
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 1l2.39 4.843 5.346.777-3.868 3.77.913 5.326L10 13.347l-4.781 2.37.913-5.327L2.264 6.62l5.346-.777L10 1z" clipRule="evenodd" />
+                      </svg>
+                      EVAL Verified
+                    </span>
+                  )}
+                  {player.badges?.some((b: { badge_type: string }) => b.badge_type === "PROFILE_COMPLETE") && (
+                    <span
+                      className="ml-2 inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-400"
+                      title="Profile Complete"
+                    >
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Profile Complete
+                    </span>
+                  )}
                 </motion.h1>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}

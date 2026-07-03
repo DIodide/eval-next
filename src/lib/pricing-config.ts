@@ -28,7 +28,8 @@ export const PRICING_PLANS = {
     GOLD: {
       id: "gold",
       name: "EVAL Gold",
-      price: 0, // Update with actual price
+      price: 0,
+      oldPrice: undefined as number | undefined,
       priceId: process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID ?? "", // Set in .env
       interval: "year",
       badge: "POPULAR",
@@ -44,7 +45,8 @@ export const PRICING_PLANS = {
     PLATINUM: {
       id: "platinum",
       name: "EVAL Platinum",
-      price: 0, // Update with actual price
+      price: 0,
+      oldPrice: undefined as number | undefined,
       priceId: process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID ?? "", // Set in .env
       interval: "year",
       badge: "PREMIUM",
@@ -74,12 +76,132 @@ export const PRICING_PLANS = {
         "Start up to 3 coach conversations per month",
       ],
       excludedFeatures: [
-        "Advanced analytics",
+        "Unlimited coach messaging",
+        "Profile view tracking",
         "Priority visibility to coaches",
+        "Unlimited highlight uploads",
+        "Advanced analytics",
       ],
+    },
+    EVAL_PLUS: {
+      id: "eval_plus",
+      name: "EVAL+",
+      price: 5,
+      oldPrice: 10 as number | undefined,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID ?? "", // Set in .env
+      interval: "year",
+      badge: "RECOMMENDED",
+      features: [
+        "Everything in Free",
+        "Unlimited coach messaging",
+        "Profile view tracking",
+        "Priority visibility to coaches",
+        "Unlimited highlight uploads",
+        "Advanced analytics",
+      ],
+      excludedFeatures: [],
     },
   },
 } as const;
 
-export type PricingPlanId =
+export type CoachPlanId =
   (typeof PRICING_PLANS.COACHES)[keyof typeof PRICING_PLANS.COACHES]["id"];
+
+export type PlayerPlanId =
+  (typeof PRICING_PLANS.PLAYERS)[keyof typeof PRICING_PLANS.PLAYERS]["id"];
+
+export type PricingPlanId = CoachPlanId | PlayerPlanId;
+
+// ---------------------------------------------------------------------------
+// Feature keys — all defined here even if not yet mapped to a plan.
+// Currently active: MESSAGING_UNLIMITED, BOOTCAMP_ACCESS.
+// ---------------------------------------------------------------------------
+export const FEATURE_KEYS = {
+  MESSAGING_UNLIMITED: "messaging_unlimited",
+  BOOTCAMP_ACCESS: "bootcamp_access",
+  PREMIUM_SEARCH: "premium_search",
+  ADVANCED_ANALYTICS: "advanced_analytics",
+  PRIORITY_SUPPORT: "priority_support",
+  CUSTOM_BRANDING: "custom_branding",
+  API_ACCESS: "api_access",
+  BULK_OPERATIONS: "bulk_operations",
+  EXPORT_DATA: "export_data",
+} as const;
+
+export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
+
+// Plan IDs namespaced by user type — these are stored in Subscription.plan_id.
+export type PlanId =
+  | "player_free"
+  | "player_eval_plus"
+  | "coach_free"
+  | "coach_gold"
+  | "coach_platinum";
+
+// Map each plan to the features it grants.
+// Add a feature key to a plan here — no other file needs to change.
+export const PLAN_FEATURES: Record<PlanId, readonly FeatureKey[]> = {
+  player_free: [],
+  player_eval_plus: [FEATURE_KEYS.MESSAGING_UNLIMITED, FEATURE_KEYS.BOOTCAMP_ACCESS],
+  coach_free: [],
+  coach_gold: [FEATURE_KEYS.BOOTCAMP_ACCESS],
+  coach_platinum: [FEATURE_KEYS.BOOTCAMP_ACCESS],
+};
+
+// Used by the webhook sync layer to set Subscription.plan_id from a Stripe price ID.
+export function getPlanIdForPriceId(priceId: string): PlanId | null {
+  const map: Record<string, PlanId> = {};
+  if (process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID)
+    map[process.env.NEXT_PUBLIC_STRIPE_GOLD_PRICE_ID] = "coach_gold";
+  if (process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID)
+    map[process.env.NEXT_PUBLIC_STRIPE_PLATINUM_PRICE_ID] = "coach_platinum";
+  if (process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID)
+    map[process.env.NEXT_PUBLIC_STRIPE_PLAYER_PLUS_PRICE_ID] = "player_eval_plus";
+  return map[priceId] ?? null;
+}
+
+export const PLAYER_FREE_CONV_STARTS_PER_MONTH = 3;
+export const PLAYER_FREE_MESSAGES_PER_CONV = 3;
+
+export type UpgradeUserType = "player" | "coach";
+
+export type UpgradePlan =
+  | (typeof PRICING_PLANS.PLAYERS)[keyof typeof PRICING_PLANS.PLAYERS]
+  | (typeof PRICING_PLANS.COACHES)[keyof typeof PRICING_PLANS.COACHES];
+
+export const FEATURE_UPGRADE_OPTIONS: Partial<
+  Record<
+    FeatureKey,
+    Partial<Record<UpgradeUserType, UpgradePlan>>
+  >
+> = {
+  [FEATURE_KEYS.MESSAGING_UNLIMITED]: {
+    player: PRICING_PLANS.PLAYERS.EVAL_PLUS,
+  },
+  [FEATURE_KEYS.BOOTCAMP_ACCESS]: {
+    player: PRICING_PLANS.PLAYERS.EVAL_PLUS,
+    coach: PRICING_PLANS.COACHES.GOLD,
+  },
+};
+
+export function getUpgradePlanForFeature(
+  featureKey: FeatureKey,
+  userType: UpgradeUserType,
+): UpgradePlan | null {
+  const options = FEATURE_UPGRADE_OPTIONS[featureKey];
+  if (!options) return null;
+  return options[userType] ?? options.player ?? options.coach ?? null;
+}
+
+export function getPlanDisplayName(planId: PricingPlanId): string {
+  switch (planId) {
+    case "gold":
+      return "EVAL Gold";
+    case "platinum":
+      return "EVAL Platinum";
+    case "eval_plus":
+      return "EVAL+";
+    default:
+      return "Premium";
+  }
+}

@@ -50,6 +50,9 @@ model Player {
   school_ref               School?                    @relation(fields: [school_id], references: [id])
   team_memberships         TeamMember[]
   tryout_registrations     TryoutRegistration[]
+  bootcamp_progress        UserBootcampProgress[]
+  lesson_progress          UserLessonProgress[]
+  badges                   PlayerBadge[]
 
   @@index([school_id])
   @@index([main_game_id])
@@ -61,28 +64,34 @@ model Player {
 
 /// Coaches table with Clerk integration
 model Coach {
-  id                 String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clerk_id           String                     @unique
-  email              String                     @unique
-  first_name         String
-  last_name          String
-  username           String                     @unique
-  image_url          String?
-  external_accounts  Json?
-  school             String
-  school_id          String?                    @db.Uuid
-  created_at         DateTime                   @default(now()) @db.Timestamp(6)
-  updated_at         DateTime                   @updatedAt
-  favorites          CoachFavorite[]
-  school_ref         School?                    @relation(fields: [school_id], references: [id])
-  combines_created   Combine[]
-  Conversation       Conversation[]
-  school_requests    SchoolAssociationRequest[]
-  teams              Team[]
-  tryouts_created    Tryout[]
-  achievements       CoachAchievement[]
-  SchoolAnnouncement SchoolAnnouncement[]
+  id                     String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_id               String?                    @unique
+  email                  String                     @unique
+  first_name             String
+  last_name              String
+  username               String?                    @unique
+  image_url              String?
+  external_accounts      Json?
+  school                 String
+  school_id              String?                    @db.Uuid
+  status                 CoachStatus                @default(ACTIVE)
+  source                 CoachSource                @default(SIGNUP)
+  title                  String?
+  forwarded_emails_count Int                        @default(0)
+  intro_email_sent       Boolean                    @default(false)
+  created_at             DateTime                   @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                   @updatedAt
+  favorites              CoachFavorite[]
+  school_ref             School?                    @relation(fields: [school_id], references: [id])
+  combines_created       Combine[]
+  Conversation           Conversation[]
+  school_requests        SchoolAssociationRequest[]
+  teams                  Team[]
+  tryouts_created        Tryout[]
+  achievements           CoachAchievement[]
+  SchoolAnnouncement     SchoolAnnouncement[]
 
+  @@index([status])
   @@map("coaches")
 }
 
@@ -827,6 +836,18 @@ enum ConversationInitiator {
   PLAYER
 }
 
+enum CoachStatus {
+  SCRAPED
+  INVITED
+  ACTIVE
+}
+
+enum CoachSource {
+  SCRAPED
+  MANUAL
+  SIGNUP
+}
+
 enum SchoolAnnouncementType {
   GENERAL
   TRYOUT
@@ -836,6 +857,153 @@ enum SchoolAnnouncementType {
   ALUMNI
   EVENT
   SEASON_REVIEW
+}
+
+/// Bootcamp - top-level program container
+model Bootcamp {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String                 @unique
+  title          String
+  description    String
+  image_url      String?
+  is_published   Boolean                @default(false)
+  version        Int                    @default(1)
+  created_at     DateTime               @default(now()) @db.Timestamp(6)
+  updated_at     DateTime               @updatedAt
+  modules        BootcampModule[]
+  user_progress  UserBootcampProgress[]
+
+  @@map("bootcamps")
+}
+
+/// BootcampModule - a step within a bootcamp (e.g., Step 0, Step 1)
+model BootcampModule {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bootcamp_id  String   @db.Uuid
+  slug         String
+  title        String
+  description  String
+  order_index  Int
+  is_free      Boolean  @default(false)
+  is_published Boolean  @default(true)
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  updated_at   DateTime @updatedAt
+  bootcamp     Bootcamp @relation(fields: [bootcamp_id], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+
+  @@unique([bootcamp_id, slug])
+  @@unique([bootcamp_id, order_index])
+  @@index([bootcamp_id])
+  @@map("bootcamp_modules")
+}
+
+/// Lesson - individual lesson within a module
+model Lesson {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module_id           String               @db.Uuid
+  slug                String
+  title               String
+  description         String?
+  video_url           String?
+  video_hls_url       String?
+  transcript_vtt_url  String?
+  poster_url          String?
+  duration_seconds    Int?
+  chapters            Json?
+  content_markdown    String
+  common_questions    Json?
+  order_index         Int
+  requires_reflection Boolean              @default(false)
+  is_published        Boolean              @default(true)
+  created_at          DateTime             @default(now()) @db.Timestamp(6)
+  updated_at          DateTime             @updatedAt
+  module              BootcampModule       @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  quiz                Quiz?
+  user_progress       UserLessonProgress[]
+
+  @@unique([module_id, slug])
+  @@unique([module_id, order_index])
+  @@index([module_id])
+  @@map("lessons")
+}
+
+/// Quiz - attached to a lesson (one quiz per lesson)
+model Quiz {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lesson_id     String   @unique @db.Uuid
+  title         String
+  passing_score Int
+  questions     Json
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @updatedAt
+  lesson        Lesson   @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+
+  @@map("quizzes")
+}
+
+/// UserBootcampProgress - tracks player enrollment and overall bootcamp progress
+model UserBootcampProgress {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id             String    @db.Uuid
+  bootcamp_id           String    @db.Uuid
+  started_at            DateTime  @default(now()) @db.Timestamp(6)
+  completed_at          DateTime? @db.Timestamp(6)
+  current_module_index  Int       @default(0)
+  completion_percentage Float     @default(0)
+  created_at            DateTime  @default(now()) @db.Timestamp(6)
+  updated_at            DateTime  @updatedAt
+  player                Player   @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  bootcamp              Bootcamp @relation(fields: [bootcamp_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, bootcamp_id])
+  @@index([player_id])
+  @@index([bootcamp_id])
+  @@map("user_bootcamp_progress")
+}
+
+/// UserLessonProgress - tracks per-lesson progress
+model UserLessonProgress {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id              String    @db.Uuid
+  lesson_id              String    @db.Uuid
+  video_watched          Boolean   @default(false)
+  quiz_passed            Boolean   @default(false)
+  quiz_score             Int?
+  quiz_attempts          Int       @default(0)
+  last_quiz_answers      Json?
+  reflection_text        String?
+  reflection_submitted_at DateTime? @db.Timestamp(6)
+  step_data              Json?
+  last_position_seconds  Int?
+  completed_at           DateTime? @db.Timestamp(6)
+  created_at             DateTime  @default(now()) @db.Timestamp(6)
+  updated_at             DateTime  @updatedAt
+  player                 Player   @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  lesson                 Lesson   @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, lesson_id])
+  @@index([player_id])
+  @@index([lesson_id])
+  @@map("user_lesson_progress")
+}
+
+/// PlayerBadge - earned verification badges
+model PlayerBadge {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  player_id  String    @db.Uuid
+  badge_type BadgeType
+  earned_at  DateTime  @default(now()) @db.Timestamp(6)
+  metadata   Json?
+  player     Player    @relation(fields: [player_id], references: [id], onDelete: Cascade)
+
+  @@unique([player_id, badge_type])
+  @@index([player_id])
+  @@map("player_badges")
+}
+
+enum BadgeType {
+  EVAL_VERIFIED
+  PROFILE_COMPLETE
 }
 
 /// Stripe customer mapping to Clerk users
@@ -848,7 +1016,6 @@ model StripeCustomer {
   updated_at         DateTime       @updatedAt
   subscriptions      Subscription[]
   purchases          Purchase[]
-  entitlements       Entitlement[]
 
   @@index([clerk_user_id])
   @@index([stripe_customer_id])
@@ -861,6 +1028,7 @@ model Subscription {
   stripe_customer_id     String             @db.Uuid
   stripe_subscription_id String             @unique
   stripe_price_id        String
+  plan_id                String? // e.g. "player_eval_plus", "coach_gold" — set by webhook
   status                 SubscriptionStatus
   current_period_start   DateTime           @db.Timestamp(6)
   current_period_end     DateTime           @db.Timestamp(6)
@@ -872,7 +1040,6 @@ model Subscription {
   created_at             DateTime           @default(now()) @db.Timestamp(6)
   updated_at             DateTime           @updatedAt
   customer               StripeCustomer     @relation(fields: [stripe_customer_id], references: [id], onDelete: Cascade)
-  entitlements           Entitlement[]      @relation("SubscriptionEntitlements")
 
   @@index([stripe_customer_id])
   @@index([stripe_subscription_id])
@@ -896,7 +1063,6 @@ model Purchase {
   created_at                 DateTime            @default(now()) @db.Timestamp(6)
   updated_at                 DateTime            @updatedAt
   customer                   StripeCustomer      @relation(fields: [stripe_customer_id], references: [id], onDelete: Cascade)
-  entitlements               Entitlement[]       @relation("PurchaseEntitlements")
 
   @@index([stripe_customer_id])
   @@index([stripe_payment_intent_id])
@@ -905,30 +1071,6 @@ model Purchase {
   @@map("purchases")
 }
 
-/// Feature entitlements and access control
-model Entitlement {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stripe_customer_id String            @db.Uuid
-  feature_key        String // e.g., "premium_search", "advanced_analytics"
-  granted_by_type    EntitlementSource
-  subscription_id    String?           @db.Uuid // Reference to subscription if granted by subscription
-  purchase_id        String?           @db.Uuid // Reference to purchase if granted by purchase
-  expires_at         DateTime?         @db.Timestamp(6) // null = permanent
-  is_active          Boolean           @default(true)
-  metadata           Json? // Additional feature-specific data
-  created_at         DateTime          @default(now()) @db.Timestamp(6)
-  updated_at         DateTime          @updatedAt
-  customer           StripeCustomer    @relation(fields: [stripe_customer_id], references: [id], onDelete: Cascade)
-  subscription       Subscription?     @relation("SubscriptionEntitlements", fields: [subscription_id], references: [id], onDelete: SetNull)
-  purchase           Purchase?         @relation("PurchaseEntitlements", fields: [purchase_id], references: [id], onDelete: SetNull)
-
-  @@unique([stripe_customer_id, feature_key], name: "stripe_customer_id_feature_key")
-  @@index([stripe_customer_id])
-  @@index([feature_key])
-  @@index([is_active])
-  @@index([expires_at])
-  @@map("entitlements")
-}
 
 enum SubscriptionStatus {
   ACTIVE
@@ -956,8 +1098,3 @@ enum PurchaseProductType {
   CUSTOM
 }
 
-enum EntitlementSource {
-  SUBSCRIPTION
-  PURCHASE
-  MANUAL
-}

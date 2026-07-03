@@ -3,7 +3,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import type { NextRequest } from "next/server";
 import { db } from "@/server/db";
 import type { Prisma } from "@prisma/client";
-import { logUserRegistration, logError } from "@/lib/discord-logger";
+import { logUserRegistration, logError, logCoachMerge } from "@/lib/discord-logger";
 
 // Schema for Clerk unsafe_metadata
 interface ClerkUnsafeMetadata {
@@ -118,51 +118,101 @@ export async function POST(req: NextRequest) {
         }
       } else if (unsafeMetadata.userType === "coach") {
         try {
-          const newCoach = await db.coach.create({
-            data: {
-              clerk_id: userData.id,
-              email: userData.email_addresses[0]?.email_address ?? "",
-              first_name: userData.first_name ?? "",
-              last_name: userData.last_name ?? "",
-              username: userData.username ?? "",
-              image_url: userData.image_url,
-              external_accounts:
-                userData.external_accounts as unknown as Prisma.InputJsonValue,
-              school: "", // TODO: This should be set during onboarding
-              school_id: null, // Optional - can be linked later
-            },
-          });
-          console.log("Coach created successfully:", newCoach.id);
+          const email = userData.email_addresses[0]?.email_address ?? "";
 
-          // Log coach registration to Discord
-          try {
-            await logUserRegistration({
-              userType: "coach",
-              registrationMethod: "Clerk Webhook",
-              userId: userData.id,
-              userEmail: userData.email_addresses[0]?.email_address ?? null,
-              userName:
-                userData.first_name && userData.last_name
-                  ? `${userData.first_name} ${userData.last_name}`
-                  : (userData.username ?? null),
-              timestamp: new Date(),
+          // Check for existing preprovisioned coach (scraped/invited, no clerk_id)
+          // NOTE: After running `prisma generate`, the `as any` casts below can be removed
+          const preprovisionedCoach = email
+            ? await db.coach.findFirst({
+                where: { email, clerk_id: null as unknown as undefined },
+                include: { school_ref: true },
+              })
+            : null;
+
+          if (preprovisionedCoach) {
+            // Merge: update existing preprovisioned coach with Clerk data
+            const mergedCoach = await db.coach.update({
+              where: { id: preprovisionedCoach.id },
+              // NOTE: `status` field will be recognized after `prisma generate` is run
+              data: {
+                clerk_id: userData.id,
+                first_name: userData.first_name ?? preprovisionedCoach.first_name,
+                last_name: userData.last_name ?? preprovisionedCoach.last_name,
+                username: userData.username ?? "",
+                image_url: userData.image_url,
+                external_accounts:
+                  userData.external_accounts as unknown as Prisma.InputJsonValue,
+                ...({ status: "ACTIVE" } as Record<string, unknown>),
+              },
             });
-          } catch (discordError) {
-            console.error(
-              "Discord notification failed for coach registration:",
-              discordError,
-            );
+            console.log("Preprovisioned coach merged successfully:", mergedCoach.id);
+
+            const schoolRef = preprovisionedCoach as unknown as { school_ref?: { name: string } };
+            try {
+              await logCoachMerge({
+                preprovisionedCoachId: preprovisionedCoach.id,
+                coachEmail: email,
+                schoolName: schoolRef.school_ref?.name ?? preprovisionedCoach.school,
+                userId: userData.id,
+                userName:
+                  userData.first_name && userData.last_name
+                    ? `${userData.first_name} ${userData.last_name}`
+                    : (userData.username ?? null),
+                userEmail: email,
+                timestamp: new Date(),
+              });
+            } catch (discordError) {
+              console.error(
+                "Discord notification failed for coach merge:",
+                discordError,
+              );
+            }
+          } else {
+            // No preprovisioned coach — create new record as before
+            const newCoach = await db.coach.create({
+              data: {
+                clerk_id: userData.id,
+                email,
+                first_name: userData.first_name ?? "",
+                last_name: userData.last_name ?? "",
+                username: userData.username ?? "",
+                image_url: userData.image_url,
+                external_accounts:
+                  userData.external_accounts as unknown as Prisma.InputJsonValue,
+                school: "", // Set during onboarding
+                school_id: null,
+              },
+            });
+            console.log("Coach created successfully:", newCoach.id);
+
+            try {
+              await logUserRegistration({
+                userType: "coach",
+                registrationMethod: "Clerk Webhook",
+                userId: userData.id,
+                userEmail: email || null,
+                userName:
+                  userData.first_name && userData.last_name
+                    ? `${userData.first_name} ${userData.last_name}`
+                    : (userData.username ?? null),
+                timestamp: new Date(),
+              });
+            } catch (discordError) {
+              console.error(
+                "Discord notification failed for coach registration:",
+                discordError,
+              );
+            }
           }
         } catch (error) {
-          console.error("Error creating coach:", error);
+          console.error("Error creating/merging coach:", error);
 
-          // Log error to Discord
           try {
             await logError({
               error:
                 error instanceof Error
                   ? error.message
-                  : "Unknown error creating coach",
+                  : "Unknown error creating/merging coach",
               errorCode: "COACH_CREATION_FAILED",
               endpoint: "webhooks/user.created",
               severity: "high",
@@ -173,9 +223,6 @@ export async function POST(req: NextRequest) {
           } catch (discordError) {
             console.error("Discord error logging failed:", discordError);
           }
-
-          // You might want to throw an error here to trigger webhook retry
-          // throw error
         }
       } else if (unsafeMetadata.userType === "league") {
         try {
@@ -386,72 +433,113 @@ export async function POST(req: NextRequest) {
         }
       } else if (unsafeMetadata.userType === "coach") {
         try {
-          const upsertedCoach = await db.coach.upsert({
-            where: { clerk_id: userData.id },
-            create: {
-              clerk_id: userData.id,
-              email: userData.email_addresses[0]?.email_address ?? "",
-              first_name: userData.first_name ?? "",
-              last_name: userData.last_name ?? "",
-              username: userData.username ?? "",
-              image_url: userData.image_url,
-              external_accounts:
-                userData.external_accounts as unknown as Prisma.InputJsonValue,
-              school: "", // TODO: This should be set during onboarding
-              school_id: null, // Optional - can be linked later
-            },
-            update: {
-              email: userData.email_addresses[0]?.email_address ?? "",
-              first_name: userData.first_name ?? "",
-              last_name: userData.last_name ?? "",
-              username: userData.username ?? "",
-              image_url: userData.image_url,
-              external_accounts:
-                userData.external_accounts as unknown as Prisma.InputJsonValue,
-              // Note: We only update basic fields from Clerk
-              // School info should be updated through your app's profile system
-            },
-          });
-          console.log("Coach upserted successfully:", upsertedCoach.id);
+          const email = userData.email_addresses[0]?.email_address ?? "";
 
-          // Log coach registration to Discord if this was a new creation
-          const isNewCoach = !(await db.coach.findFirst({
-            where: {
-              clerk_id: userData.id,
-              created_at: { lt: new Date(Date.now() - 1000) }, // Existed more than 1 second ago
-            },
-          }));
+          // Check for preprovisioned coach merge opportunity (same logic as user.created)
+          // NOTE: After running `prisma generate`, the type casts can be removed
+          const preprovisionedCoach = email
+            ? await db.coach.findFirst({
+                where: { email, clerk_id: null as unknown as undefined },
+                include: { school_ref: true },
+              })
+            : null;
 
-          if (isNewCoach) {
+          if (preprovisionedCoach) {
+            // Merge: update existing preprovisioned coach with Clerk data
+            const mergedCoach = await db.coach.update({
+              where: { id: preprovisionedCoach.id },
+              data: {
+                clerk_id: userData.id,
+                first_name: userData.first_name ?? preprovisionedCoach.first_name,
+                last_name: userData.last_name ?? preprovisionedCoach.last_name,
+                username: userData.username ?? "",
+                image_url: userData.image_url,
+                external_accounts:
+                  userData.external_accounts as unknown as Prisma.InputJsonValue,
+                ...({ status: "ACTIVE" } as Record<string, unknown>),
+              },
+            });
+            console.log("Preprovisioned coach merged (user.updated):", mergedCoach.id);
+
+            const schoolRef = preprovisionedCoach as unknown as { school_ref?: { name: string } };
             try {
-              await logUserRegistration({
-                userType: "coach",
-                registrationMethod: "User Type Selection",
+              await logCoachMerge({
+                preprovisionedCoachId: preprovisionedCoach.id,
+                coachEmail: email,
+                schoolName: schoolRef.school_ref?.name ?? preprovisionedCoach.school,
                 userId: userData.id,
-                userEmail: userData.email_addresses[0]?.email_address ?? null,
                 userName:
                   userData.first_name && userData.last_name
                     ? `${userData.first_name} ${userData.last_name}`
                     : (userData.username ?? null),
+                userEmail: email,
                 timestamp: new Date(),
               });
             } catch (discordError) {
-              console.error(
-                "Discord notification failed for coach creation:",
-                discordError,
-              );
+              console.error("Discord notification failed for coach merge:", discordError);
+            }
+          } else {
+            // Standard upsert — no preprovisioned coach to merge
+            const upsertedCoach = await db.coach.upsert({
+              where: { clerk_id: userData.id },
+              create: {
+                clerk_id: userData.id,
+                email,
+                first_name: userData.first_name ?? "",
+                last_name: userData.last_name ?? "",
+                username: userData.username ?? "",
+                image_url: userData.image_url,
+                external_accounts:
+                  userData.external_accounts as unknown as Prisma.InputJsonValue,
+                school: "",
+                school_id: null,
+              },
+              update: {
+                email,
+                first_name: userData.first_name ?? "",
+                last_name: userData.last_name ?? "",
+                username: userData.username ?? "",
+                image_url: userData.image_url,
+                external_accounts:
+                  userData.external_accounts as unknown as Prisma.InputJsonValue,
+              },
+            });
+            console.log("Coach upserted successfully:", upsertedCoach.id);
+
+            const isNewCoach = !(await db.coach.findFirst({
+              where: {
+                clerk_id: userData.id,
+                created_at: { lt: new Date(Date.now() - 1000) },
+              },
+            }));
+
+            if (isNewCoach) {
+              try {
+                await logUserRegistration({
+                  userType: "coach",
+                  registrationMethod: "User Type Selection",
+                  userId: userData.id,
+                  userEmail: email || null,
+                  userName:
+                    userData.first_name && userData.last_name
+                      ? `${userData.first_name} ${userData.last_name}`
+                      : (userData.username ?? null),
+                  timestamp: new Date(),
+                });
+              } catch (discordError) {
+                console.error("Discord notification failed for coach creation:", discordError);
+              }
             }
           }
         } catch (error) {
-          console.error("Error upserting coach:", error);
+          console.error("Error upserting/merging coach:", error);
 
-          // Log error to Discord
           try {
             await logError({
               error:
                 error instanceof Error
                   ? error.message
-                  : "Unknown error upserting coach",
+                  : "Unknown error upserting/merging coach",
               errorCode: "COACH_UPSERT_FAILED",
               endpoint: "webhooks/user.updated",
               severity: "medium",
@@ -462,9 +550,6 @@ export async function POST(req: NextRequest) {
           } catch (discordError) {
             console.error("Discord error logging failed:", discordError);
           }
-
-          // You might want to throw an error here to trigger webhook retry
-          // throw error
         }
       } else if (unsafeMetadata.userType === "league") {
         try {

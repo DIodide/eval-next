@@ -7,6 +7,7 @@
 // It uses the playerProcedure from the trpc router to ensure that the user is authenticated as a player.
 
 import { withRetry } from "@/lib/server/db-utils";
+import { checkAndAwardProfileCompleteBadge } from "@/server/services/badges";
 import type { createTRPCContext } from "@/server/api/trpc";
 import {
   createTRPCRouter,
@@ -175,6 +176,10 @@ type PublicProfileData = {
     platform: string;
     username: string;
     connected: boolean;
+  }>;
+  badges: Array<{
+    badge_type: string;
+    earned_at: Date;
   }>;
 };
 
@@ -446,6 +451,9 @@ export const playerProfileRouter = createTRPCRouter({
         if (input.username && input.username !== currentPlayer?.username) {
           invalidateProfileCache(input.username);
         }
+
+        // Check and award Profile Complete badge
+        void checkAndAwardProfileCompleteBadge(ctx.db, ctx.playerId);
 
         return updatedPlayer;
       } catch (error) {
@@ -781,6 +789,12 @@ export const playerProfileRouter = createTRPCRouter({
                   platform: true,
                   username: true,
                   connected: true,
+                },
+              },
+              badges: {
+                select: {
+                  badge_type: true,
+                  earned_at: true,
                 },
               },
             },

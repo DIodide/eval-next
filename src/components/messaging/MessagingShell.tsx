@@ -85,6 +85,7 @@ export function MessagingShell({ role }: MessagingShellProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [newConversationOpen, setNewConversationOpen] = useState(false);
+  const [messageLimitConvId, setMessageLimitConvId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search);
 
   const utils = api.useUtils();
@@ -202,7 +203,11 @@ export function MessagingShell({ role }: MessagingShellProps) {
       { conversationId: selectedId, content },
       {
         onError: (error) => {
-          toast.error(error.message);
+          if (error.data?.code === "FORBIDDEN" && error.message.includes("messages per conversation")) {
+            setMessageLimitConvId(selectedId);
+          } else {
+            toast.error(error.message);
+          }
         },
       },
     );
@@ -322,6 +327,7 @@ export function MessagingShell({ role }: MessagingShellProps) {
                   key={detail.id}
                   onSend={handleSendMessage}
                   isPending={sendMutation.isPending}
+                  messageLimitReached={messageLimitConvId === detail.id}
                 />
               </>
             ) : (

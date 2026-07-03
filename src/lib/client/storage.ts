@@ -14,6 +14,7 @@ export const STORAGE_BUCKETS = {
   SCHOOLS: "school-assets",
   PLAYERS: "player-assets",
   COACHES: "coach-assets",
+  BOOTCAMP: "bootcamp-assets",
 } as const;
 
 // Asset types for different entities
@@ -22,6 +23,7 @@ export const ASSET_TYPES = {
   BANNER: "banner",
   AVATAR: "avatar",
   THUMBNAIL: "thumbnail",
+  VIDEO: "video",
 } as const;
 
 // File upload constraints
@@ -48,6 +50,11 @@ export const UPLOAD_CONSTRAINTS = {
       width: 300,
       height: 200,
       description: "Thumbnail image (300x200px recommended)",
+    },
+    VIDEO: {
+      width: 1920,
+      height: 1080,
+      description: "Video file (1080p recommended)",
     },
   },
 } as const;

@@ -236,6 +236,24 @@
   }
 }
 
+@keyframes promo-stripe-slide {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes promo-ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes pulse-glow {
   0%,
   100% {

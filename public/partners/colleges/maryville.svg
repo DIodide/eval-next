@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="200"
+   height="158"
+   viewBox="0 0 200 158"
+   version="1.1"
+   id="svg3043"
+   inkscape:version="0.48.1 "
+   sodipodi:docname="maryvillleathñl.svg">
+  <metadata
+     id="metadata3070">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     id="namedview3068"
+     showgrid="false"
+     inkscape:zoom="2.9558268"
+     inkscape:cx="123.02405"
+     inkscape:cy="86.174911"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3043" />
+  <!-- Generator: Sketch 55.2 (78181) - https://sketchapp.com -->
+  <title
+     id="title3045">maryville-mo</title>
+  <desc
+     id="desc3047">Created with Sketch.</desc>
+  <defs
+     id="defs3049">
+    <linearGradient
+       x1="8.3390856"
+       y1="66.310303"
+       x2="119.1362"
+       y2="66.310303"
+       id="linearGradient-1"
+       gradientTransform="scale(0.83937206,1.1913668)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#D02229"
+         offset="0%"
+         id="stop3052" />
+      <stop
+         stop-color="#6E0E10"
+         offset="100%"
+         id="stop3054" />
+    </linearGradient>
+    <linearGradient
+       x1="147.84843"
+       y1="67.403976"
+       x2="210.718"
+       y2="65.766991"
+       id="linearGradient-2"
+       gradientTransform="scale(0.83937206,1.1913668)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#EC1D24"
+         offset="0%"
+         id="stop3057" />
+      <stop
+         stop-color="#6E0E10"
+         offset="100%"
+         id="stop3059" />
+    </linearGradient>
+  </defs>
+  <g
+     id="maryville-mo"
+     transform="matrix(0.98007203,0,0,0.98007203,1.4065373,-19.043194)"
+     style="fill:none;stroke:none">
+    <g
+       id="maryville-mo_BGL">
+      <g
+         id="Group-2"
+         transform="translate(0,21)">
+        <path
+           d="m 99.991017,59.042915 0,-0.01098 0.0096,0.0054 0.009,-0.0054 0,0.01067 0.0527,0.02962 L 200,0 l 0,47.451972 -7.08417,4.240381 0,36.105681 L 200,83.397506 200,124.00343 144.15932,158 l 0,-58.7056 -44.14933,26.11373 -0.002,0.009 -0.007,-0.004 -0.007,0.004 -0.003,-0.003 0,-0.007 -44.149329,-26.11313 0,58.7056 L 0,124.00343 0,83.397506 l 7.1154551,4.462975 0,-36.104674 L 0,47.451972 0,0 l 99.940351,59.072226 0.05067,-0.02931 z"
+           id="Combined-Shape"
+           inkscape:connector-curvature="0"
+           style="fill:#000000" />
+        <polygon
+           id="Path"
+           points="149.37971,149 149.37971,90.010732 100,119.40353 50.620295,90.010732 50.620295,149 5,121.15008 5,91.656496 11.256941,95.558062 11.256941,49.029609 5,45.262128 5,9.0006901 100.01558,65.222242 195,9 195,45.262341 188.74104,49.029823 188.74104,95.55876 195,91.657193 195,121.15008 "
+           style="fill:#ffffff;fill-rule:nonzero" />
+        <polygon
+           id="Fill-3"
+           points="13.270518,99.682444 7,95.780191 7,119.91668 48.170302,145 48.170302,86.052792 99.931643,116.80194 100,116.71903 99.930734,67.897738 7,13 7,44.006271 13.270518,47.774416 "
+           style="fill:url(#linearGradient-1)" />
+        <polygon
+           id="Fill-8"
+           points="193,119.91668 151.79942,145 151.79942,86.052792 100,116.80194 100,67.897738 193,13 193,44.006271 186.72285,47.774416 186.72285,99.682444 193,95.780191 "
+           style="fill:url(#linearGradient-2)" />
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { redirect } from "next/navigation";
+// useRouter instead of redirect — calling redirect() in a client component render body
+// throws mid-render and corrupts React's hook count when async server layouts are present.
+import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,12 @@ import {
   ZapIcon,
   LinkIcon,
   ExternalLinkIcon,
+  GraduationCapIcon,
+  CheckCircle2Icon,
+  LockIcon,
+  CircleIcon,
 } from "lucide-react";
+import { api } from "@/trpc/react";
 
 export default function PlayerDashboardClientLayout({
   children,
@@ -30,6 +36,50 @@ export default function PlayerDashboardClientLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { user, isLoaded } = useUser();
+
+  const isOnBootcamp = pathname.startsWith("/dashboard/player/bootcamp");
+  const { data: bootcampProgress } =
+    api.bootcamp.getBootcampProgress.useQuery(
+      { bootcampSlug: "recruit-bootcamp" },
+      {
+        enabled: isOnBootcamp && isLoaded,
+        retry: (_, err) => err.data?.code !== "FORBIDDEN",
+      },
+    );
+
+  const STEP_LABELS: Record<number, string> = {
+    0: "Your Why",
+    1: "Define Your Why",
+    2: "Build College List",
+    3: "Esport Application",
+    4: "Highlight Reel",
+    5: "Message Coaches",
+  };
+
+  const bootcampSubItems = useMemo(
+    () =>
+      (bootcampProgress?.modules ?? []).map((mod, index) => {
+        const complete = mod.lessons.every((l) => l.progress?.completed);
+        const unlocked =
+          index === 0 ||
+          bootcampProgress!.modules
+            .slice(0, index)
+            .every((m) => m.lessons.every((l) => l.progress?.completed));
+        const firstLesson =
+          mod.lessons.find((l) => !l.progress?.completed) ?? mod.lessons[0];
+        return {
+          title: STEP_LABELS[mod.order_index] ?? mod.title,
+          href:
+            unlocked && firstLesson
+              ? `/dashboard/player/bootcamp/${mod.slug}/${firstLesson.slug}`
+              : "#",
+          icon: complete ? CheckCircle2Icon : unlocked ? CircleIcon : LockIcon,
+          complete,
+          unlocked,
+        };
+      }),
+    [bootcampProgress],
+  );
 
   // Generate sidebar items dynamically to include username-dependent links
   const sidebarItems = [
@@ -59,20 +109,26 @@ export default function PlayerDashboardClientLayout({
           : []),
       ],
     },
-    {
-      title: "My Tryouts",
-      href: "/dashboard/player/tryouts",
-      icon: TrophyIcon,
-    },
-    {
-      title: "My Combines",
-      href: "/dashboard/player/combines",
-      icon: ZapIcon,
-    },
+    // {
+    //   title: "My Tryouts",
+    //   href: "/dashboard/player/tryouts",
+    //   icon: TrophyIcon,
+    // },
+    // {
+    //   title: "My Combines",
+    //   href: "/dashboard/player/combines",
+    //   icon: ZapIcon,
+    // },
     {
       title: "My Highlights",
       href: "/dashboard/player/highlights",
       icon: PlayIcon,
+    },
+    {
+      title: "Bootcamp",
+      href: "/dashboard/player/bootcamp",
+      icon: GraduationCapIcon,
+      subItems: bootcampSubItems,
     },
     {
       title: "Messages",
@@ -86,18 +142,20 @@ export default function PlayerDashboardClientLayout({
     // },
   ];
 
-  // Check if user is a player
-  if (isLoaded && user) {
-    const userType = user.unsafeMetadata?.userType;
-    if (userType !== "player") {
-      redirect("/dashboard");
+  const router = useRouter();
+  useEffect(() => {
+    if (isLoaded && user) {
+      const userType = user.unsafeMetadata?.userType;
+      if (userType !== "player") {
+        router.replace("/dashboard");
+      }
     }
-  }
+  }, [isLoaded, user, router]);
 
   // Show loading state while checking user
   if (!isLoaded) {
     return (
-      <div className="flex max-h-[calc(100vh-80px)] bg-[#0f0f1a]">
+      <div className="flex h-[calc(100vh-80px)] bg-[#0f0f1a]">
         {/* Sidebar Skeleton */}
         <div className="w-64 border-r border-gray-800 bg-[#1a1a2e]">
           <div className="flex h-full flex-col">
@@ -281,7 +339,7 @@ export default function PlayerDashboardClientLayout({
   }
 
   return (
-    <div className="flex max-h-[calc(100vh-80px)] bg-[#0f0f1a]">
+    <div className="flex h-[calc(100vh-80px)] bg-[#0f0f1a]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -330,11 +388,13 @@ export default function PlayerDashboardClientLayout({
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 const hasSubItems = item.subItems && item.subItems.length > 0;
-                const isProfileSection =
-                  item.href === "/dashboard/player/profile";
+                const isExpandableSection =
+                  item.href === "/dashboard/player/profile" ||
+                  item.href === "/dashboard/player/bootcamp";
                 const hasActiveSubItem =
                   hasSubItems &&
-                  item.subItems.some((subItem) => pathname === subItem.href);
+                  (item.subItems.some((subItem) => pathname === subItem.href) ||
+                    (item.href === "/dashboard/player/bootcamp" && isOnBootcamp));
 
                 return (
                   <li key={item.href}>
@@ -377,30 +437,42 @@ export default function PlayerDashboardClientLayout({
                     </Link>
 
                     {/* Sub-items with improved styling */}
-                    {hasSubItems && (isProfileSection || hasActiveSubItem) && (
+                    {hasSubItems && (isExpandableSection || hasActiveSubItem) && (
                       <ul className="mt-2 ml-6 space-y-1 border-l border-gray-700/50 pl-4">
-                        {item.subItems.map((subItem) => {
+                        {item.subItems.map((subItem, subIdx) => {
                           const SubIcon = subItem.icon;
-                          const isSubActive = pathname === subItem.href;
+                          const isSubActive = pathname.includes(
+                            subItem.href.split("/").slice(0, -1).join("/"),
+                          ) && pathname === subItem.href;
+                          const isLocked = "unlocked" in subItem && !subItem.unlocked;
+                          const isStepComplete = "complete" in subItem && subItem.complete;
 
                           return (
-                            <li key={subItem.href}>
+                            <li key={subIdx}>
                               <Link
-                                href={subItem.href}
+                                href={isLocked ? "#" : subItem.href}
                                 className={cn(
                                   "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                                  isSubActive
-                                    ? "border border-blue-500/20 bg-gradient-to-r from-blue-500/15 to-purple-500/15 text-blue-400"
-                                    : "text-gray-400 hover:bg-gray-800/30 hover:text-white",
+                                  isLocked
+                                    ? "pointer-events-none opacity-40"
+                                    : isSubActive
+                                      ? "border border-blue-500/20 bg-gradient-to-r from-blue-500/15 to-purple-500/15 text-blue-400"
+                                      : isStepComplete
+                                        ? "text-green-400/70 hover:bg-gray-800/30 hover:text-green-300"
+                                        : "text-gray-400 hover:bg-gray-800/30 hover:text-white",
                                 )}
                                 onClick={() => setSidebarOpen(false)}
                               >
                                 <div
                                   className={cn(
                                     "rounded p-1 transition-all duration-200",
-                                    isSubActive
-                                      ? "text-blue-400"
-                                      : "text-gray-500 group-hover:text-gray-300",
+                                    isLocked
+                                      ? "text-gray-600"
+                                      : isStepComplete
+                                        ? "text-green-400"
+                                        : isSubActive
+                                          ? "text-blue-400"
+                                          : "text-gray-500 group-hover:text-gray-300",
                                   )}
                                 >
                                   <SubIcon className="h-3 w-3" />

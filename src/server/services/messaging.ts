@@ -1,11 +1,14 @@
-import { TRPCError } from "@trpc/server";
 import { type Prisma, type PrismaClient } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { addMonths, startOfMonth } from "date-fns";
 
+import { triggerPlayerMessageWorkflow } from "@/lib/server/background-tasks";
 import {
+  PLAYER_FREE_CONV_STARTS_PER_MONTH,
+  PLAYER_FREE_MESSAGES_PER_CONV,
   FEATURE_KEYS,
-  hasAnyFeatureAccessWithDb,
-} from "@/lib/server/entitlements";
+} from "@/lib/pricing-config";
+import { hasFeatureAccess } from "@/lib/server/plan-access";
 import {
   observeMessagingEvent,
   recordMessagingEvent,
@@ -137,12 +140,6 @@ export interface PlayerConversationDetail {
   initiatedBy: "COACH" | "PLAYER";
 }
 
-export const PLAYER_FREE_CONVERSATION_STARTS_PER_MONTH = 3;
-
-const PREMIUM_MESSAGING_FEATURES = [
-  FEATURE_KEYS.DIRECT_MESSAGING,
-  FEATURE_KEYS.UNLIMITED_MESSAGES,
-] as const;
 
 function normalizeSearch(search?: string) {
   const trimmed = search?.trim();
@@ -210,10 +207,11 @@ function withPagination<T extends { id: string }>(items: T[], limit: number) {
 }
 
 export async function hasPremiumMessagingAccess(
-  db: MessagingQuotaDbClient,
+  _db: MessagingQuotaDbClient,
   clerkUserId: string,
 ) {
-  return hasAnyFeatureAccessWithDb(db, clerkUserId, PREMIUM_MESSAGING_FEATURES);
+  // Plan access reads stripeCustomer — not transaction-sensitive, uses global db.
+  return hasFeatureAccess(clerkUserId, FEATURE_KEYS.MESSAGING_UNLIMITED);
 }
 
 export async function getPlayerMessagingQuotaStatus(
@@ -241,7 +239,7 @@ export async function getPlayerMessagingQuotaStatus(
     ? null
     : Math.max(
         0,
-        PLAYER_FREE_CONVERSATION_STARTS_PER_MONTH -
+        PLAYER_FREE_CONV_STARTS_PER_MONTH -
           monthlyConversationStartsUsed,
       );
 
@@ -249,7 +247,7 @@ export async function getPlayerMessagingQuotaStatus(
     hasUnlimitedAccess,
     monthlyConversationStartLimit: hasUnlimitedAccess
       ? null
-      : PLAYER_FREE_CONVERSATION_STARTS_PER_MONTH,
+      : PLAYER_FREE_CONV_STARTS_PER_MONTH,
     monthlyConversationStartsUsed,
     monthlyConversationStartsRemaining,
     canStartConversation:
@@ -879,6 +877,11 @@ export async function sendPlayerMessage(
       },
     },
     async () => {
+      const hasUnlimitedAccess = await hasPremiumMessagingAccess(
+        db,
+        args.clerkUserId,
+      );
+
       const result = await db.$transaction(async (tx) => {
         let conversation = args.conversationId
           ? await tx.conversation.findFirst({
@@ -894,10 +897,31 @@ export async function sendPlayerMessage(
 
         let createdConversation = false;
 
+        // Track coach info for post-transaction email bridge
+        let coachForEmail: {
+          id: string;
+          clerk_id: string | null;
+          email: string;
+          first_name: string;
+          last_name: string;
+          school: string;
+          forwarded_emails_count: number;
+        } | null = null;
+
         if (!conversation && args.coachId) {
           const coach = await tx.coach.findUnique({
             where: { id: args.coachId },
-            select: { id: true, school_id: true },
+            select: {
+              id: true,
+              school_id: true,
+              clerk_id: true,
+              email: true,
+              first_name: true,
+              last_name: true,
+              school: true,
+              // NOTE: forwarded_emails_count available after prisma generate
+              ...({ forwarded_emails_count: true } as Record<string, boolean>),
+            },
           });
 
           if (!coach?.school_id) {
@@ -906,6 +930,30 @@ export async function sendPlayerMessage(
               message: "Coach not found",
             });
           }
+
+          // If preprovisioned coach, enforce max 1 unreplied message from this player
+          if (!coach.clerk_id) {
+            const existingUnreplied = await tx.message.findFirst({
+              where: {
+                conversation: {
+                  coach_id: coach.id,
+                  player_id: args.playerId,
+                },
+                sender_type: "PLAYER",
+                is_read: false,
+              },
+            });
+
+            if (existingUnreplied) {
+              throw new TRPCError({
+                code: "FORBIDDEN",
+                message:
+                  "This coach hasn't joined EVAL yet. You can send another message once they respond.",
+              });
+            }
+          }
+
+          coachForEmail = coach as unknown as typeof coachForEmail;
 
           conversation = await tx.conversation.findFirst({
             where: {
@@ -951,6 +999,21 @@ export async function sendPlayerMessage(
           });
         }
 
+        if (!createdConversation && !hasUnlimitedAccess) {
+          const playerMsgCount = await tx.message.count({
+            where: {
+              conversation_id: conversation.id,
+              sender_type: "PLAYER",
+            },
+          });
+          if (playerMsgCount >= PLAYER_FREE_MESSAGES_PER_CONV) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: `Free tier allows up to ${PLAYER_FREE_MESSAGES_PER_CONV} messages per conversation. Upgrade to EVAL+ to continue.`,
+            });
+          }
+        }
+
         const message = await createMessageInConversation(tx, {
           conversationId: conversation.id,
           senderId: args.playerId,
@@ -965,6 +1028,7 @@ export async function sendPlayerMessage(
           content: message.content,
           timestamp: message.created_at,
           createdConversation,
+          coachForEmail,
         };
       });
 
@@ -976,7 +1040,27 @@ export async function sendPlayerMessage(
         });
       }
 
-      return result;
+      const emailCoach = result.coachForEmail as {
+        id: string;
+        clerk_id: string | null;
+      } | null;
+
+      if (emailCoach) {
+        await triggerPlayerMessageWorkflow({
+          conversationId: result.conversationId,
+          messageId: result.id,
+          playerId: args.playerId,
+          coachId: emailCoach.id,
+        });
+      }
+
+      return {
+        id: result.id,
+        conversationId: result.conversationId,
+        content: result.content,
+        timestamp: result.timestamp,
+        createdConversation: result.createdConversation,
+      };
     },
   );
 }
@@ -1272,13 +1356,19 @@ export async function getAvailableCoachesForMessaging(
     orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
   });
 
-  return coaches.map((coach) => ({
-    id: coach.id,
-    name: `${coach.first_name} ${coach.last_name}`,
-    email: coach.email,
-    avatar: coach.image_url ?? null,
-    school: coach.school ?? null,
-    schoolName: coach.school_ref?.name ?? null,
-    username: coach.username,
-  }));
+  return coaches.map((coach) => {
+    // NOTE: title and isPreprovisioned available after prisma generate for new fields
+    const coachAny = coach as Record<string, unknown>;
+    return {
+      id: coach.id,
+      name: `${coach.first_name} ${coach.last_name}`,
+      email: coach.email,
+      avatar: coach.image_url ?? null,
+      school: coach.school ?? null,
+      schoolName: coach.school_ref?.name ?? null,
+      username: coach.username,
+      title: (coachAny.title as string) ?? null,
+      isPreprovisioned: !coach.clerk_id,
+    };
+  });
 }

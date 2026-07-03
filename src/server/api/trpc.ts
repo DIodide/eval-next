@@ -14,6 +14,7 @@ import { createClerkContext } from "../context";
 import { db } from "../db";
 
 import { clerkClient } from "@clerk/nextjs/server";
+import { hasFeatureAccess, type FeatureKey } from "@/lib/server/plan-access";
 
 /**
  * 1. CONTEXT
@@ -395,3 +396,23 @@ export const onboardedLeagueAdminProcedure = protectedProcedure.use(
  * Provides leagueAdminId and leagueId in the context.
  */
 export const leagueAdminProcedure = protectedProcedure.use(isLeagueAdmin);
+
+/**
+ * Returns a middleware that gates access to a feature key.
+ * Usage: protectedProcedure.use(requireFeature(FEATURE_KEYS.BOOTCAMP_ACCESS))
+ */
+export function requireFeature(featureKey: FeatureKey) {
+  return t.middleware(async ({ next, ctx }) => {
+    if (!ctx.auth.userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    const ok = await hasFeatureAccess(ctx.auth.userId, featureKey);
+    if (!ok) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Requires plan feature: ${featureKey}`,
+      });
+    }
+    return next({ ctx });
+  });
+}

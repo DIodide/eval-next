@@ -1,6 +1,5 @@
 "use client";
 
-import { CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,8 +30,7 @@ export function ChatHeader({
   onBack,
 }: ChatHeaderProps) {
   return (
-    <CardHeader className="border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50">
-      <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50 px-6 py-4">
         <div className="flex items-center space-x-4">
           {onBack ? (
             <Button
@@ -89,7 +87,6 @@ export function ChatHeader({
             )}
           </Button>
         </div>
-      </div>
-    </CardHeader>
+    </div>
   );
 }

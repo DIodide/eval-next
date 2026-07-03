@@ -14,43 +14,49 @@ import { Input } from "@/components/ui/input";
 import { getAvailableGameNames } from "@/lib/game-logos";
 import { api } from "@/trpc/react";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
-import { Calendar, GraduationCap, Quote, Search, User } from "lucide-react";
+import { GraduationCap, Quote, Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import FAQSection from "./_components/FAQSection";
+import { BootcampPromoStrip } from "./_components/BootcampPromoStrip";
 
-// Helper function to calculate spots remaining
-const getSpotsRemaining = (maxSpots: number, registeredSpots: number) => {
-  const remaining = maxSpots - registeredSpots;
-  if (remaining <= 0) return "Full";
-  return `${remaining} left`;
-};
-
-// Helper function to format date more concisely
-const formatCompactDate = (date: Date) => {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-};
-
-// Game icon mapping
-const gameIcons = {
-  VALORANT: "/valorant/logos/Valorant Logo Red Border.jpg",
-  "Overwatch 2": "/overwatch/logos/Overwatch 2 Primary Logo.png",
-  "Super Smash Bros. Ultimate": "/smash/logos/Smash Ball White Logo.png",
-  "Rocket League": "/rocket-league/logos/Rocket League Emblem.png",
-} as const;
-
-// Helper function to get game icon
-const getGameIcon = (gameName: string) => {
-  return (
-    gameIcons[gameName as keyof typeof gameIcons] ?? "/eval/logos/emblem.png"
-  );
-};
+const BootcampTeaserSection = dynamic(
+  () =>
+    import("./_components/BootcampTeaserSection").then(
+      (m) => m.BootcampTeaserSection,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="border border-blue-500/20 bg-black/95 bg-gradient-to-r from-cyan-600/10 via-blue-600/10 to-purple-600/10 py-20">
+        <div className="container mx-auto px-6">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 text-center">
+              <div className="mx-auto mb-4 h-6 w-40 animate-pulse rounded bg-gray-800" />
+              <div className="mx-auto mb-4 h-12 w-96 animate-pulse rounded bg-gray-800" />
+              <div className="mx-auto h-6 w-80 animate-pulse rounded bg-gray-800" />
+            </div>
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+              <div className="aspect-video w-full animate-pulse rounded-2xl bg-gray-800" />
+              <div className="space-y-4">
+                <div className="h-6 w-32 animate-pulse rounded bg-gray-800" />
+                <div className="h-10 w-64 animate-pulse rounded bg-gray-800" />
+                <div className="space-y-3">
+                  <div className="h-5 w-full animate-pulse rounded bg-gray-800" />
+                  <div className="h-5 w-5/6 animate-pulse rounded bg-gray-800" />
+                  <div className="h-5 w-4/6 animate-pulse rounded bg-gray-800" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    ),
+  },
+);
 
 const testimonials = [
   {
@@ -95,11 +101,6 @@ export default function HomePage() {
     undefined,
   );
   const [inUS, setInUS] = useState<boolean | undefined>(undefined);
-  // Fetch real data from API
-  const { data: upcomingTryouts = [] } =
-    api.tryouts.getUpcomingForHomepage.useQuery({ limit: 3 });
-  const { data: upcomingCombines = [] } =
-    api.combines.getUpcomingForHomepage.useQuery({ limit: 3 });
 
   const handleUserTypeSelect = (userType: "player" | "coach") => {
     setSelectedUserType(userType);
@@ -130,6 +131,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      <BootcampPromoStrip />
       {/* Hero Section */}
       <section className="relative flex min-h-screen items-center justify-center text-center text-white">
         <div className="absolute inset-0 z-10 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-orange-500/5" />
@@ -345,6 +347,9 @@ export default function HomePage() {
                       <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
                         Showcase skills in EVAL Combines
                       </p>
+                      <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
+                        Master recruiting with the EVAL+ Bootcamp
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -368,6 +373,13 @@ export default function HomePage() {
                       </p>
                       <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
                         Get recruiting consulting
+                      </p>
+                      <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
+                        Message recruits directly, unlimited
+                      </p>
+                      <p className="font-rajdhani text-lg leading-relaxed font-medium text-white md:text-xl">
+                        Publish your school&apos;s esports profile to the
+                        college search
                       </p>
                     </div>
                   </div>
@@ -402,176 +414,80 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Step 1 Bootcamp Teaser Section */}
+      <BootcampTeaserSection />
+
       {/* Partners Section */}
       <section className="border border-blue-500/20 bg-black/95 bg-gradient-to-r from-blue-700/10 via-purple-700/10 to-pink-700/10 py-16">
         <div className="container mx-auto px-6">
-          <h2 className="font-orbitron mb-8 text-center text-2xl tracking-wide text-white">
+          <h2 className="font-orbitron mb-2 text-center text-2xl tracking-wide text-white">
             TRUSTED BY
           </h2>
-          <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
-            <Image
-              src="/partners/gse/GSE_LOGO.png"
-              alt="Garden State Esports"
-              width={150}
-              height={60}
-            />
-            <Image
-              src="/partners/keller/keller.png"
-              alt="Keller Center"
-              width={150}
-              height={60}
-            />
+          <p className="font-rajdhani mb-10 text-center text-sm tracking-[0.25em] text-cyan-300/70 uppercase">
+            Programs and partners on EVAL
+          </p>
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-6 md:gap-8">
+            {[
+              {
+                src: "/partners/colleges/army.svg",
+                alt: "Army West Point",
+                label: "West Point",
+              },
+              {
+                src: "/partners/colleges/syracuse.svg",
+                alt: "Syracuse Orange",
+                label: "Syracuse",
+              },
+              {
+                src: "/partners/colleges/boise-state.svg",
+                alt: "Boise State Broncos",
+                label: "Boise State",
+              },
+              {
+                src: "/partners/colleges/maryville.svg",
+                alt: "Maryville Saints",
+                label: "Maryville",
+              },
+              {
+                src: "/partners/gse/GSE_LOGO.png",
+                alt: "Garden State Esports",
+                label: "Garden State Esports",
+              },
+              {
+                src: "/partners/keller/keller.png",
+                alt: "Keller Center",
+                label: "Keller Center",
+              },
+            ].map((partner) => (
+              <div
+                key={partner.alt}
+                className="group flex flex-col items-center"
+              >
+                <div className="relative">
+                  {/* Rainbow ring on hover */}
+                  <div
+                    aria-hidden
+                    className="absolute -inset-0.5 rounded-full bg-[conic-gradient(from_0deg,#22d3ee,#a78bfa,#fb923c,#22d3ee)] opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-80"
+                  />
+                  <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/95 shadow-lg shadow-black/40 ring-1 ring-inset ring-black/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-105 group-hover:border-cyan-300/60 md:h-28 md:w-28">
+                    <Image
+                      src={partner.src}
+                      alt={partner.alt}
+                      width={96}
+                      height={96}
+                      unoptimized
+                      className="h-16 w-16 object-contain md:h-20 md:w-20"
+                    />
+                  </div>
+                </div>
+                <span className="font-rajdhani mt-3 text-xs font-medium tracking-wider text-gray-400 uppercase transition-colors duration-300 group-hover:text-white">
+                  {partner.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* Upcoming Tournaments Section */}
-      <section className="border border-blue-500/20 bg-[#0e041f]/98 from-blue-700/10 via-purple-700/10 to-pink-700/10 py-20">
-        <div className="container mx-auto px-6">
-          <div className="mb-16 text-center">
-            <h2 className="font-orbitron cyber-text mb-4 text-4xl font-black text-white md:text-5xl">
-              UPCOMING TOURNAMENTS
-            </h2>
-            <p className="font-rajdhani text-xl text-gray-300">
-              Don&apos;t miss out on these exciting opportunities to compete and
-              get recruited
-            </p>
-          </div>
-
-          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 lg:grid-cols-1">
-            {/* College Tryouts */}
-            {/* <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 rounded-md p-8 border border-cyan-400/20">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="font-orbitron text-2xl text-cyan-400 font-bold tracking-wide">COLLEGE TRYOUTS</h3>
-                  </div>
-                  <Link href="/tryouts/college">
-                    <Button className="bg-cyan-400 hover:bg-cyan-500 text-black font-orbitron font-bold shadow-lg shadow-cyan-400/25">
-                      VIEW MORE
-                    </Button>
-                  </Link>
-                </div>
-                <div className="flex flex-col space-y-4">
-                  {upcomingTryouts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-400 font-rajdhani">No upcoming tryouts available</p>
-                    </div>
-                  ) : (
-                    upcomingTryouts.map((tryout) => (
-                      <Link key={tryout.id} href={`/tryouts/college/${tryout.id}`}>
-                        <Card className="bg-gray-800/80 backdrop-blur-sm border-gray-700 hover:border-cyan-400/50 hover:bg-gray-800/90 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/20 cursor-pointer transform hover:scale-[1.02]">
-                          <CardContent className="p-5">
-                            <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                <Image
-                                  src={getGameIcon(tryout.game.name)}
-                                  alt={tryout.game.name}
-                                  width={48}
-                                  height={48}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-orbitron text-white font-semibold truncate mb-1">{tryout.title}</h4>
-                                <p className="text-gray-400 font-rajdhani text-sm mb-2">{tryout.school.name}</p>
-                                <div className="flex items-center space-x-1">
-                                  <Calendar className="w-4 h-4 text-cyan-400" />
-                                  <span className="text-cyan-400 font-rajdhani text-sm">
-                                    {formatCompactDate(tryout.date)}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <Badge className="bg-gradient-to-r from-green-400 to-green-500 text-black font-orbitron text-xs font-bold">
-                                  {getSpotsRemaining(tryout.max_spots, tryout.registered_spots)}
-                                </Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </div> */}
-
-            {/* EVAL Combines */}
-            <div className="rounded-md border border-purple-400/20 bg-gradient-to-br from-purple-500/10 to-purple-600/5 p-8">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h3 className="font-orbitron text-2xl font-bold tracking-wide text-purple-400">
-                    EVAL COMBINES
-                  </h3>
-                </div>
-                <Link href="/tryouts/combines">
-                  <Button className="font-orbitron bg-purple-400 font-bold text-black shadow-lg shadow-purple-400/25 hover:bg-purple-500">
-                    VIEW MORE
-                  </Button>
-                </Link>
-              </div>
-              <div className="flex flex-col space-y-4">
-                {upcomingCombines.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <p className="font-rajdhani text-gray-400">
-                      No upcoming combines available
-                    </p>
-                  </div>
-                ) : (
-                  upcomingCombines.map((combine) => (
-                    <Link
-                      key={combine.id}
-                      href={`/tryouts/combines/${combine.id}`}
-                    >
-                      <Card className="transform cursor-pointer border-gray-700 bg-gray-800/80 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-purple-400/50 hover:bg-gray-800/90 hover:shadow-lg hover:shadow-purple-400/20">
-                        <CardContent className="p-5">
-                          <div className="flex items-center space-x-4">
-                            <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-                              <Image
-                                src={getGameIcon(combine.game.name)}
-                                alt={combine.game.name}
-                                width={48}
-                                height={48}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-orbitron mb-1 truncate font-semibold text-white">
-                                {combine.title}
-                              </h4>
-                              <p className="font-rajdhani mb-2 text-sm text-gray-400">
-                                {combine.game.name}
-                              </p>
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="h-4 w-4 text-purple-400" />
-                                <span className="font-rajdhani text-sm text-purple-400">
-                                  {formatCompactDate(combine.date)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end space-y-2 text-right">
-                              <div className="font-orbitron text-sm font-bold text-purple-400">
-                                {combine.prize_pool}
-                              </div>
-                              <Button
-                                size="sm"
-                                className="font-orbitron bg-purple-500 px-4 py-1 text-xs text-white hover:bg-purple-600"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                JOIN COMBINE
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Our Games Section */}
       <section className="hidden border border-blue-500/20 bg-black/95 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 py-20">
         <div className="container mx-auto px-6">

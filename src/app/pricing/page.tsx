@@ -22,15 +22,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PRICING_PLANS } from "@/lib/pricing-config";
 import { api } from "@/trpc/react";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
+import { useSubscriptionCheckout } from "@/hooks/use-subscription-checkout";
 import {
-  AlertCircle,
+  PaymentStatusDialog,
+  type PaymentStatusState,
+} from "@/components/billing/payment-status-dialog";
+import {
   ArrowRight,
   BarChart3,
   Calendar,
   Check,
-  CheckCircle2,
   CreditCard,
-  ExternalLink,
   GraduationCap,
   Loader2,
   Target,
@@ -38,57 +40,33 @@ import {
   User,
   Users,
   X,
-  XCircle,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { isBillingEnabled } from "@/lib/billing-config";
 
 function SearchParamsHandler({
-  setPaymentStatusDialog,
+  setFromBootcamp,
+  setActiveTab,
 }: {
-  setPaymentStatusDialog: React.Dispatch<
-    React.SetStateAction<{
-      open: boolean;
-      type: "success" | "failed" | "canceled" | null;
-      planName?: string;
-      message?: string;
-    }>
+  setFromBootcamp: React.Dispatch<React.SetStateAction<boolean>>;
+  setActiveTab: React.Dispatch<
+    React.SetStateAction<"players" | "coaches" | "leagues">
   >;
 }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   useEffect(() => {
-    const success = searchParams.get("success");
-    const canceled = searchParams.get("canceled");
-    const plan = searchParams.get("plan");
+    const from = searchParams.get("from");
 
-    if (success === "true") {
-      const planName =
-        plan === "gold"
-          ? "EVAL Gold"
-          : plan === "platinum"
-            ? "EVAL Platinum"
-            : "Premium";
-      setPaymentStatusDialog({
-        open: true,
-        type: "success",
-        planName,
-      });
-      router.replace("/pricing", { scroll: false });
+    if (from === "bootcamp") {
+      setFromBootcamp(true);
+      setActiveTab("players");
     }
-
-    if (canceled === "true") {
-      setPaymentStatusDialog({
-        open: true,
-        type: "canceled",
-      });
-      router.replace("/pricing", { scroll: false });
-    }
-  }, [searchParams, router, setPaymentStatusDialog]);
+  }, [searchParams, setFromBootcamp, setActiveTab]);
 
   return null;
 }
@@ -96,6 +74,16 @@ function SearchParamsHandler({
 function PricingPageContent() {
   const { user } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isBillingEnabled()) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  if (!isBillingEnabled()) {
+    return null;
+  }
 
   // Get user type from Clerk metadata to determine default tab
   const userType = user?.publicMetadata?.userType as
@@ -108,42 +96,21 @@ function PricingPageContent() {
   const [selectedUserType, setSelectedUserType] = useState<
     "player" | "coach" | null
   >(null);
-  const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"players" | "coaches" | "leagues">(
     "players",
   );
-  const [paymentStatusDialog, setPaymentStatusDialog] = useState<{
-    open: boolean;
-    type: "success" | "failed" | "canceled" | null;
-    planName?: string;
-    message?: string;
-  }>({
+  const [fromBootcamp, setFromBootcamp] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatusState>({
     open: false,
     type: null,
   });
+
+  const { startCheckout, loadingPlanId } = useSubscriptionCheckout();
 
   // Fetch customer data if user is logged in
   const { data: customerData } = api.payments.getCustomer.useQuery(undefined, {
     enabled: !!user,
   });
-
-  // Create subscription checkout mutation
-  const createSubscriptionCheckout =
-    api.payments.createSubscriptionCheckout.useMutation({
-      onSuccess: (data) => {
-        if (data.url) {
-          window.location.href = data.url;
-        }
-      },
-      onError: (error) => {
-        setPaymentStatusDialog({
-          open: true,
-          type: "failed",
-          message: error.message,
-        });
-        setLoadingCheckout(null);
-      },
-    });
 
   // Create customer portal session mutation
   const createPortalSession = api.payments.createPortalSession.useMutation({
@@ -206,44 +173,42 @@ function PricingPageContent() {
     const plan =
       PRICING_PLANS.COACHES[planId.toUpperCase() as "GOLD" | "PLATINUM"];
 
-    if (!plan.priceId) {
-      setPaymentStatusDialog({
-        open: true,
-        type: "failed",
-        message:
-          "Pricing not configured. Please contact support to set up this plan.",
-      });
+    await startCheckout({
+      planId,
+      priceId: plan.priceId ?? "",
+      planName: plan.name,
+      returnPath: "/pricing",
+      onError: (message) => {
+        setPaymentStatus({
+          open: true,
+          type: "failed",
+          message,
+        });
+      },
+    });
+  };
+
+  const handlePlayerSubscribe = async () => {
+    if (!user) {
+      setShowSignUpModal(true);
       return;
     }
 
-    setLoadingCheckout(planId);
+    const plan = PRICING_PLANS.PLAYERS.EVAL_PLUS;
 
-    try {
-      const baseUrl = window.location.origin;
-      const result = await createSubscriptionCheckout.mutateAsync({
-        priceId: plan.priceId,
-        successUrl: `${baseUrl}/pricing?success=true&plan=${planId}`,
-        cancelUrl: `${baseUrl}/pricing?canceled=true`,
-        metadata: {
-          plan_id: planId,
-          plan_name: plan.name,
-        },
-      });
-
-      // If subscription was updated (not new checkout), redirect to success
-      if (result.updated && result.url) {
-        window.location.href = result.url;
-        return;
-      }
-
-      // Otherwise, redirect to Stripe checkout
-      if (result.url) {
-        window.location.href = result.url;
-      }
-    } catch (error) {
-      // Error handled in mutation onError
-      console.error("Checkout error:", error);
-    }
+    await startCheckout({
+      planId: "eval_plus",
+      priceId: plan.priceId ?? "",
+      planName: plan.name,
+      returnPath: "/pricing",
+      onError: (message) => {
+        setPaymentStatus({
+          open: true,
+          type: "failed",
+          message,
+        });
+      },
+    });
   };
 
   const handleManageSubscription = async () => {
@@ -271,12 +236,16 @@ function PricingPageContent() {
 
     const goldPriceId = PRICING_PLANS.COACHES.GOLD.priceId;
     const platinumPriceId = PRICING_PLANS.COACHES.PLATINUM.priceId;
+    const playerPlusPriceId = PRICING_PLANS.PLAYERS.EVAL_PLUS.priceId;
 
     if (currentSubscription.stripePriceId === goldPriceId) {
       return "gold";
     }
     if (currentSubscription.stripePriceId === platinumPriceId) {
       return "platinum";
+    }
+    if (currentSubscription.stripePriceId === playerPlusPriceId) {
+      return "eval_plus";
     }
     return null;
   };
@@ -298,7 +267,10 @@ function PricingPageContent() {
     <div className="relative min-h-screen bg-gradient-to-br from-cyan-500/30 via-purple-500/30 to-orange-500/30">
       {/* Search params handler wrapped in Suspense */}
       <Suspense fallback={null}>
-        <SearchParamsHandler setPaymentStatusDialog={setPaymentStatusDialog} />
+        <SearchParamsHandler
+          setFromBootcamp={setFromBootcamp}
+          setActiveTab={setActiveTab}
+        />
       </Suspense>
 
       {/* Enhanced Background with Floating Elements */}
@@ -370,6 +342,38 @@ function PricingPageContent() {
           </div>
         </div>
 
+        {/* Bootcamp-aware contextual banner */}
+        {fromBootcamp && (
+          <div className="mx-auto mb-8 max-w-4xl">
+            <div className="relative overflow-hidden rounded-2xl border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 via-purple-500/10 to-orange-500/15 p-6 shadow-lg shadow-cyan-400/10">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.08]"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(115deg, transparent 0 22px, rgba(34,211,238,0.95) 22px 24px, transparent 24px 46px, rgba(167,139,250,0.95) 46px 48px)",
+                }}
+              />
+              <div className="relative flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-orbitron mb-1 text-[10px] font-bold tracking-[0.3em] text-cyan-300/90">
+                    EVAL+ BOOTCAMP · UNLOCK FULL ACCESS
+                  </p>
+                  <h2 className="font-orbitron text-xl font-black text-white md:text-2xl">
+                    The recruiting playbook is included in{" "}
+                    <span className="text-cyan-300">EVAL+</span>
+                  </h2>
+                  <p className="font-rajdhani mt-1 max-w-xl text-sm text-gray-300">
+                    Step-by-step modules to build your college list, contact
+                    coaches, and convert tryouts into offers.
+                  </p>
+                </div>
+                <ArrowRight className="hidden h-6 w-6 animate-pulse text-cyan-300 md:block" />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Enhanced Pricing Tabs */}
         <div className="glass-morphism rounded-2xl border-white/20 p-6 md:p-8">
           <Tabs
@@ -402,7 +406,7 @@ function PricingPageContent() {
 
             {/* Players Pricing */}
             <TabsContent value="players" className="mt-8">
-              <div className="mx-auto grid max-w-md grid-cols-1 gap-8 md:grid-cols-1">
+              <div className="mx-auto grid max-w-3xl grid-cols-1 gap-8 md:grid-cols-2">
                 {/* Free Tier */}
                 <Card className="glass-morphism transform border-white/20 transition-all duration-300 hover:scale-105 hover:border-cyan-400/30 hover:shadow-xl hover:shadow-cyan-400/10">
                   <CardHeader className="pb-4">
@@ -444,19 +448,46 @@ function PricingPageContent() {
                       <li className="flex items-start">
                         <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
                         <span className="text-gray-300">
-                          Send up to 3 coach messages
+                          Start up to 3 coach conversations per month
                         </span>
                       </li>
                       <li className="flex items-start">
                         <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
                         <span className="text-gray-500">
-                          Advanced analytics
+                          Full EVAL+ Bootcamp{" "}
+                          <span className="text-gray-600">
+                            (preview module only)
+                          </span>
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Unlimited coach messaging
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Profile view tracking
                         </span>
                       </li>
                       <li className="flex items-start">
                         <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
                         <span className="text-gray-500">
                           Priority visibility to coaches
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Unlimited highlight uploads
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <X className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-gray-500" />
+                        <span className="text-gray-500">
+                          Advanced analytics
                         </span>
                       </li>
                     </ul>
@@ -468,6 +499,121 @@ function PricingPageContent() {
                     >
                       GET STARTED
                     </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* EVAL+ Tier */}
+                <Card
+                  className={`glass-morphism relative transform border-cyan-400/50 shadow-lg shadow-cyan-400/10 transition-all duration-300 hover:scale-105 hover:border-cyan-400 ${
+                    fromBootcamp
+                      ? "ring-2 ring-cyan-400/70 ring-offset-4 ring-offset-black/40"
+                      : ""
+                  }`}
+                >
+                  <div className="absolute -top-3 left-1/2 flex -translate-x-1/2 transform items-center gap-2">
+                    <Badge className="font-orbitron bg-gradient-to-r from-cyan-400 to-cyan-500 px-4 py-1 text-black">
+                      RECOMMENDED
+                    </Badge>
+                    {fromBootcamp && (
+                      <Badge className="font-orbitron bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-1 text-black">
+                        BOOTCAMP
+                      </Badge>
+                    )}
+                  </div>
+                  <CardHeader className="pt-6 pb-4">
+                    <CardTitle className="font-orbitron text-2xl text-white">
+                      EVAL+
+                    </CardTitle>
+                    <CardDescription className="font-rajdhani text-gray-400">
+                      Stand out to recruiters
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="mb-4">
+                      {PRICING_PLANS.PLAYERS.EVAL_PLUS.oldPrice !== undefined && (
+                        <p className="font-orbitron mb-1 text-2xl text-gray-500 line-through decoration-red-500">
+                          ${PRICING_PLANS.PLAYERS.EVAL_PLUS.oldPrice}
+                        </p>
+                      )}
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.PLAYERS.EVAL_PLUS.price}
+                      </p>
+                      <p className="font-rajdhani text-gray-400">per year</p>
+                    </div>
+                    <ul className="font-rajdhani space-y-3">
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Everything in Free
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="font-semibold text-white">
+                          Full EVAL+ Bootcamp access
+                          <span className="font-rajdhani ml-1 text-xs font-normal text-cyan-300/80">
+                            (all modules)
+                          </span>
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Unlimited coach messaging
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Profile view tracking
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Priority visibility to coaches
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Unlimited highlight uploads
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-cyan-400" />
+                        <span className="text-gray-300">
+                          Advanced analytics
+                        </span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    {currentPlan === "eval_plus" ? (
+                      <Button
+                        onClick={handleManageSubscription}
+                        variant="outline"
+                        className="font-orbitron w-full border-cyan-400/50 text-cyan-400 transition-all duration-300 hover:bg-cyan-400/10"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        MANAGE SUBSCRIPTION
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handlePlayerSubscribe}
+                        disabled={loadingPlanId !== null}
+                        className="font-orbitron w-full transform bg-gradient-to-r from-cyan-400 to-cyan-500 text-black transition-all duration-300 hover:scale-105 hover:from-cyan-500 hover:to-cyan-600 disabled:opacity-50"
+                      >
+                        {loadingPlanId === "eval_plus" ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            PROCESSING...
+                          </>
+                        ) : (
+                          "UPGRADE TO EVAL+"
+                        )}
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </div>
@@ -488,8 +634,8 @@ function PricingPageContent() {
                   </CardHeader>
                   <CardContent className="pb-4">
                     <div className="mb-4">
-                      <p className="font-orbitron mb-2 text-4xl text-white line-through decoration-red-500">
-                        $0
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.COACHES.FREE.price}
                       </p>
                       <p className="font-rajdhani text-gray-400">Free pilot</p>
                     </div>
@@ -552,8 +698,13 @@ function PricingPageContent() {
                   </CardHeader>
                   <CardContent className="pb-4">
                     <div className="mb-4">
-                      <p className="font-orbitron mb-2 text-4xl text-white line-through decoration-red-500">
-                        $0
+                      {PRICING_PLANS.COACHES.GOLD.oldPrice !== undefined && (
+                        <p className="font-orbitron mb-1 text-2xl text-gray-500 line-through decoration-red-500">
+                          ${PRICING_PLANS.COACHES.GOLD.oldPrice}
+                        </p>
+                      )}
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.COACHES.GOLD.price}
                       </p>
                       <p className="font-rajdhani text-gray-400">per year</p>
                     </div>
@@ -609,11 +760,11 @@ function PricingPageContent() {
                     ) : currentPlan === "platinum" ? (
                       <Button
                         onClick={() => handleSubscribe("gold")}
-                        disabled={loadingCheckout !== null}
+                        disabled={loadingPlanId !== null}
                         variant="outline"
                         className="font-orbitron w-full border-orange-400/50 text-orange-400 transition-all duration-300 hover:bg-orange-400/10 disabled:opacity-50"
                       >
-                        {loadingCheckout === "gold" ? (
+                        {loadingPlanId === "gold" ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             PROCESSING...
@@ -625,10 +776,10 @@ function PricingPageContent() {
                     ) : (
                       <Button
                         onClick={() => handleSubscribe("gold")}
-                        disabled={loadingCheckout !== null}
+                        disabled={loadingPlanId !== null}
                         className="font-orbitron w-full transform bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all duration-300 hover:scale-105 hover:from-orange-500 hover:to-orange-600 disabled:opacity-50"
                       >
-                        {loadingCheckout === "gold" ? (
+                        {loadingPlanId === "gold" ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             PROCESSING...
@@ -658,8 +809,13 @@ function PricingPageContent() {
                   </CardHeader>
                   <CardContent className="pb-4">
                     <div className="mb-4">
-                      <p className="font-orbitron mb-2 text-4xl text-white line-through decoration-red-500">
-                        $0
+                      {PRICING_PLANS.COACHES.PLATINUM.oldPrice !== undefined && (
+                        <p className="font-orbitron mb-1 text-2xl text-gray-500 line-through decoration-red-500">
+                          ${PRICING_PLANS.COACHES.PLATINUM.oldPrice}
+                        </p>
+                      )}
+                      <p className="font-orbitron mb-2 text-4xl text-white">
+                        ${PRICING_PLANS.COACHES.PLATINUM.price}
                       </p>
                       <p className="font-rajdhani text-gray-400">per year</p>
                     </div>
@@ -719,10 +875,10 @@ function PricingPageContent() {
                     ) : currentPlan === "gold" ? (
                       <Button
                         onClick={() => handleSubscribe("platinum")}
-                        disabled={loadingCheckout !== null}
+                        disabled={loadingPlanId !== null}
                         className="font-orbitron w-full transform bg-gradient-to-r from-purple-400 to-purple-500 text-black transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-600 disabled:opacity-50"
                       >
-                        {loadingCheckout === "platinum" ? (
+                        {loadingPlanId === "platinum" ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             PROCESSING...
@@ -734,10 +890,10 @@ function PricingPageContent() {
                     ) : (
                       <Button
                         onClick={() => handleSubscribe("platinum")}
-                        disabled={loadingCheckout !== null}
+                        disabled={loadingPlanId !== null}
                         className="font-orbitron w-full transform bg-gradient-to-r from-purple-400 to-purple-500 text-black transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-600 disabled:opacity-50"
                       >
-                        {loadingCheckout === "platinum" ? (
+                        {loadingPlanId === "platinum" ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             PROCESSING...
@@ -1141,248 +1297,24 @@ function PricingPageContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Payment Status Dialog */}
-      <Dialog
-        open={paymentStatusDialog.open}
+      <PaymentStatusDialog
+        state={paymentStatus}
         onOpenChange={(open) =>
-          setPaymentStatusDialog({ ...paymentStatusDialog, open })
+          setPaymentStatus((prev) => ({ ...prev, open }))
         }
-      >
-        <DialogContent className="glass-morphism max-w-md border-white/20 text-white sm:max-w-md">
-          {paymentStatusDialog.type === "success" && (
-            <>
-              <DialogHeader className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-500/20 to-green-400/20">
-                  <CheckCircle2 className="h-10 w-10 text-green-400" />
-                </div>
-                <DialogTitle className="font-orbitron text-2xl font-bold text-white">
-                  SUBSCRIPTION ACTIVATED!
-                </DialogTitle>
-                <DialogDescription className="font-rajdhani text-base text-gray-300">
-                  Welcome to {paymentStatusDialog.planName ?? "Premium"}!
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="rounded-lg border border-green-400/30 bg-gradient-to-r from-green-600/10 to-green-400/10 p-4">
-                  <div className="flex items-start space-x-3">
-                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-400" />
-                    <div className="flex-1">
-                      <p className="font-rajdhani text-sm font-semibold text-white">
-                        Your subscription is now active
-                      </p>
-                      <p className="font-rajdhani mt-1 text-xs text-gray-300">
-                        You now have access to all premium features. Your
-                        billing cycle will renew automatically.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="font-rajdhani text-sm font-semibold text-white">
-                    What&apos;s next?
-                  </p>
-                  <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
-                    <li className="flex items-start">
-                      <ArrowRight className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-400" />
-                      <span>
-                        Access your dashboard to explore premium features
-                      </span>
-                    </li>
-                    <li className="flex items-start">
-                      <ArrowRight className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-400" />
-                      <span>
-                        Start recruiting with advanced search and analytics
-                      </span>
-                    </li>
-                    <li className="flex items-start">
-                      <ArrowRight className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-green-400" />
-                      <span>
-                        Manage your subscription anytime from your account
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <DialogFooter className="flex-col gap-2 sm:flex-row">
-                <Button
-                  onClick={() => {
-                    setPaymentStatusDialog({ open: false, type: null });
-                    router.push("/dashboard/coaches");
-                  }}
-                  className="font-orbitron w-full bg-gradient-to-r from-green-500 to-green-600 text-white transition-all hover:from-green-600 hover:to-green-700 sm:w-auto"
-                >
-                  Go to Dashboard
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setPaymentStatusDialog({ open: false, type: null });
-                  }}
-                  variant="outline"
-                  className="font-rajdhani w-full border-gray-600 text-gray-300 hover:bg-gray-800 sm:w-auto"
-                >
-                  Stay on Pricing
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-
-          {paymentStatusDialog.type === "failed" && (
-            <>
-              <DialogHeader className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500/20 to-red-400/20">
-                  <XCircle className="h-10 w-10 text-red-400" />
-                </div>
-                <DialogTitle className="font-orbitron text-2xl font-bold text-white">
-                  PAYMENT FAILED
-                </DialogTitle>
-                <DialogDescription className="font-rajdhani text-base text-gray-300">
-                  We couldn&apos;t process your payment
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="rounded-lg border border-red-400/30 bg-gradient-to-r from-red-600/10 to-red-400/10 p-4">
-                  <div className="flex items-start space-x-3">
-                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
-                    <div className="flex-1">
-                      <p className="font-rajdhani text-sm font-semibold text-white">
-                        {paymentStatusDialog.message ??
-                          "There was an issue processing your payment"}
-                      </p>
-                      <p className="font-rajdhani mt-1 text-xs text-gray-300">
-                        Please check your payment method and try again, or
-                        contact support if the problem persists.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="font-rajdhani text-sm font-semibold text-white">
-                    Common issues:
-                  </p>
-                  <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
-                    <li className="flex items-start">
-                      <X className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-400" />
-                      <span>Insufficient funds or card declined</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-400" />
-                      <span>Expired or invalid payment method</span>
-                    </li>
-                    <li className="flex items-start">
-                      <X className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-red-400" />
-                      <span>Network or processing error</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <DialogFooter className="flex-col gap-2 sm:flex-row">
-                <Button
-                  onClick={() => {
-                    setPaymentStatusDialog({ open: false, type: null });
-                    // Retry checkout - user can click the button again
-                  }}
-                  className="font-orbitron w-full bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all hover:from-orange-500 hover:to-orange-600 sm:w-auto"
-                >
-                  Try Again
-                </Button>
-                <Button
-                  onClick={() => {
-                    window.open("mailto:support@evalgaming.com", "_blank");
-                  }}
-                  variant="outline"
-                  className="font-rajdhani w-full border-gray-600 text-gray-300 hover:bg-gray-800 sm:w-auto"
-                >
-                  Contact Support
-                  <ExternalLink className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setPaymentStatusDialog({ open: false, type: null });
-                  }}
-                  variant="ghost"
-                  className="font-rajdhani w-full text-gray-400 hover:text-gray-300 sm:w-auto"
-                >
-                  Close
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-
-          {paymentStatusDialog.type === "canceled" && (
-            <>
-              <DialogHeader className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500/20 to-yellow-400/20">
-                  <AlertCircle className="h-10 w-10 text-yellow-400" />
-                </div>
-                <DialogTitle className="font-orbitron text-2xl font-bold text-white">
-                  CHECKOUT CANCELED
-                </DialogTitle>
-                <DialogDescription className="font-rajdhani text-base text-gray-300">
-                  No charges were made to your account
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="rounded-lg border border-yellow-400/30 bg-gradient-to-r from-yellow-600/10 to-yellow-400/10 p-4">
-                  <div className="flex items-start space-x-3">
-                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
-                    <div className="flex-1">
-                      <p className="font-rajdhani text-sm font-semibold text-white">
-                        Your checkout was canceled
-                      </p>
-                      <p className="font-rajdhani mt-1 text-xs text-gray-300">
-                        You can return to complete your subscription anytime. No
-                        payment was processed.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="font-rajdhani text-sm font-semibold text-white">
-                    Ready to upgrade?
-                  </p>
-                  <ul className="font-rajdhani space-y-2 text-sm text-gray-300">
-                    <li className="flex items-start">
-                      <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-yellow-400" />
-                      <span>All plans include a full feature set</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-yellow-400" />
-                      <span>Cancel anytime with no long-term commitment</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-yellow-400" />
-                      <span>Secure payment processing via Stripe</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <DialogFooter className="flex-col gap-2 sm:flex-row">
-                <Button
-                  onClick={() => {
-                    setPaymentStatusDialog({ open: false, type: null });
-                    // Scroll to pricing plans
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="font-orbitron w-full bg-gradient-to-r from-orange-400 to-orange-500 text-black transition-all hover:from-orange-500 hover:to-orange-600 sm:w-auto"
-                >
-                  View Plans
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setPaymentStatusDialog({ open: false, type: null });
-                  }}
-                  variant="outline"
-                  className="font-rajdhani w-full border-gray-600 text-gray-300 hover:bg-gray-800 sm:w-auto"
-                >
-                  Close
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+        onClose={() => setPaymentStatus({ open: false, type: null })}
+        variant="pricing"
+        onGoToDashboard={() => {
+          router.push(
+            userType === "player"
+              ? "/dashboard/player"
+              : "/dashboard/coaches",
+          );
+        }}
+        onViewPlans={() => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     </div>
   );
 }

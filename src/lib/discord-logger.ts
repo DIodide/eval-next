@@ -51,6 +51,7 @@ export enum LogEventType {
   ADMIN_ACTION = "admin_action",
   ERROR = "error",
   SECURITY_ALERT = "security_alert",
+  COACH_MERGE = "coach_merge",
 }
 
 // Color constants for different event types
@@ -67,6 +68,7 @@ export const DISCORD_COLORS = {
   [LogEventType.ADMIN_ACTION]: 0xff6b35, // Orange-Red
   [LogEventType.ERROR]: 0xe74c3c, // Red
   [LogEventType.SECURITY_ALERT]: 0xc0392b, // Dark Red
+  [LogEventType.COACH_MERGE]: 0x2ecc71, // Green
 } as const;
 
 // Multiple webhook support - configure different channels for different events
@@ -93,6 +95,7 @@ export const EVENT_WEBHOOK_ROUTING: Record<LogEventType, string[]> = {
   [LogEventType.ADMIN_ACTION]: ["admin", "security"],
   [LogEventType.ERROR]: ["errors", "admin"],
   [LogEventType.SECURITY_ALERT]: ["security", "admin"],
+  [LogEventType.COACH_MERGE]: ["registrations", "admin"],
 };
 
 // Base event data interface
@@ -185,6 +188,12 @@ export interface SecurityAlertData extends BaseEventData {
   blockedAction?: string;
 }
 
+export interface CoachMergeData extends BaseEventData {
+  preprovisionedCoachId: string;
+  coachEmail: string;
+  schoolName?: string | null;
+}
+
 // Union type for all event data
 export type EventData =
   | SchoolAssociationRequestData
@@ -195,7 +204,8 @@ export type EventData =
   | UserRegistrationData
   | AdminActionData
   | ErrorEventData
-  | SecurityAlertData;
+  | SecurityAlertData
+  | CoachMergeData;
 
 // Discord logging class
 class DiscordLogger {
@@ -313,6 +323,9 @@ class DiscordLogger {
 
       case LogEventType.SECURITY_ALERT:
         return this.formatSecurityAlert(data as SecurityAlertData);
+
+      case LogEventType.COACH_MERGE:
+        return this.formatCoachMerge(data as CoachMergeData);
 
       default:
         return null;
@@ -676,6 +689,37 @@ class DiscordLogger {
     return { embeds: [embed] };
   }
 
+  private formatCoachMerge(data: CoachMergeData): DiscordMessage {
+    const embed = this.createBaseEmbed(
+      LogEventType.COACH_MERGE,
+      "Preprovisioned Coach Merged",
+    );
+
+    embed.description = `A preprovisioned coach has signed up and been merged with their existing record.`;
+    embed.fields = [
+      {
+        name: "Coach",
+        value: `**Name:** ${data.userName ?? "Unknown"}\n**Email:** ${data.coachEmail}`,
+        inline: true,
+      },
+      {
+        name: "Preprovisioned Coach ID",
+        value: `\`${data.preprovisionedCoachId}\``,
+        inline: true,
+      },
+    ];
+
+    if (data.schoolName) {
+      embed.fields.push({
+        name: "School",
+        value: data.schoolName,
+        inline: true,
+      });
+    }
+
+    return { embeds: [embed] };
+  }
+
   private formatSecurityAlert(data: SecurityAlertData): DiscordMessage {
     const embed = this.createBaseEmbed(
       LogEventType.SECURITY_ALERT,
@@ -842,5 +886,13 @@ export const logSecurityAlert = (
     LogEventType.SECURITY_ALERT,
     data,
     WEBHOOK_URLS.errors,
+  );
+};
+
+export const logCoachMerge = (data: CoachMergeData) => {
+  return discordLogger.logEvent(
+    LogEventType.COACH_MERGE,
+    data,
+    WEBHOOK_URLS.registrations,
   );
 };
