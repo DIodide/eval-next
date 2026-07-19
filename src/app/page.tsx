@@ -439,11 +439,6 @@ export default function HomePage() {
                 label: "Syracuse",
               },
               {
-                src: "/partners/colleges/boise-state.svg",
-                alt: "Boise State Broncos",
-                label: "Boise State",
-              },
-              {
                 src: "/partners/colleges/maryville.svg",
                 alt: "Maryville Saints",
                 label: "Maryville",
